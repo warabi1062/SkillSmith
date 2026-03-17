@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "name": "SkillSmith",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "packageManager": "pnpm@10.6.4"
+}
