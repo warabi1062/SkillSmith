@@ -131,17 +131,17 @@ export function classifySkill(
   // If explicitly provided, use it
   if (kind) return kind;
 
-  // Cross-cutting: user-invocable is false, no context fork
-  if (
-    frontmatter["user-invocable"] === false &&
-    frontmatter.context !== "fork"
-  ) {
-    return SkillKind.CrossCutting;
-  }
-
-  // Worker: has context fork or agent field
+  // Worker: context: "fork" is the defining characteristic of Worker skills.
+  // This check comes first because "fork" takes priority over user-invocable.
+  // A skill with { user-invocable: false, context: "fork" } is a Worker,
+  // not Cross-cutting, since "fork" indicates sub-agent execution context.
   if (frontmatter.context === "fork") {
     return SkillKind.Worker;
+  }
+
+  // Cross-cutting: user-invocable is false, no context fork
+  if (frontmatter["user-invocable"] === false) {
+    return SkillKind.CrossCutting;
   }
 
   // Orchestrator: body references Task(subagent_type:...)

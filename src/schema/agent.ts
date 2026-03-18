@@ -2,6 +2,11 @@ import { z } from "zod";
 
 /**
  * Agent model options
+ *
+ * NOTE: Model names are hard-coded to current Claude model tiers.
+ * These values will need to be extended as new Claude versions are released
+ * (e.g., "sonnet-4", "opus-4"). Consider extracting to a shared constant
+ * or configuration if the update frequency becomes a maintenance burden.
  */
 export const AgentModelSchema = z.enum([
   "inherit",

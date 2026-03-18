@@ -160,6 +160,32 @@ export const OrchestratorSkillSchema = z
       message: "Step dependsOn references non-existent step IDs",
       path: ["steps"],
     }
+  )
+  .refine(
+    (data) => {
+      // Each step's inputs must reference semantic names that exist in
+      // the outputs of steps listed in its dependsOn.
+      const stepMap = new Map(data.steps.map((s) => [s.id, s]));
+      return data.steps.every((step) => {
+        if (step.inputs.length === 0) return true;
+        // Collect all semantic names from dependsOn steps' outputs
+        const availableNames = new Set<string>();
+        for (const depId of step.dependsOn) {
+          const depStep = stepMap.get(depId);
+          if (depStep) {
+            for (const output of depStep.outputs) {
+              availableNames.add(output.semanticName);
+            }
+          }
+        }
+        return step.inputs.every((input) => availableNames.has(input));
+      });
+    },
+    {
+      message:
+        "Step inputs reference semantic names that do not exist in dependsOn steps' outputs",
+      path: ["steps"],
+    }
   );
 
 export type OrchestratorSkill = z.infer<typeof OrchestratorSkillSchema>;

@@ -192,6 +192,16 @@ describe("classifySkill", () => {
     expect(result).toBe(SkillKind.EntryPointOrchestrator);
   });
 
+  it("classifies as worker when user-invocable is false and context is fork", () => {
+    // context: "fork" is the defining characteristic of Worker skills,
+    // so it takes priority over user-invocable: false
+    const result = classifySkill(
+      { "user-invocable": false, context: "fork" },
+      ""
+    );
+    expect(result).toBe(SkillKind.Worker);
+  });
+
   it("classifies as standalone entry-point by default", () => {
     const result = classifySkill({ description: "Review a PR" }, "## Steps\n");
     expect(result).toBe(SkillKind.EntryPointStandalone);

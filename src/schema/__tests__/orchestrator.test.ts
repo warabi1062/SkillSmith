@@ -150,6 +150,39 @@ describe("OrchestratorSkillSchema", () => {
   });
 
   // ---------------------------------------------------------------------------
+  // Input semantic name validation
+  // ---------------------------------------------------------------------------
+  it("rejects inputs referencing non-existent semantic names in dependsOn outputs", () => {
+    const data = makeValidOrchestrator({
+      steps: [
+        {
+          id: "1",
+          name: "Triage",
+          agentType: "triage-agent",
+          outputs: [
+            { semanticName: "triage result path", description: "Triage result" },
+          ],
+        },
+        {
+          id: "2",
+          name: "Plan",
+          agentType: "plan-agent",
+          inputs: ["nonexistent semantic name"],
+          dependsOn: ["1"],
+        },
+      ],
+    });
+    const result = OrchestratorSkillSchema.safeParse(data);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.map((i) => i.message);
+      expect(
+        messages.some((m) => m.includes("semantic names that do not exist"))
+      ).toBe(true);
+    }
+  });
+
+  // ---------------------------------------------------------------------------
   // Modes
   // ---------------------------------------------------------------------------
   it("parses orchestrator with modes", () => {
@@ -381,7 +414,7 @@ describe("OrchestratorSkillSchema", () => {
           agentType: "create-pr-agent",
           inputs: ["implementation result path", "review result path"],
           outputs: [{ semanticName: "PR URL" }],
-          dependsOn: ["4"],
+          dependsOn: ["3", "4"],
         },
       ],
       modes: [
