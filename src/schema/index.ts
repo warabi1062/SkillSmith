@@ -40,3 +40,19 @@ export {
   type PermissionMode,
   type MemoryScope,
 } from "./agent.js";
+
+// Orchestrator schemas
+export {
+  OrchestratorSkillSchema,
+  OrchestratorStepSchema,
+  OrchestratorModeSchema,
+  FilePathRelaySchema,
+  StepConditionSchema,
+  StepExecutionMode,
+  type OrchestratorSkill,
+  type OrchestratorStep,
+  type OrchestratorMode,
+  type FilePathRelay,
+  type StepCondition,
+  type StepExecutionMode as StepExecutionModeType,
+} from "./orchestrator.js";
