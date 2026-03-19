@@ -4,8 +4,14 @@ const { spawn } = require("child_process");
 const path = require("path");
 
 const projectRoot = path.resolve(__dirname, "..");
+const reactRouterBin = path.resolve(
+  projectRoot,
+  "node_modules",
+  ".bin",
+  "react-router"
+);
 
-const child = spawn("npx", ["react-router", "dev"], {
+const child = spawn(reactRouterBin, ["dev"], {
   cwd: projectRoot,
   stdio: "inherit",
   shell: true,

@@ -5,7 +5,7 @@
   "type": "module",
   "description": "",
   "bin": {
-    "skillsmith": "./cli/bin.js"
+    "skillsmith": "./cli/bin.cjs"
   },
   "scripts": {
     "dev": "react-router dev",
