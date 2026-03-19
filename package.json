@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "",
+  "bin": {
+    "skillsmith": "./cli/bin.js"
+  },
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build",
