@@ -20,9 +20,6 @@ importers:
       isbot:
         specifier: ^5.1.0
         version: 5.1.36
-      prisma:
-        specifier: ^6.19.2
-        version: 6.19.2(typescript@5.9.3)
       react:
         specifier: ^19.0.0
         version: 19.2.4
@@ -45,6 +42,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.3(@types/react@19.2.14)
+      prisma:
+        specifier: ^6.19.2
+        version: 6.19.2(typescript@5.9.3)
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
