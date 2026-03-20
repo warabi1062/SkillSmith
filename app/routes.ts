@@ -11,4 +11,8 @@ export default [
     "plugins/:id/components/new",
     "routes/plugins.$id.components.new.tsx",
   ),
+  route(
+    "plugins/:id/components/:componentId",
+    "routes/plugins.$id.components.$componentId.tsx",
+  ),
 ] satisfies RouteConfig;
