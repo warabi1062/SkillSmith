@@ -69,7 +69,7 @@ export function generateSkillMd(component: SkillComponentData): {
   }
 
   // Check hooks
-  const hooksError = checkHooksField(hooks(config), component.id);
+  const hooksError = checkHooksField(config.hooks, component.id);
   if (hooksError) {
     errors.push(hooksError);
   }
@@ -125,8 +125,4 @@ export function generateSkillMd(component: SkillComponentData): {
     },
     errors,
   };
-}
-
-function hooks(config: SkillConfigData): string | null {
-  return config.hooks;
 }

@@ -8,10 +8,6 @@ type FrontmatterValue =
   | null
   | undefined;
 
-interface SerializeFrontmatterOptions {
-  componentId?: string;
-}
-
 /**
  * Parse a JSON string field into a string array.
  * Returns the parsed array on success, or null with a validation error on failure.
@@ -77,8 +73,36 @@ function serializeYamlValue(value: FrontmatterValue): string | null {
     return "\n" + value.map((item) => `  - ${item}`).join("\n");
   }
 
-  // string
+  // string - escape if it contains special YAML characters
+  if (needsYamlQuoting(value)) {
+    return `"${escapeYamlDoubleQuoted(value)}"`;
+  }
   return value;
+}
+
+/**
+ * Check if a string value needs to be quoted in YAML.
+ * Values containing special characters must be double-quoted to avoid
+ * YAML parsing ambiguity.
+ */
+function needsYamlQuoting(value: string): boolean {
+  if (value === "") {
+    return true;
+  }
+  // Characters that require quoting: colon+space, hash, braces, brackets,
+  // quotes, newlines, leading/trailing whitespace
+  return /[:#{\[}"'\n\r]|^\s|\s$/.test(value);
+}
+
+/**
+ * Escape special characters inside a YAML double-quoted string.
+ */
+function escapeYamlDoubleQuoted(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
 }
 
 /**
@@ -87,7 +111,6 @@ function serializeYamlValue(value: FrontmatterValue): string | null {
  */
 export function serializeFrontmatter(
   fields: Record<string, FrontmatterValue>,
-  _options?: SerializeFrontmatterOptions,
 ): string {
   const lines: string[] = [];
 

@@ -4,6 +4,7 @@ import type {
   GeneratedFile,
   GenerationValidationError,
 } from "./types";
+import type { ValidatorComponentData } from "./validator.server";
 import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd } from "./agent-generator.server";
@@ -40,12 +41,17 @@ type PluginWithComponents = NonNullable<
 >;
 type ComponentWithRelations = PluginWithComponents["components"][number];
 
+export interface GeneratePluginResult {
+  plugin: GeneratedPlugin;
+  components: ValidatorComponentData[];
+}
+
 /**
  * Generate all files for a plugin.
  */
 export async function generatePlugin(
   pluginId: string,
-): Promise<GeneratedPlugin | null> {
+): Promise<GeneratePluginResult | null> {
   const plugin = await fetchPluginData(pluginId);
   if (!plugin) {
     return null;
@@ -70,10 +76,50 @@ export async function generatePlugin(
     }
   }
 
+  // Build component data for validator
+  const validatorComponents: ValidatorComponentData[] =
+    plugin.components.map(toValidatorComponentData);
+
   return {
-    pluginName: plugin.name,
-    files,
-    validationErrors,
+    plugin: {
+      pluginName: plugin.name,
+      files,
+      validationErrors,
+    },
+    components: validatorComponents,
+  };
+}
+
+function toValidatorComponentData(
+  component: ComponentWithRelations,
+): ValidatorComponentData {
+  return {
+    id: component.id,
+    type: component.type as "SKILL" | "AGENT",
+    skillConfig: component.skillConfig
+      ? {
+          name: component.skillConfig.name,
+          skillType: component.skillConfig.skillType,
+        }
+      : null,
+    agentConfig: component.agentConfig
+      ? { name: component.agentConfig.name }
+      : null,
+    dependenciesFrom: component.dependenciesFrom.map((dep) => ({
+      target: {
+        id: dep.target.id,
+        type: dep.target.type as "SKILL" | "AGENT",
+        skillConfig: dep.target.skillConfig
+          ? {
+              name: dep.target.skillConfig.name,
+              skillType: dep.target.skillConfig.skillType,
+            }
+          : null,
+        agentConfig: dep.target.agentConfig
+          ? { name: dep.target.agentConfig.name }
+          : null,
+      },
+    })),
   };
 }
 
