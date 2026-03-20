@@ -22,6 +22,7 @@ enum ComponentFileRole {
   TEMPLATE
   REFERENCE
   EXAMPLE
+  OUTPUT_SCHEMA
 }
 
 model Plugin {
