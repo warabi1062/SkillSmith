@@ -83,13 +83,29 @@ export async function exportPlugin(
     }
 
     // Phase 2: Copy staged files from temp to target directory
-    for (const filePath of result.writtenFiles) {
-      const src = path.join(tempDir, filePath);
-      const dest = path.join(resolvedTargetDir, filePath);
-      const destDir = path.dirname(dest);
+    const copiedFiles: string[] = [];
+    try {
+      for (const filePath of result.writtenFiles) {
+        const src = path.join(tempDir, filePath);
+        const dest = path.join(resolvedTargetDir, filePath);
+        const destDir = path.dirname(dest);
 
-      await mkdir(destDir, { recursive: true });
-      await copyFile(src, dest);
+        await mkdir(destDir, { recursive: true });
+        await copyFile(src, dest);
+        copiedFiles.push(dest);
+      }
+    } catch (err) {
+      // Rollback: remove all files that were successfully copied
+      for (const copied of copiedFiles) {
+        await rm(copied, { force: true }).catch(() => {
+          // Best-effort rollback; ignore errors
+        });
+      }
+      const message =
+        err instanceof Error ? err.message : "Unknown error copying file";
+      result.errors.push(`Failed to copy files to target directory: ${message}`);
+      result.writtenFiles = [];
+      return result;
     }
 
     result.exportedDir = resolvedTargetDir;
