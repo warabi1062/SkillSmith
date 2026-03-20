@@ -324,3 +324,14 @@ h3 {
   font-size: 0.875rem;
   color: #1a1a1a;
 }
+
+.dependency-graph {
+  height: 400px;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.dependency-graph-section {
+  margin-top: 1.5rem;
+}
