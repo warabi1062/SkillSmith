@@ -222,3 +222,53 @@ allowedTools, tools, disallowedTools, hooks などの構造化データは、SQL
 | REFERENCE | reference.md | Skill のみ |
 | EXAMPLE | examples/*.md | Skill のみ |
 | OUTPUT_SCHEMA | template-result.md | Skill のみ。ワークフロー成果物のフォーマット |
+
+### 11. Agent Teams のモデリング
+
+**課題**: reference.md で定義されている Agent Teams パターン（複数の Agent が互いに通信しながら並列作業するパターン）が、現スキーマで表現できなかった。
+
+**設計判断**: `AgentTeam` テーブルと `AgentTeamMember` テーブルを新設し、Team のグルーピングを管理する。`ComponentDependency` は変更しない。
+
+**検討した選択肢**:
+
+| Option | 概要 | 判定 |
+|--------|------|------|
+| A | `ComponentDependency` に `isTeammate: Boolean` を追加 | 棄却 |
+| B | `AgentTeam` + `AgentTeamMember` テーブル新設 | **採用** |
+| C | `ComponentDependency` に nullable `agentTeamId` を追加 | 棄却 |
+
+**Option A を棄却した理由**: 1つのオーケストレーターが複数の独立した Team を持つケースで、どの依存が同一 Team に属するかを区別できない。
+
+**Option C を棄却した理由**: `ComponentDependency` は「依存関係」を表現するテーブルであり、「Team メンバーシップ」という異なる意味を同居させると責務が混在する。また、Team メンバーの一覧を得るために依存関係テーブルを経由する必要があり、直感的でない。
+
+**Option B を採用した理由**:
+
+- Team のグルーピングが明示的で、複数 Team を持つケースも自然に表現できる
+- `ComponentDependency` に手を入れず、既存の依存関係モデルへの影響がない
+- Team のメタデータ（name, description）を持てる
+
+**モデリング範囲の限定**:
+
+以下は意図的にスキーマ外としている:
+
+- **Teammate 間の通信内容**: Team 内部のやり取りは要所によって変わるため、SKILL.md / agent.md の本文に自由記述で任せる。スキーマで制御せず柔軟性を確保する
+- **ステップ概念**: オーケストレーターの「どのステップで Team を起動するか」は、非同期の会話によって処理が変わるため、下手にステップを記述しない方が良い。SKILL.md の本文で記述する
+
+**スキーマ構造**:
+
+```
+AgentTeam
+  ├── pluginId       -> Plugin
+  ├── orchestratorId -> Component (SKILL, ENTRY_POINT)
+  ├── name, description
+  └── AgentTeamMember[]
+        ├── componentId -> Component (AGENT)
+        └── sortOrder
+```
+
+**バリデーションルール**（アプリケーション層で実装）:
+
+| ルール | 対象 |
+|-------|------|
+| AgentTeam.orchestratorId -> Component.type は SKILL かつ SkillConfig.skillType は ENTRY_POINT | AgentTeam 作成時 |
+| AgentTeamMember.componentId -> Component.type は AGENT のみ | AgentTeamMember 作成時 |
