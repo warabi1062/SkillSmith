@@ -4,6 +4,10 @@ import { getPlugin } from "../lib/plugins.server";
 import type { Route } from "./+types/plugins.$id";
 import type { Node, Edge } from "@xyflow/react";
 
+const DependencyGraph = React.lazy(
+  () => import("../components/DependencyGraph"),
+);
+
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const name = loaderData?.plugin?.name ?? "Plugin";
   return [{ title: `${name} - SkillSmith` }];
@@ -89,57 +93,38 @@ function buildGraphData(components: PluginComponent[]): {
   const HORIZONTAL_SPACING = 250;
   const VERTICAL_SPACING = 100;
 
-  const nodes: Node[] = [];
-
-  if (hasCycle) {
-    // Fallback: grid layout
-    const cols = Math.ceil(Math.sqrt(components.length));
-    components.forEach((c, i) => {
-      const row = Math.floor(i / cols);
-      const col = i % cols;
-      nodes.push({
-        id: c.id,
-        position: { x: col * HORIZONTAL_SPACING, y: row * VERTICAL_SPACING },
-        data: {
-          label: c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)",
-        },
-        style: {
-          background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
-          border:
-            c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
-          borderRadius: "0.375rem",
-          padding: "8px 16px",
-        },
-      });
-    });
-  } else {
-    // Group by depth for hierarchical layout
-    const layers = new Map<number, PluginComponent[]>();
-    for (const c of components) {
-      const d = depth.get(c.id) ?? 0;
-      if (!layers.has(d)) layers.set(d, []);
-      layers.get(d)!.push(c);
+  function getPosition(
+    componentId: string,
+    index: number,
+  ): { x: number; y: number } {
+    if (hasCycle) {
+      const cols = Math.ceil(Math.sqrt(components.length));
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      return { x: col * HORIZONTAL_SPACING, y: row * VERTICAL_SPACING };
     }
-
-    for (const [d, layerComponents] of layers) {
-      layerComponents.forEach((c, i) => {
-        nodes.push({
-          id: c.id,
-          position: { x: i * HORIZONTAL_SPACING, y: d * VERTICAL_SPACING },
-          data: {
-            label: c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)",
-          },
-          style: {
-            background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
-            border:
-              c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
-            borderRadius: "0.375rem",
-            padding: "8px 16px",
-          },
-        });
-      });
-    }
+    // Hierarchical layout: use depth for y, layer-local index for x
+    const d = depth.get(componentId) ?? 0;
+    const layerIndex = components
+      .filter((c) => (depth.get(c.id) ?? 0) === d)
+      .indexOf(components.find((c) => c.id === componentId)!);
+    return { x: layerIndex * HORIZONTAL_SPACING, y: d * VERTICAL_SPACING };
   }
+
+  const nodes: Node[] = components.map((c, i) => ({
+    id: c.id,
+    position: getPosition(c.id, i),
+    data: {
+      label: c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)",
+    },
+    style: {
+      background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
+      border:
+        c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
+      borderRadius: "0.375rem",
+      padding: "8px 16px",
+    },
+  }));
 
   return { nodes, edges };
 }
@@ -155,10 +140,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
   const graphData =
     plugin.components.length > 0 ? buildGraphData(plugin.components) : null;
-
-  const DependencyGraph = isClient
-    ? React.lazy(() => import("../components/DependencyGraph"))
-    : null;
 
   return (
     <div>
@@ -252,7 +233,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         )}
       </div>
 
-      {graphData && DependencyGraph && (
+      {isClient && graphData && (
         <div className="dependency-graph-section">
           <h3>Dependency Graph</h3>
           <Suspense fallback={<div>Loading graph...</div>}>

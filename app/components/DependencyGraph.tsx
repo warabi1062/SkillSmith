@@ -29,7 +29,6 @@ export default function DependencyGraph({
         edges={edges}
         onNodeClick={onNodeClick}
         fitView
-        proOptions={{ hideAttribution: true }}
       >
         <Background />
         <Controls />
