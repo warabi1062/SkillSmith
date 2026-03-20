@@ -32,6 +32,11 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+  const plugin = await getPlugin(params.id);
+  if (!plugin) {
+    throw data("Plugin not found", { status: 404 });
+  }
+
   const component = await getComponent(params.componentId);
   if (!component || component.pluginId !== params.id) {
     throw data("Component not found", { status: 404 });

@@ -375,6 +375,17 @@ export async function updateComponentFile(
 }
 
 export async function deleteComponentFile(id: string) {
+  const existing = await prisma.componentFile.findUnique({
+    where: { id },
+  });
+  if (!existing) {
+    throw new ValidationError({
+      field: "id",
+      code: "FILE_NOT_FOUND",
+      message: "Component file not found",
+    });
+  }
+
   return prisma.componentFile.delete({
     where: { id },
   });

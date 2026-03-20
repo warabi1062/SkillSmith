@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Form, Link, redirect, data } from "react-router";
 import {
   getPlugin,
@@ -87,6 +88,8 @@ export default function NewComponentFile({
     ? ALL_ROLES.filter((r) => r.value !== "MAIN")
     : ALL_ROLES;
 
+  const [selectedRole, setSelectedRole] = useState(values?.role ?? "");
+
   return (
     <div>
       <h2>New File</h2>
@@ -102,6 +105,7 @@ export default function NewComponentFile({
             defaultValue={values?.role ?? ""}
             className="form-select"
             required
+            onChange={(e) => setSelectedRole(e.target.value)}
           >
             <option value="">-- Select Role --</option>
             {availableRoles.map((r) => (
@@ -139,9 +143,11 @@ export default function NewComponentFile({
           {errors?.content && (
             <div className="form-error">{errors.content}</div>
           )}
-          <p className="card-description" style={{ marginTop: "0.25rem", fontSize: "0.8rem" }}>
-            Note: If you select OUTPUT_SCHEMA role, OutputSchemaField management will be available separately.
-          </p>
+          {selectedRole === "OUTPUT_SCHEMA" && (
+            <p className="card-description" style={{ marginTop: "0.25rem", fontSize: "0.8rem" }}>
+              Note: If you select OUTPUT_SCHEMA role, OutputSchemaField management will be available separately.
+            </p>
+          )}
         </div>
 
         <div className="form-actions">
