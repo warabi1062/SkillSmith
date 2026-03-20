@@ -67,6 +67,45 @@ export async function validateAgentTeamCreate(
   }
 }
 
+const NAME_MAX_LENGTH = 100;
+const DESCRIPTION_MAX_LENGTH = 500;
+
+/**
+ * AgentTeam のフォーム入力バリデーション（同期）。
+ * name 必須・長さ制限、description 長さ制限を検証する。
+ */
+export function validateAgentTeamData(data: {
+  name: string;
+  description?: string;
+}): void {
+  if (!data.name || data.name.trim().length === 0) {
+    throw new ValidationError({
+      field: "name",
+      code: "NAME_REQUIRED",
+      message: "Agent team name is required",
+    });
+  }
+
+  if (data.name.trim().length > NAME_MAX_LENGTH) {
+    throw new ValidationError({
+      field: "name",
+      code: "NAME_TOO_LONG",
+      message: `Agent team name must be ${NAME_MAX_LENGTH} characters or less`,
+    });
+  }
+
+  if (
+    data.description &&
+    data.description.trim().length > DESCRIPTION_MAX_LENGTH
+  ) {
+    throw new ValidationError({
+      field: "description",
+      code: "DESCRIPTION_TOO_LONG",
+      message: `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less`,
+    });
+  }
+}
+
 /**
  * AgentTeamMember 作成時のバリデーション。
  * componentId が指す Component が AGENT タイプであることを検証する。

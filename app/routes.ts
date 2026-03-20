@@ -23,4 +23,28 @@ export default [
     "plugins/:id/components/:componentId/destroy",
     "routes/plugins.$id.components.$componentId.destroy.tsx",
   ),
+  route(
+    "plugins/:id/agent-teams/new",
+    "routes/plugins.$id.agent-teams.new.tsx",
+  ),
+  route(
+    "plugins/:id/agent-teams/:teamId",
+    "routes/plugins.$id.agent-teams.$teamId.tsx",
+  ),
+  route(
+    "plugins/:id/agent-teams/:teamId/edit",
+    "routes/plugins.$id.agent-teams.$teamId.edit.tsx",
+  ),
+  route(
+    "plugins/:id/agent-teams/:teamId/destroy",
+    "routes/plugins.$id.agent-teams.$teamId.destroy.tsx",
+  ),
+  route(
+    "plugins/:id/agent-teams/:teamId/members/new",
+    "routes/plugins.$id.agent-teams.$teamId.members.new.tsx",
+  ),
+  route(
+    "plugins/:id/agent-teams/:teamId/members/:memberId/destroy",
+    "routes/plugins.$id.agent-teams.$teamId.members.$memberId.destroy.tsx",
+  ),
 ] satisfies RouteConfig;
