@@ -1,4 +1,10 @@
+import { Prisma } from "../generated/prisma/client";
 import { prisma } from "./db.server";
+import {
+  validateAgentTeamCreate,
+  validateAgentTeamMemberCreate,
+  ValidationError,
+} from "./validations";
 
 export async function getPlugins() {
   return prisma.plugin.findMany({
@@ -153,5 +159,115 @@ export async function updateComponent(
 export async function deleteComponent(id: string) {
   return prisma.component.delete({
     where: { id },
+  });
+}
+
+// AgentTeam CRUD
+
+export async function getAgentTeam(id: string) {
+  return prisma.agentTeam.findUnique({
+    where: { id },
+    include: {
+      orchestrator: {
+        include: { skillConfig: true },
+      },
+      members: {
+        include: {
+          component: {
+            include: { agentConfig: true },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
+  });
+}
+
+export async function getAgentTeams(pluginId: string) {
+  return prisma.agentTeam.findMany({
+    where: { pluginId },
+    include: {
+      orchestrator: {
+        include: { skillConfig: true },
+      },
+      _count: {
+        select: { members: true },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export async function createAgentTeam(
+  pluginId: string,
+  data: { orchestratorId: string; name: string; description?: string },
+) {
+  await validateAgentTeamCreate(prisma, {
+    orchestratorId: data.orchestratorId,
+  });
+
+  return prisma.agentTeam.create({
+    data: {
+      pluginId,
+      orchestratorId: data.orchestratorId,
+      name: data.name.trim(),
+      description: data.description?.trim() || null,
+    },
+  });
+}
+
+export async function updateAgentTeam(
+  id: string,
+  data: { name: string; description?: string },
+) {
+  return prisma.agentTeam.update({
+    where: { id },
+    data: {
+      name: data.name.trim(),
+      description: data.description?.trim() || null,
+    },
+  });
+}
+
+export async function deleteAgentTeam(id: string) {
+  return prisma.agentTeam.delete({
+    where: { id },
+  });
+}
+
+export async function addAgentTeamMember(
+  teamId: string,
+  data: { componentId: string; sortOrder?: number },
+) {
+  await validateAgentTeamMemberCreate(prisma, {
+    componentId: data.componentId,
+  });
+
+  try {
+    return await prisma.agentTeamMember.create({
+      data: {
+        teamId,
+        componentId: data.componentId,
+        sortOrder: data.sortOrder ?? 0,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new ValidationError({
+        field: "componentId",
+        code: "DUPLICATE_MEMBER",
+        message: "This agent is already a member of the team",
+      });
+    }
+    throw error;
+  }
+}
+
+export async function removeAgentTeamMember(memberId: string) {
+  return prisma.agentTeamMember.delete({
+    where: { id: memberId },
   });
 }
