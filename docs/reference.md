@@ -485,6 +485,26 @@ SKILL.mdの「入力」セクションに、オーケストレーターから渡
 - `{skill名}-result.md`（例: `triage-result.md`, `split-result.md`, `implement-result.md`）
 - `plan.md` は既存の慣習をそのまま使う
 
+#### template-result.md の位置づけ
+
+後続ステップに渡す成果物のフォーマットを定義するファイル。スキルのサポートファイルとして `template-result.md` という名前で配置する。
+
+```
+plugins/{plugin-name}/skills/{skill-name}/
+├── SKILL.md              # メイン指示
+├── template.md           # スキル自身の出力フォーマット（任意）
+└── template-result.md    # ワークフロー成果物のフォーマット（任意）
+```
+
+- `template.md`（TEMPLATE）: スキル自身が出力するドキュメントのフォーマットを定義する。最終成果物の形式
+- `template-result.md`（OUTPUT_SCHEMA）: ワークフローの後続ステップが読む中間成果物のフォーマットを定義する。SkillSmith のデータモデルでは ComponentFileRole の `OUTPUT_SCHEMA` ロールとして管理される
+
+スキルの手順内では以下のように参照する:
+```markdown
+### N. 結果の保存
+結果を `~/.claude/workflows/{チケットID}/{skill名}-result.md` に [template-result.md](template-result.md) 形式で書き出す。
+```
+
 #### ファイル名の所有権
 - ファイル名を決めるのは書き出す側の skill のみ。1箇所で定義する
 - オーケストレーター・agent・読み込む側の skill はファイル名を知らない

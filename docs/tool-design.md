@@ -181,3 +181,4 @@ allowedTools, tools, disallowedTools, hooks などの構造化データは、SQL
 | TEMPLATE | template.md, templates/*.md | Skill のみ |
 | REFERENCE | reference.md | Skill のみ |
 | EXAMPLE | examples/*.md | Skill のみ |
+| OUTPUT_SCHEMA | template-result.md | Skill のみ。ワークフロー成果物のフォーマット |
