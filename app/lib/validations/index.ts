@@ -2,6 +2,7 @@ export {
   ValidationError,
   validateAgentTeamCreate,
   validateAgentTeamMemberCreate,
+  validateAgentTeamData,
 } from "./agent-team.server";
 
 export { validatePluginData } from "./plugin.server";
