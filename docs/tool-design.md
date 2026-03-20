@@ -17,6 +17,7 @@ Plugin
         ├── SkillConfig (1:1)  ... Skill固有フィールド
         ├── AgentConfig (1:1)  ... Agent固有フィールド
         ├── ComponentFile      ... ファイル群
+        │     └── OutputSchemaField ... 出力スキーマのフィールド定義（OUTPUT_SCHEMAロールのみ）
         └── ComponentDependency ... 依存関係
 ```
 
@@ -27,6 +28,7 @@ Plugin
 | SkillConfig | Skill固有の設定（フロントマター由来フィールドを含む） |
 | AgentConfig | Agent固有の設定（フロントマター由来フィールドを含む） |
 | ComponentFile | コンポーネントに紐づくファイル（SKILL.md, template.md 等） |
+| OutputSchemaField | OUTPUT_SCHEMAロールのComponentFileに紐づく出力フィールド定義 |
 | ComponentDependency | コンポーネント間の依存関係 |
 
 ## 設計判断
@@ -100,6 +102,95 @@ ComponentDependency には sourceId, targetId, order のみを持ち、依存の
 - SkillSmith では ComponentDependency による明示的な依存関係管理を推奨する
 - `context: fork` + `agent` は Claude Code の仕組みに直接依存する設定であり、SkillSmith が抽象化・管理する対象ではない
 
+### 9. ワークフロー出力スキーマの定義
+
+**課題**: Worker skill がワークフローファイル（`~/.claude/workflows/{task-id}/`）に書き出す成果物（例: `implement-result.md`）のフォーマットは `template-result.md` で定義されているが、SkillSmith のデータモデル上でこの「出力スキーマ」をどう表現するかが未定義だった。
+
+**検討した選択肢**:
+
+| Option | 概要 | 判定 |
+|--------|------|------|
+| A | ComponentFileRole enum に `OUTPUT_SCHEMA` を追加し、`template-result.md` を OUTPUT_SCHEMA ロールとして管理する | **採用** |
+| B | SkillConfig に `outputSchema` フィールド（JSON文字列）を追加し、出力スキーマをインラインで保持する | 棄却 |
+| C | SkillConfig に `outputSchemaFileId` を追加し、ComponentFile への外部キーで参照する | 棄却 |
+| D | 出力スキーマをデータモデルに含めず、template-result.md を TEMPLATE ロールのまま運用規約で区別する | 棄却 |
+
+**Option A を採用した理由**:
+
+- `template-result.md` は既存の ComponentFile の仕組み（ファイルとしての管理、バージョニング、コンテンツ保持）にそのまま載る。新規テーブルやフィールドの追加が不要で、enum 値の追加だけで対応できる
+- TEMPLATE ロールは「スキルが出力するドキュメントのフォーマット」（例: `template.md`）を意味し、OUTPUT_SCHEMA は「ワークフローの後続ステップに渡す成果物のフォーマット」を意味する。意味的に異なるため、ロールを分けることで UI 上での表示・フィルタリングが容易になる
+- 既存のバリデーションルール「Component.type=AGENT -> ComponentFile.role は MAIN のみ」と整合する（OUTPUT_SCHEMA は Skill のみに紐づく）
+
+**Option B を棄却した理由**: 出力スキーマは Markdown テンプレートであり、構造化された JSON として表現するには不自然。また、SkillConfig に長いテキストフィールドを追加するとテーブルの責務が膨らむ。
+
+**Option C を棄却した理由**: ComponentFile への外部キーを SkillConfig に持たせると、ComponentFile 側からの逆引きと合わせて循環的な参照構造になる。ComponentFile.role で十分に区別できる情報に対して、外部キーを追加する実益がない。
+
+**Option D を棄却した理由**: TEMPLATE ロールと OUTPUT_SCHEMA の区別が運用規約に依存すると、ツール上でのバリデーションや自動分類ができない。SkillSmith がスキーマとして形式化するツールである以上、暗黙の規約ではなく明示的なデータモデルで区別すべき。
+
+**ComponentFile.role の拡張判断**:
+
+ComponentFileRole enum の拡張は、新しいロールが以下の条件を満たす場合に行う:
+- 既存ロールとは意味的に異なる用途を持つ
+- UI 上での表示・フィルタリングで区別する必要がある
+- アプリケーション側のバリデーションで利用する
+
+OUTPUT_SCHEMA はこれらすべてを満たす。TEMPLATE との違いは「誰が消費するか」にある。TEMPLATE はスキル自身の出力フォーマット（人間やLLMが読む最終成果物の形式）であるのに対し、OUTPUT_SCHEMA はワークフローの後続ステップが読む中間成果物の形式である。
+
+**パス乖離について**:
+
+reference.md では `~/.claude/workflows/{task-id}/` をワークフローファイルの保存先としているが、実際の dev-workflow プラグインでは `~/claude-code-data/workflows/{task-id}/` を使用している。この乖離は WAR-20 の対応範囲外であり、別チケットで統一を検討する。SkillSmith のデータモデルとしてはパスの規約に依存せず、ComponentFile のコンテンツとして出力テンプレートを管理するため、パスの統一はデータモデルに影響しない。
+
+**dev-workflow プラグインのデータフロー対応例**:
+
+```
+implement skill
+  ├── ComponentFile(role: MAIN)           -> SKILL.md
+  ├── ComponentFile(role: OUTPUT_SCHEMA)  -> template-result.md
+  └── 実行時: template-result.md の形式で ~/.claude/workflows/{id}/implement-result.md に書き出す
+
+plan-implementation skill
+  ├── ComponentFile(role: MAIN)           -> SKILL.md
+  ├── ComponentFile(role: TEMPLATE)       -> template.md (計画書の出力フォーマット)
+  └── 実行時: template.md の形式で ~/.claude/workflows/{id}/plan.md に書き出す
+```
+
+この例では、plan-implementation の `template.md` は TEMPLATE ロール（スキル自身の出力フォーマット）、implement の `template-result.md` は OUTPUT_SCHEMA ロール（後続ステップへの成果物フォーマット）として区別される。ただし、plan-implementation の `template.md` も後続ステップ（implement）に渡される中間成果物であるため、OUTPUT_SCHEMA として扱うべきかは議論の余地がある。初期運用では「明確にワークフロー受け渡し専用のテンプレート（`*-result.md` パターン）」を OUTPUT_SCHEMA とし、それ以外は TEMPLATE とする。
+
+### 10. 出力スキーマフィールドの構造化管理
+
+**課題**: OUTPUT_SCHEMA ロール（設計判断 9 で導入）は ComponentFile のロールラベルとしてのみ存在し、出力スキーマの内部構造（フィールド名、型、必須フラグ、ネスト関係など）がデータモデル上で管理されていなかった。template-result.md の Markdown テキストとして保持されるだけでは、UI 上でのフィールド単位の編集・バリデーション・可視化ができない。
+
+**設計判断**: `OutputSchemaField` モデルを新規作成し、OUTPUT_SCHEMA ロールの ComponentFile に紐づける。
+
+**階層構造の表現**: 自己参照リレーション（parentId）で表現する。トップレベルフィールドは parentId が null、ネストされたフィールドは親の id を参照する。例:
+
+```
+## セルフチェック結果      -> OutputSchemaField (parentId: null, fieldType: GROUP)
+  - テスト: {PASS/FAIL}  -> OutputSchemaField (parentId: 上記のid, fieldType: ENUM)
+  - 型チェック: {PASS/FAIL} -> OutputSchemaField (parentId: 上記のid, fieldType: ENUM)
+```
+
+**OutputFieldType enum の設計**:
+
+| 値 | 意味 | 用途例 |
+|----|------|--------|
+| TEXT | 自由テキスト | `## 根本原因`, `## 判断根拠` |
+| ENUM | 選択肢型 | `{十分 / 一部不足 / 大幅不足}`, `{PASS/FAIL}` |
+| LIST | リスト型 | `## 補完した情報` の箇条書き |
+| TABLE | テーブル型 | `## コミット一覧` の Markdown テーブル |
+| GROUP | グループ型 | 子フィールドを持つが値自体は持たないセクション |
+
+**enumValues の JSON 文字列格納**: ENUM 型の場合、選択肢を JSON 配列文字列として保持する（例: `["十分","一部不足","大幅不足"]`）。SQLite がネイティブ JSON 型を持たないため String として格納する。これは allowedTools, tools 等の既存フィールドと同じ方針（設計判断「SQLite + JSON フィールド」参照）。fieldType が ENUM でない場合、enumValues は null であるべき。このバリデーションはアプリケーション層で実装する。
+
+**ComponentFile との関連**: OutputSchemaField は componentFileId で ComponentFile に直接紐づける。対象の ComponentFile.role が OUTPUT_SCHEMA であることはアプリケーション側のバリデーションで保証する（DB 制約では表現できない）。
+
+**sortOrder の管理方針**: 同一親配下でのフィールド表示順序を sortOrder で管理する。ユニーク制約（`@@unique([componentFileId, parentId, sortOrder])`）は設けず、アプリケーション層で自動採番する。
+
+理由:
+1. parentId が nullable であり、SQLite では NULL を含む複合ユニーク制約の動作が標準 SQL と異なる
+2. ユニーク制約があると、フィールドの順序入れ替え時に一時的な制約違反が発生し、全フィールドの sortOrder を一括更新する必要がある
+3. ComponentFile.sortOrder や ComponentDependency.order にもユニーク制約は設けられておらず、既存パターンと一貫する
+
 ## バリデーションルール
 
 以下はDBレベルではなくアプリケーション側で実装する制約:
@@ -109,8 +200,11 @@ ComponentDependency には sourceId, targetId, order のみを持ち、依存の
 | Component.type=SKILL → SkillConfig が必須 | Component作成時 |
 | Component.type=AGENT → AgentConfig が必須 | Component作成時 |
 | Component.type=AGENT → ComponentFile.role は MAIN のみ | ComponentFile作成時 |
+| ComponentFile.role=OUTPUT_SCHEMA → Component.type は SKILL のみ | ComponentFile作成時 |
 | Agent→Skill 依存 → target の SkillConfig.type が WORKER のみ | ComponentDependency作成時 |
 | SkillConfig.name は小文字・数字・ハイフンのみ、最大64文字 | SkillConfig作成・更新時 |
+| OutputSchemaField.componentFileId -> ComponentFile.role は OUTPUT_SCHEMA のみ | OutputSchemaField作成時 |
+| OutputSchemaField.enumValues は fieldType が ENUM の場合のみ非null | OutputSchemaField作成・更新時 |
 | ComponentDependency の sourceId + targetId は一意 | ComponentDependency作成時（@@unique制約でDB保証） |
 
 ## 技術的な制約と対応
@@ -127,3 +221,4 @@ allowedTools, tools, disallowedTools, hooks などの構造化データは、SQL
 | TEMPLATE | template.md, templates/*.md | Skill のみ |
 | REFERENCE | reference.md | Skill のみ |
 | EXAMPLE | examples/*.md | Skill のみ |
+| OUTPUT_SCHEMA | template-result.md | Skill のみ。ワークフロー成果物のフォーマット |

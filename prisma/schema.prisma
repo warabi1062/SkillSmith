@@ -22,6 +22,15 @@ enum ComponentFileRole {
   TEMPLATE
   REFERENCE
   EXAMPLE
+  OUTPUT_SCHEMA
+}
+
+enum OutputFieldType {
+  TEXT
+  ENUM
+  LIST
+  TABLE
+  GROUP
 }
 
 model Plugin {
@@ -91,9 +100,32 @@ model ComponentFile {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  component          Component           @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  outputSchemaFields OutputSchemaField[]
 
   @@unique([componentId, filename])
+}
+
+model OutputSchemaField {
+  id              String          @id @default(cuid())
+  componentFileId String
+  parentId        String?
+  name            String
+  fieldType       OutputFieldType
+  description     String?
+  required        Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  enumValues      String?
+  placeholder     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  componentFile ComponentFile       @relation(fields: [componentFileId], references: [id], onDelete: Cascade)
+  parent        OutputSchemaField?  @relation("FieldHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children      OutputSchemaField[] @relation("FieldHierarchy")
+
+  @@index([componentFileId])
+  @@index([parentId])
 }
 
 model ComponentDependency {
