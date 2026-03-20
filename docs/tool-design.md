@@ -1,0 +1,129 @@
+# SkillSmith ツール設計
+
+このドキュメントは、[reference.md](reference.md) に記載されたスキル設計パターン（人間がスキルを管理する方法）を、SkillSmith というGUIツールに落とし込む際に行った設計判断をまとめたものである。
+
+## 前提: reference.md との関係
+
+- **reference.md**: Claude Code のスキル/エージェント/プラグインを人間が手動で設計・管理するための規約とパターン集
+- **本ドキュメント**: reference.md のパターンをツールで管理するにあたり、変換・簡略化・拡張した設計判断の記録
+
+## データモデル概要
+
+### テーブル構成
+
+```
+Plugin
+  └── Component (type: SKILL / AGENT)
+        ├── SkillConfig (1:1)  ... Skill固有フィールド
+        ├── AgentConfig (1:1)  ... Agent固有フィールド
+        ├── ComponentFile      ... ファイル群
+        └── ComponentDependency ... 依存関係
+```
+
+| テーブル | 役割 |
+|---------|------|
+| Plugin | プラグイン全体のメタデータ |
+| Component | Skill/Agentを依存関係グラフのノードとして統一管理 |
+| SkillConfig | Skill固有の設定（フロントマター由来フィールドを含む） |
+| AgentConfig | Agent固有の設定（フロントマター由来フィールドを含む） |
+| ComponentFile | コンポーネントに紐づくファイル（SKILL.md, template.md 等） |
+| ComponentDependency | コンポーネント間の依存関係 |
+
+## 設計判断
+
+### 1. SkillとAgentをComponentテーブルで統一管理する
+
+**reference.md での扱い**: SkillとAgentは明確に分離されている。Skillは手順・知識の定義（What）、Agentは実行環境・振る舞いの定義（How）。ファイル構造も別ディレクトリ（`skills/` と `agents/`）。
+
+**ツール設計での判断**: 両者を共通の `Component` テーブルの行として管理する。
+
+**理由**: ツール上では Skill→Skill、Skill→Agent、Agent→Skill という複数パターンの依存関係を統一的に管理する必要がある。依存元・依存先が異なるテーブルに分散すると外部キー設計が煩雑になる。Component を依存関係グラフのノードとすることで、`ComponentDependency` テーブルは source と target の2つの外部キーだけで全パターンを表現できる。
+
+### 2. Componentは属性を持たず、依存グラフのノードに専念する
+
+name や description は Skill にも Agent にもあるが、これは「たまたま両方にある」だけであり、共通の抽象ではない。Component に属性を持たせると STI（単一テーブル継承）的なテーブルになり、type によって使わないカラムが多数並ぶ。
+
+Componentは `pluginId` と `type`（SKILL / AGENT）だけを持ち、固有の属性は SkillConfig / AgentConfig に1:1で委譲する。これにより関心の分離が明確になる。
+
+### 3. スキルの分類を簡略化する
+
+**reference.md での分類**:
+- Entry-point skill（standalone / orchestrator の2種）
+- Worker skill
+- Cross-cutting skill
+
+**ツール設計での判断**: SkillConfig.type は `ENTRY_POINT` / `WORKER` の2値。
+
+**理由**:
+- **Standalone と Orchestrator の統合**: 両者に実質的な違いはない。Orchestrator であるかどうかは ComponentDependency に子があるかで判別できる
+- **Cross-cutting の除外**: Cross-cutting skill は Entry-point の一種として扱える（ユーザー呼び出しなし = `userInvocable: false` の Entry-point）。分類はあくまで人間が設計時に考えやすくするためのもので、DB上で区別する実益がない
+
+### 4. Entry-point同士の呼び出しを許可する
+
+**reference.md での制約**: 「Sub Agentは更にSub Agentを生成できない」ため、実質的に Entry-point が別の Entry-point を呼び出すことは想定されていない。
+
+**ツール設計での判断**: この制約を緩和し、Entry-point 同士の依存を ComponentDependency で登録可能にする。
+
+**理由**: 元の制約は人間が手動で依存関係を管理する前提での複雑さ回避策だった。SkillSmith で依存関係を可視化・管理できるようになれば、この制約は不要になる。ただし Claude Code ランタイムの制約（Sub Agent が Sub Agent を生成できない）は依然として存在するため、実行時にどう展開するかはアプリケーション側で考慮する必要がある。
+
+### 5. Agent→Skillの依存をWORKERのみに制限する
+
+ComponentDependency で Agent が依存できる Skill は、SkillConfig.type が `WORKER` のもののみとする（アプリ側バリデーション）。
+
+**理由**: 単一責任原則の強制。Agent は専門タスクを担当する Worker skill をプリロードして実行する存在であり、Entry-point（ワークフロー全体を管理するスキル）をプリロードする意味がない。
+
+### 6. 依存関係の統一管理とskillsフィールドの廃止
+
+**reference.md での管理方法**:
+- Agent の `skills:` フロントマターで、プリロードするスキルをリスト指定
+- Orchestrator Skill の SKILL.md 内で、`Task(subagent_type: ...)` で呼ぶ Agent を記述
+
+**ツール設計での判断**: 上記すべてを `ComponentDependency` テーブルで管理し、AgentConfig から `skills` フィールドを廃止する。
+
+**理由**: 依存関係が JSON 配列（文字列）とドキュメント内の記述という2つの異なる形式で管理されていると、ツール上での可視化・バリデーション・整合性チェックが困難になる。正規化されたテーブルで統一管理することで、依存グラフの走査、循環検知、影響分析が容易になる。
+
+### 7. ComponentDependencyにdependencyTypeを持たない
+
+ComponentDependency には sourceId, targetId, order のみを持ち、依存の種類（Skill→Skill / Skill→Agent / Agent→Skill）を示す `dependencyType` フィールドは追加しない。
+
+**理由**: 依存タイプは source と target それぞれの Component.type から導出可能な情報である。冗長に持つと、Component.type と dependencyType の間で不整合が発生するリスクがある。不整合回避を優先し、JOINで判別する方針とする。
+
+### 8. context / agent フィールドの扱い
+
+**reference.md での定義**: Skill フロントマターの `context: fork` と `agent` は、スキルをサブエージェントとして隔離実行するための Claude Code ネイティブ機能。
+
+**ツール設計での判断**: SkillConfig にフィールドとして保持するが、SkillSmith の依存関係モデルには組み込まない。UI上では非推奨とし、初期状態では非表示/折りたたみにする。
+
+**理由**:
+- フロントマターの互換性のためにデータとしての保存・出力は必要
+- しかし SkillSmith の依存関係管理（ComponentDependency）とは独立した仕組み
+- SkillSmith では ComponentDependency による明示的な依存関係管理を推奨する
+- `context: fork` + `agent` は Claude Code の仕組みに直接依存する設定であり、SkillSmith が抽象化・管理する対象ではない
+
+## バリデーションルール
+
+以下はDBレベルではなくアプリケーション側で実装する制約:
+
+| ルール | 対象 |
+|-------|------|
+| Component.type=SKILL → SkillConfig が必須 | Component作成時 |
+| Component.type=AGENT → AgentConfig が必須 | Component作成時 |
+| Component.type=AGENT → ComponentFile.role は MAIN のみ | ComponentFile作成時 |
+| Agent→Skill 依存 → target の SkillConfig.type が WORKER のみ | ComponentDependency作成時 |
+| SkillConfig.name は小文字・数字・ハイフンのみ、最大64文字 | SkillConfig作成・更新時 |
+| ComponentDependency の sourceId + targetId は一意 | ComponentDependency作成時（@@unique制約でDB保証） |
+
+## 技術的な制約と対応
+
+### SQLite + JSON フィールド
+
+allowedTools, tools, disallowedTools, hooks などの構造化データは、SQLite がネイティブ JSON 型を持たないため String として格納する。アプリケーション層で JSON のシリアライズ/デシリアライズを行う。
+
+### ComponentFile のロール
+
+| ロール | 対応ファイル | 備考 |
+|-------|------------|------|
+| MAIN | SKILL.md / agent.md | 必須。Agent は MAIN のみ |
+| TEMPLATE | template.md, templates/*.md | Skill のみ |
+| REFERENCE | reference.md | Skill のみ |
+| EXAMPLE | examples/*.md | Skill のみ |

@@ -61,6 +61,7 @@ plugins/{plugin-name}/
 | `~/.claude/workflows/` | ステップ間データ受け渡し | 各スキル |
 | `~/.claude/state/` | スキル固有の永続状態 | 各スキル |
 
-## リファレンス
+## ドキュメント
 
-設計原則、frontmatterフィールド、allowed-tools選定ガイド、アンチパターン、設計チェックリストの詳細は [docs/reference.md](docs/reference.md) を参照。
+- [docs/reference.md](docs/reference.md) - プラグイン作成リファレンス（スキル/エージェントの設計パターン、frontmatterフィールド、アンチパターン、設計チェックリスト）
+- [docs/tool-design.md](docs/tool-design.md) - SkillSmith のツール設計（reference.md のパターンをツールに落とし込む際の設計判断。データモデル、依存関係管理、分類の簡略化など）
