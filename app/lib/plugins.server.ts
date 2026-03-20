@@ -1,4 +1,5 @@
 import { Prisma } from "../generated/prisma/client";
+import { logAuditEvent } from "./audit-log.server";
 import { prisma } from "./db.server";
 import {
   validateAgentTeamCreate,
@@ -76,9 +77,24 @@ export async function updatePlugin(
 }
 
 export async function deletePlugin(id: string) {
-  return prisma.plugin.delete({
+  const plugin = await prisma.plugin.findUnique({
+    where: { id },
+    select: { name: true },
+  });
+
+  const deleted = await prisma.plugin.delete({
     where: { id },
   });
+
+  logAuditEvent({
+    action: "DELETE",
+    entityType: "Plugin",
+    entityId: id,
+    entityName: plugin?.name,
+    timestamp: new Date(),
+  });
+
+  return deleted;
 }
 
 // Component CRUD
@@ -186,9 +202,26 @@ export async function deleteComponent(id: string) {
     });
   }
 
-  return prisma.component.delete({
+  const component = await prisma.component.findUnique({
+    where: { id },
+    include: { skillConfig: true, agentConfig: true },
+  });
+
+  const deleted = await prisma.component.delete({
     where: { id },
   });
+
+  const entityName =
+    component?.skillConfig?.name ?? component?.agentConfig?.name;
+  logAuditEvent({
+    action: "DELETE",
+    entityType: "Component",
+    entityId: id,
+    entityName: entityName ?? undefined,
+    timestamp: new Date(),
+  });
+
+  return deleted;
 }
 
 // AgentTeam CRUD
@@ -404,9 +437,19 @@ export async function deleteComponentFile(id: string) {
     });
   }
 
-  return prisma.componentFile.delete({
+  const deleted = await prisma.componentFile.delete({
     where: { id },
   });
+
+  logAuditEvent({
+    action: "DELETE",
+    entityType: "ComponentFile",
+    entityId: id,
+    entityName: existing.filename,
+    timestamp: new Date(),
+  });
+
+  return deleted;
 }
 
 // OutputSchemaField CRUD
