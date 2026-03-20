@@ -37,7 +37,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     validateComponentData({
       type,
       name,
-      description: description || undefined,
+      description,
       skillType: skillType || undefined,
     });
   } catch (error) {
