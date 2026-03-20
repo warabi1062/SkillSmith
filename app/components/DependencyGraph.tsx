@@ -42,12 +42,40 @@ export default function DependencyGraph({
 
       // Agent -> Skill: target must be WORKER
       if (sourceComp.type === "AGENT" && targetComp.type === "SKILL") {
-        return targetComp.skillConfig?.skillType === "WORKER";
+        if (targetComp.skillConfig?.skillType !== "WORKER") return false;
+      }
+
+      // Circular dependency check: verify target cannot reach source via existing edges
+      const adjacency = new Map<string, string[]>();
+      for (const edge of edges) {
+        const neighbors = adjacency.get(edge.source);
+        if (neighbors) {
+          neighbors.push(edge.target);
+        } else {
+          adjacency.set(edge.source, [edge.target]);
+        }
+      }
+
+      const visited = new Set<string>();
+      const stack = [target];
+      while (stack.length > 0) {
+        const current = stack.pop()!;
+        if (current === source) return false;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        const neighbors = adjacency.get(current);
+        if (neighbors) {
+          for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+              stack.push(neighbor);
+            }
+          }
+        }
       }
 
       return true;
     },
-    [components],
+    [components, edges],
   );
 
   const handleConnect = useCallback(
