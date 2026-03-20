@@ -15,4 +15,12 @@ export default [
     "plugins/:id/components/:componentId",
     "routes/plugins.$id.components.$componentId.tsx",
   ),
+  route(
+    "plugins/:id/components/:componentId/edit",
+    "routes/plugins.$id.components.$componentId.edit.tsx",
+  ),
+  route(
+    "plugins/:id/components/:componentId/destroy",
+    "routes/plugins.$id.components.$componentId.destroy.tsx",
+  ),
 ] satisfies RouteConfig;
