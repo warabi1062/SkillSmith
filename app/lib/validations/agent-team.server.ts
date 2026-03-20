@@ -67,10 +67,6 @@ export async function validateAgentTeamCreate(
   }
 }
 
-/**
- * AgentTeamMember 作成時のバリデーション。
- * componentId が指す Component が AGENT タイプであることを検証する。
- */
 const NAME_MAX_LENGTH = 100;
 const DESCRIPTION_MAX_LENGTH = 500;
 
@@ -110,6 +106,10 @@ export function validateAgentTeamData(data: {
   }
 }
 
+/**
+ * AgentTeamMember 作成時のバリデーション。
+ * componentId が指す Component が AGENT タイプであることを検証する。
+ */
 export async function validateAgentTeamMemberCreate(
   prisma: PrismaClient,
   data: { componentId: string }

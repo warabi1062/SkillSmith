@@ -32,6 +32,14 @@ export async function action({ request, params }: Route.ActionArgs) {
   const orchestratorId = String(formData.get("orchestratorId") ?? "");
 
   try {
+    if (!orchestratorId) {
+      throw new ValidationError({
+        field: "orchestratorId",
+        code: "ORCHESTRATOR_REQUIRED",
+        message: "Orchestrator is required",
+      });
+    }
+
     validateAgentTeamData({
       name,
       description: description || undefined,
@@ -47,16 +55,6 @@ export async function action({ request, params }: Route.ActionArgs) {
       );
     }
     throw error;
-  }
-
-  if (!orchestratorId) {
-    return data(
-      {
-        errors: { orchestratorId: "Orchestrator is required" } as Record<string, string>,
-        values: { name, description, orchestratorId },
-      },
-      { status: 400 },
-    );
   }
 
   try {
