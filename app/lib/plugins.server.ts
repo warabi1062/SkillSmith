@@ -19,6 +19,9 @@ export async function getPlugin(id: string) {
         include: {
           skillConfig: true,
           agentConfig: true,
+          dependenciesFrom: {
+            select: { id: true, targetId: true },
+          },
         },
         orderBy: { createdAt: "asc" },
       },
