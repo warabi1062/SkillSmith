@@ -84,4 +84,37 @@ export async function validateOutputSchemaFieldData(
       message: "Enum values are required when field type is ENUM",
     });
   }
+
+  // enumValues: CSV format validation when present
+  if (data.fieldType === "ENUM" && data.enumValues && data.enumValues.trim().length > 0) {
+    const values = data.enumValues.split(",");
+    const trimmedValues = values.map((v) => v.trim());
+
+    // Check for empty entries (extra commas or whitespace-only entries)
+    if (trimmedValues.some((v) => v.length === 0)) {
+      throw new ValidationError({
+        field: "enumValues",
+        code: "ENUM_VALUES_INVALID_FORMAT",
+        message:
+          "Enum values must not contain empty entries (check for extra commas)",
+      });
+    }
+
+    // Check for duplicates
+    const seen = new Set<string>();
+    const duplicates: string[] = [];
+    for (const v of trimmedValues) {
+      if (seen.has(v)) {
+        duplicates.push(v);
+      }
+      seen.add(v);
+    }
+    if (duplicates.length > 0) {
+      throw new ValidationError({
+        field: "enumValues",
+        code: "ENUM_VALUES_DUPLICATE",
+        message: `Enum values must be unique: ${duplicates.join(", ")}`,
+      });
+    }
+  }
 }
