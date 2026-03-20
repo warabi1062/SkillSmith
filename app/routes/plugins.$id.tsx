@@ -142,7 +142,10 @@ interface GenerateResult {
 export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const { plugin } = loaderData;
   const generateFetcher = useFetcher<GenerateResult>();
-  const addDependencyFetcher = useFetcher();
+  const addDependencyFetcher = useFetcher<{
+    success?: boolean;
+    errors?: { dependency: string };
+  }>();
   const removeDependencyFetcher = useFetcher();
 
   const skills = plugin.components.filter((c) => c.type === "SKILL");
@@ -326,6 +329,16 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
       {isClient && graphData && (
         <div className="dependency-graph-section">
           <h3>Dependency Graph</h3>
+          {addDependencyFetcher.data?.errors?.dependency && (
+            <p
+              style={{
+                color: "var(--color-danger, #dc2626)",
+                margin: "0 0 0.5rem 0",
+              }}
+            >
+              {addDependencyFetcher.data.errors.dependency}
+            </p>
+          )}
           <Suspense fallback={<div>Loading graph...</div>}>
             <DependencyGraph
               nodes={graphData.nodes}
