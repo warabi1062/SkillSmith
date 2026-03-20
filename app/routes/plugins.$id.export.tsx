@@ -13,7 +13,13 @@ export async function action({ params, request }: Route.ActionArgs) {
 
   if (!targetDir || typeof targetDir !== "string" || targetDir.trim() === "") {
     return data(
-      { success: false, error: "Target directory is required" },
+      {
+        success: false,
+        exportedDir: "",
+        writtenFiles: [],
+        skippedFiles: [],
+        errors: ["Target directory is required"],
+      },
       { status: 400 },
     );
   }
