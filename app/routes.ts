@@ -60,4 +60,24 @@ export default [
     "plugins/:id/components/:componentId/files/:fileId/destroy",
     "routes/plugins.$id.components.$componentId.files.$fileId.destroy.tsx",
   ),
+  route(
+    "plugins/:id/components/:componentId/files/:fileId/fields",
+    "routes/plugins.$id.components.$componentId.files.$fileId.fields.tsx",
+  ),
+  route(
+    "plugins/:id/components/:componentId/files/:fileId/fields/new",
+    "routes/plugins.$id.components.$componentId.files.$fileId.fields.new.tsx",
+  ),
+  route(
+    "plugins/:id/components/:componentId/files/:fileId/fields/:fieldId/edit",
+    "routes/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.edit.tsx",
+  ),
+  route(
+    "plugins/:id/components/:componentId/files/:fileId/fields/:fieldId/destroy",
+    "routes/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.destroy.tsx",
+  ),
+  route(
+    "plugins/:id/components/:componentId/files/:fileId/fields/:fieldId/reorder",
+    "routes/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.reorder.tsx",
+  ),
 ] satisfies RouteConfig;
