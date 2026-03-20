@@ -54,14 +54,24 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="component-list">
-        <h3>
-          Skills ({skills.length})
-        </h3>
+        <div className="component-list-header">
+          <h3>Skills ({skills.length})</h3>
+          <Link
+            to={`/plugins/${plugin.id}/components/new`}
+            className="btn btn-primary btn-sm"
+          >
+            New Component
+          </Link>
+        </div>
         {skills.length === 0 ? (
           <p className="card-description">No skills yet.</p>
         ) : (
           skills.map((component) => (
-            <div key={component.id} className="component-item">
+            <Link
+              key={component.id}
+              to={`/plugins/${plugin.id}/components/${component.id}`}
+              className="component-item component-item-link"
+            >
               <div>
                 <span className="component-item-name">
                   {component.skillConfig?.name ?? "(unnamed)"}
@@ -76,27 +86,29 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
                 )}
               </div>
               <span className="badge badge-skill">SKILL</span>
-            </div>
+            </Link>
           ))
         )}
       </div>
 
       <div className="component-list">
-        <h3>
-          Agents ({agents.length})
-        </h3>
+        <h3>Agents ({agents.length})</h3>
         {agents.length === 0 ? (
           <p className="card-description">No agents yet.</p>
         ) : (
           agents.map((component) => (
-            <div key={component.id} className="component-item">
+            <Link
+              key={component.id}
+              to={`/plugins/${plugin.id}/components/${component.id}`}
+              className="component-item component-item-link"
+            >
               <div>
                 <span className="component-item-name">
                   {component.agentConfig?.name ?? "(unnamed)"}
                 </span>
               </div>
               <span className="badge badge-agent">AGENT</span>
-            </div>
+            </Link>
           ))
         )}
       </div>
