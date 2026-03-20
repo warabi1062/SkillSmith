@@ -1,4 +1,4 @@
-import { Form, Link, redirect, useActionData, data } from "react-router";
+import { Form, Link, redirect, data } from "react-router";
 import { createPlugin } from "../lib/plugins.server";
 import { validatePluginData, ValidationError } from "../lib/validations";
 import type { Route } from "./+types/plugins.new";
