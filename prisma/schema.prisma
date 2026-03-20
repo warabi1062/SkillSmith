@@ -1,0 +1,14 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Plugin {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+}
