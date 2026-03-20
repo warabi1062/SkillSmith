@@ -163,6 +163,7 @@ plan-implementation skill
 | Component.type=SKILL → SkillConfig が必須 | Component作成時 |
 | Component.type=AGENT → AgentConfig が必須 | Component作成時 |
 | Component.type=AGENT → ComponentFile.role は MAIN のみ | ComponentFile作成時 |
+| ComponentFile.role=OUTPUT_SCHEMA → Component.type は SKILL のみ | ComponentFile作成時 |
 | Agent→Skill 依存 → target の SkillConfig.type が WORKER のみ | ComponentDependency作成時 |
 | SkillConfig.name は小文字・数字・ハイフンのみ、最大64文字 | SkillConfig作成・更新時 |
 | ComponentDependency の sourceId + targetId は一意 | ComponentDependency作成時（@@unique制約でDB保証） |
