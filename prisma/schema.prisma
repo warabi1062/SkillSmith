@@ -40,6 +40,7 @@ model Plugin {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   components  Component[]
+  agentTeams  AgentTeam[]
 }
 
 model Component {
@@ -53,8 +54,10 @@ model Component {
   skillConfig      SkillConfig?
   agentConfig      AgentConfig?
   files            ComponentFile[]
-  dependenciesFrom ComponentDependency[] @relation("DependencySource")
-  dependenciesTo   ComponentDependency[] @relation("DependencyTarget")
+  dependenciesFrom   ComponentDependency[] @relation("DependencySource")
+  dependenciesTo     ComponentDependency[] @relation("DependencyTarget")
+  orchestratedTeams  AgentTeam[]
+  teamMemberships    AgentTeamMember[]
 }
 
 model SkillConfig {
@@ -126,6 +129,32 @@ model OutputSchemaField {
 
   @@index([componentFileId])
   @@index([parentId])
+}
+
+model AgentTeam {
+  id              String            @id @default(cuid())
+  pluginId        String
+  orchestratorId  String
+  name            String
+  description     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  plugin       Plugin             @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  orchestrator Component          @relation(fields: [orchestratorId], references: [id], onDelete: Cascade)
+  members      AgentTeamMember[]
+}
+
+model AgentTeamMember {
+  id          String @id @default(cuid())
+  teamId      String
+  componentId String
+  sortOrder   Int    @default(0)
+
+  team      AgentTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, componentId])
 }
 
 model ComponentDependency {
