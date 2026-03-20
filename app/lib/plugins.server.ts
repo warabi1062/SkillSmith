@@ -56,3 +56,99 @@ export async function deletePlugin(id: string) {
     where: { id },
   });
 }
+
+// Component CRUD
+
+export async function getComponent(id: string) {
+  return prisma.component.findUnique({
+    where: { id },
+    include: {
+      skillConfig: true,
+      agentConfig: true,
+      files: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+}
+
+export async function createComponent(
+  pluginId: string,
+  data: {
+    type: "SKILL" | "AGENT";
+    name: string;
+    description?: string;
+    skillType?: "ENTRY_POINT" | "WORKER";
+  },
+) {
+  return prisma.component.create({
+    data: {
+      pluginId,
+      type: data.type,
+      ...(data.type === "SKILL"
+        ? {
+            skillConfig: {
+              create: {
+                name: data.name.trim(),
+                skillType: data.skillType!,
+                description: data.description?.trim() || null,
+              },
+            },
+          }
+        : {
+            agentConfig: {
+              create: {
+                name: data.name.trim(),
+                description: data.description!.trim(),
+              },
+            },
+          }),
+    },
+    include: {
+      skillConfig: true,
+      agentConfig: true,
+    },
+  });
+}
+
+export async function updateComponent(
+  id: string,
+  data: {
+    type: "SKILL" | "AGENT";
+    name: string;
+    description?: string;
+    skillType?: "ENTRY_POINT" | "WORKER";
+  },
+) {
+  return prisma.component.update({
+    where: { id },
+    data: {
+      ...(data.type === "SKILL"
+        ? {
+            skillConfig: {
+              update: {
+                name: data.name.trim(),
+                skillType: data.skillType!,
+                description: data.description?.trim() || null,
+              },
+            },
+          }
+        : {
+            agentConfig: {
+              update: {
+                name: data.name.trim(),
+                description: data.description!.trim(),
+              },
+            },
+          }),
+    },
+    include: {
+      skillConfig: true,
+      agentConfig: true,
+    },
+  });
+}
+
+export async function deleteComponent(id: string) {
+  return prisma.component.delete({
+    where: { id },
+  });
+}
