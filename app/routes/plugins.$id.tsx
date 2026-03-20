@@ -1,6 +1,8 @@
+import React, { Suspense, useState, useEffect } from "react";
 import { Link, Form, data } from "react-router";
 import { getPlugin } from "../lib/plugins.server";
 import type { Route } from "./+types/plugins.$id";
+import type { Node, Edge } from "@xyflow/react";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const name = loaderData?.plugin?.name ?? "Plugin";
@@ -15,11 +17,148 @@ export async function loader({ params }: Route.LoaderArgs) {
   return { plugin };
 }
 
+type PluginComponent = Awaited<
+  ReturnType<typeof getPlugin>
+> extends { components: (infer C)[] } | null
+  ? C
+  : never;
+
+function buildGraphData(components: PluginComponent[]): {
+  nodes: Node[];
+  edges: Edge[];
+} {
+  if (components.length === 0) return { nodes: [], edges: [] };
+
+  // Build adjacency for topological sort
+  const adjacency = new Map<string, string[]>();
+  const inDegree = new Map<string, number>();
+
+  for (const c of components) {
+    adjacency.set(c.id, []);
+    inDegree.set(c.id, 0);
+  }
+
+  const edges: Edge[] = [];
+
+  for (const c of components) {
+    if (c.dependenciesFrom) {
+      for (const dep of c.dependenciesFrom) {
+        edges.push({
+          id: dep.id,
+          source: c.id,
+          target: dep.targetId,
+        });
+        adjacency.get(c.id)?.push(dep.targetId);
+        inDegree.set(dep.targetId, (inDegree.get(dep.targetId) ?? 0) + 1);
+      }
+    }
+  }
+
+  // Topological sort (Kahn's algorithm) - sources at top
+  const depth = new Map<string, number>();
+  const queue: string[] = [];
+
+  for (const c of components) {
+    if ((inDegree.get(c.id) ?? 0) === 0) {
+      queue.push(c.id);
+      depth.set(c.id, 0);
+    }
+  }
+
+  let processed = 0;
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    processed++;
+    const currentDepth = depth.get(current) ?? 0;
+
+    for (const neighbor of adjacency.get(current) ?? []) {
+      const newDepth = currentDepth + 1;
+      if (newDepth > (depth.get(neighbor) ?? 0)) {
+        depth.set(neighbor, newDepth);
+      }
+      inDegree.set(neighbor, (inDegree.get(neighbor) ?? 0) - 1);
+      if (inDegree.get(neighbor) === 0) {
+        queue.push(neighbor);
+      }
+    }
+  }
+
+  const hasCycle = processed < components.length;
+
+  // Position nodes
+  const HORIZONTAL_SPACING = 250;
+  const VERTICAL_SPACING = 100;
+
+  const nodes: Node[] = [];
+
+  if (hasCycle) {
+    // Fallback: grid layout
+    const cols = Math.ceil(Math.sqrt(components.length));
+    components.forEach((c, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      nodes.push({
+        id: c.id,
+        position: { x: col * HORIZONTAL_SPACING, y: row * VERTICAL_SPACING },
+        data: {
+          label: c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)",
+        },
+        style: {
+          background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
+          border:
+            c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
+          borderRadius: "0.375rem",
+          padding: "8px 16px",
+        },
+      });
+    });
+  } else {
+    // Group by depth for hierarchical layout
+    const layers = new Map<number, PluginComponent[]>();
+    for (const c of components) {
+      const d = depth.get(c.id) ?? 0;
+      if (!layers.has(d)) layers.set(d, []);
+      layers.get(d)!.push(c);
+    }
+
+    for (const [d, layerComponents] of layers) {
+      layerComponents.forEach((c, i) => {
+        nodes.push({
+          id: c.id,
+          position: { x: i * HORIZONTAL_SPACING, y: d * VERTICAL_SPACING },
+          data: {
+            label: c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)",
+          },
+          style: {
+            background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
+            border:
+              c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
+            borderRadius: "0.375rem",
+            padding: "8px 16px",
+          },
+        });
+      });
+    }
+  }
+
+  return { nodes, edges };
+}
+
 export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const { plugin } = loaderData;
 
   const skills = plugin.components.filter((c) => c.type === "SKILL");
   const agents = plugin.components.filter((c) => c.type === "AGENT");
+
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
+
+  const graphData =
+    plugin.components.length > 0 ? buildGraphData(plugin.components) : null;
+
+  const DependencyGraph = isClient
+    ? React.lazy(() => import("../components/DependencyGraph"))
+    : null;
 
   return (
     <div>
@@ -112,6 +251,18 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           ))
         )}
       </div>
+
+      {graphData && DependencyGraph && (
+        <div className="dependency-graph-section">
+          <h3>Dependency Graph</h3>
+          <Suspense fallback={<div>Loading graph...</div>}>
+            <DependencyGraph
+              nodes={graphData.nodes}
+              edges={graphData.edges}
+            />
+          </Suspense>
+        </div>
+      )}
 
       <div style={{ marginTop: "2rem" }}>
         <Link to="/plugins" className="btn btn-secondary">
