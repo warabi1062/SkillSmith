@@ -469,7 +469,7 @@ export async function updateOutputSchemaField(
     name: data.name,
     fieldType: data.fieldType,
     required: data.required,
-    enumValues: data.enumValues,
+    enumValues: data.enumValues ?? undefined,
     excludeFieldId: id,
   });
 

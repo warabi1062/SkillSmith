@@ -101,7 +101,7 @@ export default function EditAgentTeam({
         <div className="form-group">
           <label>Orchestrator</label>
           <p className="card-description">
-            {team.orchestrator.skillConfig?.name ?? "(unnamed)"} (not editable)
+            {team.orchestrator?.skillConfig?.name ?? "(unnamed)"} (not editable)
           </p>
         </div>
 
