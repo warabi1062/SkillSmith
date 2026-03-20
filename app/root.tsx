@@ -1,4 +1,12 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import {
+  Links,
+  Link,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from "react-router";
+import "./app.css";
 
 export default function Root() {
   return (
@@ -10,7 +18,19 @@ export default function Root() {
         <Links />
       </head>
       <body>
-        <Outlet />
+        <div className="layout">
+          <header className="layout-header">
+            <h1>
+              <Link to="/">SkillSmith</Link>
+            </h1>
+            <nav>
+              <Link to="/plugins">Plugins</Link>
+            </nav>
+          </header>
+          <main>
+            <Outlet />
+          </main>
+        </div>
         <ScrollRestoration />
         <Scripts />
       </body>
