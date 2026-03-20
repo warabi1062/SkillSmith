@@ -1,5 +1,13 @@
-import { mkdir, writeFile, access } from "node:fs/promises";
+import {
+  mkdir,
+  writeFile,
+  access,
+  copyFile,
+  rm,
+  mkdtemp,
+} from "node:fs/promises";
 import path from "node:path";
+import { tmpdir } from "node:os";
 import { generatePlugin } from "./generator/index";
 
 export interface ExportOptions {
@@ -36,33 +44,62 @@ export async function exportPlugin(
   const { plugin } = generateResult;
   const resolvedTargetDir = path.resolve(options.targetDir);
 
-  for (const file of plugin.files) {
-    const filePath = path.join(resolvedTargetDir, file.path);
-    const fileDir = path.dirname(filePath);
+  // Create a temporary directory to stage all writes
+  const tempDir = await mkdtemp(path.join(tmpdir(), "skillsmith-export-"));
 
-    try {
-      await mkdir(fileDir, { recursive: true });
+  try {
+    // Phase 1: Write all files to the temporary directory
+    for (const file of plugin.files) {
+      const targetFilePath = path.join(resolvedTargetDir, file.path);
+      const tempFilePath = path.join(tempDir, file.path);
+      const tempFileDir = path.dirname(tempFilePath);
 
+      // Check overwrite against the actual target directory
       if (!options.overwrite) {
         try {
-          await access(filePath);
+          await access(targetFilePath);
           result.skippedFiles.push(file.path);
           continue;
         } catch {
-          // File does not exist, proceed to write
+          // File does not exist in target, proceed to write
         }
       }
 
-      await writeFile(filePath, file.content, "utf-8");
-      result.writtenFiles.push(file.path);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Unknown error writing file";
-      result.errors.push(`${file.path}: ${message}`);
+      try {
+        await mkdir(tempFileDir, { recursive: true });
+        await writeFile(tempFilePath, file.content, "utf-8");
+        result.writtenFiles.push(file.path);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Unknown error writing file";
+        result.errors.push(`${file.path}: ${message}`);
+      }
     }
+
+    // If any errors occurred during staging, abort without modifying target
+    if (result.errors.length > 0) {
+      result.writtenFiles = [];
+      return result;
+    }
+
+    // Phase 2: Copy staged files from temp to target directory
+    for (const filePath of result.writtenFiles) {
+      const src = path.join(tempDir, filePath);
+      const dest = path.join(resolvedTargetDir, filePath);
+      const destDir = path.dirname(dest);
+
+      await mkdir(destDir, { recursive: true });
+      await copyFile(src, dest);
+    }
+
+    result.exportedDir = resolvedTargetDir;
+    result.success = true;
+  } finally {
+    // Clean up temporary directory
+    await rm(tempDir, { recursive: true, force: true }).catch(() => {
+      // Best-effort cleanup; ignore errors
+    });
   }
 
-  result.exportedDir = resolvedTargetDir;
-  result.success = result.errors.length === 0;
   return result;
 }
