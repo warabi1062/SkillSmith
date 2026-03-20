@@ -1,6 +1,7 @@
 import { mkdir, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { generatePlugin } from "./generator/index";
+import { isWithinDirectory } from "./path-validation.server";
 
 export interface ExportOptions {
   targetDir: string;
@@ -37,7 +38,15 @@ export async function exportPlugin(
   const resolvedTargetDir = path.resolve(options.targetDir);
 
   for (const file of plugin.files) {
-    const filePath = path.join(resolvedTargetDir, file.path);
+    const filePath = path.resolve(resolvedTargetDir, file.path);
+
+    if (!isWithinDirectory(filePath, resolvedTargetDir)) {
+      result.errors.push(
+        `${file.path}: Path traversal detected - file path escapes target directory`,
+      );
+      continue;
+    }
+
     const fileDir = path.dirname(filePath);
 
     try {
