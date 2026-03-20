@@ -1,6 +1,7 @@
 import { Link, Form, data } from "react-router";
 import { getPlugin, getComponent } from "../lib/plugins.server";
 import type { Route } from "./+types/plugins.$id.components.$componentId";
+import type { ComponentFileRole } from "../generated/prisma/client";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const name =
@@ -93,17 +94,67 @@ export default function ComponentDetail({
         </dl>
       </div>
 
-      {component.files.length > 0 && (
-        <div className="card" style={{ marginTop: "1rem" }}>
+      <div className="card" style={{ marginTop: "1rem" }}>
+        <div className="component-list-header">
           <h3>Files ({component.files.length})</h3>
-          {component.files.map((file) => (
-            <div key={file.id} className="component-item">
-              <span className="component-item-name">{file.filename}</span>
-              <span className="badge">{file.role}</span>
-            </div>
-          ))}
+          <Link
+            to={`/plugins/${plugin.id}/components/${component.id}/files/new`}
+            className="btn btn-primary btn-sm"
+          >
+            Add File
+          </Link>
         </div>
-      )}
+        {component.files.length > 0 ? (
+          <div style={{ marginTop: "0.5rem" }}>
+            {component.files.map((file) => (
+              <div key={file.id} className="component-item">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span className="component-item-name">{file.filename}</span>
+                  <span className={`badge${file.role === "MAIN" ? " badge-skill" : ""}`}>
+                    {file.role}
+                  </span>
+                </div>
+                <div className="detail-actions">
+                  {(file.role as ComponentFileRole) === "OUTPUT_SCHEMA" && (
+                    <Link
+                      to={`/plugins/${plugin.id}/components/${component.id}/files/${file.id}/fields`}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Manage Fields
+                    </Link>
+                  )}
+                  <Link
+                    to={`/plugins/${plugin.id}/components/${component.id}/files/${file.id}/edit`}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Edit
+                  </Link>
+                  <Form
+                    method="post"
+                    action={`/plugins/${plugin.id}/components/${component.id}/files/${file.id}/destroy`}
+                    onSubmit={(event) => {
+                      const message = (file.role as ComponentFileRole) === "OUTPUT_SCHEMA"
+                        ? "This file has OUTPUT_SCHEMA role. Deleting it will also remove all associated OutputSchemaField data. Are you sure?"
+                        : "Are you sure you want to delete this file?";
+                      if (!window.confirm(message)) {
+                        event.preventDefault();
+                      }
+                    }}
+                  >
+                    <button type="submit" className="btn btn-danger btn-sm">
+                      Delete
+                    </button>
+                  </Form>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="card-description" style={{ marginTop: "0.5rem" }}>
+            No files yet.
+          </p>
+        )}
+      </div>
 
       <div style={{ marginTop: "2rem" }}>
         <Link to={`/plugins/${plugin.id}`} className="btn btn-secondary">
