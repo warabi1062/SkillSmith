@@ -30,7 +30,7 @@ export function parseJsonArrayField(
       return {
         parsed: null,
         error: {
-          severity: "warning",
+          severity: "error",
           code: "JSON_PARSE_FAILED",
           message: `Field "${fieldName}" is not a JSON array`,
           componentId,
@@ -43,7 +43,7 @@ export function parseJsonArrayField(
     return {
       parsed: null,
       error: {
-        severity: "warning",
+        severity: "error",
         code: "JSON_PARSE_FAILED",
         message: `Failed to parse JSON for field "${fieldName}"`,
         componentId,
