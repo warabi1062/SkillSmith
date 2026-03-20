@@ -4,6 +4,7 @@ import {
   validateAgentTeamCreate,
   validateAgentTeamMemberCreate,
   validateComponentFileData,
+  validateDependencyCreate,
   validateMainRoleUniqueness,
   validateOutputSchemaFieldData,
   ValidationError,
@@ -498,6 +499,57 @@ export async function deleteOutputSchemaField(id: string) {
   }
 
   return prisma.outputSchemaField.delete({
+    where: { id },
+  });
+}
+
+// ComponentDependency CRUD
+
+export async function getDependency(id: string) {
+  return prisma.componentDependency.findUnique({
+    where: { id },
+    include: {
+      source: { select: { id: true, pluginId: true } },
+      target: { select: { id: true, pluginId: true } },
+    },
+  });
+}
+
+export async function createDependency(data: {
+  sourceId: string;
+  targetId: string;
+}) {
+  await validateDependencyCreate(prisma, data);
+
+  const existingCount = await prisma.componentDependency.count({
+    where: { sourceId: data.sourceId },
+  });
+
+  try {
+    return await prisma.componentDependency.create({
+      data: {
+        sourceId: data.sourceId,
+        targetId: data.targetId,
+        order: existingCount,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new ValidationError({
+        field: "dependency",
+        code: "DUPLICATE_DEPENDENCY",
+        message: "This dependency already exists",
+      });
+    }
+    throw error;
+  }
+}
+
+export async function deleteDependency(id: string) {
+  return prisma.componentDependency.delete({
     where: { id },
   });
 }
