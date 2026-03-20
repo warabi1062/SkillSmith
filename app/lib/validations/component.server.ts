@@ -1,7 +1,7 @@
 import { ValidationError } from "./agent-team.server";
 
 const NAME_MAX_LENGTH = 100;
-const NAME_FORMAT_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const NAME_FORMAT_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 const DESCRIPTION_MAX_LENGTH = 500;
 const VALID_TYPES = ["SKILL", "AGENT"] as const;
 const VALID_SKILL_TYPES = ["ENTRY_POINT", "WORKER"] as const;

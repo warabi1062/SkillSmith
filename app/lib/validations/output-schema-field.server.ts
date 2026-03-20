@@ -21,7 +21,7 @@ export async function validateOutputSchemaFieldData(
     name: string;
     fieldType: string;
     required: boolean;
-    enumValues?: string;
+    enumValues?: string | null;
     excludeFieldId?: string;
   },
 ): Promise<void> {

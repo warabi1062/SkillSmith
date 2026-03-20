@@ -56,7 +56,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   await updateComponent(params.componentId, {
     type: type as "SKILL" | "AGENT",
     name,
-    description: description || undefined,
+    description: description || null,
     skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
   });
 
