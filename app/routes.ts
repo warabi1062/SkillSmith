@@ -7,6 +7,7 @@ export default [
   route("plugins/:id", "routes/plugins.$id.tsx"),
   route("plugins/:id/edit", "routes/plugins.$id.edit.tsx"),
   route("plugins/:id/destroy", "routes/plugins.$id.destroy.tsx"),
+  route("plugins/:id/generate", "routes/plugins.$id.generate.tsx"),
   route(
     "plugins/:id/components/new",
     "routes/plugins.$id.components.new.tsx",
