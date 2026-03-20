@@ -4,6 +4,12 @@ import { ValidationError } from "./agent-team.server";
 const VALID_FIELD_TYPES = ["TEXT", "ENUM", "LIST", "TABLE", "GROUP"] as const;
 const NAME_MAX_LENGTH = 100;
 
+/** Field type options for use in UI select elements. */
+export const FIELD_TYPES = VALID_FIELD_TYPES.map((value) => ({
+  value,
+  label: value,
+}));
+
 /**
  * OutputSchemaField のバリデーション。
  * name必須・一意性、fieldType有効性、ENUM時のenumValues必須を検証する。

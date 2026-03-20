@@ -8,15 +8,8 @@ import {
   updateOutputSchemaField,
 } from "../lib/plugins.server";
 import { ValidationError } from "../lib/validations";
+import { FIELD_TYPES } from "../lib/validations/output-schema-field.server";
 import type { Route } from "./+types/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.edit";
-
-const FIELD_TYPES = [
-  { value: "TEXT", label: "TEXT" },
-  { value: "ENUM", label: "ENUM" },
-  { value: "LIST", label: "LIST" },
-  { value: "TABLE", label: "TABLE" },
-  { value: "GROUP", label: "GROUP" },
-];
 
 export function meta(_args: Route.MetaArgs) {
   return [{ title: "Edit Field - SkillSmith" }];
@@ -79,7 +72,8 @@ export async function action({ request, params }: Route.ActionArgs) {
       fieldType,
       required,
       description: description || undefined,
-      enumValues: enumValues || undefined,
+      // Clear enumValues when fieldType is not ENUM to avoid stale data
+      enumValues: fieldType !== "ENUM" ? undefined : enumValues || undefined,
       placeholder: placeholder || undefined,
     });
     return redirect(
