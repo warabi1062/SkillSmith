@@ -15,3 +15,5 @@ export {
 } from "./component-file.server";
 
 export { validateOutputSchemaFieldData } from "./output-schema-field.server";
+
+export { validateDependencyCreate } from "./dependency.server";
