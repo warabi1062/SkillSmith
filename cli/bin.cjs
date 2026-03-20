@@ -8,7 +8,7 @@ const reactRouterBin = path.resolve(
   projectRoot,
   "node_modules",
   ".bin",
-  "react-router"
+  "react-router",
 );
 
 const child = spawn(reactRouterBin, ["dev"], {
