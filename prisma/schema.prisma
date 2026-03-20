@@ -7,8 +7,103 @@ datasource db {
   provider = "sqlite"
 }
 
+enum ComponentType {
+  SKILL
+  AGENT
+}
+
+enum SkillType {
+  ENTRY_POINT
+  WORKER
+}
+
+enum ComponentFileRole {
+  MAIN
+  TEMPLATE
+  REFERENCE
+  EXAMPLE
+}
+
 model Plugin {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  components  Component[]
+}
+
+model Component {
+  id        String        @id @default(cuid())
+  pluginId  String
+  type      ComponentType
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  plugin           Plugin                @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  skillConfig      SkillConfig?
+  agentConfig      AgentConfig?
+  files            ComponentFile[]
+  dependenciesFrom ComponentDependency[] @relation("DependencySource")
+  dependenciesTo   ComponentDependency[] @relation("DependencyTarget")
+}
+
+model SkillConfig {
+  id                     String    @id @default(cuid())
+  componentId            String    @unique
+  name                   String
+  description            String?
+  skillType              SkillType
+  argumentHint           String?
+  disableModelInvocation Boolean   @default(false)
+  userInvocable          Boolean   @default(true)
+  allowedTools           String?
+  context                String?
+  agent                  String?
+  model                  String?
+  hooks                  String?
+
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+}
+
+model AgentConfig {
+  id              String  @id @default(cuid())
+  componentId     String  @unique
+  name            String
+  description     String
+  model           String?
+  tools           String?
+  disallowedTools String?
+  permissionMode  String?
+  hooks           String?
+  memory          String?
+
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+}
+
+model ComponentFile {
+  id          String            @id @default(cuid())
+  componentId String
+  role        ComponentFileRole
+  filename    String
+  content     String
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+
+  @@unique([componentId, filename])
+}
+
+model ComponentDependency {
+  id       String @id @default(cuid())
+  sourceId String
+  targetId String
+  order    Int    @default(0)
+
+  source Component @relation("DependencySource", fields: [sourceId], references: [id], onDelete: Cascade)
+  target Component @relation("DependencyTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId])
 }
