@@ -31,6 +31,17 @@ export async function getPlugin(id: string) {
         },
         orderBy: { createdAt: "asc" },
       },
+      agentTeams: {
+        include: {
+          orchestrator: {
+            include: { skillConfig: true },
+          },
+          _count: {
+            select: { members: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 }

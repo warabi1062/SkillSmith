@@ -233,6 +233,39 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         )}
       </div>
 
+      <div className="component-list">
+        <div className="component-list-header">
+          <h3>Agent Teams ({plugin.agentTeams.length})</h3>
+          <Link
+            to={`/plugins/${plugin.id}/agent-teams/new`}
+            className="btn btn-primary btn-sm"
+          >
+            New Agent Team
+          </Link>
+        </div>
+        {plugin.agentTeams.length === 0 ? (
+          <p className="card-description">No agent teams yet.</p>
+        ) : (
+          plugin.agentTeams.map((team) => (
+            <Link
+              key={team.id}
+              to={`/plugins/${plugin.id}/agent-teams/${team.id}`}
+              className="component-item component-item-link"
+            >
+              <div>
+                <span className="component-item-name">{team.name}</span>
+                <span className="badge" style={{ marginLeft: "0.5rem" }}>
+                  {team.orchestrator.skillConfig?.name ?? "(unnamed)"}
+                </span>
+              </div>
+              <span className="badge">
+                {team._count.members} member{team._count.members !== 1 ? "s" : ""}
+              </span>
+            </Link>
+          ))
+        )}
+      </div>
+
       {isClient && graphData && (
         <div className="dependency-graph-section">
           <h3>Dependency Graph</h3>
