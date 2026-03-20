@@ -206,6 +206,8 @@ plan-implementation skill
 | OutputSchemaField.componentFileId -> ComponentFile.role は OUTPUT_SCHEMA のみ | OutputSchemaField作成時 |
 | OutputSchemaField.enumValues は fieldType が ENUM の場合のみ非null | OutputSchemaField作成・更新時 |
 | ComponentDependency の sourceId + targetId は一意 | ComponentDependency作成時（@@unique制約でDB保証） |
+| AgentTeam.orchestratorId -> Component.type は SKILL かつ SkillConfig.skillType は ENTRY_POINT | AgentTeam作成時 |
+| AgentTeamMember.componentId -> Component.type は AGENT のみ | AgentTeamMember作成時 |
 
 ## 技術的な制約と対応
 
