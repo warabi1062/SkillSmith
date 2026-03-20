@@ -100,6 +100,60 @@ ComponentDependency には sourceId, targetId, order のみを持ち、依存の
 - SkillSmith では ComponentDependency による明示的な依存関係管理を推奨する
 - `context: fork` + `agent` は Claude Code の仕組みに直接依存する設定であり、SkillSmith が抽象化・管理する対象ではない
 
+### 9. ワークフロー出力スキーマの定義
+
+**課題**: Worker skill がワークフローファイル（`~/.claude/workflows/{task-id}/`）に書き出す成果物（例: `implement-result.md`）のフォーマットは `template-result.md` で定義されているが、SkillSmith のデータモデル上でこの「出力スキーマ」をどう表現するかが未定義だった。
+
+**検討した選択肢**:
+
+| Option | 概要 | 判定 |
+|--------|------|------|
+| A | ComponentFileRole enum に `OUTPUT_SCHEMA` を追加し、`template-result.md` を OUTPUT_SCHEMA ロールとして管理する | **採用** |
+| B | SkillConfig に `outputSchema` フィールド（JSON文字列）を追加し、出力スキーマをインラインで保持する | 棄却 |
+| C | SkillConfig に `outputSchemaFileId` を追加し、ComponentFile への外部キーで参照する | 棄却 |
+| D | 出力スキーマをデータモデルに含めず、template-result.md を TEMPLATE ロールのまま運用規約で区別する | 棄却 |
+
+**Option A を採用した理由**:
+
+- `template-result.md` は既存の ComponentFile の仕組み（ファイルとしての管理、バージョニング、コンテンツ保持）にそのまま載る。新規テーブルやフィールドの追加が不要で、enum 値の追加だけで対応できる
+- TEMPLATE ロールは「スキルが出力するドキュメントのフォーマット」（例: `template.md`）を意味し、OUTPUT_SCHEMA は「ワークフローの後続ステップに渡す成果物のフォーマット」を意味する。意味的に異なるため、ロールを分けることで UI 上での表示・フィルタリングが容易になる
+- 既存のバリデーションルール「Component.type=AGENT -> ComponentFile.role は MAIN のみ」と整合する（OUTPUT_SCHEMA は Skill のみに紐づく）
+
+**Option B を棄却した理由**: 出力スキーマは Markdown テンプレートであり、構造化された JSON として表現するには不自然。また、SkillConfig に長いテキストフィールドを追加するとテーブルの責務が膨らむ。
+
+**Option C を棄却した理由**: ComponentFile への外部キーを SkillConfig に持たせると、ComponentFile 側からの逆引きと合わせて循環的な参照構造になる。ComponentFile.role で十分に区別できる情報に対して、外部キーを追加する実益がない。
+
+**Option D を棄却した理由**: TEMPLATE ロールと OUTPUT_SCHEMA の区別が運用規約に依存すると、ツール上でのバリデーションや自動分類ができない。SkillSmith がスキーマとして形式化するツールである以上、暗黙の規約ではなく明示的なデータモデルで区別すべき。
+
+**ComponentFile.role の拡張判断**:
+
+ComponentFileRole enum の拡張は、新しいロールが以下の条件を満たす場合に行う:
+- 既存ロールとは意味的に異なる用途を持つ
+- UI 上での表示・フィルタリングで区別する必要がある
+- アプリケーション側のバリデーションで利用する
+
+OUTPUT_SCHEMA はこれらすべてを満たす。TEMPLATE との違いは「誰が消費するか」にある。TEMPLATE はスキル自身の出力フォーマット（人間やLLMが読む最終成果物の形式）であるのに対し、OUTPUT_SCHEMA はワークフローの後続ステップが読む中間成果物の形式である。
+
+**パス乖離について**:
+
+reference.md では `~/.claude/workflows/{task-id}/` をワークフローファイルの保存先としているが、実際の dev-workflow プラグインでは `~/claude-code-data/workflows/{task-id}/` を使用している。この乖離は WAR-20 の対応範囲外であり、別チケットで統一を検討する。SkillSmith のデータモデルとしてはパスの規約に依存せず、ComponentFile のコンテンツとして出力テンプレートを管理するため、パスの統一はデータモデルに影響しない。
+
+**dev-workflow プラグインのデータフロー対応例**:
+
+```
+implement skill
+  ├── ComponentFile(role: MAIN)           -> SKILL.md
+  ├── ComponentFile(role: OUTPUT_SCHEMA)  -> template-result.md
+  └── 実行時: template-result.md の形式で ~/.claude/workflows/{id}/implement-result.md に書き出す
+
+plan-implementation skill
+  ├── ComponentFile(role: MAIN)           -> SKILL.md
+  ├── ComponentFile(role: TEMPLATE)       -> template.md (計画書の出力フォーマット)
+  └── 実行時: template.md の形式で ~/.claude/workflows/{id}/plan.md に書き出す
+```
+
+この例では、plan-implementation の `template.md` は TEMPLATE ロール（スキル自身の出力フォーマット）、implement の `template-result.md` は OUTPUT_SCHEMA ロール（後続ステップへの成果物フォーマット）として区別される。ただし、plan-implementation の `template.md` も後続ステップ（implement）に渡される中間成果物であるため、OUTPUT_SCHEMA として扱うべきかは議論の余地がある。初期運用では「明確にワークフロー受け渡し専用のテンプレート（`*-result.md` パターン）」を OUTPUT_SCHEMA とし、それ以外は TEMPLATE とする。
+
 ## バリデーションルール
 
 以下はDBレベルではなくアプリケーション側で実装する制約:
