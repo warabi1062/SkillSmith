@@ -449,7 +449,7 @@ export async function updateOutputSchemaField(
     fieldType: string;
     required: boolean;
     description?: string;
-    enumValues?: string;
+    enumValues?: string | null;
     placeholder?: string;
   },
 ) {

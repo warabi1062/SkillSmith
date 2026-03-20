@@ -73,7 +73,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       required,
       description: description || undefined,
       // Clear enumValues when fieldType is not ENUM to avoid stale data
-      enumValues: fieldType !== "ENUM" ? undefined : enumValues || undefined,
+      enumValues: fieldType !== "ENUM" ? null : enumValues || undefined,
       placeholder: placeholder || undefined,
     });
     return redirect(
