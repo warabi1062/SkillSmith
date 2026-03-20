@@ -336,6 +336,31 @@ h3 {
   margin-top: 1.5rem;
 }
 
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #dc2626;
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #dc2626;
+  stroke-width: 2.5;
+}
+
+.react-flow__handle {
+  background-color: #2563eb;
+  width: 8px;
+  height: 8px;
+}
+
+.react-flow__handle-connecting {
+  background-color: #16a34a;
+}
+
+.react-flow__handle-valid {
+  background-color: #16a34a;
+}
+
 .markdown-editor {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.875rem;
