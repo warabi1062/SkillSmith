@@ -1,4 +1,5 @@
 import type { PrismaClient } from "../../generated/prisma/client";
+import { isSafeFilename } from "../path-validation.server";
 import { ValidationError } from "./agent-team.server";
 
 const VALID_ROLES = [
@@ -42,6 +43,29 @@ export function validateComponentFileData(data: {
       field: "filename",
       code: "FILENAME_TOO_LONG",
       message: `Filename must be ${FILENAME_MAX_LENGTH} characters or less`,
+    });
+  }
+
+  if (!isSafeFilename(data.filename.trim())) {
+    if (data.filename.includes("\0")) {
+      throw new ValidationError({
+        field: "filename",
+        code: "FILENAME_NULL_BYTE",
+        message: "Filename must not contain null bytes",
+      });
+    }
+    if (data.filename.trim().startsWith("/")) {
+      throw new ValidationError({
+        field: "filename",
+        code: "FILENAME_ABSOLUTE_PATH",
+        message: "Filename must not be an absolute path",
+      });
+    }
+    throw new ValidationError({
+      field: "filename",
+      code: "FILENAME_PATH_TRAVERSAL",
+      message:
+        'Filename must not contain path traversal sequences (e.g., "..")',
     });
   }
 }
