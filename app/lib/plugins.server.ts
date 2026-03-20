@@ -172,6 +172,20 @@ export async function updateComponent(
 }
 
 export async function deleteComponent(id: string) {
+  const orchestratedTeams = await prisma.agentTeam.findMany({
+    where: { orchestratorId: id },
+    select: { name: true },
+  });
+
+  if (orchestratedTeams.length > 0) {
+    const teamNames = orchestratedTeams.map((t) => t.name).join(", ");
+    throw new ValidationError({
+      field: "orchestratedTeams",
+      code: "HAS_DEPENDENT_TEAMS",
+      message: `This component is used as orchestrator in the following teams: ${teamNames}. Please remove these teams first.`,
+    });
+  }
+
   return prisma.component.delete({
     where: { id },
   });
