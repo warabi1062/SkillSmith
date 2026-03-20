@@ -115,6 +115,14 @@ export default function ComponentDetail({
                   </span>
                 </div>
                 <div className="detail-actions">
+                  {(file.role as ComponentFileRole) === "OUTPUT_SCHEMA" && (
+                    <Link
+                      to={`/plugins/${plugin.id}/components/${component.id}/files/${file.id}/fields`}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Manage Fields
+                    </Link>
+                  )}
                   <Link
                     to={`/plugins/${plugin.id}/components/${component.id}/files/${file.id}/edit`}
                     className="btn btn-secondary btn-sm"
