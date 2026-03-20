@@ -8,3 +8,8 @@ export {
 export { validatePluginData } from "./plugin.server";
 
 export { validateComponentData } from "./component.server";
+
+export {
+  validateComponentFileData,
+  validateMainRoleUniqueness,
+} from "./component-file.server";

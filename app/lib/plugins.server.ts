@@ -3,6 +3,8 @@ import { prisma } from "./db.server";
 import {
   validateAgentTeamCreate,
   validateAgentTeamMemberCreate,
+  validateComponentFileData,
+  validateMainRoleUniqueness,
   ValidationError,
 } from "./validations";
 
@@ -280,5 +282,100 @@ export async function addAgentTeamMember(
 export async function removeAgentTeamMember(memberId: string) {
   return prisma.agentTeamMember.delete({
     where: { id: memberId },
+  });
+}
+
+// ComponentFile CRUD
+
+export async function getComponentFile(id: string) {
+  return prisma.componentFile.findUnique({
+    where: { id },
+    include: {
+      outputSchemaFields: true,
+    },
+  });
+}
+
+export async function createComponentFile(
+  componentId: string,
+  data: { role: string; filename: string; content: string },
+) {
+  validateComponentFileData(data);
+  await validateMainRoleUniqueness(prisma, componentId, data.role);
+
+  const existingCount = await prisma.componentFile.count({
+    where: { componentId },
+  });
+
+  try {
+    return await prisma.componentFile.create({
+      data: {
+        componentId,
+        role: data.role as "MAIN" | "TEMPLATE" | "REFERENCE" | "EXAMPLE" | "OUTPUT_SCHEMA",
+        filename: data.filename.trim(),
+        content: data.content,
+        sortOrder: existingCount,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new ValidationError({
+        field: "filename",
+        code: "DUPLICATE_FILENAME",
+        message: "A file with this filename already exists in this component",
+      });
+    }
+    throw error;
+  }
+}
+
+export async function updateComponentFile(
+  id: string,
+  data: { filename: string; content: string },
+) {
+  const existing = await prisma.componentFile.findUnique({ where: { id } });
+  if (!existing) {
+    throw new ValidationError({
+      field: "id",
+      code: "FILE_NOT_FOUND",
+      message: "Component file not found",
+    });
+  }
+
+  validateComponentFileData({
+    role: existing.role,
+    filename: data.filename,
+    content: data.content,
+  });
+
+  try {
+    return await prisma.componentFile.update({
+      where: { id },
+      data: {
+        filename: data.filename.trim(),
+        content: data.content,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new ValidationError({
+        field: "filename",
+        code: "DUPLICATE_FILENAME",
+        message: "A file with this filename already exists in this component",
+      });
+    }
+    throw error;
+  }
+}
+
+export async function deleteComponentFile(id: string) {
+  return prisma.componentFile.delete({
+    where: { id },
   });
 }
