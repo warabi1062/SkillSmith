@@ -25,6 +25,14 @@ export default [
     "routes/plugins.$id.components.$componentId.destroy.tsx",
   ),
   route(
+    "plugins/:id/dependencies/new",
+    "routes/plugins.$id.dependencies.new.tsx",
+  ),
+  route(
+    "plugins/:id/dependencies/:dependencyId/destroy",
+    "routes/plugins.$id.dependencies.$dependencyId.destroy.tsx",
+  ),
+  route(
     "plugins/:id/agent-teams/new",
     "routes/plugins.$id.agent-teams.new.tsx",
   ),
