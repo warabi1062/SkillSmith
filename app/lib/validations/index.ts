@@ -13,3 +13,5 @@ export {
   validateComponentFileData,
   validateMainRoleUniqueness,
 } from "./component-file.server";
+
+export { validateOutputSchemaFieldData } from "./output-schema-field.server";
