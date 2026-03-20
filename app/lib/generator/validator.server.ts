@@ -35,7 +35,7 @@ export function validateGeneratedPlugin(
 ): GenerationValidationError[] {
   const errors: GenerationValidationError[] = [];
 
-  // Check for empty plugin (no components)
+  // Check for empty plugin (no components or no generated content files)
   if (components && components.length === 0) {
     errors.push({
       severity: "error",
@@ -43,19 +43,19 @@ export function validateGeneratedPlugin(
       message:
         "Plugin must have at least one component (skill or agent)",
     });
-  }
-
-  // Check for plugin with only plugin.json (no generated content files)
-  const contentFiles = plugin.files.filter(
-    (f) => f.path !== ".claude-plugin/plugin.json",
-  );
-  if (contentFiles.length === 0) {
-    errors.push({
-      severity: "error",
-      code: "EMPTY_PLUGIN",
-      message:
-        "Plugin must have at least one component (skill or agent)",
-    });
+  } else {
+    // Only check file-level emptiness when component-level check didn't fire
+    const contentFiles = plugin.files.filter(
+      (f) => f.path !== ".claude-plugin/plugin.json",
+    );
+    if (contentFiles.length === 0) {
+      errors.push({
+        severity: "error",
+        code: "EMPTY_PLUGIN",
+        message:
+          "Plugin must have at least one component (skill or agent)",
+      });
+    }
   }
 
   // Check directory structure compliance

@@ -86,8 +86,9 @@ export async function validateOutputSchemaFieldData(
   }
 
   // enumValues: CSV format validation when present
-  if (data.fieldType === "ENUM" && data.enumValues && data.enumValues.trim().length > 0) {
-    const values = data.enumValues.split(",");
+  if (data.fieldType === "ENUM") {
+    // enumValues is guaranteed to be non-empty here (L77-86 throws otherwise)
+    const values = data.enumValues!.split(",");
     const trimmedValues = values.map((v) => v.trim());
 
     // Check for empty entries (extra commas or whitespace-only entries)
