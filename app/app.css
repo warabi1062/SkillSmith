@@ -335,3 +335,12 @@ h3 {
 .dependency-graph-section {
   margin-top: 1.5rem;
 }
+
+.markdown-editor {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.875rem;
+  min-height: 400px;
+  resize: vertical;
+  line-height: 1.6;
+  tab-size: 2;
+}
