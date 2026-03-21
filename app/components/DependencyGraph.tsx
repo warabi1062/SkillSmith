@@ -34,6 +34,7 @@ interface DependencyGraphProps {
   onManageFiles?: (componentId: string) => void;
   onCreateAgentTeam?: () => void;
   onDeleteAgentTeam?: (teamId: string) => void;
+  onManageMembers?: (teamId: string) => void;
 }
 
 interface ContextMenuState {
@@ -59,6 +60,7 @@ export default function DependencyGraph({
   onAgentTeamDoubleClick,
   onCreateAgentTeam,
   onDeleteAgentTeam,
+  onManageMembers,
 }: DependencyGraphProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     visible: false,
@@ -206,6 +208,11 @@ export default function DependencyGraph({
     setContextMenu((prev) => ({ ...prev, visible: false }));
   }, [contextMenu.nodeId, onManageFiles]);
 
+  const handleContextMenuManageMembers = useCallback(() => {
+    onManageMembers?.(contextMenu.nodeId);
+    setContextMenu((prev) => ({ ...prev, visible: false }));
+  }, [contextMenu.nodeId, onManageMembers]);
+
   const handleContextMenuDelete = useCallback(() => {
     const label =
       contextMenu.nodeType === "agentTeam" ? "agent team" : "component";
@@ -295,6 +302,15 @@ export default function DependencyGraph({
               onClick={handleContextMenuManageFiles}
             >
               Manage Files
+            </button>
+          )}
+          {contextMenu.nodeType === "agentTeam" && (
+            <button
+              type="button"
+              className="context-menu-item"
+              onClick={handleContextMenuManageMembers}
+            >
+              Manage Members
             </button>
           )}
           <button
