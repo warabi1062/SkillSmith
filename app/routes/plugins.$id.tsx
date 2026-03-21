@@ -12,6 +12,8 @@ import {
   deleteAgentTeam,
   addAgentTeamMember,
   removeAgentTeamMember,
+  deleteDependenciesBatch,
+  verifyDependenciesOwnership,
 } from "../lib/plugins.server";
 import {
   validateComponentData,
@@ -334,6 +336,22 @@ export async function action({ request, params }: Route.ActionArgs) {
     return { success: true, teamId };
   }
 
+  if (intent === "delete-dependencies-batch") {
+    const dependencyIds = String(formData.get("dependencyIds") ?? "");
+    const ids = dependencyIds.split(",").filter(Boolean);
+    if (ids.length === 0) {
+      throw data("dependencyIds is required", { status: 400 });
+    }
+    const owned = await verifyDependenciesOwnership(ids, params.id);
+    if (!owned) {
+      throw data("Forbidden: dependencies do not belong to this plugin", {
+        status: 403,
+      });
+    }
+    await deleteDependenciesBatch(ids);
+    return { ok: true };
+  }
+
   throw data("Unknown intent", { status: 400 });
 }
 
@@ -553,6 +571,8 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     teamId?: string;
     errors?: Record<string, string>;
   }>();
+  const reorderDependencyFetcher = useFetcher();
+  const deleteBatchFetcher = useFetcher();
 
   const skills = plugin.components.filter((c) => c.type === "SKILL");
   const agents = plugin.components.filter((c) => c.type === "AGENT");
@@ -602,21 +622,72 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     }),
   );
 
-  const graphData =
+  const rawGraphData =
     plugin.components.length > 0 || plugin.agentTeams.length > 0
       ? buildGraphData(plugin.components, agentTeamsForGraph)
       : { nodes: [], edges: [] };
 
-  const handleConnect = useCallback(
-    (sourceId: string, targetId: string) => {
-      setDeleteError(null);
-      addDependencyFetcher.submit(
-        { sourceId, targetId },
+  const handleReorderStep = useCallback(
+    (dependencyId: string, direction: "up" | "down") => {
+      reorderDependencyFetcher.submit(
+        { direction },
         {
           method: "post",
-          action: `/plugins/${plugin.id}/dependencies/new`,
+          action: `/plugins/${plugin.id}/dependencies/${dependencyId}/reorder`,
         },
       );
+    },
+    [reorderDependencyFetcher, plugin.id],
+  );
+
+  const handleDeleteStep = useCallback(
+    (dependencyIds: string[]) => {
+      const confirmed = window.confirm("Remove this step and its dependencies?");
+      if (!confirmed) return;
+      deleteBatchFetcher.submit(
+        {
+          intent: "delete-dependencies-batch",
+          dependencyIds: dependencyIds.join(","),
+        },
+        {
+          method: "post",
+          action: `/plugins/${plugin.id}`,
+        },
+      );
+    },
+    [deleteBatchFetcher, plugin.id],
+  );
+
+  // Inject callbacks into orchestrator nodes
+  const graphData = {
+    ...rawGraphData,
+    nodes: rawGraphData.nodes.map((node) => {
+      if (node.type === "orchestrator") {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onReorderStep: handleReorderStep,
+            onDeleteStep: handleDeleteStep,
+          },
+        };
+      }
+      return node;
+    }),
+  };
+
+  const handleConnect = useCallback(
+    (sourceId: string, targetId: string, sourceHandle?: string) => {
+      setDeleteError(null);
+      const formData: Record<string, string> = { sourceId, targetId };
+      if (sourceHandle) {
+        const order = sourceHandle.replace("step-", "");
+        formData.order = order;
+      }
+      addDependencyFetcher.submit(formData, {
+        method: "post",
+        action: `/plugins/${plugin.id}/dependencies/new`,
+      });
     },
     [addDependencyFetcher, plugin.id],
   );

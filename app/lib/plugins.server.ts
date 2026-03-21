@@ -587,20 +587,23 @@ export async function getDependency(id: string) {
 export async function createDependency(data: {
   sourceId: string;
   targetId: string;
+  order?: number;
 }) {
   return prisma.$transaction(async (tx) => {
     await validateDependencyCreate(tx, data);
 
-    const existingCount = await tx.componentDependency.count({
+    const maxOrderResult = await tx.componentDependency.aggregate({
       where: { sourceId: data.sourceId },
+      _max: { order: true },
     });
+    const nextOrder = (maxOrderResult._max.order ?? -1) + 1;
 
     try {
       return await tx.componentDependency.create({
         data: {
           sourceId: data.sourceId,
           targetId: data.targetId,
-          order: existingCount,
+          order: data.order ?? nextOrder,
         },
       });
     } catch (error) {
@@ -622,6 +625,89 @@ export async function createDependency(data: {
 export async function deleteDependency(id: string) {
   return prisma.componentDependency.delete({
     where: { id },
+  });
+}
+
+export async function reorderDependency(
+  id: string,
+  direction: "up" | "down",
+) {
+  const dependency = await prisma.componentDependency.findUnique({
+    where: { id },
+  });
+  if (!dependency) {
+    throw new ValidationError({
+      field: "id",
+      code: "DEPENDENCY_NOT_FOUND",
+      message: "Dependency not found",
+    });
+  }
+
+  const { sourceId, order: currentOrder } = dependency;
+
+  // Find adjacent order value
+  let adjacentDependency;
+  if (direction === "up") {
+    adjacentDependency = await prisma.componentDependency.findFirst({
+      where: {
+        sourceId,
+        order: { lt: currentOrder },
+      },
+      orderBy: { order: "desc" },
+    });
+  } else {
+    adjacentDependency = await prisma.componentDependency.findFirst({
+      where: {
+        sourceId,
+        order: { gt: currentOrder },
+      },
+      orderBy: { order: "asc" },
+    });
+  }
+
+  // Boundary: no adjacent order means we're at the edge
+  if (!adjacentDependency) {
+    return;
+  }
+
+  const adjacentOrder = adjacentDependency.order;
+  const tempOrder = -1;
+
+  // Swap all records at currentOrder with all records at adjacentOrder
+  // Using 3-step update to avoid unique constraint violations
+  await prisma.$transaction([
+    prisma.componentDependency.updateMany({
+      where: { sourceId, order: currentOrder },
+      data: { order: tempOrder },
+    }),
+    prisma.componentDependency.updateMany({
+      where: { sourceId, order: adjacentOrder },
+      data: { order: currentOrder },
+    }),
+    prisma.componentDependency.updateMany({
+      where: { sourceId, order: tempOrder },
+      data: { order: adjacentOrder },
+    }),
+  ]);
+}
+
+export async function verifyDependenciesOwnership(
+  ids: string[],
+  pluginId: string,
+): Promise<boolean> {
+  const dependencies = await prisma.componentDependency.findMany({
+    where: { id: { in: ids } },
+    include: { source: { select: { pluginId: true } } },
+  });
+  if (dependencies.length !== ids.length) {
+    return false;
+  }
+  return dependencies.every((dep) => dep.source.pluginId === pluginId);
+}
+
+export async function deleteDependenciesBatch(ids: string[]) {
+  return prisma.componentDependency.deleteMany({
+    where: { id: { in: ids } },
   });
 }
 

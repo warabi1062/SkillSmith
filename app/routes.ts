@@ -18,6 +18,10 @@ export default [
     "routes/plugins.$id.dependencies.$dependencyId.destroy.tsx",
   ),
   route(
+    "plugins/:id/dependencies/:dependencyId/reorder",
+    "routes/plugins.$id.dependencies.$dependencyId.reorder.tsx",
+  ),
+  route(
     "plugins/:id/components/:componentId/files/new",
     "routes/plugins.$id.components.$componentId.files.new.tsx",
   ),
