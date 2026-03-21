@@ -47,6 +47,9 @@ interface DependencyGraphProps {
   onManageMembers?: (teamId: string) => void;
   onNodeDragStop?: (positions: Record<string, { x: number; y: number }>) => void;
   onResetLayout?: () => void;
+  onPositionsPersist?: (positions: Record<string, { x: number; y: number }>) => void;
+  autoLayoutNodes?: Node[] | null;
+  onAutoLayoutApplied?: () => void;
   resetKey?: number;
 }
 
@@ -74,6 +77,9 @@ export default function DependencyGraph({
   onManageMembers,
   onNodeDragStop,
   onResetLayout,
+  onPositionsPersist,
+  autoLayoutNodes,
+  onAutoLayoutApplied,
   resetKey,
 }: DependencyGraphProps) {
   const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
