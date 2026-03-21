@@ -1,3 +1,4 @@
+import { isSafeFilename } from "../path-validation.server";
 import type { GeneratedFile } from "./types";
 
 interface ComponentFileData {
@@ -22,6 +23,7 @@ export function generateSupportFiles(
 ): GeneratedFile[] {
   return files
     .filter((f) => f.role !== "MAIN")
+    .filter((f) => isSafeFilename(f.filename))
     .map((f) => ({
       path: `${componentDir}/${f.filename}`,
       content: f.content.endsWith("\n") ? f.content : f.content + "\n",
