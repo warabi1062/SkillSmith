@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { validateComponentFileData } from "../component-file.server";
+import { describe, expect, it, vi } from "vitest";
+import type { PrismaClient } from "../../../generated/prisma/client";
+import {
+  validateComponentFileData,
+  validateMainRoleUniqueness,
+} from "../component-file.server";
 import { ValidationError } from "../agent-team.server";
 
 describe("validateComponentFileData", () => {
@@ -156,5 +160,92 @@ describe("validateComponentFileData", () => {
       expect(e).toBeInstanceOf(ValidationError);
       expect((e as ValidationError).code).toBe("FILENAME_PATH_TRAVERSAL");
     }
+  });
+});
+
+describe("validateMainRoleUniqueness", () => {
+  function createMockPrisma() {
+    return {
+      componentFile: {
+        findFirst: vi.fn(),
+      },
+    };
+  }
+
+  // --- Skips non-MAIN roles ---
+
+  it("skips validation when role is not MAIN", async () => {
+    const mockPrisma = createMockPrisma();
+
+    await expect(
+      validateMainRoleUniqueness(
+        mockPrisma as unknown as PrismaClient,
+        "comp-1",
+        "TEMPLATE",
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(mockPrisma.componentFile.findFirst).not.toHaveBeenCalled();
+  });
+
+  // --- Success: no existing MAIN ---
+
+  it("succeeds when no MAIN file exists", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.componentFile.findFirst.mockResolvedValue(null);
+
+    await expect(
+      validateMainRoleUniqueness(
+        mockPrisma as unknown as PrismaClient,
+        "comp-1",
+        "MAIN",
+      ),
+    ).resolves.toBeUndefined();
+  });
+
+  // --- Error: MAIN already exists ---
+
+  it("throws MAIN_ROLE_ALREADY_EXISTS when MAIN file already exists", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.componentFile.findFirst.mockResolvedValue({
+      id: "file-1",
+      role: "MAIN",
+    });
+
+    try {
+      await validateMainRoleUniqueness(
+        mockPrisma as unknown as PrismaClient,
+        "comp-1",
+        "MAIN",
+      );
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("MAIN_ROLE_ALREADY_EXISTS");
+    }
+  });
+
+  // --- excludeFileId ---
+
+  it("succeeds when existing MAIN file is excluded by excludeFileId", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.componentFile.findFirst.mockResolvedValue(null);
+
+    await expect(
+      validateMainRoleUniqueness(
+        mockPrisma as unknown as PrismaClient,
+        "comp-1",
+        "MAIN",
+        "file-1",
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(mockPrisma.componentFile.findFirst).toHaveBeenCalledWith({
+      where: {
+        componentId: "comp-1",
+        role: "MAIN",
+        id: { not: "file-1" },
+      },
+    });
   });
 });

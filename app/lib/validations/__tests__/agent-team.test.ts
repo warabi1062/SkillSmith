@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
-import { validateAgentTeamData, ValidationError } from "../agent-team.server";
+import { describe, expect, it, vi } from "vitest";
+import type { PrismaClient } from "../../../generated/prisma/client";
+import {
+  validateAgentTeamCreate,
+  validateAgentTeamData,
+  validateAgentTeamMemberCreate,
+  ValidationError,
+} from "../agent-team.server";
 
 describe("validateAgentTeamData", () => {
   // --- Success case ---
@@ -70,6 +76,176 @@ describe("validateAgentTeamData", () => {
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
       expect((e as ValidationError).code).toBe("DESCRIPTION_TOO_LONG");
+    }
+  });
+});
+
+type PrismaLike = {
+  component: {
+    findUnique: ReturnType<typeof vi.fn>;
+  };
+};
+
+function createMockPrisma(): PrismaLike {
+  return {
+    component: {
+      findUnique: vi.fn(),
+    },
+  };
+}
+
+describe("validateAgentTeamCreate", () => {
+  // --- Success case ---
+
+  it("accepts valid ENTRY_POINT SKILL component", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "SKILL",
+      skillConfig: { skillType: "ENTRY_POINT" },
+    });
+
+    await expect(
+      validateAgentTeamCreate(mockPrisma as unknown as PrismaClient, {
+        orchestratorId: "comp-1",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  // --- COMPONENT_NOT_FOUND ---
+
+  it("throws COMPONENT_NOT_FOUND when component does not exist", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue(null);
+
+    try {
+      await validateAgentTeamCreate(mockPrisma as unknown as PrismaClient, {
+        orchestratorId: "nonexistent",
+      });
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).field).toBe("orchestratorId");
+      expect((e as ValidationError).code).toBe("COMPONENT_NOT_FOUND");
+    }
+  });
+
+  // --- INVALID_COMPONENT_TYPE ---
+
+  it("throws INVALID_COMPONENT_TYPE when component is AGENT", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "AGENT",
+    });
+
+    try {
+      await validateAgentTeamCreate(mockPrisma as unknown as PrismaClient, {
+        orchestratorId: "comp-1",
+      });
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("INVALID_COMPONENT_TYPE");
+    }
+  });
+
+  // --- SKILL_CONFIG_NOT_FOUND ---
+
+  it("throws SKILL_CONFIG_NOT_FOUND when SKILL has no skillConfig", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "SKILL",
+      skillConfig: null,
+    });
+
+    try {
+      await validateAgentTeamCreate(mockPrisma as unknown as PrismaClient, {
+        orchestratorId: "comp-1",
+      });
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("SKILL_CONFIG_NOT_FOUND");
+    }
+  });
+
+  // --- INVALID_SKILL_TYPE ---
+
+  it("throws INVALID_SKILL_TYPE when SKILL is WORKER", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "SKILL",
+      skillConfig: { skillType: "WORKER" },
+    });
+
+    try {
+      await validateAgentTeamCreate(mockPrisma as unknown as PrismaClient, {
+        orchestratorId: "comp-1",
+      });
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("INVALID_SKILL_TYPE");
+    }
+  });
+});
+
+describe("validateAgentTeamMemberCreate", () => {
+  // --- Success case ---
+
+  it("accepts valid AGENT component", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "AGENT",
+    });
+
+    await expect(
+      validateAgentTeamMemberCreate(mockPrisma as unknown as PrismaClient, {
+        componentId: "comp-1",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  // --- COMPONENT_NOT_FOUND ---
+
+  it("throws COMPONENT_NOT_FOUND when component does not exist", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue(null);
+
+    try {
+      await validateAgentTeamMemberCreate(
+        mockPrisma as unknown as PrismaClient,
+        { componentId: "nonexistent" },
+      );
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("COMPONENT_NOT_FOUND");
+    }
+  });
+
+  // --- INVALID_COMPONENT_TYPE ---
+
+  it("throws INVALID_COMPONENT_TYPE when component is SKILL", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "SKILL",
+    });
+
+    try {
+      await validateAgentTeamMemberCreate(
+        mockPrisma as unknown as PrismaClient,
+        { componentId: "comp-1" },
+      );
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("INVALID_COMPONENT_TYPE");
     }
   });
 });
