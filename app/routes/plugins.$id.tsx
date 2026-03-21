@@ -6,8 +6,16 @@ import {
   createComponent,
   updateComponent,
   deleteComponent,
+  getAgentTeam,
+  createAgentTeam,
+  updateAgentTeam,
+  deleteAgentTeam,
 } from "../lib/plugins.server";
-import { validateComponentData, ValidationError } from "../lib/validations";
+import {
+  validateComponentData,
+  validateAgentTeamData,
+  ValidationError,
+} from "../lib/validations";
 import type { Route } from "./+types/plugins.$id";
 import type { Node, Edge } from "@xyflow/react";
 import type { GenerationValidationError } from "../lib/generator/types";
@@ -19,12 +27,21 @@ const DependencyGraph = React.lazy(
 const ComponentFormModal = React.lazy(
   () => import("../components/ComponentFormModal"),
 );
+const AgentTeamFormModal = React.lazy(
+  () => import("../components/AgentTeamFormModal"),
+);
 
 interface ModalState {
   isOpen: boolean;
   mode: "create" | "edit";
   componentType?: "SKILL" | "AGENT";
   componentId?: string;
+}
+
+interface AgentTeamModalState {
+  isOpen: boolean;
+  mode: "create" | "edit";
+  teamId?: string;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -145,6 +162,106 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
   }
 
+  if (intent === "create-agent-team") {
+    const name = String(formData.get("name") ?? "");
+    const description = String(formData.get("description") ?? "");
+    const orchestratorId = String(formData.get("orchestratorId") ?? "");
+
+    try {
+      if (!orchestratorId) {
+        throw new ValidationError({
+          field: "orchestratorId",
+          code: "ORCHESTRATOR_REQUIRED",
+          message: "Orchestrator is required",
+        });
+      }
+
+      validateAgentTeamData({
+        name,
+        description: description || undefined,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description, orchestratorId },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+
+    try {
+      const team = await createAgentTeam(params.id, {
+        orchestratorId,
+        name,
+        description: description || undefined,
+      });
+
+      return { success: true, teamId: team.id };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description, orchestratorId },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "update-agent-team") {
+    const teamId = String(formData.get("teamId") ?? "");
+    const team = await getAgentTeam(teamId);
+    if (!team || team.pluginId !== params.id) {
+      throw data("Agent Team not found", { status: 404 });
+    }
+
+    const name = String(formData.get("name") ?? "");
+    const description = String(formData.get("description") ?? "");
+
+    try {
+      validateAgentTeamData({
+        name,
+        description: description || undefined,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+
+    await updateAgentTeam(teamId, {
+      name,
+      description: description || undefined,
+    });
+
+    return { success: true, teamId };
+  }
+
+  if (intent === "delete-agent-team") {
+    const teamId = String(formData.get("teamId") ?? "");
+    const team = await getAgentTeam(teamId);
+    if (!team || team.pluginId !== params.id) {
+      throw data("Agent Team not found", { status: 404 });
+    }
+
+    await deleteAgentTeam(teamId);
+    return { success: true };
+  }
+
   throw data("Unknown intent", { status: 400 });
 }
 
@@ -154,11 +271,22 @@ type PluginComponent = Awaited<
   ? C
   : never;
 
-function buildGraphData(components: PluginComponent[]): {
+interface AgentTeamGraphData {
+  id: string;
+  name: string;
+  description: string | null;
+  orchestratorName: string;
+}
+
+function buildGraphData(
+  components: PluginComponent[],
+  agentTeams: AgentTeamGraphData[] = [],
+): {
   nodes: Node[];
   edges: Edge[];
 } {
-  if (components.length === 0) return { nodes: [], edges: [] };
+  if (components.length === 0 && agentTeams.length === 0)
+    return { nodes: [], edges: [] };
 
   // Build adjacency for topological sort
   const adjacency = new Map<string, string[]>();
@@ -263,6 +391,29 @@ function buildGraphData(components: PluginComponent[]): {
     },
   }));
 
+  // Agent Team nodes: placed in a separate row below all component nodes
+  if (agentTeams.length > 0) {
+    const maxDepth = components.length > 0
+      ? Math.max(...Array.from(depth.values()), 0)
+      : -1;
+    const teamRowY = (maxDepth + 1) * VERTICAL_SPACING + VERTICAL_SPACING / 2;
+
+    for (let i = 0; i < agentTeams.length; i++) {
+      const team = agentTeams[i];
+      nodes.push({
+        id: `agentteam-${team.id}`,
+        position: { x: i * HORIZONTAL_SPACING, y: teamRowY },
+        data: { label: team.name },
+        style: {
+          background: "#dcfce7",
+          border: "1px solid #86efac",
+          borderRadius: "0.375rem",
+          padding: "8px 16px",
+        },
+      });
+    }
+  }
+
   return { nodes, edges };
 }
 
@@ -292,9 +443,17 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     success?: boolean;
     error?: string;
   }>();
+  const agentTeamFetcher = useFetcher<{
+    success?: boolean;
+    teamId?: string;
+    errors?: Record<string, string>;
+  }>();
 
   const skills = plugin.components.filter((c) => c.type === "SKILL");
   const agents = plugin.components.filter((c) => c.type === "AGENT");
+  const entryPointSkills = plugin.components.filter(
+    (c) => c.type === "SKILL" && c.skillConfig?.skillType === "ENTRY_POINT",
+  );
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
@@ -303,6 +462,11 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     isOpen: false,
     mode: "create",
   });
+  const [agentTeamModalState, setAgentTeamModalState] =
+    useState<AgentTeamModalState>({
+      isOpen: false,
+      mode: "create",
+    });
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Watch deleteFetcher for error messages
@@ -317,8 +481,20 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const exportResult = exportFetcher.data;
   const isExporting = exportFetcher.state !== "idle";
 
+  const agentTeamsForGraph: AgentTeamGraphData[] = plugin.agentTeams.map(
+    (team) => ({
+      id: team.id,
+      name: team.name,
+      description: team.description,
+      orchestratorName:
+        team.orchestrator.skillConfig?.name ?? "(unnamed)",
+    }),
+  );
+
   const graphData =
-    plugin.components.length > 0 ? buildGraphData(plugin.components) : null;
+    plugin.components.length > 0 || plugin.agentTeams.length > 0
+      ? buildGraphData(plugin.components, agentTeamsForGraph)
+      : null;
 
   const handleConnect = useCallback(
     (sourceId: string, targetId: string) => {
@@ -387,6 +563,44 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     setModalState({ isOpen: false, mode: "create" });
   }, []);
 
+  const handleAgentTeamDoubleClick = useCallback(
+    (teamId: string) => {
+      const team = plugin.agentTeams.find((t) => t.id === teamId);
+      if (team) {
+        setDeleteError(null);
+        setAgentTeamModalState({
+          isOpen: true,
+          mode: "edit",
+          teamId,
+        });
+      }
+    },
+    [plugin.agentTeams],
+  );
+
+  const handleCreateAgentTeam = useCallback(() => {
+    setDeleteError(null);
+    setAgentTeamModalState({
+      isOpen: true,
+      mode: "create",
+    });
+  }, []);
+
+  const handleDeleteAgentTeam = useCallback(
+    (teamId: string) => {
+      setDeleteError(null);
+      deleteFetcher.submit(
+        { intent: "delete-agent-team", teamId },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [deleteFetcher, plugin.id],
+  );
+
+  const handleAgentTeamModalClose = useCallback(() => {
+    setAgentTeamModalState({ isOpen: false, mode: "create" });
+  }, []);
+
   // Build initialValues for edit mode
   const modalInitialValues = modalState.mode === "edit" && modalState.componentId
     ? (() => {
@@ -401,6 +615,24 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         };
       })()
     : undefined;
+
+  // Build initialValues for agent team edit mode
+  const agentTeamModalInitialValues =
+    agentTeamModalState.mode === "edit" && agentTeamModalState.teamId
+      ? (() => {
+          const team = plugin.agentTeams.find(
+            (t) => t.id === agentTeamModalState.teamId,
+          );
+          if (!team) return undefined;
+          return {
+            teamId: team.id,
+            name: team.name,
+            description: team.description ?? "",
+            orchestratorName:
+              team.orchestrator.skillConfig?.name ?? "(unnamed)",
+          };
+        })()
+      : undefined;
 
   const graphComponents = plugin.components.map((c) => ({
     id: c.id,
@@ -574,11 +806,15 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               edges={graphData.edges}
               pluginId={plugin.id}
               components={graphComponents}
+              agentTeams={agentTeamsForGraph}
               onConnect={handleConnect}
               onEdgeClick={handleEdgeClick}
               onNodeDoubleClick={handleNodeDoubleClick}
               onCreateComponent={handleCreateComponent}
               onDeleteComponent={handleDeleteComponent}
+              onAgentTeamDoubleClick={handleAgentTeamDoubleClick}
+              onCreateAgentTeam={handleCreateAgentTeam}
+              onDeleteAgentTeam={handleDeleteAgentTeam}
             />
           </Suspense>
         </div>
@@ -593,6 +829,25 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
             componentType={modalState.componentType}
             initialValues={modalInitialValues}
             fetcher={componentFetcher}
+            pluginId={plugin.id}
+          />
+        </Suspense>
+      )}
+
+      {isClient && (
+        <Suspense fallback={null}>
+          <AgentTeamFormModal
+            isOpen={agentTeamModalState.isOpen}
+            onClose={handleAgentTeamModalClose}
+            mode={agentTeamModalState.mode}
+            initialValues={agentTeamModalInitialValues}
+            entryPointSkills={entryPointSkills.map((c) => ({
+              id: c.id,
+              skillConfig: c.skillConfig
+                ? { name: c.skillConfig.name }
+                : null,
+            }))}
+            fetcher={agentTeamFetcher}
             pluginId={plugin.id}
           />
         </Suspense>

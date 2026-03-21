@@ -19,18 +19,28 @@ interface DependencyGraphProps {
     type: string;
     skillConfig: { skillType: string } | null;
   }>;
+  agentTeams: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    orchestratorName: string;
+  }>;
   onConnect: (sourceId: string, targetId: string) => void;
   onEdgeClick: (dependencyId: string) => void;
   onNodeDoubleClick?: (componentId: string) => void;
   onCreateComponent?: (type: "SKILL" | "AGENT") => void;
   onDeleteComponent?: (componentId: string) => void;
+  onAgentTeamDoubleClick?: (teamId: string) => void;
+  onCreateAgentTeam?: () => void;
+  onDeleteAgentTeam?: (teamId: string) => void;
 }
 
 interface ContextMenuState {
   visible: boolean;
   x: number;
   y: number;
-  componentId: string;
+  nodeId: string;
+  nodeType: "component" | "agentTeam";
 }
 
 export default function DependencyGraph({
@@ -38,17 +48,22 @@ export default function DependencyGraph({
   edges,
   pluginId,
   components,
+  agentTeams,
   onConnect,
   onEdgeClick,
   onNodeDoubleClick,
   onCreateComponent,
   onDeleteComponent,
+  onAgentTeamDoubleClick,
+  onCreateAgentTeam,
+  onDeleteAgentTeam,
 }: DependencyGraphProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     visible: false,
     x: 0,
     y: 0,
-    componentId: "",
+    nodeId: "",
+    nodeType: "component",
   });
 
   const isValidConnection = useCallback(
@@ -56,6 +71,10 @@ export default function DependencyGraph({
       const { source, target } = connection;
       if (!source || !target) return false;
       if (source === target) return false;
+
+      // Agent Team nodes cannot be connected
+      if (source.startsWith("agentteam-") || target.startsWith("agentteam-"))
+        return false;
 
       const sourceComp = components.find((c) => c.id === source);
       const targetComp = components.find((c) => c.id === target);
@@ -122,19 +141,25 @@ export default function DependencyGraph({
 
   const handleNodeDoubleClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
-      onNodeDoubleClick?.(node.id);
+      if (node.id.startsWith("agentteam-")) {
+        onAgentTeamDoubleClick?.(node.id.replace("agentteam-", ""));
+      } else {
+        onNodeDoubleClick?.(node.id);
+      }
     },
-    [onNodeDoubleClick],
+    [onNodeDoubleClick, onAgentTeamDoubleClick],
   );
 
   const handleNodeContextMenu = useCallback(
     (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
+      const isAgentTeam = node.id.startsWith("agentteam-");
       setContextMenu({
         visible: true,
         x: event.clientX,
         y: event.clientY,
-        componentId: node.id,
+        nodeId: isAgentTeam ? node.id.replace("agentteam-", "") : node.id,
+        nodeType: isAgentTeam ? "agentTeam" : "component",
       });
     },
     [],
@@ -166,19 +191,29 @@ export default function DependencyGraph({
   }, [contextMenu.visible]);
 
   const handleContextMenuEdit = useCallback(() => {
-    onNodeDoubleClick?.(contextMenu.componentId);
-    setContextMenu((prev) => ({ ...prev, visible: false }));
-  }, [contextMenu.componentId, onNodeDoubleClick]);
-
-  const handleContextMenuDelete = useCallback(() => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this component?",
-    );
-    if (confirmed) {
-      onDeleteComponent?.(contextMenu.componentId);
+    if (contextMenu.nodeType === "agentTeam") {
+      onAgentTeamDoubleClick?.(contextMenu.nodeId);
+    } else {
+      onNodeDoubleClick?.(contextMenu.nodeId);
     }
     setContextMenu((prev) => ({ ...prev, visible: false }));
-  }, [contextMenu.componentId, onDeleteComponent]);
+  }, [contextMenu.nodeId, contextMenu.nodeType, onNodeDoubleClick, onAgentTeamDoubleClick]);
+
+  const handleContextMenuDelete = useCallback(() => {
+    const label =
+      contextMenu.nodeType === "agentTeam" ? "agent team" : "component";
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this ${label}?`,
+    );
+    if (confirmed) {
+      if (contextMenu.nodeType === "agentTeam") {
+        onDeleteAgentTeam?.(contextMenu.nodeId);
+      } else {
+        onDeleteComponent?.(contextMenu.nodeId);
+      }
+    }
+    setContextMenu((prev) => ({ ...prev, visible: false }));
+  }, [contextMenu.nodeId, contextMenu.nodeType, onDeleteComponent, onDeleteAgentTeam]);
 
   return (
     <div className="dependency-graph">
@@ -195,23 +230,37 @@ export default function DependencyGraph({
       >
         <Background />
         <Controls />
-        {onCreateComponent && (
+        {(onCreateComponent || onCreateAgentTeam) && (
           <Panel position="top-right">
             <div className="graph-toolbar">
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => onCreateComponent("SKILL")}
-              >
-                + New Skill
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => onCreateComponent("AGENT")}
-              >
-                + New Agent
-              </button>
+              {onCreateComponent && (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => onCreateComponent("SKILL")}
+                  >
+                    + New Skill
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => onCreateComponent("AGENT")}
+                  >
+                    + New Agent
+                  </button>
+                </>
+              )}
+              {onCreateAgentTeam && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ background: "#dcfce7", borderColor: "#86efac" }}
+                  onClick={onCreateAgentTeam}
+                >
+                  + New Agent Team
+                </button>
+              )}
             </div>
           </Panel>
         )}
