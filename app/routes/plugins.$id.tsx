@@ -35,6 +35,9 @@ const AgentTeamFormModal = React.lazy(
 const FilesManagementModal = React.lazy(
   () => import("../components/FilesManagementModal"),
 );
+const AgentTeamMembersModal = React.lazy(
+  () => import("../components/AgentTeamMembersModal"),
+);
 
 interface ModalState {
   isOpen: boolean;
@@ -52,6 +55,11 @@ interface AgentTeamModalState {
 interface FilesModalState {
   isOpen: boolean;
   componentId?: string;
+}
+
+interface MembersModalState {
+  isOpen: boolean;
+  teamId?: string;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -534,6 +542,9 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const [filesModalState, setFilesModalState] = useState<FilesModalState>({
     isOpen: false,
   });
+  const [membersModalState, setMembersModalState] = useState<MembersModalState>({
+    isOpen: false,
+  });
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Watch deleteFetcher for error messages
@@ -636,6 +647,18 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
   const handleFilesModalClose = useCallback(() => {
     setFilesModalState({ isOpen: false });
+  }, []);
+
+  const handleManageMembers = useCallback(
+    (teamId: string) => {
+      setDeleteError(null);
+      setMembersModalState({ isOpen: true, teamId });
+    },
+    [],
+  );
+
+  const handleMembersModalClose = useCallback(() => {
+    setMembersModalState({ isOpen: false });
   }, []);
 
   const handleModalClose = useCallback(() => {
@@ -823,10 +846,11 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           <p className="card-description">No agent teams yet.</p>
         ) : (
           plugin.agentTeams.map((team) => (
-            <Link
+            <div
               key={team.id}
-              to={`/plugins/${plugin.id}/agent-teams/${team.id}`}
               className="component-item component-item-link"
+              style={{ cursor: "pointer" }}
+              onClick={() => handleManageMembers(team.id)}
             >
               <div>
                 <span className="component-item-name">{team.name}</span>
@@ -837,7 +861,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               <span className="badge">
                 {team._count.members} member{team._count.members !== 1 ? "s" : ""}
               </span>
-            </Link>
+            </div>
           ))
         )}
       </div>
@@ -881,6 +905,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               onAgentTeamDoubleClick={handleAgentTeamDoubleClick}
               onCreateAgentTeam={handleCreateAgentTeam}
               onDeleteAgentTeam={handleDeleteAgentTeam}
+              onManageMembers={handleManageMembers}
             />
           </Suspense>
         </div>
@@ -940,6 +965,36 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
             }))}
             fetcher={agentTeamFetcher}
             pluginId={plugin.id}
+          />
+        </Suspense>
+      )}
+
+      {isClient && membersModalState.isOpen && membersModalState.teamId && (
+        <Suspense fallback={null}>
+          <AgentTeamMembersModal
+            isOpen={membersModalState.isOpen}
+            onClose={handleMembersModalClose}
+            pluginId={plugin.id}
+            teamId={membersModalState.teamId}
+            teamName={(() => {
+              const team = plugin.agentTeams.find(
+                (t) => t.id === membersModalState.teamId,
+              );
+              return team?.name ?? "(unknown)";
+            })()}
+            members={
+              plugin.agentTeams.find(
+                (t) => t.id === membersModalState.teamId,
+              )?.members ?? []
+            }
+            agentComponents={plugin.components
+              .filter((c) => c.type === "AGENT")
+              .map((c) => ({
+                id: c.id,
+                agentConfig: c.agentConfig
+                  ? { name: c.agentConfig.name }
+                  : null,
+              }))}
           />
         </Suspense>
       )}
