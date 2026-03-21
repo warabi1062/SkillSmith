@@ -31,6 +31,7 @@ interface DependencyGraphProps {
   onCreateComponent?: (type: "SKILL" | "AGENT") => void;
   onDeleteComponent?: (componentId: string) => void;
   onAgentTeamDoubleClick?: (teamId: string) => void;
+  onManageFiles?: (componentId: string) => void;
   onCreateAgentTeam?: () => void;
   onDeleteAgentTeam?: (teamId: string) => void;
 }
@@ -54,6 +55,7 @@ export default function DependencyGraph({
   onNodeDoubleClick,
   onCreateComponent,
   onDeleteComponent,
+  onManageFiles,
   onAgentTeamDoubleClick,
   onCreateAgentTeam,
   onDeleteAgentTeam,
@@ -199,6 +201,11 @@ export default function DependencyGraph({
     setContextMenu((prev) => ({ ...prev, visible: false }));
   }, [contextMenu.nodeId, contextMenu.nodeType, onNodeDoubleClick, onAgentTeamDoubleClick]);
 
+  const handleContextMenuManageFiles = useCallback(() => {
+    onManageFiles?.(contextMenu.nodeId);
+    setContextMenu((prev) => ({ ...prev, visible: false }));
+  }, [contextMenu.nodeId, onManageFiles]);
+
   const handleContextMenuDelete = useCallback(() => {
     const label =
       contextMenu.nodeType === "agentTeam" ? "agent team" : "component";
@@ -281,6 +288,15 @@ export default function DependencyGraph({
           >
             Edit
           </button>
+          {contextMenu.nodeType === "component" && (
+            <button
+              type="button"
+              className="context-menu-item"
+              onClick={handleContextMenuManageFiles}
+            >
+              Manage Files
+            </button>
+          )}
           <button
             type="button"
             className="context-menu-item context-menu-item-danger"
