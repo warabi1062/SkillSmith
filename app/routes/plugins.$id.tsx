@@ -10,9 +10,8 @@ export { action } from "./plugins.$id.action.server";
 
 interface ModalState {
   isOpen: boolean;
-  mode: "create" | "edit";
+  mode: "create";
   componentType?: "SKILL" | "AGENT";
-  componentId?: string;
 }
 
 interface MembersModalState {
@@ -50,7 +49,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
       <PluginInfoSection
         plugin={plugin}
-        onComponentClick={(id) => setModalState({ isOpen: true, mode: "edit", componentId: id })}
         onTeamClick={(id) => setMembersModalState({ isOpen: true, teamId: id })}
       />
 

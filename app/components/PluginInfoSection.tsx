@@ -4,13 +4,11 @@ type Plugin = NonNullable<Awaited<ReturnType<typeof getPlugin>>>;
 
 interface PluginInfoSectionProps {
   plugin: Plugin;
-  onComponentClick: (componentId: string) => void;
   onTeamClick: (teamId: string) => void;
 }
 
 export default function PluginInfoSection({
   plugin,
-  onComponentClick,
   onTeamClick,
 }: PluginInfoSectionProps) {
   const skills = plugin.components.filter((c) => c.type === "SKILL");
@@ -26,9 +24,7 @@ export default function PluginInfoSection({
           skills.map((component) => (
             <div
               key={component.id}
-              className="component-item component-item-link"
-              style={{ cursor: "pointer" }}
-              onClick={() => onComponentClick(component.id)}
+              className="component-item"
             >
               <div>
                 <span className="component-item-name">
@@ -57,9 +53,7 @@ export default function PluginInfoSection({
           agents.map((component) => (
             <div
               key={component.id}
-              className="component-item component-item-link"
-              style={{ cursor: "pointer" }}
-              onClick={() => onComponentClick(component.id)}
+              className="component-item"
             >
               <div>
                 <span className="component-item-name">

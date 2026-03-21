@@ -178,7 +178,6 @@ describe("usePluginGraph", () => {
       );
       expect(result.current.agentTeamModalState).toEqual({
         isOpen: false,
-        mode: "create",
       });
     });
 
@@ -259,6 +258,88 @@ describe("usePluginGraph", () => {
     });
   });
 
+  describe("node data injection", () => {
+    it("injects componentId and pluginId into skill nodes", () => {
+      const comp = createComponent({ id: "comp-1", type: "SKILL" });
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.componentId).toBe("comp-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+
+    it("injects componentId and pluginId into agent nodes", () => {
+      const comp = createComponent({ id: "agent-1", type: "AGENT" });
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "agent-1", type: "agent", position: { x: 0, y: 0 }, data: { label: "B" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.componentId).toBe("agent-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+
+    it("injects componentId and pluginId into orchestrator nodes", () => {
+      const comp = createComponent({ id: "orch-1", type: "SKILL" });
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "orch-1", type: "orchestrator", position: { x: 0, y: 0 }, data: { label: "C" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.componentId).toBe("orch-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+
+    it("injects teamId and pluginId into agentteam nodes", () => {
+      const team = createAgentTeam({ id: "team-1" });
+      const plugin = createPlugin({ agentTeams: [team] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "agentteam-team-1", type: "agentteam", position: { x: 0, y: 0 }, data: { label: "D" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.teamId).toBe("team-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+  });
+
   describe("handleConnect", () => {
     it("submits add-dependency with correct args", () => {
       const { result } = renderHook(() =>
@@ -310,42 +391,6 @@ describe("usePluginGraph", () => {
         { intent: "remove-dependency", dependencyId: "dep-1" },
         { method: "post" },
       );
-    });
-  });
-
-  describe("handleNodeDoubleClick", () => {
-    it("calls onModalStateChange with edit mode for existing component", () => {
-      const comp = createComponent({ id: "comp-1" });
-      const plugin = createPlugin({ components: [comp] });
-      const onModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin, onModalStateChange })),
-      );
-
-      act(() => {
-        result.current.handleNodeDoubleClick("comp-1");
-      });
-
-      expect(onModalStateChange).toHaveBeenCalledWith({
-        isOpen: true,
-        mode: "edit",
-        componentId: "comp-1",
-      });
-    });
-
-    it("does nothing for non-existing component", () => {
-      const onModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ onModalStateChange })),
-      );
-
-      act(() => {
-        result.current.handleNodeDoubleClick("nonexistent");
-      });
-
-      expect(onModalStateChange).not.toHaveBeenCalled();
     });
   });
 
@@ -420,42 +465,6 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("handleAgentTeamDoubleClick", () => {
-    it("opens agentTeamModalState in edit mode for existing team", () => {
-      const team = createAgentTeam({ id: "team-1" });
-      const plugin = createPlugin({ agentTeams: [team] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      act(() => {
-        result.current.handleAgentTeamDoubleClick("team-1");
-      });
-
-      expect(result.current.agentTeamModalState).toEqual({
-        isOpen: true,
-        mode: "edit",
-        teamId: "team-1",
-      });
-    });
-
-    it("does nothing for non-existing team", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleAgentTeamDoubleClick("nonexistent");
-      });
-
-      expect(result.current.agentTeamModalState).toEqual({
-        isOpen: false,
-        mode: "create",
-      });
-    });
-  });
-
   describe("handleCreateAgentTeam", () => {
     it("opens agentTeamModalState in create mode", () => {
       const { result } = renderHook(() =>
@@ -468,7 +477,6 @@ describe("usePluginGraph", () => {
 
       expect(result.current.agentTeamModalState).toEqual({
         isOpen: true,
-        mode: "create",
       });
     });
   });
@@ -505,7 +513,6 @@ describe("usePluginGraph", () => {
 
       expect(result.current.agentTeamModalState).toEqual({
         isOpen: false,
-        mode: "create",
       });
     });
   });
@@ -633,77 +640,6 @@ describe("usePluginGraph", () => {
       });
 
       expect(mockSubmit).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("modalInitialValues", () => {
-    it("builds initial values in edit mode", () => {
-      const comp = createComponent({
-        id: "comp-1",
-        type: "SKILL",
-        skillConfig: createSkillConfig({
-          name: "My Skill",
-          description: "A description",
-          skillType: "WORKER",
-          componentId: "comp-1",
-        }),
-      });
-      const plugin = createPlugin({ components: [comp] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(
-          createDefaultParams({
-            plugin,
-            modalState: {
-              isOpen: true,
-              mode: "edit",
-              componentId: "comp-1",
-            },
-          }),
-        ),
-      );
-
-      expect(result.current.modalInitialValues).toEqual({
-        componentId: "comp-1",
-        name: "My Skill",
-        description: "A description",
-        skillType: "WORKER",
-        type: "SKILL",
-      });
-    });
-
-    it("returns undefined in create mode", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-      expect(result.current.modalInitialValues).toBeUndefined();
-    });
-  });
-
-  describe("agentTeamModalInitialValues", () => {
-    it("builds initial values in edit mode", () => {
-      const team = createAgentTeam({
-        id: "team-1",
-        name: "Team Alpha",
-        description: "Team desc",
-      });
-      const plugin = createPlugin({ agentTeams: [team] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      // Open the agent team modal in edit mode
-      act(() => {
-        result.current.handleAgentTeamDoubleClick("team-1");
-      });
-
-      expect(result.current.agentTeamModalInitialValues).toEqual({
-        teamId: "team-1",
-        name: "Team Alpha",
-        description: "Team desc",
-        orchestratorName: "Orchestrator Skill",
-      });
     });
   });
 

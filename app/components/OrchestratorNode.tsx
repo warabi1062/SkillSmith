@@ -1,5 +1,8 @@
-import { Handle, Position } from "@xyflow/react";
+import { useCallback } from "react";
+import { Handle, Position, useReactFlow } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
+import { useFetcher } from "react-router";
+import InlineEditableField from "./InlineEditableField";
 
 interface Step {
   order: number;
@@ -12,10 +15,14 @@ interface OrchestratorNodeData {
   steps: Step[];
   onReorderStep?: (dependencyId: string, direction: "up" | "down") => void;
   onDeleteStep?: (dependencyIds: string[]) => void;
+  componentId: string;
+  pluginId: string;
+  skillType?: string | null;
   [key: string]: unknown;
 }
 
 export default function OrchestratorNode({
+  id,
   data,
 }: NodeProps & { data: OrchestratorNodeData }) {
   const {
@@ -24,19 +31,82 @@ export default function OrchestratorNode({
     steps = [],
     onReorderStep,
     onDeleteStep,
+    componentId,
+    pluginId,
+    skillType,
   } = data as OrchestratorNodeData;
+  const fetcher = useFetcher();
+  const isSaving = fetcher.state !== "idle";
+  const { setNodes } = useReactFlow();
+
+  const handleEditStart = useCallback(() => {
+    setNodes((nodes) =>
+      nodes.map((n) => (n.id === id ? { ...n, draggable: false } : n)),
+    );
+  }, [id, setNodes]);
+
+  const handleEditEnd = useCallback(() => {
+    setNodes((nodes) =>
+      nodes.map((n) => (n.id === id ? { ...n, draggable: true } : n)),
+    );
+  }, [id, setNodes]);
+
+  const handleSaveName = useCallback(
+    (name: string) => {
+      fetcher.submit(
+        {
+          intent: "update-component",
+          componentId,
+          name,
+          description: description ?? "",
+          skillType: skillType ?? "",
+        },
+        { method: "post", action: `/plugins/${pluginId}` },
+      );
+    },
+    [fetcher, componentId, description, skillType, pluginId],
+  );
+
+  const handleSaveDescription = useCallback(
+    (newDescription: string) => {
+      fetcher.submit(
+        {
+          intent: "update-component",
+          componentId,
+          name: label,
+          description: newDescription,
+          skillType: skillType ?? "",
+        },
+        { method: "post", action: `/plugins/${pluginId}` },
+      );
+    },
+    [fetcher, componentId, label, skillType, pluginId],
+  );
 
   return (
     <div className="orchestrator-node">
       <Handle type="target" position={Position.Top} />
-      <div className="orchestrator-node-title">{label}</div>
-      {description ? (
-        <div className="orchestrator-node-description">{description}</div>
-      ) : (
-        <div className="orchestrator-node-description orchestrator-node-description-empty">
-          (no description)
-        </div>
-      )}
+      <InlineEditableField
+        value={label}
+        onSave={handleSaveName}
+        isLoading={isSaving}
+        error={null}
+        placeholder="(unnamed)"
+        className="orchestrator-node-title"
+        onEditStart={handleEditStart}
+        onEditEnd={handleEditEnd}
+      />
+      <InlineEditableField
+        value={description ?? ""}
+        onSave={handleSaveDescription}
+        isLoading={isSaving}
+        error={null}
+        placeholder="(no description)"
+        multiline
+        className="orchestrator-node-description"
+        onEditStart={handleEditStart}
+        onEditEnd={handleEditEnd}
+      />
       {steps.length > 0 && (
         <div className="orchestrator-node-steps">
           {steps.map((step, index) => (

@@ -47,8 +47,6 @@ export default function PluginGraphSection({
     entryPointSkills,
     agentTeamsForGraph,
     graphComponents,
-    modalInitialValues,
-    agentTeamModalInitialValues,
     filesModalComponentName,
     filesModalFiles,
     membersModalTeamName,
@@ -59,7 +57,6 @@ export default function PluginGraphSection({
     agentTeamFetcher,
     handleConnect,
     handleEdgeClick,
-    handleNodeDoubleClick,
     handleCreateComponent,
     handleDeleteComponent,
     handleManageFiles,
@@ -67,7 +64,6 @@ export default function PluginGraphSection({
     handleManageMembers,
     handleMembersModalClose,
     handleModalClose,
-    handleAgentTeamDoubleClick,
     handleCreateAgentTeam,
     handleDeleteAgentTeam,
     handleAgentTeamModalClose,
@@ -116,11 +112,9 @@ export default function PluginGraphSection({
             agentTeams={agentTeamsForGraph}
             onConnect={handleConnect}
             onEdgeClick={handleEdgeClick}
-            onNodeDoubleClick={handleNodeDoubleClick}
             onCreateComponent={handleCreateComponent}
             onDeleteComponent={handleDeleteComponent}
             onManageFiles={handleManageFiles}
-            onAgentTeamDoubleClick={handleAgentTeamDoubleClick}
             onCreateAgentTeam={handleCreateAgentTeam}
             onDeleteAgentTeam={handleDeleteAgentTeam}
             onManageMembers={handleManageMembers}
@@ -135,9 +129,7 @@ export default function PluginGraphSection({
         <ComponentFormModal
           isOpen={modalState.isOpen}
           onClose={handleModalClose}
-          mode={modalState.mode}
           componentType={modalState.componentType}
-          initialValues={modalInitialValues}
           fetcher={componentFetcher}
           pluginId={plugin.id}
         />
@@ -159,8 +151,6 @@ export default function PluginGraphSection({
         <AgentTeamFormModal
           isOpen={agentTeamModalState.isOpen}
           onClose={handleAgentTeamModalClose}
-          mode={agentTeamModalState.mode}
-          initialValues={agentTeamModalInitialValues}
           entryPointSkills={entryPointSkills}
           fetcher={agentTeamFetcher}
           pluginId={plugin.id}
