@@ -1,6 +1,7 @@
 import { ValidationError } from "./agent-team.server";
 
 const NAME_MAX_LENGTH = 100;
+const NAME_FORMAT_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 const DESCRIPTION_MAX_LENGTH = 500;
 const VALID_TYPES = ["SKILL", "AGENT"] as const;
 const VALID_SKILL_TYPES = ["ENTRY_POINT", "WORKER"] as const;
@@ -32,6 +33,15 @@ export function validateComponentData(data: {
       field: "name",
       code: "NAME_TOO_LONG",
       message: `Component name must be ${NAME_MAX_LENGTH} characters or less`,
+    });
+  }
+
+  if (!NAME_FORMAT_PATTERN.test(data.name.trim())) {
+    throw new ValidationError({
+      field: "name",
+      code: "INVALID_NAME_FORMAT",
+      message:
+        "Component name must start with a lowercase letter or number, and contain only lowercase letters, numbers, and hyphens",
     });
   }
 

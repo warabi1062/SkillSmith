@@ -99,7 +99,7 @@ export async function createComponent(
   data: {
     type: "SKILL" | "AGENT";
     name: string;
-    description?: string;
+    description?: string | null;
     skillType?: "ENTRY_POINT" | "WORKER";
   },
 ) {
@@ -138,7 +138,7 @@ export async function updateComponent(
   data: {
     type: "SKILL" | "AGENT";
     name: string;
-    description?: string;
+    description?: string | null;
     skillType?: "ENTRY_POINT" | "WORKER";
   },
 ) {
@@ -449,7 +449,7 @@ export async function updateOutputSchemaField(
     fieldType: string;
     required: boolean;
     description?: string;
-    enumValues?: string;
+    enumValues?: string | null;
     placeholder?: string;
   },
 ) {

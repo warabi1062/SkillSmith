@@ -32,7 +32,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     validateComponentData({
       type,
       name,
-      description: description || undefined,
+      description,
       skillType: skillType || undefined,
     });
   } catch (error) {
@@ -51,7 +51,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const component = await createComponent(params.id, {
     type: type as "SKILL" | "AGENT",
     name,
-    description: description || undefined,
+    description: description || null,
     skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
   });
 
