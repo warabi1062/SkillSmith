@@ -43,11 +43,16 @@ export default function OrchestratorNode({
   // Empty steps (those with no dependencies) are intentionally lost on server reload.
   const [localSteps, setLocalSteps] = useState<Step[]>(steps);
 
+  // Use JSON.stringify to stabilize the dependency: React Flow may produce a new
+  // array reference on every render even when the contents are identical.
+  // Without this, setLocalSteps would fire on every render and discard
+  // client-only empty step slots that the user just added.
+  const stepsJson = JSON.stringify(steps);
   useEffect(() => {
-    // Sync localSteps with server data when data.steps changes.
+    // Sync localSteps with server data when data.steps actually changes.
     // This intentionally discards any unsaved empty step slots.
-    setLocalSteps(steps);
-  }, [steps]);
+    setLocalSteps(JSON.parse(stepsJson));
+  }, [stepsJson]);
 
   const handleAddStep = useCallback(() => {
     setLocalSteps((prev) => {
@@ -175,7 +180,14 @@ export default function OrchestratorNode({
                           type="button"
                           className="orchestrator-node-step-btn"
                           title="Move down"
-                          disabled={index === localSteps.length - 1}
+                          disabled={
+                            // Use server-persisted step count (steps with dependencies)
+                            // rather than localSteps.length, since localSteps may include
+                            // client-only empty slots appended at the end.
+                            index ===
+                            localSteps.filter((s) => s.dependencies.length > 0)
+                              .length - 1
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
                             onReorderStep(step.dependencies[0].id, "down");
