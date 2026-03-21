@@ -112,7 +112,6 @@ model ComponentFile {
 model OutputSchemaField {
   id              String          @id @default(cuid())
   componentFileId String
-  parentId        String?
   name            String
   fieldType       OutputFieldType
   description     String?
@@ -123,12 +122,9 @@ model OutputSchemaField {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  componentFile ComponentFile       @relation(fields: [componentFileId], references: [id], onDelete: Cascade)
-  parent        OutputSchemaField?  @relation("FieldHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children      OutputSchemaField[] @relation("FieldHierarchy")
+  componentFile ComponentFile @relation(fields: [componentFileId], references: [id], onDelete: Cascade)
 
   @@index([componentFileId])
-  @@index([parentId])
 }
 
 model AgentTeam {
