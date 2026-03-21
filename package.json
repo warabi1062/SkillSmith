@@ -54,6 +54,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitest/coverage-v8": "^4.1.0",
     "dotenv": "^17.3.1",
+    "jsdom": "^29.0.1",
     "oxlint": "1.56.0",
     "prisma": "^7.5.0",
     "typescript": "^5.7.0",
