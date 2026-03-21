@@ -27,12 +27,21 @@ const DependencyGraph = React.lazy(
 const ComponentFormModal = React.lazy(
   () => import("../components/ComponentFormModal"),
 );
+const AgentTeamFormModal = React.lazy(
+  () => import("../components/AgentTeamFormModal"),
+);
 
 interface ModalState {
   isOpen: boolean;
   mode: "create" | "edit";
   componentType?: "SKILL" | "AGENT";
   componentId?: string;
+}
+
+interface AgentTeamModalState {
+  isOpen: boolean;
+  mode: "create" | "edit";
+  teamId?: string;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -434,9 +443,17 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     success?: boolean;
     error?: string;
   }>();
+  const agentTeamFetcher = useFetcher<{
+    success?: boolean;
+    teamId?: string;
+    errors?: Record<string, string>;
+  }>();
 
   const skills = plugin.components.filter((c) => c.type === "SKILL");
   const agents = plugin.components.filter((c) => c.type === "AGENT");
+  const entryPointSkills = plugin.components.filter(
+    (c) => c.type === "SKILL" && c.skillConfig?.skillType === "ENTRY_POINT",
+  );
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
@@ -445,6 +462,11 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     isOpen: false,
     mode: "create",
   });
+  const [agentTeamModalState, setAgentTeamModalState] =
+    useState<AgentTeamModalState>({
+      isOpen: false,
+      mode: "create",
+    });
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Watch deleteFetcher for error messages
@@ -541,6 +563,44 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     setModalState({ isOpen: false, mode: "create" });
   }, []);
 
+  const handleAgentTeamDoubleClick = useCallback(
+    (teamId: string) => {
+      const team = plugin.agentTeams.find((t) => t.id === teamId);
+      if (team) {
+        setDeleteError(null);
+        setAgentTeamModalState({
+          isOpen: true,
+          mode: "edit",
+          teamId,
+        });
+      }
+    },
+    [plugin.agentTeams],
+  );
+
+  const handleCreateAgentTeam = useCallback(() => {
+    setDeleteError(null);
+    setAgentTeamModalState({
+      isOpen: true,
+      mode: "create",
+    });
+  }, []);
+
+  const handleDeleteAgentTeam = useCallback(
+    (teamId: string) => {
+      setDeleteError(null);
+      deleteFetcher.submit(
+        { intent: "delete-agent-team", teamId },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [deleteFetcher, plugin.id],
+  );
+
+  const handleAgentTeamModalClose = useCallback(() => {
+    setAgentTeamModalState({ isOpen: false, mode: "create" });
+  }, []);
+
   // Build initialValues for edit mode
   const modalInitialValues = modalState.mode === "edit" && modalState.componentId
     ? (() => {
@@ -555,6 +615,24 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         };
       })()
     : undefined;
+
+  // Build initialValues for agent team edit mode
+  const agentTeamModalInitialValues =
+    agentTeamModalState.mode === "edit" && agentTeamModalState.teamId
+      ? (() => {
+          const team = plugin.agentTeams.find(
+            (t) => t.id === agentTeamModalState.teamId,
+          );
+          if (!team) return undefined;
+          return {
+            teamId: team.id,
+            name: team.name,
+            description: team.description ?? "",
+            orchestratorName:
+              team.orchestrator.skillConfig?.name ?? "(unnamed)",
+          };
+        })()
+      : undefined;
 
   const graphComponents = plugin.components.map((c) => ({
     id: c.id,
@@ -734,6 +812,9 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               onNodeDoubleClick={handleNodeDoubleClick}
               onCreateComponent={handleCreateComponent}
               onDeleteComponent={handleDeleteComponent}
+              onAgentTeamDoubleClick={handleAgentTeamDoubleClick}
+              onCreateAgentTeam={handleCreateAgentTeam}
+              onDeleteAgentTeam={handleDeleteAgentTeam}
             />
           </Suspense>
         </div>
@@ -748,6 +829,25 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
             componentType={modalState.componentType}
             initialValues={modalInitialValues}
             fetcher={componentFetcher}
+            pluginId={plugin.id}
+          />
+        </Suspense>
+      )}
+
+      {isClient && (
+        <Suspense fallback={null}>
+          <AgentTeamFormModal
+            isOpen={agentTeamModalState.isOpen}
+            onClose={handleAgentTeamModalClose}
+            mode={agentTeamModalState.mode}
+            initialValues={agentTeamModalInitialValues}
+            entryPointSkills={entryPointSkills.map((c) => ({
+              id: c.id,
+              skillConfig: c.skillConfig
+                ? { name: c.skillConfig.name }
+                : null,
+            }))}
+            fetcher={agentTeamFetcher}
             pluginId={plugin.id}
           />
         </Suspense>
