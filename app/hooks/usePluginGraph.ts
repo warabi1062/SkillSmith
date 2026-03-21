@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useFetcher } from "react-router";
+import type { Node } from "@xyflow/react";
 import {
   buildGraphData,
   type AgentTeamGraphData,
 } from "../lib/build-graph-data";
+import { computeAutoLayout } from "../lib/auto-layout";
 import {
   loadGraphPositions,
   saveGraphPositions,
@@ -69,6 +71,33 @@ export function usePluginGraph({
   }>();
   const reorderDependencyFetcher = useFetcher();
   const deleteBatchFetcher = useFetcher();
+
+  // Auto-layout flag: set to true when a fetcher completes that should trigger re-layout
+  const pendingAutoLayout = useRef(false);
+  const prevAddState = useRef(addDependencyFetcher.state);
+  const prevReorderState = useRef(reorderDependencyFetcher.state);
+  const prevDeleteBatchState = useRef(deleteBatchFetcher.state);
+
+  useEffect(() => {
+    if (prevAddState.current === "loading" && addDependencyFetcher.state === "idle") {
+      pendingAutoLayout.current = true;
+    }
+    prevAddState.current = addDependencyFetcher.state;
+  }, [addDependencyFetcher.state]);
+
+  useEffect(() => {
+    if (prevReorderState.current === "loading" && reorderDependencyFetcher.state === "idle") {
+      pendingAutoLayout.current = true;
+    }
+    prevReorderState.current = reorderDependencyFetcher.state;
+  }, [reorderDependencyFetcher.state]);
+
+  useEffect(() => {
+    if (prevDeleteBatchState.current === "loading" && deleteBatchFetcher.state === "idle") {
+      pendingAutoLayout.current = true;
+    }
+    prevDeleteBatchState.current = deleteBatchFetcher.state;
+  }, [deleteBatchFetcher.state]);
 
   const [agentTeamModalState, setAgentTeamModalState] =
     useState<AgentTeamModalState>({
@@ -212,6 +241,32 @@ export function usePluginGraph({
       }),
     };
   }, [graphData, plugin.id]);
+
+  // Auto-layout: when rawGraphData updates and pendingAutoLayout is true,
+  // compute new layout and pass to DependencyGraph via onAutoLayout callback
+  const [autoLayoutNodes, setAutoLayoutNodes] = useState<Node[] | null>(null);
+
+  useEffect(() => {
+    if (pendingAutoLayout.current) {
+      pendingAutoLayout.current = false;
+      const layoutedNodes = computeAutoLayout(
+        graphDataWithPositions.nodes,
+        graphDataWithPositions.edges,
+      );
+      setAutoLayoutNodes(layoutedNodes);
+    }
+  }, [graphDataWithPositions]);
+
+  const handleAutoLayoutApplied = useCallback(() => {
+    setAutoLayoutNodes(null);
+  }, []);
+
+  const handlePositionsPersist = useCallback(
+    (positions: Record<string, { x: number; y: number }>) => {
+      saveGraphPositions(plugin.id, positions);
+    },
+    [plugin.id],
+  );
 
   const [resetCounter, setResetCounter] = useState(0);
 
@@ -405,6 +460,11 @@ export function usePluginGraph({
     addDependencyFetcher,
     componentFetcher,
     agentTeamFetcher,
+
+    // Auto-layout
+    autoLayoutNodes,
+    handleAutoLayoutApplied,
+    handlePositionsPersist,
 
     // Handlers
     handleConnect,
