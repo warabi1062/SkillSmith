@@ -259,6 +259,88 @@ describe("usePluginGraph", () => {
     });
   });
 
+  describe("node data injection", () => {
+    it("injects componentId and pluginId into skill nodes", () => {
+      const comp = createComponent({ id: "comp-1", type: "SKILL" });
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.componentId).toBe("comp-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+
+    it("injects componentId and pluginId into agent nodes", () => {
+      const comp = createComponent({ id: "agent-1", type: "AGENT" });
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "agent-1", type: "agent", position: { x: 0, y: 0 }, data: { label: "B" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.componentId).toBe("agent-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+
+    it("injects componentId and pluginId into orchestrator nodes", () => {
+      const comp = createComponent({ id: "orch-1", type: "SKILL" });
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "orch-1", type: "orchestrator", position: { x: 0, y: 0 }, data: { label: "C" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.componentId).toBe("orch-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+
+    it("injects teamId and pluginId into agentteam nodes", () => {
+      const team = createAgentTeam({ id: "team-1" });
+      const plugin = createPlugin({ agentTeams: [team] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "agentteam-team-1", type: "agentteam", position: { x: 0, y: 0 }, data: { label: "D" } },
+        ],
+        edges: [],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      const node = result.current.graphDataWithPositions.nodes[0];
+      expect(node.data.teamId).toBe("team-1");
+      expect(node.data.pluginId).toBe("plugin-1");
+    });
+  });
+
   describe("handleConnect", () => {
     it("submits add-dependency with correct args", () => {
       const { result } = renderHook(() =>

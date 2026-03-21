@@ -157,7 +157,7 @@ export function usePluginGraph({
     [deleteBatchFetcher, plugin.id],
   );
 
-  // Inject callbacks into orchestrator nodes
+  // Inject callbacks and IDs into nodes
   const graphData = useMemo(
     () => ({
       ...rawGraphData,
@@ -169,13 +169,36 @@ export function usePluginGraph({
               ...node.data,
               onReorderStep: handleReorderStep,
               onDeleteStep: handleDeleteStep,
+              componentId: node.id,
+              pluginId: plugin.id,
+            },
+          };
+        }
+        if (node.type === "skill" || node.type === "agent") {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              componentId: node.id,
+              pluginId: plugin.id,
+            },
+          };
+        }
+        if (node.type === "agentteam") {
+          const teamId = node.id.replace("agentteam-", "");
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              teamId,
+              pluginId: plugin.id,
             },
           };
         }
         return node;
       }),
     }),
-    [rawGraphData, handleReorderStep, handleDeleteStep],
+    [rawGraphData, handleReorderStep, handleDeleteStep, plugin.id],
   );
 
   // Merge saved positions from localStorage
