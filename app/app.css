@@ -492,6 +492,165 @@ h3 {
   border-bottom: none;
 }
 
+/* Orchestrator Node - description */
+.orchestrator-node-description {
+  padding: 2px 12px 4px;
+  font-size: 0.7rem;
+  color: #1e40af;
+}
+
+.orchestrator-node-description-empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Skill Node */
+.skill-node {
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  border-radius: 0.375rem;
+  padding: 0;
+  min-width: 140px;
+  font-size: 0.8rem;
+}
+
+.skill-node-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 4px 10px;
+}
+
+.skill-node-badge {
+  display: inline-block;
+  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #1e40af;
+  color: #fff;
+  line-height: 1.5;
+}
+
+.skill-node-skill-type {
+  font-size: 0.625rem;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.skill-node-title {
+  padding: 0 10px 2px;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.skill-node-description {
+  padding: 2px 10px 6px;
+  font-size: 0.7rem;
+  color: #1e40af;
+}
+
+.skill-node-description-empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Agent Node */
+.agent-node {
+  background: #fce7f3;
+  border: 1px solid #f9a8d4;
+  border-radius: 0.375rem;
+  padding: 0;
+  min-width: 140px;
+  font-size: 0.8rem;
+}
+
+.agent-node-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 4px 10px;
+}
+
+.agent-node-badge {
+  display: inline-block;
+  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #9d174d;
+  color: #fff;
+  line-height: 1.5;
+}
+
+.agent-node-title {
+  padding: 0 10px 2px;
+  font-weight: 600;
+  color: #831843;
+}
+
+.agent-node-description {
+  padding: 2px 10px 6px;
+  font-size: 0.7rem;
+  color: #9d174d;
+}
+
+.agent-node-description-empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Agent Team Node */
+.agentteam-node {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  border-radius: 0.375rem;
+  padding: 0;
+  min-width: 140px;
+  font-size: 0.8rem;
+}
+
+.agentteam-node-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 4px 10px;
+}
+
+.agentteam-node-badge {
+  display: inline-block;
+  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #166534;
+  color: #fff;
+  line-height: 1.5;
+}
+
+.agentteam-node-title {
+  padding: 0 10px 2px;
+  font-weight: 600;
+  color: #14532d;
+}
+
+.agentteam-node-description {
+  padding: 2px 10px 4px;
+  font-size: 0.7rem;
+  color: #166534;
+}
+
+.agentteam-node-description-empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.agentteam-node-orchestrator {
+  padding: 2px 10px 6px;
+  font-size: 0.65rem;
+  color: #6b7280;
+}
+
 /* Graph Toolbar */
 .graph-toolbar {
   display: flex;
