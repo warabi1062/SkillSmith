@@ -59,7 +59,6 @@ export default function PluginGraphSection({
     agentTeamFetcher,
     handleConnect,
     handleEdgeClick,
-    handleNodeDoubleClick,
     handleCreateComponent,
     handleDeleteComponent,
     handleManageFiles,
@@ -67,7 +66,6 @@ export default function PluginGraphSection({
     handleManageMembers,
     handleMembersModalClose,
     handleModalClose,
-    handleAgentTeamDoubleClick,
     handleCreateAgentTeam,
     handleDeleteAgentTeam,
     handleAgentTeamModalClose,
@@ -116,11 +114,9 @@ export default function PluginGraphSection({
             agentTeams={agentTeamsForGraph}
             onConnect={handleConnect}
             onEdgeClick={handleEdgeClick}
-            onNodeDoubleClick={handleNodeDoubleClick}
             onCreateComponent={handleCreateComponent}
             onDeleteComponent={handleDeleteComponent}
             onManageFiles={handleManageFiles}
-            onAgentTeamDoubleClick={handleAgentTeamDoubleClick}
             onCreateAgentTeam={handleCreateAgentTeam}
             onDeleteAgentTeam={handleDeleteAgentTeam}
             onManageMembers={handleManageMembers}

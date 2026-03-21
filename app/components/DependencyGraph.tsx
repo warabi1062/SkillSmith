@@ -39,10 +39,8 @@ interface DependencyGraphProps {
   }>;
   onConnect: (sourceId: string, targetId: string, sourceHandle?: string) => void;
   onEdgeClick: (dependencyId: string) => void;
-  onNodeDoubleClick?: (componentId: string) => void;
   onCreateComponent?: (type: "SKILL" | "AGENT") => void;
   onDeleteComponent?: (componentId: string) => void;
-  onAgentTeamDoubleClick?: (teamId: string) => void;
   onManageFiles?: (componentId: string) => void;
   onCreateAgentTeam?: () => void;
   onDeleteAgentTeam?: (teamId: string) => void;
@@ -68,11 +66,9 @@ export default function DependencyGraph({
   agentTeams,
   onConnect,
   onEdgeClick,
-  onNodeDoubleClick,
   onCreateComponent,
   onDeleteComponent,
   onManageFiles,
-  onAgentTeamDoubleClick,
   onCreateAgentTeam,
   onDeleteAgentTeam,
   onManageMembers,
@@ -183,17 +179,6 @@ export default function DependencyGraph({
     [onEdgeClick],
   );
 
-  const handleNodeDoubleClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
-      if (node.id.startsWith("agentteam-")) {
-        onAgentTeamDoubleClick?.(node.id.replace("agentteam-", ""));
-      } else {
-        onNodeDoubleClick?.(node.id);
-      }
-    },
-    [onNodeDoubleClick, onAgentTeamDoubleClick],
-  );
-
   const handleNodeContextMenu = useCallback(
     (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
@@ -234,15 +219,6 @@ export default function DependencyGraph({
     };
   }, [contextMenu.visible]);
 
-  const handleContextMenuEdit = useCallback(() => {
-    if (contextMenu.nodeType === "agentTeam") {
-      onAgentTeamDoubleClick?.(contextMenu.nodeId);
-    } else {
-      onNodeDoubleClick?.(contextMenu.nodeId);
-    }
-    setContextMenu((prev) => ({ ...prev, visible: false }));
-  }, [contextMenu.nodeId, contextMenu.nodeType, onNodeDoubleClick, onAgentTeamDoubleClick]);
-
   const handleContextMenuManageFiles = useCallback(() => {
     onManageFiles?.(contextMenu.nodeId);
     setContextMenu((prev) => ({ ...prev, visible: false }));
@@ -279,7 +255,6 @@ export default function DependencyGraph({
         onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onEdgeClick={handleEdgeClick}
-        onNodeDoubleClick={handleNodeDoubleClick}
         onNodeContextMenu={handleNodeContextMenu}
         onPaneClick={handlePaneClick}
         isValidConnection={isValidConnection}
@@ -340,13 +315,6 @@ export default function DependencyGraph({
             top: contextMenu.y,
           }}
         >
-          <button
-            type="button"
-            className="context-menu-item"
-            onClick={handleContextMenuEdit}
-          >
-            Edit
-          </button>
           {contextMenu.nodeType === "component" && (
             <button
               type="button"
