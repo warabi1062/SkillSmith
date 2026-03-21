@@ -9,6 +9,9 @@ import {
   Panel,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import OrchestratorNode from "./OrchestratorNode";
+
+const nodeTypes = { orchestrator: OrchestratorNode };
 
 interface DependencyGraphProps {
   nodes: Node[];
@@ -234,6 +237,7 @@ export default function DependencyGraph({
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={nodeTypes}
         onConnect={handleConnect}
         onEdgeClick={handleEdgeClick}
         onNodeDoubleClick={handleNodeDoubleClick}

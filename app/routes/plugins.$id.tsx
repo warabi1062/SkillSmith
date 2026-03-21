@@ -350,7 +350,7 @@ interface AgentTeamGraphData {
   orchestratorName: string;
 }
 
-function buildGraphData(
+export function buildGraphData(
   components: PluginComponent[],
   agentTeams: AgentTeamGraphData[] = [],
 ): {
@@ -373,13 +373,18 @@ function buildGraphData(
 
   for (const c of components) {
     if (c.dependenciesFrom) {
+      const isOrchestrator = c.skillConfig?.skillType === "ENTRY_POINT";
       for (const dep of c.dependenciesFrom) {
-        edges.push({
+        const edge: Edge = {
           id: dep.id,
           source: c.id,
           target: dep.targetId,
           deletable: true,
-        });
+        };
+        if (isOrchestrator) {
+          edge.sourceHandle = `step-${dep.order}`;
+        }
+        edges.push(edge);
         adjacency.get(c.id)?.push(dep.targetId);
         inDegree.set(dep.targetId, (inDegree.get(dep.targetId) ?? 0) + 1);
       }
@@ -448,20 +453,48 @@ function buildGraphData(
     return { x: layerIndex * HORIZONTAL_SPACING, y: d * VERTICAL_SPACING };
   }
 
-  const nodes: Node[] = components.map((c, i) => ({
-    id: c.id,
-    position: getPosition(c.id, i),
-    data: {
-      label: c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)",
-    },
-    style: {
-      background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
-      border:
-        c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
-      borderRadius: "0.375rem",
-      padding: "8px 16px",
-    },
-  }));
+  const nodes: Node[] = components.map((c, i) => {
+    const label = c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)";
+    const isOrchestrator = c.skillConfig?.skillType === "ENTRY_POINT";
+
+    if (isOrchestrator) {
+      // Build steps data: group dependencies by order
+      const orderMap = new Map<
+        number,
+        Array<{ id: string; targetId: string }>
+      >();
+      for (const dep of c.dependenciesFrom ?? []) {
+        const order = dep.order ?? 0;
+        if (!orderMap.has(order)) {
+          orderMap.set(order, []);
+        }
+        orderMap.get(order)!.push({ id: dep.id, targetId: dep.targetId });
+      }
+      const steps = Array.from(orderMap.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([order, dependencies]) => ({ order, dependencies }));
+
+      return {
+        id: c.id,
+        position: getPosition(c.id, i),
+        type: "orchestrator",
+        data: { label, steps },
+      };
+    }
+
+    return {
+      id: c.id,
+      position: getPosition(c.id, i),
+      data: { label },
+      style: {
+        background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
+        border:
+          c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
+        borderRadius: "0.375rem",
+        padding: "8px 16px",
+      },
+    };
+  });
 
   // Agent Team nodes: placed in a separate row below all component nodes
   if (agentTeams.length > 0) {
