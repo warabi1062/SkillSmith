@@ -63,6 +63,7 @@ export default function FilesManagementModal({
   files,
 }: FilesManagementModalProps) {
   const [view, setView] = useState<ViewState>({ type: "list" });
+  const [fieldTypeSelection, setFieldTypeSelection] = useState<string>("");
 
   const addFileFetcher = useFetcher<{
     success?: boolean;
@@ -94,6 +95,15 @@ export default function FilesManagementModal({
       setView({ type: "list" });
     }
   }, [isOpen]);
+
+  // Reset fieldTypeSelection when entering field-add or field-edit views
+  useEffect(() => {
+    if (view.type === "field-add") {
+      setFieldTypeSelection("");
+    } else if (view.type === "field-edit") {
+      setFieldTypeSelection(view.field.fieldType);
+    }
+  }, [view]);
 
   // Handle successful add file
   const prevAddFileState = useRef(addFileFetcher.state);
@@ -597,8 +607,6 @@ export default function FilesManagementModal({
     const errors = addFieldFetcher.data?.errors;
     const values = addFieldFetcher.data?.values;
     const isSubmitting = addFieldFetcher.state !== "idle";
-    const selectedFieldType =
-      (values?.fieldType as string) ?? "";
 
     return (
       <div>
@@ -627,6 +635,7 @@ export default function FilesManagementModal({
               defaultValue={(values?.fieldType as string) ?? ""}
               className="form-select"
               required
+              onChange={(e) => setFieldTypeSelection(e.target.value)}
             >
               <option value="">-- Select Type --</option>
               {FIELD_TYPES.map((t) => (
@@ -669,7 +678,7 @@ export default function FilesManagementModal({
             )}
           </div>
 
-          {selectedFieldType === "ENUM" && (
+          {fieldTypeSelection === "ENUM" && (
             <div className="form-group">
               <label htmlFor="field-modal-enumValues">Enum Values</label>
               <input
@@ -734,8 +743,6 @@ export default function FilesManagementModal({
     const errors = editFieldFetcher.data?.errors;
     const values = editFieldFetcher.data?.values;
     const isSubmitting = editFieldFetcher.state !== "idle";
-    const selectedFieldType =
-      (values?.fieldType as string) ?? freshField.fieldType;
 
     return (
       <div>
@@ -768,6 +775,7 @@ export default function FilesManagementModal({
               key={`ft-${freshField.id}`}
               className="form-select"
               required
+              onChange={(e) => setFieldTypeSelection(e.target.value)}
             >
               <option value="">-- Select Type --</option>
               {FIELD_TYPES.map((t) => (
@@ -816,7 +824,7 @@ export default function FilesManagementModal({
             )}
           </div>
 
-          {selectedFieldType === "ENUM" && (
+          {fieldTypeSelection === "ENUM" && (
             <div className="form-group">
               <label htmlFor="field-modal-edit-enumValues">Enum Values</label>
               <input
