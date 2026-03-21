@@ -1,6 +1,13 @@
 import React, { Suspense, useState, useEffect, useCallback } from "react";
 import { Link, Form, data, useFetcher } from "react-router";
-import { getPlugin } from "../lib/plugins.server";
+import {
+  getPlugin,
+  getComponent,
+  createComponent,
+  updateComponent,
+  deleteComponent,
+} from "../lib/plugins.server";
+import { validateComponentData, ValidationError } from "../lib/validations";
 import type { Route } from "./+types/plugins.$id";
 import type { Node, Edge } from "@xyflow/react";
 import type { GenerationValidationError } from "../lib/generator/types";
@@ -21,6 +28,114 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw data("Plugin not found", { status: 404 });
   }
   return { plugin };
+}
+
+export async function action({ request, params }: Route.ActionArgs) {
+  const plugin = await getPlugin(params.id);
+  if (!plugin) {
+    throw data("Plugin not found", { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const intent = String(formData.get("intent") ?? "");
+
+  if (intent === "create-component") {
+    const type = String(formData.get("type") ?? "");
+    const name = String(formData.get("name") ?? "");
+    const description = String(formData.get("description") ?? "");
+    const skillType = String(formData.get("skillType") ?? "");
+
+    try {
+      validateComponentData({
+        type,
+        name,
+        description,
+        skillType: skillType || undefined,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { type, name, description, skillType },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+
+    const component = await createComponent(params.id, {
+      type: type as "SKILL" | "AGENT",
+      name,
+      description: description || null,
+      skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
+    });
+
+    return { success: true, componentId: component.id };
+  }
+
+  if (intent === "update-component") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+
+    const type = component.type;
+    const name = String(formData.get("name") ?? "");
+    const description = String(formData.get("description") ?? "");
+    const skillType = String(formData.get("skillType") ?? "");
+
+    try {
+      validateComponentData({
+        type,
+        name,
+        description,
+        skillType: skillType || undefined,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description, skillType },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+
+    await updateComponent(componentId, {
+      type: type as "SKILL" | "AGENT",
+      name,
+      description: description || null,
+      skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
+    });
+
+    return { success: true, componentId };
+  }
+
+  if (intent === "delete-component") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+
+    try {
+      await deleteComponent(componentId);
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data({ error: error.message }, { status: 409 });
+      }
+      throw error;
+    }
+  }
+
+  throw data("Unknown intent", { status: 400 });
 }
 
 type PluginComponent = Awaited<
