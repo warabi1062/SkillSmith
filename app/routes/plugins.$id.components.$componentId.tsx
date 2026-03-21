@@ -48,30 +48,6 @@ export default function ComponentDetail({
             )}
           </div>
         </div>
-        <div className="detail-actions">
-          <Link
-            to={`/plugins/${plugin.id}/components/${component.id}/edit`}
-            className="btn btn-secondary"
-          >
-            Edit
-          </Link>
-          <Form
-            method="post"
-            action={`/plugins/${plugin.id}/components/${component.id}/destroy`}
-            onSubmit={(event) => {
-              const confirmed = window.confirm(
-                `Component "${name}" will be deleted. Are you sure?`,
-              );
-              if (!confirmed) {
-                event.preventDefault();
-              }
-            }}
-          >
-            <button type="submit" className="btn btn-danger">
-              Delete
-            </button>
-          </Form>
-        </div>
       </div>
 
       <div className="card" style={{ marginTop: "1rem" }}>

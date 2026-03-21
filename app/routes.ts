@@ -10,20 +10,8 @@ export default [
   route("plugins/:id/generate", "routes/plugins.$id.generate.tsx"),
   route("plugins/:id/export", "routes/plugins.$id.export.tsx"),
   route(
-    "plugins/:id/components/new",
-    "routes/plugins.$id.components.new.tsx",
-  ),
-  route(
     "plugins/:id/components/:componentId",
     "routes/plugins.$id.components.$componentId.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/edit",
-    "routes/plugins.$id.components.$componentId.edit.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/destroy",
-    "routes/plugins.$id.components.$componentId.destroy.tsx",
   ),
   route(
     "plugins/:id/dependencies/new",
@@ -34,20 +22,8 @@ export default [
     "routes/plugins.$id.dependencies.$dependencyId.destroy.tsx",
   ),
   route(
-    "plugins/:id/agent-teams/new",
-    "routes/plugins.$id.agent-teams.new.tsx",
-  ),
-  route(
     "plugins/:id/agent-teams/:teamId",
     "routes/plugins.$id.agent-teams.$teamId.tsx",
-  ),
-  route(
-    "plugins/:id/agent-teams/:teamId/edit",
-    "routes/plugins.$id.agent-teams.$teamId.edit.tsx",
-  ),
-  route(
-    "plugins/:id/agent-teams/:teamId/destroy",
-    "routes/plugins.$id.agent-teams.$teamId.destroy.tsx",
   ),
   route(
     "plugins/:id/agent-teams/:teamId/members/new",

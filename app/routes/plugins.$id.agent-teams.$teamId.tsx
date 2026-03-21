@@ -33,30 +33,6 @@ export default function AgentTeamDetail({ loaderData }: Route.ComponentProps) {
             <p className="card-description">{team.description}</p>
           )}
         </div>
-        <div className="detail-actions">
-          <Link
-            to={`/plugins/${plugin.id}/agent-teams/${team.id}/edit`}
-            className="btn btn-secondary"
-          >
-            Edit
-          </Link>
-          <Form
-            method="post"
-            action={`/plugins/${plugin.id}/agent-teams/${team.id}/destroy`}
-            onSubmit={(event) => {
-              const confirmed = window.confirm(
-                `Agent Team "${team.name}" will be deleted. Are you sure?`,
-              );
-              if (!confirmed) {
-                event.preventDefault();
-              }
-            }}
-          >
-            <button type="submit" className="btn btn-danger">
-              Delete
-            </button>
-          </Form>
-        </div>
       </div>
 
       <div className="card" style={{ marginTop: "1rem" }}>
