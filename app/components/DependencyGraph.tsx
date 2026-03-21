@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   useNodesState,
   type Node,
   type Edge,
   type Connection,
+  type NodeChange,
   Background,
   Controls,
   Panel,
@@ -84,10 +85,113 @@ export default function DependencyGraph({
 }: DependencyGraphProps) {
   const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
 
+  // Animation ref for auto-layout
+  const animationRef = useRef<number | null>(null);
+
+  // Cancel any running animation
+  const cancelAnimation = useCallback(() => {
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+  }, []);
+
+  // Persist positions after auto-layout animation completes
+  const persistPositionsAfterAutoLayout = useCallback(
+    (targetNodes: Node[]) => {
+      const positions: Record<string, { x: number; y: number }> = {};
+      for (const node of targetNodes) {
+        positions[node.id] = { x: node.position.x, y: node.position.y };
+      }
+      onPositionsPersist?.(positions);
+    },
+    [onPositionsPersist],
+  );
+
+  // Animate nodes from current positions to target positions
+  const animateToPositions = useCallback(
+    (targetNodes: Node[], duration = 300) => {
+      cancelAnimation();
+
+      // Capture current positions at animation start
+      const startPositions: Record<string, { x: number; y: number }> = {};
+      setFlowNodes((currentNodes) => {
+        for (const node of currentNodes) {
+          startPositions[node.id] = { x: node.position.x, y: node.position.y };
+        }
+        return currentNodes;
+      });
+
+      const startTime = performance.now();
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease-out cubic
+        const eased = 1 - (1 - progress) ** 3;
+
+        setFlowNodes((currentNodes) =>
+          currentNodes.map((node) => {
+            const start = startPositions[node.id];
+            const target = targetNodes.find((n) => n.id === node.id);
+            if (!start || !target) return node;
+            return {
+              ...node,
+              position: {
+                x: start.x + (target.position.x - start.x) * eased,
+                y: start.y + (target.position.y - start.y) * eased,
+              },
+            };
+          }),
+        );
+
+        if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate);
+        } else {
+          animationRef.current = null;
+          persistPositionsAfterAutoLayout(targetNodes);
+        }
+      };
+
+      animationRef.current = requestAnimationFrame(animate);
+    },
+    [cancelAnimation, setFlowNodes, persistPositionsAfterAutoLayout],
+  );
+
   // Sync internal node state when props change or layout is reset
   useEffect(() => {
+    cancelAnimation();
     setFlowNodes(nodes);
-  }, [nodes, resetKey, setFlowNodes]);
+  }, [nodes, resetKey, setFlowNodes, cancelAnimation]);
+
+  // Handle auto-layout animation when autoLayoutNodes changes
+  useEffect(() => {
+    if (autoLayoutNodes && autoLayoutNodes.length > 0) {
+      animateToPositions(autoLayoutNodes);
+      onAutoLayoutApplied?.();
+    }
+  }, [autoLayoutNodes, animateToPositions, onAutoLayoutApplied]);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      cancelAnimation();
+    };
+  }, [cancelAnimation]);
+
+  // Wrap onNodesChange to cancel animation on drag
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      const hasDrag = changes.some(
+        (change) => change.type === "position" && change.dragging,
+      );
+      if (hasDrag) {
+        cancelAnimation();
+      }
+      onNodesChange(changes);
+    },
+    [onNodesChange, cancelAnimation],
+  );
 
   const handleNodeDragStop = useCallback(
     (_event: React.MouseEvent, _node: Node, currentNodes: Node[]) => {
@@ -257,7 +361,7 @@ export default function DependencyGraph({
         nodes={flowNodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodesChange}
         onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onEdgeClick={handleEdgeClick}
