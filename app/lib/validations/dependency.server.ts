@@ -1,6 +1,12 @@
 import type { PrismaClient } from "../../generated/prisma/client";
 import { ValidationError } from "./agent-team.server";
 
+/** Transaction-compatible Prisma client type */
+type TransactionClient = Parameters<
+  Parameters<PrismaClient["$transaction"]>[0]
+>[0];
+export type PrismaLike = PrismaClient | TransactionClient;
+
 /**
  * ComponentDependency 作成時のバリデーション。
  * - sourceId, targetId が空でないこと
@@ -11,7 +17,7 @@ import { ValidationError } from "./agent-team.server";
  * - 循環依存が発生しないこと（DFSで検証）
  */
 export async function validateDependencyCreate(
-  prisma: PrismaClient,
+  prisma: PrismaLike,
   data: { sourceId: string; targetId: string },
 ): Promise<void> {
   if (!data.sourceId) {

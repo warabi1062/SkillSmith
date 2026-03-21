@@ -519,33 +519,35 @@ export async function createDependency(data: {
   sourceId: string;
   targetId: string;
 }) {
-  await validateDependencyCreate(prisma, data);
+  return prisma.$transaction(async (tx) => {
+    await validateDependencyCreate(tx, data);
 
-  const existingCount = await prisma.componentDependency.count({
-    where: { sourceId: data.sourceId },
-  });
-
-  try {
-    return await prisma.componentDependency.create({
-      data: {
-        sourceId: data.sourceId,
-        targetId: data.targetId,
-        order: existingCount,
-      },
+    const existingCount = await tx.componentDependency.count({
+      where: { sourceId: data.sourceId },
     });
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      throw new ValidationError({
-        field: "dependency",
-        code: "DUPLICATE_DEPENDENCY",
-        message: "This dependency already exists",
+
+    try {
+      return await tx.componentDependency.create({
+        data: {
+          sourceId: data.sourceId,
+          targetId: data.targetId,
+          order: existingCount,
+        },
       });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new ValidationError({
+          field: "dependency",
+          code: "DUPLICATE_DEPENDENCY",
+          message: "This dependency already exists",
+        });
+      }
+      throw error;
     }
-    throw error;
-  }
+  });
 }
 
 export async function deleteDependency(id: string) {
