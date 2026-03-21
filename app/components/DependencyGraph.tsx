@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
+  useNodesState,
   type Node,
   type Edge,
   type Connection,
@@ -38,6 +39,9 @@ interface DependencyGraphProps {
   onCreateAgentTeam?: () => void;
   onDeleteAgentTeam?: (teamId: string) => void;
   onManageMembers?: (teamId: string) => void;
+  onNodeDragStop?: (positions: Record<string, { x: number; y: number }>) => void;
+  onResetLayout?: () => void;
+  resetKey?: number;
 }
 
 interface ContextMenuState {
@@ -64,7 +68,28 @@ export default function DependencyGraph({
   onCreateAgentTeam,
   onDeleteAgentTeam,
   onManageMembers,
+  onNodeDragStop,
+  onResetLayout,
+  resetKey,
 }: DependencyGraphProps) {
+  const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
+
+  // Sync internal node state when props change or layout is reset
+  useEffect(() => {
+    setFlowNodes(nodes);
+  }, [nodes, resetKey, setFlowNodes]);
+
+  const handleNodeDragStop = useCallback(
+    (_event: React.MouseEvent, _node: Node, currentNodes: Node[]) => {
+      const positions: Record<string, { x: number; y: number }> = {};
+      for (const n of currentNodes) {
+        positions[n.id] = { x: n.position.x, y: n.position.y };
+      }
+      onNodeDragStop?.(positions);
+    },
+    [onNodeDragStop],
+  );
+
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     visible: false,
     x: 0,
@@ -239,9 +264,11 @@ export default function DependencyGraph({
   return (
     <div className="dependency-graph">
       <ReactFlow
-        nodes={nodes}
+        nodes={flowNodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        onNodesChange={onNodesChange}
+        onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onEdgeClick={handleEdgeClick}
         onNodeDoubleClick={handleNodeDoubleClick}
@@ -252,7 +279,7 @@ export default function DependencyGraph({
       >
         <Background />
         <Controls />
-        {(onCreateComponent || onCreateAgentTeam) && (
+        {(onCreateComponent || onCreateAgentTeam || onResetLayout) && (
           <Panel position="top-right">
             <div className="graph-toolbar">
               {onCreateComponent && (
@@ -281,6 +308,15 @@ export default function DependencyGraph({
                   onClick={onCreateAgentTeam}
                 >
                   + New Agent Team
+                </button>
+              )}
+              {onResetLayout && (
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={onResetLayout}
+                >
+                  Reset Layout
                 </button>
               )}
             </div>
