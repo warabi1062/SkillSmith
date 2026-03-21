@@ -10,10 +10,6 @@ export default [
   route("plugins/:id/generate", "routes/plugins.$id.generate.tsx"),
   route("plugins/:id/export", "routes/plugins.$id.export.tsx"),
   route(
-    "plugins/:id/components/:componentId",
-    "routes/plugins.$id.components.$componentId.tsx",
-  ),
-  route(
     "plugins/:id/dependencies/new",
     "routes/plugins.$id.dependencies.new.tsx",
   ),
@@ -44,10 +40,6 @@ export default [
   route(
     "plugins/:id/components/:componentId/files/:fileId/destroy",
     "routes/plugins.$id.components.$componentId.files.$fileId.destroy.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/fields",
-    "routes/plugins.$id.components.$componentId.files.$fileId.fields.tsx",
   ),
   route(
     "plugins/:id/components/:componentId/files/:fileId/fields/new",
