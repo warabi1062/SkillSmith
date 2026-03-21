@@ -572,7 +572,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const graphData =
     plugin.components.length > 0 || plugin.agentTeams.length > 0
       ? buildGraphData(plugin.components, agentTeamsForGraph)
-      : null;
+      : { nodes: [], edges: [] };
 
   const handleConnect = useCallback(
     (sourceId: string, targetId: string) => {
@@ -866,7 +866,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         )}
       </div>
 
-      {isClient && graphData && (
+      {isClient && (
         <div className="dependency-graph-section">
           <h3>Dependency Graph</h3>
           {addDependencyFetcher.data?.errors?.dependency && (
