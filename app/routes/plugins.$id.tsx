@@ -92,6 +92,17 @@ function buildGraphData(components: PluginComponent[]): {
 
   const hasCycle = processed < components.length;
 
+  // Build layer index map: componentId -> index within its depth layer
+  const layerCounters = new Map<number, number>();
+  const layerIndexMap = new Map<string, number>();
+
+  for (const c of components) {
+    const d = depth.get(c.id) ?? 0;
+    const idx = layerCounters.get(d) ?? 0;
+    layerIndexMap.set(c.id, idx);
+    layerCounters.set(d, idx + 1);
+  }
+
   // Position nodes
   const HORIZONTAL_SPACING = 250;
   const VERTICAL_SPACING = 100;
@@ -108,9 +119,7 @@ function buildGraphData(components: PluginComponent[]): {
     }
     // Hierarchical layout: use depth for y, layer-local index for x
     const d = depth.get(componentId) ?? 0;
-    const layerIndex = components
-      .filter((c) => (depth.get(c.id) ?? 0) === d)
-      .indexOf(components.find((c) => c.id === componentId)!);
+    const layerIndex = layerIndexMap.get(componentId) ?? 0;
     return { x: layerIndex * HORIZONTAL_SPACING, y: d * VERTICAL_SPACING };
   }
 
