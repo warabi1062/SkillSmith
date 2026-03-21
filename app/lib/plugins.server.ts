@@ -47,6 +47,12 @@ export async function getPlugin(id: string) {
           orchestrator: {
             include: { skillConfig: true },
           },
+          members: {
+            include: {
+              component: { include: { agentConfig: true } },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
           _count: {
             select: { members: true },
           },
