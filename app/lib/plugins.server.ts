@@ -31,7 +31,7 @@ export async function getPlugin(id: string) {
           skillConfig: true,
           agentConfig: true,
           dependenciesFrom: {
-            select: { id: true, targetId: true },
+            select: { id: true, targetId: true, order: true },
           },
           files: {
             orderBy: { sortOrder: "asc" },
