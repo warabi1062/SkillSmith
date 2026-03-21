@@ -146,6 +146,8 @@ vite.config.ts.timestamp-*
 # Prisma
 prisma/dev.db
 prisma/dev.db-journal
+prisma/test.db
+prisma/test.db-journal
 app/generated/prisma/
 
 # Project specific
