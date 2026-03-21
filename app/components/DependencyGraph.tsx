@@ -19,11 +19,20 @@ interface DependencyGraphProps {
     type: string;
     skillConfig: { skillType: string } | null;
   }>;
+  agentTeams: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    orchestratorName: string;
+  }>;
   onConnect: (sourceId: string, targetId: string) => void;
   onEdgeClick: (dependencyId: string) => void;
   onNodeDoubleClick?: (componentId: string) => void;
   onCreateComponent?: (type: "SKILL" | "AGENT") => void;
   onDeleteComponent?: (componentId: string) => void;
+  onAgentTeamDoubleClick?: (teamId: string) => void;
+  onCreateAgentTeam?: () => void;
+  onDeleteAgentTeam?: (teamId: string) => void;
 }
 
 interface ContextMenuState {
@@ -38,11 +47,15 @@ export default function DependencyGraph({
   edges,
   pluginId,
   components,
+  agentTeams,
   onConnect,
   onEdgeClick,
   onNodeDoubleClick,
   onCreateComponent,
   onDeleteComponent,
+  onAgentTeamDoubleClick,
+  onCreateAgentTeam,
+  onDeleteAgentTeam,
 }: DependencyGraphProps) {
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     visible: false,
@@ -56,6 +69,10 @@ export default function DependencyGraph({
       const { source, target } = connection;
       if (!source || !target) return false;
       if (source === target) return false;
+
+      // Agent Team nodes cannot be connected
+      if (source.startsWith("agentteam-") || target.startsWith("agentteam-"))
+        return false;
 
       const sourceComp = components.find((c) => c.id === source);
       const targetComp = components.find((c) => c.id === target);

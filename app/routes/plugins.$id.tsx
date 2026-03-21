@@ -262,11 +262,22 @@ type PluginComponent = Awaited<
   ? C
   : never;
 
-function buildGraphData(components: PluginComponent[]): {
+interface AgentTeamGraphData {
+  id: string;
+  name: string;
+  description: string | null;
+  orchestratorName: string;
+}
+
+function buildGraphData(
+  components: PluginComponent[],
+  agentTeams: AgentTeamGraphData[] = [],
+): {
   nodes: Node[];
   edges: Edge[];
 } {
-  if (components.length === 0) return { nodes: [], edges: [] };
+  if (components.length === 0 && agentTeams.length === 0)
+    return { nodes: [], edges: [] };
 
   // Build adjacency for topological sort
   const adjacency = new Map<string, string[]>();
@@ -371,6 +382,29 @@ function buildGraphData(components: PluginComponent[]): {
     },
   }));
 
+  // Agent Team nodes: placed in a separate row below all component nodes
+  if (agentTeams.length > 0) {
+    const maxDepth = components.length > 0
+      ? Math.max(...Array.from(depth.values()), 0)
+      : -1;
+    const teamRowY = (maxDepth + 1) * VERTICAL_SPACING + VERTICAL_SPACING / 2;
+
+    for (let i = 0; i < agentTeams.length; i++) {
+      const team = agentTeams[i];
+      nodes.push({
+        id: `agentteam-${team.id}`,
+        position: { x: i * HORIZONTAL_SPACING, y: teamRowY },
+        data: { label: team.name },
+        style: {
+          background: "#dcfce7",
+          border: "1px solid #86efac",
+          borderRadius: "0.375rem",
+          padding: "8px 16px",
+        },
+      });
+    }
+  }
+
   return { nodes, edges };
 }
 
@@ -425,8 +459,20 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const exportResult = exportFetcher.data;
   const isExporting = exportFetcher.state !== "idle";
 
+  const agentTeamsForGraph: AgentTeamGraphData[] = plugin.agentTeams.map(
+    (team) => ({
+      id: team.id,
+      name: team.name,
+      description: team.description,
+      orchestratorName:
+        team.orchestrator.skillConfig?.name ?? "(unnamed)",
+    }),
+  );
+
   const graphData =
-    plugin.components.length > 0 ? buildGraphData(plugin.components) : null;
+    plugin.components.length > 0 || plugin.agentTeams.length > 0
+      ? buildGraphData(plugin.components, agentTeamsForGraph)
+      : null;
 
   const handleConnect = useCallback(
     (sourceId: string, targetId: string) => {
@@ -682,6 +728,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               edges={graphData.edges}
               pluginId={plugin.id}
               components={graphComponents}
+              agentTeams={agentTeamsForGraph}
               onConnect={handleConnect}
               onEdgeClick={handleEdgeClick}
               onNodeDoubleClick={handleNodeDoubleClick}
