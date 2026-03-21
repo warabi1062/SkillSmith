@@ -40,7 +40,6 @@ interface ComponentFile {
 interface FilesManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  pluginId: string;
   componentId: string;
   componentName: string;
   files: ComponentFile[];
@@ -57,7 +56,6 @@ type ViewState =
 export default function FilesManagementModal({
   isOpen,
   onClose,
-  pluginId,
   componentId,
   componentName,
   files,
@@ -162,8 +160,6 @@ export default function FilesManagementModal({
   }, [editFieldFetcher.state, editFieldFetcher.data, view]);
 
   if (!isOpen) return null;
-
-  const basePath = `/plugins/${pluginId}/components/${componentId}`;
 
   // Keep file data in sync with latest props
   const currentFile =
@@ -301,9 +297,11 @@ export default function FilesManagementModal({
                         ? "This file has OUTPUT_SCHEMA role. Deleting it will also remove all associated OutputSchemaField data. Are you sure?"
                         : "Are you sure you want to delete this file?";
                     if (window.confirm(message)) {
-                      deleteFileFetcher.submit(null, {
+                      const fd = new FormData();
+                      fd.set("intent", "delete-file");
+                      fd.set("fileId", file.id);
+                      deleteFileFetcher.submit(fd, {
                         method: "post",
-                        action: `${basePath}/files/${file.id}/destroy`,
                       });
                     }
                   }}
@@ -329,9 +327,10 @@ export default function FilesManagementModal({
       <div>
         <addFileFetcher.Form
           method="post"
-          action={`${basePath}/files/new`}
           style={{ maxWidth: "640px" }}
         >
+          <input type="hidden" name="intent" value="create-file" />
+          <input type="hidden" name="componentId" value={componentId} />
           <div className="form-group">
             <label htmlFor="files-modal-role">Role</label>
             <select
@@ -410,9 +409,10 @@ export default function FilesManagementModal({
       <div>
         <editFileFetcher.Form
           method="post"
-          action={`${basePath}/files/${currentFile.id}/edit`}
           style={{ maxWidth: "640px" }}
         >
+          <input type="hidden" name="intent" value="update-file" />
+          <input type="hidden" name="fileId" value={currentFile.id} />
           <div className="form-group">
             <label>Role</label>
             <p className="card-description">
@@ -512,13 +512,13 @@ export default function FilesManagementModal({
                         disabled={index === 0}
                         title="Move up"
                         onClick={() => {
-                          reorderFieldFetcher.submit(
-                            { direction: "up" },
-                            {
-                              method: "post",
-                              action: `${basePath}/files/${currentFile.id}/fields/${field.id}/reorder`,
-                            },
-                          );
+                          const fd = new FormData();
+                          fd.set("intent", "reorder-field");
+                          fd.set("fieldId", field.id);
+                          fd.set("direction", "up");
+                          reorderFieldFetcher.submit(fd, {
+                            method: "post",
+                          });
                         }}
                       >
                         up
@@ -529,13 +529,13 @@ export default function FilesManagementModal({
                         disabled={index === fields.length - 1}
                         title="Move down"
                         onClick={() => {
-                          reorderFieldFetcher.submit(
-                            { direction: "down" },
-                            {
-                              method: "post",
-                              action: `${basePath}/files/${currentFile.id}/fields/${field.id}/reorder`,
-                            },
-                          );
+                          const fd = new FormData();
+                          fd.set("intent", "reorder-field");
+                          fd.set("fieldId", field.id);
+                          fd.set("direction", "down");
+                          reorderFieldFetcher.submit(fd, {
+                            method: "post",
+                          });
                         }}
                       >
                         down
@@ -578,9 +578,11 @@ export default function FilesManagementModal({
                           if (
                             window.confirm(`Delete field "${field.name}"?`)
                           ) {
-                            deleteFieldFetcher.submit(null, {
+                            const fd = new FormData();
+                            fd.set("intent", "delete-field");
+                            fd.set("fieldId", field.id);
+                            deleteFieldFetcher.submit(fd, {
                               method: "post",
-                              action: `${basePath}/files/${currentFile.id}/fields/${field.id}/destroy`,
                             });
                           }
                         }}
@@ -612,9 +614,10 @@ export default function FilesManagementModal({
       <div>
         <addFieldFetcher.Form
           method="post"
-          action={`${basePath}/files/${currentFile.id}/fields/new`}
           style={{ maxWidth: "640px" }}
         >
+          <input type="hidden" name="intent" value="create-field" />
+          <input type="hidden" name="fileId" value={currentFile.id} />
           <div className="form-group">
             <label htmlFor="field-modal-name">Name</label>
             <input
@@ -748,9 +751,10 @@ export default function FilesManagementModal({
       <div>
         <editFieldFetcher.Form
           method="post"
-          action={`${basePath}/files/${currentFile.id}/fields/${freshField.id}/edit`}
           style={{ maxWidth: "640px" }}
         >
+          <input type="hidden" name="intent" value="update-field" />
+          <input type="hidden" name="fieldId" value={freshField.id} />
           <div className="form-group">
             <label htmlFor="field-modal-edit-name">Name</label>
             <input

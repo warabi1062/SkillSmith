@@ -1331,7 +1331,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           <FilesManagementModal
             isOpen={filesModalState.isOpen}
             onClose={handleFilesModalClose}
-            pluginId={plugin.id}
             componentId={filesModalState.componentId}
             componentName={(() => {
               const comp = plugin.components.find(
