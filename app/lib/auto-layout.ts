@@ -127,13 +127,12 @@ export function computeAutoLayout(
 
     stepTargets.sort((a, b) => a.order - b.order);
 
+    const orchNode = nodeMap.get(orchId);
+    const orchY = orchNode?.position.y ?? 0;
+
     const targetNodes = stepTargets
       .map((st) => nodeMap.get(st.targetId))
       .filter((n): n is (typeof updatedComponentNodes)[number] => n != null);
-
-    // Record old Y positions before reordering
-    const oldYs = targetNodes.map((n) => n.position.y);
-    const sortedYs = [...oldYs].sort((a, b) => a - b);
 
     // Collect descendants for each step target (excluding other step targets)
     const stepTargetSet = new Set(stepTargets.map((st) => st.targetId));
@@ -154,14 +153,42 @@ export function computeAutoLayout(
       return descendants;
     }
 
+    // Compute subtree vertical span (target + all descendants) for each target
+    function getSubtreeHeight(targetNode: (typeof updatedComponentNodes)[number]): number {
+      const descs = getDescendants(targetNode.id);
+      let minY = targetNode.position.y;
+      let maxYBottom = targetNode.position.y + (targetNode.measured?.height ?? DEFAULT_NODE_HEIGHT);
+      for (const descId of descs) {
+        const d = nodeMap.get(descId);
+        if (d) {
+          minY = Math.min(minY, d.position.y);
+          maxYBottom = Math.max(maxYBottom, d.position.y + (d.measured?.height ?? DEFAULT_NODE_HEIGHT));
+        }
+      }
+      return maxYBottom - minY;
+    }
+
+    // Record old Y positions before reordering
+    const oldYs = targetNodes.map((n) => n.position.y);
+
+    // Recalculate Y positions sequentially, accounting for subtree height
+    const gap = 50; // nodesep
+    const newYs: number[] = [];
+    let currentY = orchY;
+    for (let i = 0; i < targetNodes.length; i++) {
+      newYs.push(currentY);
+      const subtreeHeight = getSubtreeHeight(targetNodes[i]);
+      currentY += subtreeHeight + gap;
+    }
+
     // Apply delta to each step target and its descendants
     const moved = new Set<string>();
     for (let i = 0; i < targetNodes.length; i++) {
-      const delta = sortedYs[i] - oldYs[i];
+      const delta = newYs[i] - oldYs[i];
       if (delta === 0) continue;
 
       const node = targetNodes[i];
-      node.position = { ...node.position, y: sortedYs[i] };
+      node.position = { ...node.position, y: newYs[i] };
       moved.add(node.id);
 
       for (const descId of getDescendants(node.id)) {

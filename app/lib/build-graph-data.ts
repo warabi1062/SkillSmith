@@ -144,9 +144,6 @@ export function buildGraphData(
           .map((dep) => ({ id: dep.targetId, pos: positions.get(dep.targetId) }))
           .filter((t): t is { id: string; pos: { x: number; y: number } } => t.pos != null);
 
-        const oldYs = targetPositions.map((t) => t.pos.y);
-        const sortedYs = [...oldYs].sort((a, b) => a - b);
-
         // Collect descendants via BFS
         function getDescendants(rootId: string): string[] {
           const desc: string[] = [];
@@ -165,10 +162,40 @@ export function buildGraphData(
           return desc;
         }
 
+        // Compute subtree vertical span for each target
+        function getSubtreeHeight(targetId: string): number {
+          const targetPos = positions.get(targetId);
+          if (!targetPos) return getNodeSize(targetId).height;
+          const descs = getDescendants(targetId);
+          let minY = targetPos.y;
+          let maxYBottom = targetPos.y + getNodeSize(targetId).height;
+          for (const descId of descs) {
+            const dPos = positions.get(descId);
+            if (dPos) {
+              minY = Math.min(minY, dPos.y);
+              maxYBottom = Math.max(maxYBottom, dPos.y + getNodeSize(descId).height);
+            }
+          }
+          return maxYBottom - minY;
+        }
+
+        const oldYs = targetPositions.map((t) => t.pos.y);
+
+        // Recalculate Y positions sequentially, accounting for subtree height
+        const orchPos = positions.get(c.id);
+        const gap = 50; // nodesep
+        const newYs: number[] = [];
+        let currentY = orchPos?.y ?? 0;
+        for (let i = 0; i < targetPositions.length; i++) {
+          newYs.push(currentY);
+          const subtreeH = getSubtreeHeight(targetPositions[i].id);
+          currentY += subtreeH + gap;
+        }
+
         const moved = new Set<string>();
         for (let i = 0; i < targetPositions.length; i++) {
-          const delta = sortedYs[i] - oldYs[i];
-          targetPositions[i].pos.y = sortedYs[i];
+          const delta = newYs[i] - oldYs[i];
+          targetPositions[i].pos.y = newYs[i];
           moved.add(targetPositions[i].id);
 
           if (delta === 0) continue;
