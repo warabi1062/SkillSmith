@@ -322,6 +322,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
   const handleConnect = useCallback(
     (sourceId: string, targetId: string) => {
+      setDeleteError(null);
       addDependencyFetcher.submit(
         { sourceId, targetId },
         {
@@ -335,6 +336,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
   const handleEdgeClick = useCallback(
     (dependencyId: string) => {
+      setDeleteError(null);
       removeDependencyFetcher.submit(null, {
         method: "post",
         action: `/plugins/${plugin.id}/dependencies/${dependencyId}/destroy`,
@@ -347,6 +349,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     (componentId: string) => {
       const comp = plugin.components.find((c) => c.id === componentId);
       if (comp) {
+        setDeleteError(null);
         setModalState({
           isOpen: true,
           mode: "edit",
@@ -359,6 +362,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
   const handleCreateComponent = useCallback(
     (type: "SKILL" | "AGENT") => {
+      setDeleteError(null);
       setModalState({
         isOpen: true,
         mode: "create",

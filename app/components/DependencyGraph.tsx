@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
   type Node,
@@ -143,6 +143,27 @@ export default function DependencyGraph({
   const handlePaneClick = useCallback(() => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
   }, []);
+
+  // Close context menu on document click outside or Escape key
+  useEffect(() => {
+    if (!contextMenu.visible) return;
+
+    const handleDocumentClick = () => {
+      setContextMenu((prev) => ({ ...prev, visible: false }));
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setContextMenu((prev) => ({ ...prev, visible: false }));
+      }
+    };
+
+    document.addEventListener("click", handleDocumentClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [contextMenu.visible]);
 
   const handleContextMenuEdit = useCallback(() => {
     onNodeDoubleClick?.(contextMenu.componentId);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { useFetcher } from "react-router";
 
 interface ComponentFetcherData {
@@ -45,10 +45,20 @@ export default function ComponentFormModal({
   }, [isOpen, componentType, initialValues?.type]);
 
   // Close modal on successful submission
+  // Track previous fetcher.state via ref so we only close when transitioning
+  // from a non-idle state (submitting/loading) back to idle with success.
+  // Without this, reopening the modal would immediately close because
+  // fetcher.data.success persists from the previous submission.
+  const prevFetcherState = useRef(fetcher.state);
   useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data?.success) {
+    if (
+      prevFetcherState.current !== "idle" &&
+      fetcher.state === "idle" &&
+      fetcher.data?.success
+    ) {
       onClose();
     }
+    prevFetcherState.current = fetcher.state;
   }, [fetcher.state, fetcher.data, onClose]);
 
   if (!isOpen) return null;
