@@ -10,6 +10,8 @@ import {
   createAgentTeam,
   updateAgentTeam,
   deleteAgentTeam,
+  addAgentTeamMember,
+  removeAgentTeamMember,
 } from "../lib/plugins.server";
 import {
   validateComponentData,
@@ -268,6 +270,60 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     await deleteAgentTeam(teamId);
     return { success: true };
+  }
+
+  if (intent === "add-agent-team-member") {
+    const teamId = String(formData.get("teamId") ?? "");
+    const componentId = String(formData.get("componentId") ?? "");
+
+    const team = await getAgentTeam(teamId);
+    if (!team || team.pluginId !== params.id) {
+      throw data("Agent Team not found", { status: 404 });
+    }
+
+    if (!componentId) {
+      return data(
+        {
+          errors: { componentId: "Agent component is required" },
+          values: { componentId },
+        },
+        { status: 400 },
+      );
+    }
+
+    try {
+      await addAgentTeamMember(teamId, { componentId });
+      return { success: true, teamId };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { componentId },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "remove-agent-team-member") {
+    const teamId = String(formData.get("teamId") ?? "");
+    const memberId = String(formData.get("memberId") ?? "");
+
+    const team = await getAgentTeam(teamId);
+    if (!team || team.pluginId !== params.id) {
+      throw data("Agent Team not found", { status: 404 });
+    }
+
+    const member = team.members.find((m) => m.id === memberId);
+    if (!member) {
+      throw data("Member not found", { status: 404 });
+    }
+
+    await removeAgentTeamMember(memberId);
+    return { success: true, teamId };
   }
 
   throw data("Unknown intent", { status: 400 });
