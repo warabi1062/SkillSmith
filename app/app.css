@@ -504,6 +504,42 @@ h3 {
   font-style: italic;
 }
 
+.orchestrator-node-step--empty {
+  background-color: rgba(219, 234, 254, 0.5);
+  border-style: dashed;
+  border-bottom-style: dashed;
+  border-bottom-color: #93c5fd;
+  color: #6b7280;
+}
+
+.orchestrator-node-add-step-btn {
+  display: block;
+  width: 100%;
+  padding: 4px 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #3b82f6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.15s;
+}
+
+.orchestrator-node-add-step-btn:hover {
+  background-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.orchestrator-node-step-btn-cancel {
+  color: #6b7280;
+  font-size: 0.7rem;
+}
+
+.orchestrator-node-step-btn-cancel:hover {
+  color: #374151;
+}
+
 /* Skill Node */
 .skill-node {
   background: #dbeafe;

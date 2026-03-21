@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Handle, Position, useReactFlow } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import { useFetcher } from "react-router";
@@ -38,6 +38,33 @@ export default function OrchestratorNode({
   const fetcher = useFetcher();
   const isSaving = fetcher.state !== "idle";
   const { setNodes } = useReactFlow();
+
+  // localSteps manages both server-persisted steps and client-only empty step slots.
+  // Empty steps (those with no dependencies) are intentionally lost on server reload.
+  const [localSteps, setLocalSteps] = useState<Step[]>(steps);
+
+  // Use JSON.stringify to stabilize the dependency: React Flow may produce a new
+  // array reference on every render even when the contents are identical.
+  // Without this, setLocalSteps would fire on every render and discard
+  // client-only empty step slots that the user just added.
+  const stepsJson = JSON.stringify(steps);
+  useEffect(() => {
+    // Sync localSteps with server data when data.steps actually changes.
+    // This intentionally discards any unsaved empty step slots.
+    setLocalSteps(JSON.parse(stepsJson));
+  }, [stepsJson]);
+
+  const handleAddStep = useCallback(() => {
+    setLocalSteps((prev) => {
+      const maxOrder =
+        prev.length > 0 ? Math.max(...prev.map((s) => s.order)) : -1;
+      return [...prev, { order: maxOrder + 1, dependencies: [] }];
+    });
+  }, []);
+
+  const handleRemoveEmptyStep = useCallback((order: number) => {
+    setLocalSteps((prev) => prev.filter((s) => s.order !== order));
+  }, []);
 
   const handleEditStart = useCallback(() => {
     setNodes((nodes) =>
@@ -107,57 +134,84 @@ export default function OrchestratorNode({
         onEditStart={handleEditStart}
         onEditEnd={handleEditEnd}
       />
-      {steps.length > 0 && (
-        <div className="orchestrator-node-steps">
-          {steps.map((step, index) => (
-            <div key={step.order} className="orchestrator-node-step">
+      <div className="orchestrator-node-steps">
+        {localSteps.map((step, index) => {
+          const isEmpty = step.dependencies.length === 0;
+          return (
+            <div
+              key={step.order}
+              className={`orchestrator-node-step${isEmpty ? " orchestrator-node-step--empty" : ""}`}
+            >
               <span>
-                Step {step.order + 1}
-                {step.dependencies.length > 1 &&
-                  ` (x${step.dependencies.length})`}
+                {isEmpty
+                  ? `Step ${step.order + 1} (empty)`
+                  : `Step ${step.order + 1}${step.dependencies.length > 1 ? ` (x${step.dependencies.length})` : ""}`}
               </span>
               <div className="orchestrator-node-step-actions">
-                {onReorderStep && (
-                  <>
-                    <button
-                      type="button"
-                      className="orchestrator-node-step-btn"
-                      title="Move up"
-                      disabled={index === 0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReorderStep(step.dependencies[0].id, "up");
-                      }}
-                    >
-                      ^
-                    </button>
-                    <button
-                      type="button"
-                      className="orchestrator-node-step-btn"
-                      title="Move down"
-                      disabled={index === steps.length - 1}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReorderStep(step.dependencies[0].id, "down");
-                      }}
-                    >
-                      v
-                    </button>
-                  </>
-                )}
-                {onDeleteStep && (
+                {isEmpty ? (
                   <button
                     type="button"
-                    className="orchestrator-node-step-btn orchestrator-node-step-btn-danger"
-                    title="Delete step"
+                    className="orchestrator-node-step-btn orchestrator-node-step-btn-cancel"
+                    title="Cancel"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const ids = step.dependencies.map((d) => d.id);
-                      onDeleteStep(ids);
+                      handleRemoveEmptyStep(step.order);
                     }}
                   >
                     x
                   </button>
+                ) : (
+                  <>
+                    {onReorderStep && (
+                      <>
+                        <button
+                          type="button"
+                          className="orchestrator-node-step-btn"
+                          title="Move up"
+                          disabled={index === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onReorderStep(step.dependencies[0].id, "up");
+                          }}
+                        >
+                          ^
+                        </button>
+                        <button
+                          type="button"
+                          className="orchestrator-node-step-btn"
+                          title="Move down"
+                          disabled={
+                            // Use server-persisted step count (steps with dependencies)
+                            // rather than localSteps.length, since localSteps may include
+                            // client-only empty slots appended at the end.
+                            index ===
+                            localSteps.filter((s) => s.dependencies.length > 0)
+                              .length - 1
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onReorderStep(step.dependencies[0].id, "down");
+                          }}
+                        >
+                          v
+                        </button>
+                      </>
+                    )}
+                    {onDeleteStep && (
+                      <button
+                        type="button"
+                        className="orchestrator-node-step-btn orchestrator-node-step-btn-danger"
+                        title="Delete step"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const ids = step.dependencies.map((d) => d.id);
+                          onDeleteStep(ids);
+                        }}
+                      >
+                        x
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
               <Handle
@@ -167,9 +221,19 @@ export default function OrchestratorNode({
                 style={{ top: "auto", position: "relative" }}
               />
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })}
+        <button
+          type="button"
+          className="orchestrator-node-add-step-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddStep();
+          }}
+        >
+          + Step
+        </button>
+      </div>
     </div>
   );
 }
