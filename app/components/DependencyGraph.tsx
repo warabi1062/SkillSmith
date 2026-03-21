@@ -28,7 +28,7 @@ interface DependencyGraphProps {
     description: string | null;
     orchestratorName: string;
   }>;
-  onConnect: (sourceId: string, targetId: string) => void;
+  onConnect: (sourceId: string, targetId: string, sourceHandle?: string) => void;
   onEdgeClick: (dependencyId: string) => void;
   onNodeDoubleClick?: (componentId: string) => void;
   onCreateComponent?: (type: "SKILL" | "AGENT") => void;
@@ -130,7 +130,11 @@ export default function DependencyGraph({
   const handleConnect = useCallback(
     (connection: Connection) => {
       if (connection.source && connection.target) {
-        onConnect(connection.source, connection.target);
+        onConnect(
+          connection.source,
+          connection.target,
+          connection.sourceHandle ?? undefined,
+        );
       }
     },
     [onConnect],

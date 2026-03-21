@@ -608,15 +608,17 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
       : { nodes: [], edges: [] };
 
   const handleConnect = useCallback(
-    (sourceId: string, targetId: string) => {
+    (sourceId: string, targetId: string, sourceHandle?: string) => {
       setDeleteError(null);
-      addDependencyFetcher.submit(
-        { sourceId, targetId },
-        {
-          method: "post",
-          action: `/plugins/${plugin.id}/dependencies/new`,
-        },
-      );
+      const formData: Record<string, string> = { sourceId, targetId };
+      if (sourceHandle) {
+        const order = sourceHandle.replace("step-", "");
+        formData.order = order;
+      }
+      addDependencyFetcher.submit(formData, {
+        method: "post",
+        action: `/plugins/${plugin.id}/dependencies/new`,
+      });
     },
     [addDependencyFetcher, plugin.id],
   );

@@ -7,9 +7,14 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const sourceId = String(formData.get("sourceId") ?? "");
   const targetId = String(formData.get("targetId") ?? "");
+  const orderStr = formData.get("order");
+  const order =
+    orderStr !== null && String(orderStr).trim() !== ""
+      ? Number(orderStr)
+      : undefined;
 
   try {
-    await createDependency({ sourceId, targetId });
+    await createDependency({ sourceId, targetId, order });
     return { success: true };
   } catch (error) {
     if (error instanceof ValidationError) {
