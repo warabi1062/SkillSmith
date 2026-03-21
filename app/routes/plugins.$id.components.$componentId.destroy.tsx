@@ -1,5 +1,6 @@
 import { redirect, data } from "react-router";
 import { getComponent, deleteComponent } from "../lib/plugins.server";
+import { ValidationError } from "../lib/validations";
 import type { Route } from "./+types/plugins.$id.components.$componentId.destroy";
 
 export async function action({ params }: Route.ActionArgs) {
@@ -8,6 +9,16 @@ export async function action({ params }: Route.ActionArgs) {
     throw data("Component not found", { status: 404 });
   }
 
-  await deleteComponent(params.componentId);
-  return redirect(`/plugins/${params.id}`);
+  try {
+    await deleteComponent(params.componentId);
+    return redirect(`/plugins/${params.id}`);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return data(
+        { error: error.message },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
 }

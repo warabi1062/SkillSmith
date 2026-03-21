@@ -141,7 +141,7 @@ model AgentTeam {
   updatedAt       DateTime          @updatedAt
 
   plugin       Plugin             @relation(fields: [pluginId], references: [id], onDelete: Cascade)
-  orchestrator Component          @relation(fields: [orchestratorId], references: [id], onDelete: Cascade)
+  orchestrator Component          @relation(fields: [orchestratorId], references: [id], onDelete: Restrict)
   members      AgentTeamMember[]
 }
 
