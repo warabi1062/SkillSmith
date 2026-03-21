@@ -90,8 +90,9 @@ function needsYamlQuoting(value: string): boolean {
     return true;
   }
   // Characters that require quoting: colon+space, hash, braces, brackets,
-  // quotes, newlines, leading/trailing whitespace
-  return /[:#{\[}"'\n\r]|^\s|\s$/.test(value);
+  // quotes, newlines, leading/trailing whitespace, pipe, ampersand, asterisk,
+  // exclamation, at, backtick, greater-than (YAML block/flow indicators)
+  return /[:#{\[}"'\n\r|&*!@`>]|^\s|\s$/.test(value);
 }
 
 /**
