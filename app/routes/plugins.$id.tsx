@@ -16,6 +16,16 @@ import type { ExportResult } from "../lib/exporter.server";
 const DependencyGraph = React.lazy(
   () => import("../components/DependencyGraph"),
 );
+const ComponentFormModal = React.lazy(
+  () => import("../components/ComponentFormModal"),
+);
+
+interface ModalState {
+  isOpen: boolean;
+  mode: "create" | "edit";
+  componentType?: "SKILL" | "AGENT";
+  componentId?: string;
+}
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
   const name = loaderData?.plugin?.name ?? "Plugin";
@@ -273,12 +283,34 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     errors?: { dependency: string };
   }>();
   const removeDependencyFetcher = useFetcher();
+  const componentFetcher = useFetcher<{
+    success?: boolean;
+    componentId?: string;
+    errors?: Record<string, string>;
+  }>();
+  const deleteFetcher = useFetcher<{
+    success?: boolean;
+    error?: string;
+  }>();
 
   const skills = plugin.components.filter((c) => c.type === "SKILL");
   const agents = plugin.components.filter((c) => c.type === "AGENT");
 
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
+
+  const [modalState, setModalState] = useState<ModalState>({
+    isOpen: false,
+    mode: "create",
+  });
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Watch deleteFetcher for error messages
+  useEffect(() => {
+    if (deleteFetcher.state === "idle" && deleteFetcher.data?.error) {
+      setDeleteError(deleteFetcher.data.error);
+    }
+  }, [deleteFetcher.state, deleteFetcher.data]);
 
   const generateResult = generateFetcher.data;
   const isGenerating = generateFetcher.state !== "idle";
@@ -310,6 +342,61 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     },
     [removeDependencyFetcher, plugin.id],
   );
+
+  const handleNodeDoubleClick = useCallback(
+    (componentId: string) => {
+      const comp = plugin.components.find((c) => c.id === componentId);
+      if (comp) {
+        setModalState({
+          isOpen: true,
+          mode: "edit",
+          componentId,
+        });
+      }
+    },
+    [plugin.components],
+  );
+
+  const handleCreateComponent = useCallback(
+    (type: "SKILL" | "AGENT") => {
+      setModalState({
+        isOpen: true,
+        mode: "create",
+        componentType: type,
+      });
+    },
+    [],
+  );
+
+  const handleDeleteComponent = useCallback(
+    (componentId: string) => {
+      setDeleteError(null);
+      deleteFetcher.submit(
+        { intent: "delete-component", componentId },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [deleteFetcher, plugin.id],
+  );
+
+  const handleModalClose = useCallback(() => {
+    setModalState({ isOpen: false, mode: "create" });
+  }, []);
+
+  // Build initialValues for edit mode
+  const modalInitialValues = modalState.mode === "edit" && modalState.componentId
+    ? (() => {
+        const comp = plugin.components.find((c) => c.id === modalState.componentId);
+        if (!comp) return undefined;
+        return {
+          componentId: comp.id,
+          name: comp.skillConfig?.name ?? comp.agentConfig?.name ?? "",
+          description: comp.skillConfig?.description ?? comp.agentConfig?.description ?? "",
+          skillType: comp.skillConfig?.skillType ?? "",
+          type: comp.type,
+        };
+      })()
+    : undefined;
 
   const graphComponents = plugin.components.map((c) => ({
     id: c.id,
@@ -467,6 +554,16 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               {addDependencyFetcher.data.errors.dependency}
             </p>
           )}
+          {deleteError && (
+            <p
+              style={{
+                color: "var(--color-danger, #dc2626)",
+                margin: "0 0 0.5rem 0",
+              }}
+            >
+              {deleteError}
+            </p>
+          )}
           <Suspense fallback={<div>Loading graph...</div>}>
             <DependencyGraph
               nodes={graphData.nodes}
@@ -475,9 +572,26 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               components={graphComponents}
               onConnect={handleConnect}
               onEdgeClick={handleEdgeClick}
+              onNodeDoubleClick={handleNodeDoubleClick}
+              onCreateComponent={handleCreateComponent}
+              onDeleteComponent={handleDeleteComponent}
             />
           </Suspense>
         </div>
+      )}
+
+      {isClient && (
+        <Suspense fallback={null}>
+          <ComponentFormModal
+            isOpen={modalState.isOpen}
+            onClose={handleModalClose}
+            mode={modalState.mode}
+            componentType={modalState.componentType}
+            initialValues={modalInitialValues}
+            fetcher={componentFetcher}
+            pluginId={plugin.id}
+          />
+        </Suspense>
       )}
 
       {generateResult && (
