@@ -26,6 +26,42 @@ export function computeAutoLayout(
     return [...currentNodes];
   }
 
+  // Cycle detection via topological sort (Kahn's algorithm)
+  // dagre assumes a DAG; cycles produce unpredictable results
+  const componentIds = new Set(componentNodes.map((n) => n.id));
+  const adjacency = new Map<string, string[]>();
+  const inDegree = new Map<string, number>();
+  for (const node of componentNodes) {
+    adjacency.set(node.id, []);
+    inDegree.set(node.id, 0);
+  }
+  for (const edge of edges) {
+    if (componentIds.has(edge.source) && componentIds.has(edge.target)) {
+      adjacency.get(edge.source)!.push(edge.target);
+      inDegree.set(edge.target, (inDegree.get(edge.target) ?? 0) + 1);
+    }
+  }
+  const queue: string[] = [];
+  for (const [id, deg] of inDegree) {
+    if (deg === 0) queue.push(id);
+  }
+  let processed = 0;
+  const tempQueue = [...queue];
+  while (tempQueue.length > 0) {
+    const current = tempQueue.shift()!;
+    processed++;
+    for (const neighbor of adjacency.get(current) ?? []) {
+      inDegree.set(neighbor, (inDegree.get(neighbor) ?? 0) - 1);
+      if (inDegree.get(neighbor) === 0) {
+        tempQueue.push(neighbor);
+      }
+    }
+  }
+  if (processed < componentNodes.length) {
+    // Cycle detected: return nodes unchanged
+    return [...currentNodes];
+  }
+
   const g = new dagre.graphlib.Graph();
   g.setGraph({ rankdir: "TB", ranksep: 80, nodesep: 50 });
   g.setDefaultEdgeLabel(() => ({}));

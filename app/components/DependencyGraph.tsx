@@ -85,6 +85,12 @@ export default function DependencyGraph({
 }: DependencyGraphProps) {
   const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
 
+  // Keep a ref to the latest flowNodes for synchronous reads (e.g. animation start)
+  const flowNodesRef = useRef(flowNodes);
+  useEffect(() => {
+    flowNodesRef.current = flowNodes;
+  }, [flowNodes]);
+
   // Animation ref for auto-layout
   const animationRef = useRef<number | null>(null);
 
@@ -109,54 +115,54 @@ export default function DependencyGraph({
   );
 
   // Animate nodes from current positions to target positions
-  const animateToPositions = useCallback(
-    (targetNodes: Node[], duration = 300) => {
-      cancelAnimation();
+  function animateToPositions(targetNodes: Node[], duration = 300) {
+    cancelAnimation();
 
-      // Capture current positions at animation start
-      const startPositions: Record<string, { x: number; y: number }> = {};
-      setFlowNodes((currentNodes) => {
-        for (const node of currentNodes) {
-          startPositions[node.id] = { x: node.position.x, y: node.position.y };
-        }
-        return currentNodes;
-      });
+    // Read start positions synchronously from the ref (avoids React batching issues)
+    const startPositions: Record<string, { x: number; y: number }> = {};
+    for (const node of flowNodesRef.current) {
+      startPositions[node.id] = { x: node.position.x, y: node.position.y };
+    }
 
-      const startTime = performance.now();
+    // Build a Map for O(1) lookup instead of Array.find per frame
+    const targetMap = new Map<string, Node>();
+    for (const node of targetNodes) {
+      targetMap.set(node.id, node);
+    }
 
-      const animate = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        // ease-out cubic
-        const eased = 1 - (1 - progress) ** 3;
+    const startTime = performance.now();
 
-        setFlowNodes((currentNodes) =>
-          currentNodes.map((node) => {
-            const start = startPositions[node.id];
-            const target = targetNodes.find((n) => n.id === node.id);
-            if (!start || !target) return node;
-            return {
-              ...node,
-              position: {
-                x: start.x + (target.position.x - start.x) * eased,
-                y: start.y + (target.position.y - start.y) * eased,
-              },
-            };
-          }),
-        );
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - (1 - progress) ** 3;
 
-        if (progress < 1) {
-          animationRef.current = requestAnimationFrame(animate);
-        } else {
-          animationRef.current = null;
-          persistPositionsAfterAutoLayout(targetNodes);
-        }
-      };
+      setFlowNodes((currentNodes) =>
+        currentNodes.map((node) => {
+          const start = startPositions[node.id];
+          const target = targetMap.get(node.id);
+          if (!start || !target) return node;
+          return {
+            ...node,
+            position: {
+              x: start.x + (target.position.x - start.x) * eased,
+              y: start.y + (target.position.y - start.y) * eased,
+            },
+          };
+        }),
+      );
 
-      animationRef.current = requestAnimationFrame(animate);
-    },
-    [cancelAnimation, setFlowNodes, persistPositionsAfterAutoLayout],
-  );
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        animationRef.current = null;
+        persistPositionsAfterAutoLayout(targetNodes);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+  }
 
   // Sync internal node state when props change or layout is reset
   useEffect(() => {
@@ -170,7 +176,8 @@ export default function DependencyGraph({
       animateToPositions(autoLayoutNodes);
       onAutoLayoutApplied?.();
     }
-  }, [autoLayoutNodes, animateToPositions, onAutoLayoutApplied]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLayoutNodes, onAutoLayoutApplied]);
 
   // Cleanup animation on unmount
   useEffect(() => {

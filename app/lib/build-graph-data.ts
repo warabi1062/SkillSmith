@@ -61,16 +61,14 @@ export function buildGraphData(
   }
 
   // Cycle detection via topological sort (Kahn's algorithm)
-  const queue: string[] = [];
-  for (const c of components) {
-    if ((inDegree.get(c.id) ?? 0) === 0) {
-      queue.push(c.id);
-    }
-  }
-
   let processed = 0;
   const tempInDegree = new Map(inDegree);
-  const tempQueue = [...queue];
+  const tempQueue: string[] = [];
+  for (const c of components) {
+    if ((tempInDegree.get(c.id) ?? 0) === 0) {
+      tempQueue.push(c.id);
+    }
+  }
   while (tempQueue.length > 0) {
     const current = tempQueue.shift()!;
     processed++;
