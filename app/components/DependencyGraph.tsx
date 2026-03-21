@@ -15,6 +15,7 @@ import OrchestratorNode from "./OrchestratorNode";
 import SkillNode from "./SkillNode";
 import AgentNode from "./AgentNode";
 import AgentTeamNode from "./AgentTeamNode";
+import { computeAutoLayout } from "../lib/auto-layout";
 
 const nodeTypes = {
   orchestrator: OrchestratorNode,
@@ -49,7 +50,7 @@ interface DependencyGraphProps {
   onNodeDragStop?: (positions: Record<string, { x: number; y: number }>) => void;
   onResetLayout?: () => void;
   onPositionsPersist?: (positions: Record<string, { x: number; y: number }>) => void;
-  autoLayoutNodes?: Node[] | null;
+  autoLayoutPending?: boolean;
   onAutoLayoutApplied?: () => void;
   resetKey?: number;
 }
@@ -79,7 +80,7 @@ export default function DependencyGraph({
   onNodeDragStop,
   onResetLayout,
   onPositionsPersist,
-  autoLayoutNodes,
+  autoLayoutPending,
   onAutoLayoutApplied,
   resetKey,
 }: DependencyGraphProps) {
@@ -170,14 +171,15 @@ export default function DependencyGraph({
     setFlowNodes(nodes);
   }, [nodes, resetKey, setFlowNodes, cancelAnimation]);
 
-  // Handle auto-layout animation when autoLayoutNodes changes
+  // Handle auto-layout: compute layout using flowNodes (which have measured sizes)
   useEffect(() => {
-    if (autoLayoutNodes && autoLayoutNodes.length > 0) {
-      animateToPositions(autoLayoutNodes);
+    if (autoLayoutPending) {
+      const layoutedNodes = computeAutoLayout(flowNodesRef.current, edges);
+      animateToPositions(layoutedNodes);
       onAutoLayoutApplied?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLayoutNodes, onAutoLayoutApplied]);
+  }, [autoLayoutPending, onAutoLayoutApplied]);
 
   // Cleanup animation on unmount
   useEffect(() => {

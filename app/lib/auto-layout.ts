@@ -63,7 +63,7 @@ export function computeAutoLayout(
   }
 
   const g = new dagre.graphlib.Graph();
-  g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 50 });
+  g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 2 });
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const node of componentNodes) {
@@ -97,11 +97,8 @@ export function computeAutoLayout(
   // Post-process: reorder step targets (and their descendants) vertically
   // by step order. Dagre doesn't know about step ordering, so we compute
   // a Y delta for each step target and apply it to the entire subtree.
-  const orchestratorIds = new Set(
-    componentNodes
-      .filter((n) => n.type === "orchestrator")
-      .map((n) => n.id),
-  );
+  const orchestratorNodes = componentNodes.filter((n) => n.type === "orchestrator");
+  const orchestratorIds = new Set(orchestratorNodes.map((n) => n.id));
 
   // Build adjacency list for descendant traversal (include all edges)
   const children = new Map<string, string[]>();
@@ -112,7 +109,31 @@ export function computeAutoLayout(
 
   const nodeMap = new Map(updatedComponentNodes.map((n) => [n.id, n]));
 
-  for (const orchId of orchestratorIds) {
+  // Sort orchestrators: process innermost (children) first, then outermost (parents).
+  // An orchestrator that is reachable from another orchestrator is "inner".
+  function isAncestor(ancestorId: string, descendantId: string): boolean {
+    const queue = [ancestorId];
+    const visited = new Set<string>([ancestorId]);
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      for (const child of children.get(cur) ?? []) {
+        if (child === descendantId) return true;
+        if (!visited.has(child)) {
+          visited.add(child);
+          queue.push(child);
+        }
+      }
+    }
+    return false;
+  }
+
+  const sortedOrchIds = [...orchestratorIds].sort((a, b) => {
+    if (isAncestor(a, b)) return 1;  // a is parent of b → process b first
+    if (isAncestor(b, a)) return -1; // b is parent of a → process a first
+    return 0;
+  });
+
+  for (const orchId of sortedOrchIds) {
     const stepTargets: { order: number; targetId: string }[] = [];
     for (const edge of edges) {
       if (
@@ -153,31 +174,29 @@ export function computeAutoLayout(
       return descendants;
     }
 
-    // Compute subtree vertical span (target + all descendants) for each target
-    function getSubtreeHeight(targetNode: (typeof updatedComponentNodes)[number]): number {
+    // Compute the vertical extent below the target node (target + descendants)
+    function getSubtreeDepth(targetNode: (typeof updatedComponentNodes)[number]): number {
       const descs = getDescendants(targetNode.id);
-      let minY = targetNode.position.y;
       let maxYBottom = targetNode.position.y + (targetNode.measured?.height ?? DEFAULT_NODE_HEIGHT);
       for (const descId of descs) {
         const d = nodeMap.get(descId);
         if (d) {
-          minY = Math.min(minY, d.position.y);
           maxYBottom = Math.max(maxYBottom, d.position.y + (d.measured?.height ?? DEFAULT_NODE_HEIGHT));
         }
       }
-      return maxYBottom - minY;
+      return maxYBottom - targetNode.position.y;
     }
 
     // Record old Y positions before reordering
     const oldYs = targetNodes.map((n) => n.position.y);
 
     // Recalculate Y positions sequentially, accounting for subtree height
-    const gap = 50; // nodesep
+    const gap = 10;
     const newYs: number[] = [];
     let currentY = orchY;
     for (let i = 0; i < targetNodes.length; i++) {
       newYs.push(currentY);
-      const subtreeHeight = getSubtreeHeight(targetNodes[i]);
+      const subtreeHeight = getSubtreeDepth(targetNodes[i]);
       currentY += subtreeHeight + gap;
     }
 

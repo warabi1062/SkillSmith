@@ -932,28 +932,24 @@ describe("usePluginGraph", () => {
   });
 
   describe("auto-layout", () => {
-    it("returns autoLayoutNodes as null initially", () => {
+    it("returns autoLayoutPending as false initially", () => {
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams()),
       );
 
-      expect(result.current.autoLayoutNodes).toBeNull();
+      expect(result.current.autoLayoutPending).toBe(false);
     });
 
-    it("triggers auto-layout when fetcher transitions from loading to idle with graph data", () => {
+    it("sets autoLayoutPending to true when fetcher transitions from loading to idle", () => {
       const comp = createComponent();
       const plugin = createPlugin({ components: [comp] });
 
-      const layoutedNodes = [
-        { id: "comp-1", position: { x: 50, y: 100 }, data: { label: "A" } },
-      ];
       mockBuildGraphData.mockReturnValue({
         nodes: [
           { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
         ],
         edges: [],
       });
-      mockComputeAutoLayout.mockReturnValue(layoutedNodes);
 
       // Start with loading state (simulates all fetchers in loading state)
       mockFetcherData.state = "loading";
@@ -961,28 +957,23 @@ describe("usePluginGraph", () => {
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
-      // Transition to idle triggers the auto-layout
+      // Transition to idle triggers the auto-layout pending flag
       mockFetcherData.state = "idle";
       rerender();
 
-      expect(result.current.autoLayoutNodes).toEqual(layoutedNodes);
-      expect(mockComputeAutoLayout).toHaveBeenCalled();
+      expect(result.current.autoLayoutPending).toBe(true);
     });
 
-    it("clears autoLayoutNodes when handleAutoLayoutApplied is called", () => {
+    it("clears autoLayoutPending when handleAutoLayoutApplied is called", () => {
       const comp = createComponent();
       const plugin = createPlugin({ components: [comp] });
 
-      const layoutedNodes = [
-        { id: "comp-1", position: { x: 50, y: 100 }, data: { label: "A" } },
-      ];
       mockBuildGraphData.mockReturnValue({
         nodes: [
           { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
         ],
         edges: [],
       });
-      mockComputeAutoLayout.mockReturnValue(layoutedNodes);
 
       // Start with loading state
       mockFetcherData.state = "loading";
@@ -994,14 +985,14 @@ describe("usePluginGraph", () => {
       mockFetcherData.state = "idle";
       rerender();
 
-      expect(result.current.autoLayoutNodes).toEqual(layoutedNodes);
+      expect(result.current.autoLayoutPending).toBe(true);
 
       // Apply the layout
       act(() => {
         result.current.handleAutoLayoutApplied();
       });
 
-      expect(result.current.autoLayoutNodes).toBeNull();
+      expect(result.current.autoLayoutPending).toBe(false);
     });
 
     it("handlePositionsPersist saves positions via saveGraphPositions", () => {

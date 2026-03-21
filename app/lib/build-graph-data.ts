@@ -16,7 +16,7 @@ export interface AgentTeamGraphData {
 }
 
 export const DEFAULT_NODE_WIDTH = 250;
-export const DEFAULT_NODE_HEIGHT = 100;
+export const DEFAULT_NODE_HEIGHT = 60;
 
 export function buildGraphData(
   components: PluginComponent[],
@@ -99,7 +99,7 @@ export function buildGraphData(
 
   function getPositionWithDagre(): Map<string, { x: number; y: number }> {
     const g = new dagre.graphlib.Graph();
-    g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 50 });
+    g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 2 });
     g.setDefaultEdgeLabel(() => ({}));
 
     for (const c of components) {
@@ -133,8 +133,32 @@ export function buildGraphData(
       childrenMap.get(edge.source)!.push(edge.target);
     }
 
-    for (const c of components) {
-      if (c.skillConfig?.skillType === "ENTRY_POINT" && c.dependenciesFrom) {
+    // Sort orchestrators: process innermost (children) first
+    const orchestrators = components.filter(
+      (c) => c.skillConfig?.skillType === "ENTRY_POINT" && c.dependenciesFrom,
+    );
+    function isReachable(fromId: string, toId: string): boolean {
+      const queue = [fromId];
+      const visited = new Set<string>([fromId]);
+      while (queue.length > 0) {
+        const cur = queue.shift()!;
+        for (const child of childrenMap.get(cur) ?? []) {
+          if (child === toId) return true;
+          if (!visited.has(child)) {
+            visited.add(child);
+            queue.push(child);
+          }
+        }
+      }
+      return false;
+    }
+    orchestrators.sort((a, b) => {
+      if (isReachable(a.id, b.id)) return 1;  // a is parent → process b first
+      if (isReachable(b.id, a.id)) return -1;
+      return 0;
+    });
+
+    for (const c of orchestrators) {
         const stepsByOrder = [...c.dependenciesFrom]
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         if (stepsByOrder.length < 2) continue;
@@ -162,33 +186,31 @@ export function buildGraphData(
           return desc;
         }
 
-        // Compute subtree vertical span for each target
-        function getSubtreeHeight(targetId: string): number {
+        // Compute the vertical extent below the target node
+        function getSubtreeDepth(targetId: string): number {
           const targetPos = positions.get(targetId);
           if (!targetPos) return getNodeSize(targetId).height;
           const descs = getDescendants(targetId);
-          let minY = targetPos.y;
           let maxYBottom = targetPos.y + getNodeSize(targetId).height;
           for (const descId of descs) {
             const dPos = positions.get(descId);
             if (dPos) {
-              minY = Math.min(minY, dPos.y);
               maxYBottom = Math.max(maxYBottom, dPos.y + getNodeSize(descId).height);
             }
           }
-          return maxYBottom - minY;
+          return maxYBottom - targetPos.y;
         }
 
         const oldYs = targetPositions.map((t) => t.pos.y);
 
         // Recalculate Y positions sequentially, accounting for subtree height
         const orchPos = positions.get(c.id);
-        const gap = 50; // nodesep
+        const gap = 10;
         const newYs: number[] = [];
         let currentY = orchPos?.y ?? 0;
         for (let i = 0; i < targetPositions.length; i++) {
           newYs.push(currentY);
-          const subtreeH = getSubtreeHeight(targetPositions[i].id);
+          const subtreeH = getSubtreeDepth(targetPositions[i].id);
           currentY += subtreeH + gap;
         }
 
@@ -207,8 +229,6 @@ export function buildGraphData(
           }
         }
       }
-    }
-
     return positions;
   }
 

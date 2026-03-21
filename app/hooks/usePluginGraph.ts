@@ -5,7 +5,7 @@ import {
   buildGraphData,
   type AgentTeamGraphData,
 } from "../lib/build-graph-data";
-import { computeAutoLayout } from "../lib/auto-layout";
+
 import {
   loadGraphPositions,
   saveGraphPositions,
@@ -243,22 +243,18 @@ export function usePluginGraph({
   }, [graphData, plugin.id]);
 
   // Auto-layout: when rawGraphData updates and pendingAutoLayout is true,
-  // compute new layout and pass to DependencyGraph via onAutoLayout callback
-  const [autoLayoutNodes, setAutoLayoutNodes] = useState<Node[] | null>(null);
+  // signal DependencyGraph to recompute layout using its measured flowNodes
+  const [autoLayoutPending, setAutoLayoutPending] = useState(false);
 
   useEffect(() => {
     if (pendingAutoLayout.current) {
       pendingAutoLayout.current = false;
-      const layoutedNodes = computeAutoLayout(
-        graphDataWithPositions.nodes,
-        graphDataWithPositions.edges,
-      );
-      setAutoLayoutNodes(layoutedNodes);
+      setAutoLayoutPending(true);
     }
   }, [graphDataWithPositions]);
 
   const handleAutoLayoutApplied = useCallback(() => {
-    setAutoLayoutNodes(null);
+    setAutoLayoutPending(false);
   }, []);
 
   const handlePositionsPersist = useCallback(
@@ -462,7 +458,7 @@ export function usePluginGraph({
     agentTeamFetcher,
 
     // Auto-layout
-    autoLayoutNodes,
+    autoLayoutPending,
     handleAutoLayoutApplied,
     handlePositionsPersist,
 

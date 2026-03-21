@@ -437,7 +437,7 @@ describe("buildGraphData", () => {
       expect(nodes[1].position).toBeDefined();
       // Verify default constants are exported
       expect(DEFAULT_NODE_WIDTH).toBe(250);
-      expect(DEFAULT_NODE_HEIGHT).toBe(100);
+      expect(DEFAULT_NODE_HEIGHT).toBe(60);
     });
 
     it("エッジで接続されたノードのソースがターゲットより上に配置されること", () => {
