@@ -5,8 +5,8 @@ import { buildGraphData } from "../../lib/build-graph-data";
 function makeComponent(overrides: {
   id: string;
   type: "SKILL" | "AGENT";
-  skillConfig?: { skillType: string; name: string } | null;
-  agentConfig?: { name: string } | null;
+  skillConfig?: { skillType: string; name: string; description?: string | null } | null;
+  agentConfig?: { name: string; description?: string | null } | null;
   dependenciesFrom?: Array<{ id: string; targetId: string; order: number }>;
 }) {
   return {
@@ -21,7 +21,7 @@ function makeComponent(overrides: {
           componentId: overrides.id,
           name: overrides.skillConfig.name,
           skillType: overrides.skillConfig.skillType,
-          description: null,
+          description: overrides.skillConfig.description ?? null,
         }
       : null,
     agentConfig: overrides.agentConfig
@@ -29,7 +29,7 @@ function makeComponent(overrides: {
           id: `ac-${overrides.id}`,
           componentId: overrides.id,
           name: overrides.agentConfig.name,
-          description: "",
+          description: overrides.agentConfig.description ?? "",
         }
       : null,
     dependenciesFrom: overrides.dependenciesFrom ?? [],
@@ -147,7 +147,7 @@ describe("buildGraphData", () => {
     }
   });
 
-  it("非ENTRY_POINTノードにtypeが設定されないこと", () => {
+  it("SKILLノード(WORKER)にtype:'skill'が設定されること", () => {
     const components = [
       makeComponent({
         id: "worker-1",
@@ -160,7 +160,23 @@ describe("buildGraphData", () => {
     const workerNode = nodes.find((n) => n.id === "worker-1");
 
     expect(workerNode).toBeDefined();
-    expect(workerNode!.type).toBeUndefined();
+    expect(workerNode!.type).toBe("skill");
+  });
+
+  it("AGENTノードにtype:'agent'が設定されること", () => {
+    const components = [
+      makeComponent({
+        id: "agent-1",
+        type: "AGENT",
+        agentConfig: { name: "my-agent" },
+      }),
+    ];
+
+    const { nodes } = buildGraphData(components);
+    const agentNode = nodes.find((n) => n.id === "agent-1");
+
+    expect(agentNode).toBeDefined();
+    expect(agentNode!.type).toBe("agent");
   });
 
   it("ENTRY_POINTノードにstyleが設定されないこと", () => {
@@ -259,20 +275,111 @@ describe("buildGraphData", () => {
     expect(steps[1].dependencies[0].targetId).toBe("w-1");
   });
 
-  it("非ENTRY_POINTノードには従来通りstyleが設定されること", () => {
+  it("カスタムノード化されたSkill/Agentノードにstyleが設定されないこと", () => {
     const components = [
       makeComponent({
         id: "worker-1",
         type: "SKILL",
         skillConfig: { skillType: "WORKER", name: "implement" },
       }),
+      makeComponent({
+        id: "agent-1",
+        type: "AGENT",
+        agentConfig: { name: "my-agent" },
+      }),
     ];
 
     const { nodes } = buildGraphData(components);
     const workerNode = nodes.find((n) => n.id === "worker-1");
+    const agentNode = nodes.find((n) => n.id === "agent-1");
 
-    expect(workerNode).toBeDefined();
-    expect(workerNode!.style).toBeDefined();
-    expect(workerNode!.style).toHaveProperty("background");
+    expect(workerNode!.style).toBeUndefined();
+    expect(agentNode!.style).toBeUndefined();
+  });
+
+  it("Skill/Agentノードのdataにdescription/componentType/skillTypeが含まれること", () => {
+    const components = [
+      makeComponent({
+        id: "worker-1",
+        type: "SKILL",
+        skillConfig: { skillType: "WORKER", name: "implement", description: "Implement code" },
+      }),
+      makeComponent({
+        id: "agent-1",
+        type: "AGENT",
+        agentConfig: { name: "my-agent", description: "Agent desc" },
+      }),
+    ];
+
+    const { nodes } = buildGraphData(components);
+    const workerNode = nodes.find((n) => n.id === "worker-1");
+    const agentNode = nodes.find((n) => n.id === "agent-1");
+
+    expect(workerNode!.data).toMatchObject({
+      label: "implement",
+      description: "Implement code",
+      componentType: "SKILL",
+      skillType: "WORKER",
+    });
+
+    expect(agentNode!.data).toMatchObject({
+      label: "my-agent",
+      description: "Agent desc",
+      componentType: "AGENT",
+      skillType: null,
+    });
+  });
+
+  it("AgentTeamノードにtype:'agentteam'が設定されること", () => {
+    const agentTeams = [
+      { id: "team-1", name: "Team Alpha", description: "A team", orchestratorName: "dev" },
+    ];
+
+    const { nodes } = buildGraphData([], agentTeams);
+    const teamNode = nodes.find((n) => n.id === "agentteam-team-1");
+
+    expect(teamNode).toBeDefined();
+    expect(teamNode!.type).toBe("agentteam");
+  });
+
+  it("AgentTeamノードのdataにdescription/orchestratorNameが含まれること", () => {
+    const agentTeams = [
+      { id: "team-1", name: "Team Alpha", description: "A team", orchestratorName: "dev" },
+    ];
+
+    const { nodes } = buildGraphData([], agentTeams);
+    const teamNode = nodes.find((n) => n.id === "agentteam-team-1");
+
+    expect(teamNode!.data).toMatchObject({
+      label: "Team Alpha",
+      description: "A team",
+      orchestratorName: "dev",
+    });
+  });
+
+  it("AgentTeamノードにstyleが設定されないこと", () => {
+    const agentTeams = [
+      { id: "team-1", name: "Team Alpha", description: null, orchestratorName: "dev" },
+    ];
+
+    const { nodes } = buildGraphData([], agentTeams);
+    const teamNode = nodes.find((n) => n.id === "agentteam-team-1");
+
+    expect(teamNode!.style).toBeUndefined();
+  });
+
+  it("OrchestratorNodeのdataにdescriptionが含まれること", () => {
+    const components = [
+      makeComponent({
+        id: "orch-1",
+        type: "SKILL",
+        skillConfig: { skillType: "ENTRY_POINT", name: "dev", description: "Orchestrator desc" },
+      }),
+    ];
+
+    const { nodes } = buildGraphData(components);
+    const orchNode = nodes.find((n) => n.id === "orch-1");
+
+    expect(orchNode!.data.description).toBe("Orchestrator desc");
   });
 });

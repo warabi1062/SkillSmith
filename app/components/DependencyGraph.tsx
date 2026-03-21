@@ -11,8 +11,16 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import OrchestratorNode from "./OrchestratorNode";
+import SkillNode from "./SkillNode";
+import AgentNode from "./AgentNode";
+import AgentTeamNode from "./AgentTeamNode";
 
-const nodeTypes = { orchestrator: OrchestratorNode };
+const nodeTypes = {
+  orchestrator: OrchestratorNode,
+  skill: SkillNode,
+  agent: AgentNode,
+  agentteam: AgentTeamNode,
+};
 
 interface DependencyGraphProps {
   nodes: Node[];

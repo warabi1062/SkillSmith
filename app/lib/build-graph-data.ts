@@ -98,8 +98,8 @@ export function buildGraphData(
   }
 
   // Position nodes
-  const HORIZONTAL_SPACING = 250;
-  const VERTICAL_SPACING = 100;
+  const HORIZONTAL_SPACING = 300;
+  const VERTICAL_SPACING = 150;
 
   function getPosition(
     componentId: string,
@@ -142,20 +142,19 @@ export function buildGraphData(
         id: c.id,
         position: getPosition(c.id, i),
         type: "orchestrator",
-        data: { label, steps },
+        data: { label, steps, description: c.skillConfig?.description ?? null },
       };
     }
 
     return {
       id: c.id,
       position: getPosition(c.id, i),
-      data: { label },
-      style: {
-        background: c.type === "SKILL" ? "#dbeafe" : "#fce7f3",
-        border:
-          c.type === "SKILL" ? "1px solid #93c5fd" : "1px solid #f9a8d4",
-        borderRadius: "0.375rem",
-        padding: "8px 16px",
+      type: c.type === "SKILL" ? "skill" : "agent",
+      data: {
+        label,
+        description: c.skillConfig?.description ?? c.agentConfig?.description ?? null,
+        componentType: c.type,
+        skillType: c.skillConfig?.skillType ?? null,
       },
     };
   });
@@ -172,12 +171,11 @@ export function buildGraphData(
       nodes.push({
         id: `agentteam-${team.id}`,
         position: { x: i * HORIZONTAL_SPACING, y: teamRowY },
-        data: { label: team.name },
-        style: {
-          background: "#dcfce7",
-          border: "1px solid #86efac",
-          borderRadius: "0.375rem",
-          padding: "8px 16px",
+        type: "agentteam",
+        data: {
+          label: team.name,
+          description: team.description,
+          orchestratorName: team.orchestratorName,
         },
       });
     }
