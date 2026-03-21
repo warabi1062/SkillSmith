@@ -21,32 +21,4 @@ export default [
     "plugins/:id/dependencies/:dependencyId/reorder",
     "routes/plugins.$id.dependencies.$dependencyId.reorder.tsx",
   ),
-  route(
-    "plugins/:id/components/:componentId/files/new",
-    "routes/plugins.$id.components.$componentId.files.new.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/edit",
-    "routes/plugins.$id.components.$componentId.files.$fileId.edit.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/destroy",
-    "routes/plugins.$id.components.$componentId.files.$fileId.destroy.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/fields/new",
-    "routes/plugins.$id.components.$componentId.files.$fileId.fields.new.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/fields/:fieldId/edit",
-    "routes/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.edit.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/fields/:fieldId/destroy",
-    "routes/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.destroy.tsx",
-  ),
-  route(
-    "plugins/:id/components/:componentId/files/:fileId/fields/:fieldId/reorder",
-    "routes/plugins.$id.components.$componentId.files.$fileId.fields.$fieldId.reorder.tsx",
-  ),
 ] satisfies RouteConfig;
