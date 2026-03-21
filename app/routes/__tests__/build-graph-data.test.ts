@@ -461,8 +461,8 @@ describe("buildGraphData", () => {
       const sourceNode = nodes.find((n) => n.id === "source")!;
       const targetNode = nodes.find((n) => n.id === "target")!;
 
-      // In TB layout, source should be above target (lower y value)
-      expect(sourceNode.position.y).toBeLessThan(targetNode.position.y);
+      // In LR layout, source should be to the left of target (lower x value)
+      expect(sourceNode.position.x).toBeLessThan(targetNode.position.x);
     });
 
     it("サイクルがある場合にグリッドフォールバックが維持されること", () => {

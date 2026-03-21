@@ -32,8 +32,8 @@ describe("computeAutoLayout", () => {
     expect(result).toHaveLength(2);
     const nodeA = result.find((n) => n.id === "a")!;
     const nodeB = result.find((n) => n.id === "b")!;
-    // In TB layout, source should be above target
-    expect(nodeA.position.y).toBeLessThan(nodeB.position.y);
+    // In LR layout, source should be to the left of target
+    expect(nodeA.position.x).toBeLessThan(nodeB.position.x);
   });
 
   it("should place AgentTeam nodes in a separate row below component nodes", () => {
@@ -105,7 +105,7 @@ describe("computeAutoLayout", () => {
     // Assert - nodes should still be laid out correctly
     const nodeA = result.find((n) => n.id === "a")!;
     const nodeB = result.find((n) => n.id === "b")!;
-    expect(nodeA.position.y).toBeLessThan(nodeB.position.y);
+    expect(nodeA.position.x).toBeLessThan(nodeB.position.x);
   });
 
   it("should return nodes unchanged when the graph contains a cycle", () => {

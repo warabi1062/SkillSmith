@@ -99,7 +99,7 @@ export function buildGraphData(
 
   function getPositionWithDagre(): Map<string, { x: number; y: number }> {
     const g = new dagre.graphlib.Graph();
-    g.setGraph({ rankdir: "TB", ranksep: 80, nodesep: 50 });
+    g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 50 });
     g.setDefaultEdgeLabel(() => ({}));
 
     for (const c of components) {
@@ -123,6 +123,65 @@ export function buildGraphData(
         y: nodeData.y - size.height / 2,
       });
     }
+
+    // Post-process: reorder step targets and their descendants vertically
+    // by step order.
+    // Build adjacency list (include all edges for nested orchestrator traversal)
+    const childrenMap = new Map<string, string[]>();
+    for (const edge of edges) {
+      if (!childrenMap.has(edge.source)) childrenMap.set(edge.source, []);
+      childrenMap.get(edge.source)!.push(edge.target);
+    }
+
+    for (const c of components) {
+      if (c.skillConfig?.skillType === "ENTRY_POINT" && c.dependenciesFrom) {
+        const stepsByOrder = [...c.dependenciesFrom]
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        if (stepsByOrder.length < 2) continue;
+
+        const stepTargetSet = new Set(stepsByOrder.map((d) => d.targetId));
+        const targetPositions = stepsByOrder
+          .map((dep) => ({ id: dep.targetId, pos: positions.get(dep.targetId) }))
+          .filter((t): t is { id: string; pos: { x: number; y: number } } => t.pos != null);
+
+        const oldYs = targetPositions.map((t) => t.pos.y);
+        const sortedYs = [...oldYs].sort((a, b) => a - b);
+
+        // Collect descendants via BFS
+        function getDescendants(rootId: string): string[] {
+          const desc: string[] = [];
+          const queue = [rootId];
+          const visited = new Set<string>([rootId]);
+          while (queue.length > 0) {
+            const cur = queue.shift()!;
+            for (const child of childrenMap.get(cur) ?? []) {
+              if (!visited.has(child) && !stepTargetSet.has(child)) {
+                visited.add(child);
+                desc.push(child);
+                queue.push(child);
+              }
+            }
+          }
+          return desc;
+        }
+
+        const moved = new Set<string>();
+        for (let i = 0; i < targetPositions.length; i++) {
+          const delta = sortedYs[i] - oldYs[i];
+          targetPositions[i].pos.y = sortedYs[i];
+          moved.add(targetPositions[i].id);
+
+          if (delta === 0) continue;
+          for (const descId of getDescendants(targetPositions[i].id)) {
+            if (moved.has(descId)) continue;
+            moved.add(descId);
+            const descPos = positions.get(descId);
+            if (descPos) descPos.y += delta;
+          }
+        }
+      }
+    }
+
     return positions;
   }
 

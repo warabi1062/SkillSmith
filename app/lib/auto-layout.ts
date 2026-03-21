@@ -63,7 +63,7 @@ export function computeAutoLayout(
   }
 
   const g = new dagre.graphlib.Graph();
-  g.setGraph({ rankdir: "TB", ranksep: 80, nodesep: 50 });
+  g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 50 });
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const node of componentNodes) {
@@ -93,6 +93,90 @@ export function computeAutoLayout(
       },
     };
   });
+
+  // Post-process: reorder step targets (and their descendants) vertically
+  // by step order. Dagre doesn't know about step ordering, so we compute
+  // a Y delta for each step target and apply it to the entire subtree.
+  const orchestratorIds = new Set(
+    componentNodes
+      .filter((n) => n.type === "orchestrator")
+      .map((n) => n.id),
+  );
+
+  // Build adjacency list for descendant traversal (include all edges)
+  const children = new Map<string, string[]>();
+  for (const edge of edges) {
+    if (!children.has(edge.source)) children.set(edge.source, []);
+    children.get(edge.source)!.push(edge.target);
+  }
+
+  const nodeMap = new Map(updatedComponentNodes.map((n) => [n.id, n]));
+
+  for (const orchId of orchestratorIds) {
+    const stepTargets: { order: number; targetId: string }[] = [];
+    for (const edge of edges) {
+      if (
+        edge.source === orchId &&
+        edge.sourceHandle?.startsWith("step-")
+      ) {
+        const order = parseInt(edge.sourceHandle.replace("step-", ""), 10);
+        stepTargets.push({ order, targetId: edge.target });
+      }
+    }
+    if (stepTargets.length < 2) continue;
+
+    stepTargets.sort((a, b) => a.order - b.order);
+
+    const targetNodes = stepTargets
+      .map((st) => nodeMap.get(st.targetId))
+      .filter((n): n is (typeof updatedComponentNodes)[number] => n != null);
+
+    // Record old Y positions before reordering
+    const oldYs = targetNodes.map((n) => n.position.y);
+    const sortedYs = [...oldYs].sort((a, b) => a - b);
+
+    // Collect descendants for each step target (excluding other step targets)
+    const stepTargetSet = new Set(stepTargets.map((st) => st.targetId));
+    function getDescendants(rootId: string): string[] {
+      const descendants: string[] = [];
+      const queue = [rootId];
+      const visited = new Set<string>([rootId]);
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        for (const child of children.get(current) ?? []) {
+          if (!visited.has(child) && !stepTargetSet.has(child)) {
+            visited.add(child);
+            descendants.push(child);
+            queue.push(child);
+          }
+        }
+      }
+      return descendants;
+    }
+
+    // Apply delta to each step target and its descendants
+    const moved = new Set<string>();
+    for (let i = 0; i < targetNodes.length; i++) {
+      const delta = sortedYs[i] - oldYs[i];
+      if (delta === 0) continue;
+
+      const node = targetNodes[i];
+      node.position = { ...node.position, y: sortedYs[i] };
+      moved.add(node.id);
+
+      for (const descId of getDescendants(node.id)) {
+        if (moved.has(descId)) continue;
+        moved.add(descId);
+        const descNode = nodeMap.get(descId);
+        if (descNode) {
+          descNode.position = {
+            ...descNode.position,
+            y: descNode.position.y + delta,
+          };
+        }
+      }
+    }
+  }
 
   // Place AgentTeam nodes below component nodes
   if (agentTeamNodes.length > 0) {

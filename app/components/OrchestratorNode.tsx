@@ -112,7 +112,7 @@ export default function OrchestratorNode({
 
   return (
     <div className="orchestrator-node">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <InlineEditableField
         value={label}
         onSave={handleSaveName}
