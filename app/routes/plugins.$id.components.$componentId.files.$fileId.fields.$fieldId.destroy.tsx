@@ -1,4 +1,4 @@
-import { redirect, data } from "react-router";
+import { data } from "react-router";
 import {
   getComponentFile,
   getOutputSchemaField,
@@ -22,7 +22,5 @@ export async function action({ params }: Route.ActionArgs) {
   }
 
   await deleteOutputSchemaField(params.fieldId);
-  return redirect(
-    `/plugins/${params.id}/components/${params.componentId}/files/${params.fileId}/fields`,
-  );
+  return { success: true };
 }

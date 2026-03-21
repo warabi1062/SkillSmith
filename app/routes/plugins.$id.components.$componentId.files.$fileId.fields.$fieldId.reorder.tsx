@@ -1,4 +1,4 @@
-import { redirect, data } from "react-router";
+import { data } from "react-router";
 import {
   getComponentFile,
   getOutputSchemaField,
@@ -28,7 +28,5 @@ export async function action({ request, params }: Route.ActionArgs) {
     await reorderOutputSchemaField(params.fieldId, direction);
   }
 
-  return redirect(
-    `/plugins/${params.id}/components/${params.componentId}/files/${params.fileId}/fields`,
-  );
+  return { success: true };
 }
