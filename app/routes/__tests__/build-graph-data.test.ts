@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGraphData } from "../plugins.$id";
+import { buildGraphData } from "../../lib/build-graph-data";
 
 // Minimal component fixture factory
 function makeComponent(overrides: {
