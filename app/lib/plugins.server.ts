@@ -635,7 +635,6 @@ export async function reorderOutputSchemaField(
     adjacentField = await prisma.outputSchemaField.findFirst({
       where: {
         componentFileId: field.componentFileId,
-        parentId: null,
         OR: [
           { sortOrder: { lt: field.sortOrder } },
           {
@@ -650,7 +649,6 @@ export async function reorderOutputSchemaField(
     adjacentField = await prisma.outputSchemaField.findFirst({
       where: {
         componentFileId: field.componentFileId,
-        parentId: null,
         OR: [
           { sortOrder: { gt: field.sortOrder } },
           {
