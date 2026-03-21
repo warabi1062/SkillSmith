@@ -186,19 +186,21 @@ export function buildGraphData(
           return desc;
         }
 
-        // Compute the vertical extent below the target node
+        // Compute the vertical extent below the target node.
+        // Also considers the target's own height (e.g. a tall orchestrator).
         function getSubtreeDepth(targetId: string): number {
           const targetPos = positions.get(targetId);
-          if (!targetPos) return getNodeSize(targetId).height;
+          const targetHeight = getNodeSize(targetId).height;
+          if (!targetPos) return targetHeight;
           const descs = getDescendants(targetId);
-          let maxYBottom = targetPos.y + getNodeSize(targetId).height;
+          let maxYBottom = targetPos.y + targetHeight;
           for (const descId of descs) {
             const dPos = positions.get(descId);
             if (dPos) {
               maxYBottom = Math.max(maxYBottom, dPos.y + getNodeSize(descId).height);
             }
           }
-          return maxYBottom - targetPos.y;
+          return Math.max(targetHeight, maxYBottom - targetPos.y);
         }
 
         const oldYs = targetPositions.map((t) => t.pos.y);

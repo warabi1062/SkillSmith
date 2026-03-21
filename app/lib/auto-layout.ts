@@ -174,17 +174,21 @@ export function computeAutoLayout(
       return descendants;
     }
 
-    // Compute the vertical extent below the target node (target + descendants)
+    // Compute the vertical extent below the target node (target + descendants).
+    // Also considers the target node's own height (e.g. a tall orchestrator
+    // whose step targets don't extend beyond its own bottom edge).
     function getSubtreeDepth(targetNode: (typeof updatedComponentNodes)[number]): number {
+      const targetHeight = targetNode.measured?.height ?? DEFAULT_NODE_HEIGHT;
       const descs = getDescendants(targetNode.id);
-      let maxYBottom = targetNode.position.y + (targetNode.measured?.height ?? DEFAULT_NODE_HEIGHT);
+      let maxYBottom = targetNode.position.y + targetHeight;
       for (const descId of descs) {
         const d = nodeMap.get(descId);
         if (d) {
           maxYBottom = Math.max(maxYBottom, d.position.y + (d.measured?.height ?? DEFAULT_NODE_HEIGHT));
         }
       }
-      return maxYBottom - targetNode.position.y;
+      // Ensure at least the target's own height is used
+      return Math.max(targetHeight, maxYBottom - targetNode.position.y);
     }
 
     // Record old Y positions before reordering

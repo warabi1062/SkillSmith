@@ -171,15 +171,30 @@ export default function DependencyGraph({
     setFlowNodes(nodes);
   }, [nodes, resetKey, setFlowNodes, cancelAnimation]);
 
-  // Handle auto-layout: compute layout using flowNodes (which have measured sizes)
+  // Handle auto-layout: wait for React Flow to measure nodes, then compute layout.
+  // We use requestAnimationFrame to defer until after React Flow has measured
+  // the updated nodes (measured property is set after render + layout).
+  const pendingLayoutRef = useRef(false);
   useEffect(() => {
     if (autoLayoutPending) {
-      const layoutedNodes = computeAutoLayout(flowNodesRef.current, edges);
+      pendingLayoutRef.current = true;
+    }
+  }, [autoLayoutPending]);
+
+  useEffect(() => {
+    if (!pendingLayoutRef.current) return;
+    // Check if all nodes have been measured
+    const allMeasured = flowNodes.every(
+      (n) => n.measured?.width != null && n.measured?.height != null,
+    );
+    if (allMeasured && flowNodes.length > 0) {
+      pendingLayoutRef.current = false;
+      const layoutedNodes = computeAutoLayout(flowNodes, edges);
       animateToPositions(layoutedNodes);
       onAutoLayoutApplied?.();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLayoutPending, onAutoLayoutApplied]);
+  }, [flowNodes, onAutoLayoutApplied]);
 
   // Cleanup animation on unmount
   useEffect(() => {
