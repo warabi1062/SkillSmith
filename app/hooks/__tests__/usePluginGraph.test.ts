@@ -43,6 +43,12 @@ const mockLoadGraphPositions = vi.fn().mockReturnValue(null);
 const mockSaveGraphPositions = vi.fn();
 const mockClearGraphPositions = vi.fn();
 
+const mockComputeAutoLayout = vi.fn().mockReturnValue([]);
+
+vi.mock("../../lib/auto-layout", () => ({
+  computeAutoLayout: (...args: unknown[]) => mockComputeAutoLayout(...args),
+}));
+
 vi.mock("../../lib/graph-positions", () => ({
   loadGraphPositions: (...args: unknown[]) => mockLoadGraphPositions(...args),
   saveGraphPositions: (...args: unknown[]) => mockSaveGraphPositions(...args),
@@ -162,6 +168,7 @@ describe("usePluginGraph", () => {
     mockFetcherData.data = undefined;
     mockBuildGraphData.mockReturnValue({ nodes: [], edges: [] });
     mockLoadGraphPositions.mockReturnValue(null);
+    mockComputeAutoLayout.mockReturnValue([]);
   });
 
   describe("initial state", () => {
@@ -921,6 +928,87 @@ describe("usePluginGraph", () => {
         isOpen: false,
         mode: "create",
       });
+    });
+  });
+
+  describe("auto-layout", () => {
+    it("returns autoLayoutPending as false initially", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.autoLayoutPending).toBe(false);
+    });
+
+    it("sets autoLayoutPending to true when fetcher transitions from loading to idle", () => {
+      const comp = createComponent();
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+        ],
+        edges: [],
+      });
+
+      // Start with loading state (simulates all fetchers in loading state)
+      mockFetcherData.state = "loading";
+      const { result, rerender } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      // Transition to idle triggers the auto-layout pending flag
+      mockFetcherData.state = "idle";
+      rerender();
+
+      expect(result.current.autoLayoutPending).toBe(true);
+    });
+
+    it("clears autoLayoutPending when handleAutoLayoutApplied is called", () => {
+      const comp = createComponent();
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+        ],
+        edges: [],
+      });
+
+      // Start with loading state
+      mockFetcherData.state = "loading";
+      const { result, rerender } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      // Transition to idle
+      mockFetcherData.state = "idle";
+      rerender();
+
+      expect(result.current.autoLayoutPending).toBe(true);
+
+      // Apply the layout
+      act(() => {
+        result.current.handleAutoLayoutApplied();
+      });
+
+      expect(result.current.autoLayoutPending).toBe(false);
+    });
+
+    it("handlePositionsPersist saves positions via saveGraphPositions", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      const positions = { "node-1": { x: 50, y: 100 } };
+      act(() => {
+        result.current.handlePositionsPersist(positions);
+      });
+
+      expect(mockSaveGraphPositions).toHaveBeenCalledWith(
+        "plugin-1",
+        positions,
+      );
     });
   });
 });

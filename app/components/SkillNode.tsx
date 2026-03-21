@@ -70,7 +70,7 @@ export default function SkillNode({
 
   return (
     <div className="skill-node">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div className="skill-node-header">
         <span className="skill-node-badge">SKILL</span>
         {skillType && (
@@ -98,7 +98,7 @@ export default function SkillNode({
         onEditStart={handleEditStart}
         onEditEnd={handleEditEnd}
       />
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 }

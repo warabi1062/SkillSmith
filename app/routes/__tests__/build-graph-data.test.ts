@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGraphData } from "../../lib/build-graph-data";
+import { buildGraphData, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from "../../lib/build-graph-data";
 
 // Minimal component fixture factory
 function makeComponent(overrides: {
@@ -381,5 +381,119 @@ describe("buildGraphData", () => {
     const orchNode = nodes.find((n) => n.id === "orch-1");
 
     expect(orchNode!.data.description).toBe("Orchestrator desc");
+  });
+
+  describe("dagre layout", () => {
+    it("nodeSizes引数を渡した場合にレイアウトが計算されること", () => {
+      const components = [
+        makeComponent({
+          id: "orch-1",
+          type: "SKILL",
+          skillConfig: { skillType: "ENTRY_POINT", name: "dev" },
+          dependenciesFrom: [
+            { id: "dep-1", targetId: "worker-1", order: 0 },
+          ],
+        }),
+        makeComponent({
+          id: "worker-1",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "implement" },
+        }),
+      ];
+
+      const nodeSizes = new Map<string, { width: number; height: number }>();
+      nodeSizes.set("orch-1", { width: 300, height: 120 });
+      nodeSizes.set("worker-1", { width: 200, height: 80 });
+
+      const { nodes } = buildGraphData(components, [], nodeSizes);
+      const orchNode = nodes.find((n) => n.id === "orch-1");
+      const workerNode = nodes.find((n) => n.id === "worker-1");
+
+      // Both nodes should have positions (dagre calculates them)
+      expect(orchNode!.position).toBeDefined();
+      expect(workerNode!.position).toBeDefined();
+      // Orchestrator (source) should be above worker (target) in TB layout
+      expect(orchNode!.position.y).toBeLessThan(workerNode!.position.y);
+    });
+
+    it("nodeSizes未指定時にデフォルトサイズでフォールバックすること", () => {
+      const components = [
+        makeComponent({
+          id: "node-1",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "w1" },
+        }),
+        makeComponent({
+          id: "node-2",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "w2" },
+        }),
+      ];
+
+      // No nodeSizes - should use defaults and not throw
+      const { nodes } = buildGraphData(components);
+      expect(nodes).toHaveLength(2);
+      expect(nodes[0].position).toBeDefined();
+      expect(nodes[1].position).toBeDefined();
+      // Verify default constants are exported
+      expect(DEFAULT_NODE_WIDTH).toBe(250);
+      expect(DEFAULT_NODE_HEIGHT).toBe(60);
+    });
+
+    it("エッジで接続されたノードのソースがターゲットより上に配置されること", () => {
+      const components = [
+        makeComponent({
+          id: "source",
+          type: "SKILL",
+          skillConfig: { skillType: "ENTRY_POINT", name: "dev" },
+          dependenciesFrom: [
+            { id: "dep-1", targetId: "target", order: 0 },
+          ],
+        }),
+        makeComponent({
+          id: "target",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "worker" },
+        }),
+      ];
+
+      const { nodes } = buildGraphData(components);
+      const sourceNode = nodes.find((n) => n.id === "source")!;
+      const targetNode = nodes.find((n) => n.id === "target")!;
+
+      // In LR layout, source should be to the left of target (lower x value)
+      expect(sourceNode.position.x).toBeLessThan(targetNode.position.x);
+    });
+
+    it("サイクルがある場合にグリッドフォールバックが維持されること", () => {
+      // Create a cycle: A -> B -> C -> A
+      const components = [
+        makeComponent({
+          id: "a",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "A" },
+          dependenciesFrom: [{ id: "dep-1", targetId: "b", order: 0 }],
+        }),
+        makeComponent({
+          id: "b",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "B" },
+          dependenciesFrom: [{ id: "dep-2", targetId: "c", order: 0 }],
+        }),
+        makeComponent({
+          id: "c",
+          type: "SKILL",
+          skillConfig: { skillType: "WORKER", name: "C" },
+          dependenciesFrom: [{ id: "dep-3", targetId: "a", order: 0 }],
+        }),
+      ];
+
+      const { nodes } = buildGraphData(components);
+      // Grid layout: 3 nodes -> ceil(sqrt(3)) = 2 cols
+      // Node positions should be grid-based (multiples of HORIZONTAL_SPACING / VERTICAL_SPACING)
+      expect(nodes).toHaveLength(3);
+      // First node should be at (0, 0)
+      expect(nodes[0].position).toEqual({ x: 0, y: 0 });
+    });
   });
 });

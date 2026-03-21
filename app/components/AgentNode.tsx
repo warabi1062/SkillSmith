@@ -70,7 +70,7 @@ export default function AgentNode({
 
   return (
     <div className="agent-node">
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Left} />
       <div className="agent-node-header">
         <span className="agent-node-badge">AGENT</span>
       </div>
@@ -95,7 +95,7 @@ export default function AgentNode({
         onEditStart={handleEditStart}
         onEditEnd={handleEditEnd}
       />
-      <Handle type="source" position={Position.Bottom} />
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 }

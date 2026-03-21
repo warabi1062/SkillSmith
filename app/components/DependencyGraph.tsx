@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   useNodesState,
   type Node,
   type Edge,
   type Connection,
+  type NodeChange,
   Background,
   Controls,
   Panel,
@@ -14,6 +15,7 @@ import OrchestratorNode from "./OrchestratorNode";
 import SkillNode from "./SkillNode";
 import AgentNode from "./AgentNode";
 import AgentTeamNode from "./AgentTeamNode";
+import { computeAutoLayout } from "../lib/auto-layout";
 
 const nodeTypes = {
   orchestrator: OrchestratorNode,
@@ -47,6 +49,9 @@ interface DependencyGraphProps {
   onManageMembers?: (teamId: string) => void;
   onNodeDragStop?: (positions: Record<string, { x: number; y: number }>) => void;
   onResetLayout?: () => void;
+  onPositionsPersist?: (positions: Record<string, { x: number; y: number }>) => void;
+  autoLayoutPending?: boolean;
+  onAutoLayoutApplied?: () => void;
   resetKey?: number;
 }
 
@@ -74,14 +79,143 @@ export default function DependencyGraph({
   onManageMembers,
   onNodeDragStop,
   onResetLayout,
+  onPositionsPersist,
+  autoLayoutPending,
+  onAutoLayoutApplied,
   resetKey,
 }: DependencyGraphProps) {
   const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
 
+  // Keep a ref to the latest flowNodes for synchronous reads (e.g. animation start)
+  const flowNodesRef = useRef(flowNodes);
+  useEffect(() => {
+    flowNodesRef.current = flowNodes;
+  }, [flowNodes]);
+
+  // Animation ref for auto-layout
+  const animationRef = useRef<number | null>(null);
+
+  // Cancel any running animation
+  const cancelAnimation = useCallback(() => {
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+  }, []);
+
+  // Persist positions after auto-layout animation completes
+  const persistPositionsAfterAutoLayout = useCallback(
+    (targetNodes: Node[]) => {
+      const positions: Record<string, { x: number; y: number }> = {};
+      for (const node of targetNodes) {
+        positions[node.id] = { x: node.position.x, y: node.position.y };
+      }
+      onPositionsPersist?.(positions);
+    },
+    [onPositionsPersist],
+  );
+
+  // Animate nodes from current positions to target positions
+  function animateToPositions(targetNodes: Node[], duration = 300) {
+    cancelAnimation();
+
+    // Read start positions synchronously from the ref (avoids React batching issues)
+    const startPositions: Record<string, { x: number; y: number }> = {};
+    for (const node of flowNodesRef.current) {
+      startPositions[node.id] = { x: node.position.x, y: node.position.y };
+    }
+
+    // Build a Map for O(1) lookup instead of Array.find per frame
+    const targetMap = new Map<string, Node>();
+    for (const node of targetNodes) {
+      targetMap.set(node.id, node);
+    }
+
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - (1 - progress) ** 3;
+
+      setFlowNodes((currentNodes) =>
+        currentNodes.map((node) => {
+          const start = startPositions[node.id];
+          const target = targetMap.get(node.id);
+          if (!start || !target) return node;
+          return {
+            ...node,
+            position: {
+              x: start.x + (target.position.x - start.x) * eased,
+              y: start.y + (target.position.y - start.y) * eased,
+            },
+          };
+        }),
+      );
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      } else {
+        animationRef.current = null;
+        persistPositionsAfterAutoLayout(targetNodes);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+  }
+
   // Sync internal node state when props change or layout is reset
   useEffect(() => {
+    cancelAnimation();
     setFlowNodes(nodes);
-  }, [nodes, resetKey, setFlowNodes]);
+  }, [nodes, resetKey, setFlowNodes, cancelAnimation]);
+
+  // Handle auto-layout: wait for React Flow to measure nodes, then compute layout.
+  // We use requestAnimationFrame to defer until after React Flow has measured
+  // the updated nodes (measured property is set after render + layout).
+  const pendingLayoutRef = useRef(false);
+  useEffect(() => {
+    if (autoLayoutPending) {
+      pendingLayoutRef.current = true;
+    }
+  }, [autoLayoutPending]);
+
+  useEffect(() => {
+    if (!pendingLayoutRef.current) return;
+    // Check if all nodes have been measured
+    const allMeasured = flowNodes.every(
+      (n) => n.measured?.width != null && n.measured?.height != null,
+    );
+    if (allMeasured && flowNodes.length > 0) {
+      pendingLayoutRef.current = false;
+      const layoutedNodes = computeAutoLayout(flowNodes, edges);
+      animateToPositions(layoutedNodes);
+      onAutoLayoutApplied?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowNodes, onAutoLayoutApplied]);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      cancelAnimation();
+    };
+  }, [cancelAnimation]);
+
+  // Wrap onNodesChange to cancel animation on drag
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      const hasDrag = changes.some(
+        (change) => change.type === "position" && change.dragging,
+      );
+      if (hasDrag) {
+        cancelAnimation();
+      }
+      onNodesChange(changes);
+    },
+    [onNodesChange, cancelAnimation],
+  );
 
   const handleNodeDragStop = useCallback(
     (_event: React.MouseEvent, _node: Node, currentNodes: Node[]) => {
@@ -251,7 +385,7 @@ export default function DependencyGraph({
         nodes={flowNodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodesChange}
         onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onEdgeClick={handleEdgeClick}

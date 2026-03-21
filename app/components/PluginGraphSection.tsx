@@ -69,6 +69,9 @@ export default function PluginGraphSection({
     handleAgentTeamModalClose,
     handleNodeDragStop,
     handleResetLayout,
+    autoLayoutPending,
+    handleAutoLayoutApplied,
+    handlePositionsPersist,
   } = usePluginGraph({
     plugin,
     modalState,
@@ -120,6 +123,9 @@ export default function PluginGraphSection({
             onManageMembers={handleManageMembers}
             onNodeDragStop={handleNodeDragStop}
             onResetLayout={handleResetLayout}
+            onPositionsPersist={handlePositionsPersist}
+            autoLayoutPending={autoLayoutPending}
+            onAutoLayoutApplied={handleAutoLayoutApplied}
             resetKey={resetCounter}
           />
         </Suspense>
