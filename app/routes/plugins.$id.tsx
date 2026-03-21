@@ -685,15 +685,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="component-list">
-        <div className="component-list-header">
-          <h3>Skills ({skills.length})</h3>
-          <Link
-            to={`/plugins/${plugin.id}/components/new`}
-            className="btn btn-primary btn-sm"
-          >
-            New Component
-          </Link>
-        </div>
+        <h3>Skills ({skills.length})</h3>
         {skills.length === 0 ? (
           <p className="card-description">No skills yet.</p>
         ) : (
@@ -745,15 +737,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="component-list">
-        <div className="component-list-header">
-          <h3>Agent Teams ({plugin.agentTeams.length})</h3>
-          <Link
-            to={`/plugins/${plugin.id}/agent-teams/new`}
-            className="btn btn-primary btn-sm"
-          >
-            New Agent Team
-          </Link>
-        </div>
+        <h3>Agent Teams ({plugin.agentTeams.length})</h3>
         {plugin.agentTeams.length === 0 ? (
           <p className="card-description">No agent teams yet.</p>
         ) : (
