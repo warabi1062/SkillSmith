@@ -137,7 +137,7 @@ export async function createComponent(
             agentConfig: {
               create: {
                 name: data.name.trim(),
-                description: data.description!.trim(),
+                description: data.description?.trim() ?? "",
               },
             },
           }),
@@ -175,7 +175,7 @@ export async function updateComponent(
             agentConfig: {
               update: {
                 name: data.name.trim(),
-                description: data.description!.trim(),
+                description: data.description?.trim() ?? "",
               },
             },
           }),
