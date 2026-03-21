@@ -9,6 +9,7 @@ import {
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { generatePlugin } from "./generator/index";
+import { isWithinDirectory } from "./path-validation.server";
 
 export interface ExportOptions {
   targetDir: string;
@@ -50,7 +51,16 @@ export async function exportPlugin(
   try {
     // Phase 1: Write all files to the temporary directory
     for (const file of plugin.files) {
-      const targetFilePath = path.join(resolvedTargetDir, file.path);
+      const targetFilePath = path.resolve(resolvedTargetDir, file.path);
+
+      // Path traversal check
+      if (!isWithinDirectory(targetFilePath, resolvedTargetDir)) {
+        result.errors.push(
+          `${file.path}: Path traversal detected - file path escapes target directory`,
+        );
+        continue;
+      }
+
       const tempFilePath = path.join(tempDir, file.path);
       const tempFileDir = path.dirname(tempFilePath);
 

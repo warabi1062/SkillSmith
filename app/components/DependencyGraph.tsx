@@ -45,7 +45,9 @@ export default function DependencyGraph({
         if (targetComp.skillConfig?.skillType !== "WORKER") return false;
       }
 
-      // Circular dependency check: verify target cannot reach source via existing edges
+      // Optimistic validation (UX only): prevents obviously invalid connections
+      // in the UI. The server performs the authoritative check within a transaction
+      // to prevent race conditions. See dependency.server.ts.
       const adjacency = new Map<string, string[]>();
       for (const edge of edges) {
         const neighbors = adjacency.get(edge.source);
