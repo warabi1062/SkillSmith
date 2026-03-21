@@ -8,6 +8,7 @@ interface Step {
 
 interface OrchestratorNodeData {
   label: string;
+  description?: string | null;
   steps: Step[];
   onReorderStep?: (dependencyId: string, direction: "up" | "down") => void;
   onDeleteStep?: (dependencyIds: string[]) => void;
@@ -19,6 +20,7 @@ export default function OrchestratorNode({
 }: NodeProps & { data: OrchestratorNodeData }) {
   const {
     label,
+    description,
     steps = [],
     onReorderStep,
     onDeleteStep,
@@ -28,6 +30,13 @@ export default function OrchestratorNode({
     <div className="orchestrator-node">
       <Handle type="target" position={Position.Top} />
       <div className="orchestrator-node-title">{label}</div>
+      {description ? (
+        <div className="orchestrator-node-description">{description}</div>
+      ) : (
+        <div className="orchestrator-node-description orchestrator-node-description-empty">
+          (no description)
+        </div>
+      )}
       {steps.length > 0 && (
         <div className="orchestrator-node-steps">
           {steps.map((step, index) => (
