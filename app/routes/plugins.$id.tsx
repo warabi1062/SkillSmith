@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useCallback, useMemo } from "react";
 import { Link, Form, data, useFetcher } from "react-router";
 import {
   getPlugin,
@@ -24,6 +24,11 @@ import type { Route } from "./+types/plugins.$id";
 import type { Node, Edge } from "@xyflow/react";
 import type { GenerationValidationError } from "../lib/generator/types";
 import type { ExportResult } from "../lib/exporter.server";
+import {
+  loadGraphPositions,
+  saveGraphPositions,
+  clearGraphPositions,
+} from "../lib/graph-positions";
 
 const DependencyGraph = React.lazy(
   () => import("../components/DependencyGraph"),
@@ -612,20 +617,25 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const exportResult = exportFetcher.data;
   const isExporting = exportFetcher.state !== "idle";
 
-  const agentTeamsForGraph: AgentTeamGraphData[] = plugin.agentTeams.map(
-    (team) => ({
-      id: team.id,
-      name: team.name,
-      description: team.description,
-      orchestratorName:
-        team.orchestrator.skillConfig?.name ?? "(unnamed)",
-    }),
+  const agentTeamsForGraph: AgentTeamGraphData[] = useMemo(
+    () =>
+      plugin.agentTeams.map((team) => ({
+        id: team.id,
+        name: team.name,
+        description: team.description,
+        orchestratorName:
+          team.orchestrator.skillConfig?.name ?? "(unnamed)",
+      })),
+    [plugin.agentTeams],
   );
 
-  const rawGraphData =
-    plugin.components.length > 0 || plugin.agentTeams.length > 0
-      ? buildGraphData(plugin.components, agentTeamsForGraph)
-      : { nodes: [], edges: [] };
+  const rawGraphData = useMemo(
+    () =>
+      plugin.components.length > 0 || plugin.agentTeams.length > 0
+        ? buildGraphData(plugin.components, agentTeamsForGraph)
+        : { nodes: [], edges: [] },
+    [plugin.components, agentTeamsForGraph],
+  );
 
   const handleReorderStep = useCallback(
     (dependencyId: string, direction: "up" | "down") => {
@@ -659,22 +669,55 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   );
 
   // Inject callbacks into orchestrator nodes
-  const graphData = {
-    ...rawGraphData,
-    nodes: rawGraphData.nodes.map((node) => {
-      if (node.type === "orchestrator") {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            onReorderStep: handleReorderStep,
-            onDeleteStep: handleDeleteStep,
-          },
-        };
-      }
-      return node;
+  const graphData = useMemo(
+    () => ({
+      ...rawGraphData,
+      nodes: rawGraphData.nodes.map((node) => {
+        if (node.type === "orchestrator") {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              onReorderStep: handleReorderStep,
+              onDeleteStep: handleDeleteStep,
+            },
+          };
+        }
+        return node;
+      }),
     }),
-  };
+    [rawGraphData, handleReorderStep, handleDeleteStep],
+  );
+
+  // Merge saved positions from localStorage
+  const graphDataWithPositions = useMemo(() => {
+    const savedPositions = loadGraphPositions(plugin.id);
+    if (!savedPositions) return graphData;
+    return {
+      ...graphData,
+      nodes: graphData.nodes.map((node) => {
+        const saved = savedPositions[node.id];
+        if (saved) {
+          return { ...node, position: saved };
+        }
+        return node;
+      }),
+    };
+  }, [graphData, plugin.id]);
+
+  const [resetCounter, setResetCounter] = useState(0);
+
+  const handleNodeDragStop = useCallback(
+    (positions: Record<string, { x: number; y: number }>) => {
+      saveGraphPositions(plugin.id, positions);
+    },
+    [plugin.id],
+  );
+
+  const handleResetLayout = useCallback(() => {
+    clearGraphPositions(plugin.id);
+    setResetCounter((c) => c + 1);
+  }, [plugin.id]);
 
   const handleConnect = useCallback(
     (sourceId: string, targetId: string, sourceHandle?: string) => {
@@ -995,8 +1038,8 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           )}
           <Suspense fallback={<div>Loading graph...</div>}>
             <DependencyGraph
-              nodes={graphData.nodes}
-              edges={graphData.edges}
+              nodes={graphDataWithPositions.nodes}
+              edges={graphDataWithPositions.edges}
               pluginId={plugin.id}
               components={graphComponents}
               agentTeams={agentTeamsForGraph}
@@ -1010,6 +1053,9 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               onCreateAgentTeam={handleCreateAgentTeam}
               onDeleteAgentTeam={handleDeleteAgentTeam}
               onManageMembers={handleManageMembers}
+              onNodeDragStop={handleNodeDragStop}
+              onResetLayout={handleResetLayout}
+              resetKey={resetCounter}
             />
           </Suspense>
         </div>
