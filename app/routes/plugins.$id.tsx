@@ -1,7 +1,8 @@
 import React, { Suspense, useState, useEffect, useCallback, useMemo } from "react";
-import { Link, Form, data, useFetcher } from "react-router";
+import { Link, Form, data, redirect, useFetcher } from "react-router";
 import {
   getPlugin,
+  deletePlugin,
   getComponent,
   createComponent,
   updateComponent,
@@ -12,6 +13,10 @@ import {
   deleteAgentTeam,
   addAgentTeamMember,
   removeAgentTeamMember,
+  getDependency,
+  createDependency,
+  deleteDependency,
+  reorderDependency,
   deleteDependenciesBatch,
   verifyDependenciesOwnership,
   createComponentFile,
@@ -24,6 +29,10 @@ import {
   deleteOutputSchemaField,
   reorderOutputSchemaField,
 } from "../lib/plugins.server";
+import {
+  generatePlugin,
+  validateGeneratedPlugin,
+} from "../lib/generator/index";
 import {
   validateComponentData,
   validateAgentTeamData,
@@ -608,6 +617,100 @@ export async function action({ request, params }: Route.ActionArgs) {
     return { success: true };
   }
 
+  // --- Dependency intents ---
+
+  if (intent === "add-dependency") {
+    const sourceId = String(formData.get("sourceId") ?? "");
+    const targetId = String(formData.get("targetId") ?? "");
+    const orderStr = formData.get("order");
+    const order =
+      orderStr !== null && String(orderStr).trim() !== ""
+        ? Number(orderStr)
+        : undefined;
+
+    try {
+      await createDependency({ sourceId, targetId, order });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          { errors: { dependency: error.message } },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "remove-dependency") {
+    const dependencyId = String(formData.get("dependencyId") ?? "");
+    const dependency = await getDependency(dependencyId);
+    if (!dependency || dependency.source.pluginId !== params.id) {
+      throw data("Dependency not found", { status: 404 });
+    }
+
+    await deleteDependency(dependencyId);
+    return { success: true };
+  }
+
+  if (intent === "reorder-dependency") {
+    const dependencyId = String(formData.get("dependencyId") ?? "");
+    const dependency = await getDependency(dependencyId);
+    if (!dependency || dependency.source.pluginId !== params.id) {
+      throw data("Dependency not found", { status: 404 });
+    }
+
+    const direction = String(formData.get("direction") ?? "");
+
+    if (direction !== "up" && direction !== "down") {
+      throw data("direction must be 'up' or 'down'", { status: 400 });
+    }
+
+    await reorderDependency(dependencyId, direction);
+    return { success: true };
+  }
+
+  // --- Plugin-level intents ---
+
+  if (intent === "delete-plugin") {
+    await deletePlugin(params.id);
+    return redirect("/plugins");
+  }
+
+  if (intent === "generate-plugin") {
+    const result = await generatePlugin(params.id);
+
+    if (!result) {
+      throw data("Plugin not found", { status: 404 });
+    }
+
+    const { plugin: generatedPlugin, components } = result;
+
+    // Run post-generation validation with component data for dependency checks
+    const postValidationErrors = validateGeneratedPlugin(
+      generatedPlugin,
+      components,
+    );
+    generatedPlugin.validationErrors.push(...postValidationErrors);
+
+    // Check for fatal errors
+    const hasErrors = generatedPlugin.validationErrors.some(
+      (e) => e.severity === "error",
+    );
+
+    // Return generation result as JSON for preview
+    return data({
+      success: !hasErrors,
+      pluginName: generatedPlugin.pluginName,
+      files: generatedPlugin.files.map((f) => ({
+        path: f.path,
+        content: f.content,
+      })),
+      validationErrors: generatedPlugin.validationErrors,
+      fileCount: generatedPlugin.files.length,
+    });
+  }
+
   throw data("Unknown intent", { status: 400 });
 }
 
@@ -891,14 +994,11 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const handleReorderStep = useCallback(
     (dependencyId: string, direction: "up" | "down") => {
       reorderDependencyFetcher.submit(
-        { direction },
-        {
-          method: "post",
-          action: `/plugins/${plugin.id}/dependencies/${dependencyId}/reorder`,
-        },
+        { intent: "reorder-dependency", dependencyId, direction },
+        { method: "post" },
       );
     },
-    [reorderDependencyFetcher, plugin.id],
+    [reorderDependencyFetcher],
   );
 
   const handleDeleteStep = useCallback(
@@ -973,28 +1073,29 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const handleConnect = useCallback(
     (sourceId: string, targetId: string, sourceHandle?: string) => {
       setDeleteError(null);
-      const formData: Record<string, string> = { sourceId, targetId };
+      const formData: Record<string, string> = {
+        intent: "add-dependency",
+        sourceId,
+        targetId,
+      };
       if (sourceHandle) {
         const order = sourceHandle.replace("step-", "");
         formData.order = order;
       }
-      addDependencyFetcher.submit(formData, {
-        method: "post",
-        action: `/plugins/${plugin.id}/dependencies/new`,
-      });
+      addDependencyFetcher.submit(formData, { method: "post" });
     },
-    [addDependencyFetcher, plugin.id],
+    [addDependencyFetcher],
   );
 
   const handleEdgeClick = useCallback(
     (dependencyId: string) => {
       setDeleteError(null);
-      removeDependencyFetcher.submit(null, {
-        method: "post",
-        action: `/plugins/${plugin.id}/dependencies/${dependencyId}/destroy`,
-      });
+      removeDependencyFetcher.submit(
+        { intent: "remove-dependency", dependencyId },
+        { method: "post" },
+      );
     },
-    [removeDependencyFetcher, plugin.id],
+    [removeDependencyFetcher],
   );
 
   const handleNodeDoubleClick = useCallback(
@@ -1150,10 +1251,8 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           )}
         </div>
         <div className="detail-actions">
-          <generateFetcher.Form
-            method="post"
-            action={`/plugins/${plugin.id}/generate`}
-          >
+          <generateFetcher.Form method="post">
+            <input type="hidden" name="intent" value="generate-plugin" />
             <button
               type="submit"
               className="btn btn-primary"
@@ -1167,7 +1266,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           </Link>
           <Form
             method="post"
-            action={`/plugins/${plugin.id}/destroy`}
             onSubmit={(event) => {
               const confirmed = window.confirm(
                 `Plugin "${plugin.name}" and all its components will be deleted. Are you sure?`,
@@ -1177,6 +1275,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               }
             }}
           >
+            <input type="hidden" name="intent" value="delete-plugin" />
             <button type="submit" className="btn btn-danger">
               Delete
             </button>
