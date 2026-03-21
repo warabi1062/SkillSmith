@@ -6,8 +6,16 @@ import {
   createComponent,
   updateComponent,
   deleteComponent,
+  getAgentTeam,
+  createAgentTeam,
+  updateAgentTeam,
+  deleteAgentTeam,
 } from "../lib/plugins.server";
-import { validateComponentData, ValidationError } from "../lib/validations";
+import {
+  validateComponentData,
+  validateAgentTeamData,
+  ValidationError,
+} from "../lib/validations";
 import type { Route } from "./+types/plugins.$id";
 import type { Node, Edge } from "@xyflow/react";
 import type { GenerationValidationError } from "../lib/generator/types";
@@ -143,6 +151,106 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
       throw error;
     }
+  }
+
+  if (intent === "create-agent-team") {
+    const name = String(formData.get("name") ?? "");
+    const description = String(formData.get("description") ?? "");
+    const orchestratorId = String(formData.get("orchestratorId") ?? "");
+
+    try {
+      if (!orchestratorId) {
+        throw new ValidationError({
+          field: "orchestratorId",
+          code: "ORCHESTRATOR_REQUIRED",
+          message: "Orchestrator is required",
+        });
+      }
+
+      validateAgentTeamData({
+        name,
+        description: description || undefined,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description, orchestratorId },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+
+    try {
+      const team = await createAgentTeam(params.id, {
+        orchestratorId,
+        name,
+        description: description || undefined,
+      });
+
+      return { success: true, teamId: team.id };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description, orchestratorId },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "update-agent-team") {
+    const teamId = String(formData.get("teamId") ?? "");
+    const team = await getAgentTeam(teamId);
+    if (!team || team.pluginId !== params.id) {
+      throw data("Agent Team not found", { status: 404 });
+    }
+
+    const name = String(formData.get("name") ?? "");
+    const description = String(formData.get("description") ?? "");
+
+    try {
+      validateAgentTeamData({
+        name,
+        description: description || undefined,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { name, description },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+
+    await updateAgentTeam(teamId, {
+      name,
+      description: description || undefined,
+    });
+
+    return { success: true, teamId };
+  }
+
+  if (intent === "delete-agent-team") {
+    const teamId = String(formData.get("teamId") ?? "");
+    const team = await getAgentTeam(teamId);
+    if (!team || team.pluginId !== params.id) {
+      throw data("Agent Team not found", { status: 404 });
+    }
+
+    await deleteAgentTeam(teamId);
+    return { success: true };
   }
 
   throw data("Unknown intent", { status: 400 });
