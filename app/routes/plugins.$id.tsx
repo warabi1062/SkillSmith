@@ -14,6 +14,15 @@ import {
   removeAgentTeamMember,
   deleteDependenciesBatch,
   verifyDependenciesOwnership,
+  createComponentFile,
+  getComponentFile,
+  updateComponentFile,
+  deleteComponentFile,
+  createOutputSchemaField,
+  getOutputSchemaField,
+  updateOutputSchemaField,
+  deleteOutputSchemaField,
+  reorderOutputSchemaField,
 } from "../lib/plugins.server";
 import {
   validateComponentData,
@@ -355,6 +364,248 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
     await deleteDependenciesBatch(ids);
     return { ok: true };
+  }
+
+  // --- File intents ---
+
+  if (intent === "create-file") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+
+    const role = String(formData.get("role") ?? "");
+    const filename = String(formData.get("filename") ?? "");
+    const content = String(formData.get("content") ?? "");
+
+    try {
+      await createComponentFile(componentId, { role, filename, content });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { role, filename, content },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "update-file") {
+    const fileId = String(formData.get("fileId") ?? "");
+    const file = await getComponentFile(fileId);
+    if (!file) {
+      throw data("File not found", { status: 404 });
+    }
+    const fileComponent = await getComponent(file.componentId);
+    if (!fileComponent || fileComponent.pluginId !== params.id) {
+      throw data("File not found", { status: 404 });
+    }
+
+    const filename = String(formData.get("filename") ?? "");
+    const content = String(formData.get("content") ?? "");
+
+    try {
+      await updateComponentFile(fileId, { filename, content });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: { filename, content },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "delete-file") {
+    const fileId = String(formData.get("fileId") ?? "");
+    const file = await getComponentFile(fileId);
+    if (!file) {
+      throw data("File not found", { status: 404 });
+    }
+    const fileComponent = await getComponent(file.componentId);
+    if (!fileComponent || fileComponent.pluginId !== params.id) {
+      throw data("File not found", { status: 404 });
+    }
+
+    await deleteComponentFile(fileId);
+    return { success: true };
+  }
+
+  // --- Field intents ---
+
+  if (intent === "create-field") {
+    const fileId = String(formData.get("fileId") ?? "");
+    const file = await getComponentFile(fileId);
+    if (!file) {
+      throw data("File not found", { status: 404 });
+    }
+    const fieldComponent = await getComponent(file.componentId);
+    if (!fieldComponent || fieldComponent.pluginId !== params.id) {
+      throw data("File not found", { status: 404 });
+    }
+    if (file.role !== "OUTPUT_SCHEMA") {
+      throw data("Fields are only available for OUTPUT_SCHEMA files", {
+        status: 404,
+      });
+    }
+
+    const name = String(formData.get("name") ?? "");
+    const fieldType = String(formData.get("fieldType") ?? "");
+    const required = formData.get("required") === "on";
+    const description = String(formData.get("description") ?? "");
+    const enumValues = String(formData.get("enumValues") ?? "");
+    const placeholder = String(formData.get("placeholder") ?? "");
+
+    try {
+      await createOutputSchemaField(fileId, {
+        name,
+        fieldType,
+        required,
+        description: description || undefined,
+        enumValues: enumValues || undefined,
+        placeholder: placeholder || undefined,
+      });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: {
+              name,
+              fieldType,
+              required,
+              description,
+              enumValues,
+              placeholder,
+            },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "update-field") {
+    const fieldId = String(formData.get("fieldId") ?? "");
+    const field = await getOutputSchemaField(fieldId);
+    if (!field) {
+      throw data("Field not found", { status: 404 });
+    }
+    const fieldFile = await getComponentFile(field.componentFileId);
+    if (!fieldFile) {
+      throw data("File not found", { status: 404 });
+    }
+    const fieldComponent = await getComponent(fieldFile.componentId);
+    if (!fieldComponent || fieldComponent.pluginId !== params.id) {
+      throw data("Field not found", { status: 404 });
+    }
+    if (fieldFile.role !== "OUTPUT_SCHEMA") {
+      throw data("Fields are only available for OUTPUT_SCHEMA files", {
+        status: 404,
+      });
+    }
+
+    const name = String(formData.get("name") ?? "");
+    const fieldType = String(formData.get("fieldType") ?? "");
+    const required = formData.get("required") === "on";
+    const description = String(formData.get("description") ?? "");
+    const enumValues = String(formData.get("enumValues") ?? "");
+    const placeholder = String(formData.get("placeholder") ?? "");
+
+    try {
+      await updateOutputSchemaField(fieldId, {
+        name,
+        fieldType,
+        required,
+        description: description || undefined,
+        enumValues: fieldType !== "ENUM" ? null : enumValues || undefined,
+        placeholder: placeholder || undefined,
+      });
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data(
+          {
+            errors: { [error.field]: error.message },
+            values: {
+              name,
+              fieldType,
+              required,
+              description,
+              enumValues,
+              placeholder,
+            },
+          },
+          { status: 400 },
+        );
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "delete-field") {
+    const fieldId = String(formData.get("fieldId") ?? "");
+    const field = await getOutputSchemaField(fieldId);
+    if (!field) {
+      throw data("Field not found", { status: 404 });
+    }
+    const fieldFile = await getComponentFile(field.componentFileId);
+    if (!fieldFile) {
+      throw data("File not found", { status: 404 });
+    }
+    const fieldComponent = await getComponent(fieldFile.componentId);
+    if (!fieldComponent || fieldComponent.pluginId !== params.id) {
+      throw data("Field not found", { status: 404 });
+    }
+    if (fieldFile.role !== "OUTPUT_SCHEMA") {
+      throw data("Fields are only available for OUTPUT_SCHEMA files", {
+        status: 404,
+      });
+    }
+
+    await deleteOutputSchemaField(fieldId);
+    return { success: true };
+  }
+
+  if (intent === "reorder-field") {
+    const fieldId = String(formData.get("fieldId") ?? "");
+    const field = await getOutputSchemaField(fieldId);
+    if (!field) {
+      throw data("Field not found", { status: 404 });
+    }
+    const fieldFile = await getComponentFile(field.componentFileId);
+    if (!fieldFile) {
+      throw data("File not found", { status: 404 });
+    }
+    const fieldComponent = await getComponent(fieldFile.componentId);
+    if (!fieldComponent || fieldComponent.pluginId !== params.id) {
+      throw data("Field not found", { status: 404 });
+    }
+    if (fieldFile.role !== "OUTPUT_SCHEMA") {
+      throw data("Fields are only available for OUTPUT_SCHEMA files", {
+        status: 404,
+      });
+    }
+
+    const direction = String(formData.get("direction") ?? "");
+    if (direction === "up" || direction === "down") {
+      await reorderOutputSchemaField(fieldId, direction);
+    }
+
+    return { success: true };
   }
 
   throw data("Unknown intent", { status: 400 });
@@ -1080,7 +1331,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           <FilesManagementModal
             isOpen={filesModalState.isOpen}
             onClose={handleFilesModalClose}
-            pluginId={plugin.id}
             componentId={filesModalState.componentId}
             componentName={(() => {
               const comp = plugin.components.find(
