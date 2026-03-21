@@ -30,6 +30,9 @@ const ComponentFormModal = React.lazy(
 const AgentTeamFormModal = React.lazy(
   () => import("../components/AgentTeamFormModal"),
 );
+const FilesManagementModal = React.lazy(
+  () => import("../components/FilesManagementModal"),
+);
 
 interface ModalState {
   isOpen: boolean;
@@ -42,6 +45,11 @@ interface AgentTeamModalState {
   isOpen: boolean;
   mode: "create" | "edit";
   teamId?: string;
+}
+
+interface FilesModalState {
+  isOpen: boolean;
+  componentId?: string;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -467,6 +475,9 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
       isOpen: false,
       mode: "create",
     });
+  const [filesModalState, setFilesModalState] = useState<FilesModalState>({
+    isOpen: false,
+  });
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Watch deleteFetcher for error messages
@@ -558,6 +569,18 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
     },
     [deleteFetcher, plugin.id],
   );
+
+  const handleManageFiles = useCallback(
+    (componentId: string) => {
+      setDeleteError(null);
+      setFilesModalState({ isOpen: true, componentId });
+    },
+    [],
+  );
+
+  const handleFilesModalClose = useCallback(() => {
+    setFilesModalState({ isOpen: false });
+  }, []);
 
   const handleModalClose = useCallback(() => {
     setModalState({ isOpen: false, mode: "create" });
@@ -690,10 +713,11 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           <p className="card-description">No skills yet.</p>
         ) : (
           skills.map((component) => (
-            <Link
+            <div
               key={component.id}
-              to={`/plugins/${plugin.id}/components/${component.id}`}
               className="component-item component-item-link"
+              style={{ cursor: "pointer" }}
+              onClick={() => handleNodeDoubleClick(component.id)}
             >
               <div>
                 <span className="component-item-name">
@@ -709,7 +733,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
                 )}
               </div>
               <span className="badge badge-skill">SKILL</span>
-            </Link>
+            </div>
           ))
         )}
       </div>
@@ -720,10 +744,11 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           <p className="card-description">No agents yet.</p>
         ) : (
           agents.map((component) => (
-            <Link
+            <div
               key={component.id}
-              to={`/plugins/${plugin.id}/components/${component.id}`}
               className="component-item component-item-link"
+              style={{ cursor: "pointer" }}
+              onClick={() => handleNodeDoubleClick(component.id)}
             >
               <div>
                 <span className="component-item-name">
@@ -731,7 +756,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
                 </span>
               </div>
               <span className="badge badge-agent">AGENT</span>
-            </Link>
+            </div>
           ))
         )}
       </div>
@@ -796,6 +821,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
               onNodeDoubleClick={handleNodeDoubleClick}
               onCreateComponent={handleCreateComponent}
               onDeleteComponent={handleDeleteComponent}
+              onManageFiles={handleManageFiles}
               onAgentTeamDoubleClick={handleAgentTeamDoubleClick}
               onCreateAgentTeam={handleCreateAgentTeam}
               onDeleteAgentTeam={handleDeleteAgentTeam}
@@ -814,6 +840,31 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
             initialValues={modalInitialValues}
             fetcher={componentFetcher}
             pluginId={plugin.id}
+          />
+        </Suspense>
+      )}
+
+      {isClient && filesModalState.isOpen && filesModalState.componentId && (
+        <Suspense fallback={null}>
+          <FilesManagementModal
+            isOpen={filesModalState.isOpen}
+            onClose={handleFilesModalClose}
+            pluginId={plugin.id}
+            componentId={filesModalState.componentId}
+            componentName={(() => {
+              const comp = plugin.components.find(
+                (c) => c.id === filesModalState.componentId,
+              );
+              if (!comp) return "(unknown)";
+              return (
+                comp.skillConfig?.name ?? comp.agentConfig?.name ?? "(unnamed)"
+              );
+            })()}
+            files={
+              plugin.components.find(
+                (c) => c.id === filesModalState.componentId,
+              )?.files ?? []
+            }
           />
         </Suspense>
       )}

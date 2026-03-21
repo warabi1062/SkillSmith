@@ -41,11 +41,9 @@ export default function AgentTeamDetail({ loaderData }: Route.ComponentProps) {
           <div className="config-item">
             <dt>Skill</dt>
             <dd>
-              <Link
-                to={`/plugins/${plugin.id}/components/${team.orchestrator.id}`}
-              >
+              <span>
                 {team.orchestrator.skillConfig?.name ?? "(unnamed)"}
-              </Link>
+              </span>
             </dd>
           </div>
         </dl>
@@ -67,12 +65,9 @@ export default function AgentTeamDetail({ loaderData }: Route.ComponentProps) {
           team.members.map((member) => (
             <div key={member.id} className="component-item">
               <div>
-                <Link
-                  to={`/plugins/${plugin.id}/components/${member.component.id}`}
-                  className="component-item-name"
-                >
+                <span className="component-item-name">
                   {member.component.agentConfig?.name ?? "(unnamed)"}
-                </Link>
+                </span>
                 <span className="badge badge-agent" style={{ marginLeft: "0.5rem" }}>
                   AGENT
                 </span>

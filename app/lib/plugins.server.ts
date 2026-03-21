@@ -33,6 +33,12 @@ export async function getPlugin(id: string) {
           dependenciesFrom: {
             select: { id: true, targetId: true },
           },
+          files: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              outputSchemaFields: { orderBy: { sortOrder: "asc" } },
+            },
+          },
         },
         orderBy: { createdAt: "asc" },
       },
