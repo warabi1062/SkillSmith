@@ -16,13 +16,6 @@ interface EntryPointSkill {
 interface AgentTeamFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: "create" | "edit";
-  initialValues?: {
-    teamId: string;
-    name: string;
-    description: string;
-    orchestratorName: string;
-  };
   entryPointSkills: EntryPointSkill[];
   fetcher: ReturnType<typeof useFetcher<AgentTeamFetcherData>>;
   pluginId: string;
@@ -31,8 +24,6 @@ interface AgentTeamFormModalProps {
 export default function AgentTeamFormModal({
   isOpen,
   onClose,
-  mode,
-  initialValues,
   entryPointSkills,
   fetcher,
   pluginId,
@@ -60,16 +51,12 @@ export default function AgentTeamFormModal({
     | Record<string, string>
     | undefined;
   const isSubmitting = fetcher.state !== "idle";
-  const intent =
-    mode === "create" ? "create-agent-team" : "update-agent-team";
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>
-            {mode === "create" ? "New Agent Team" : "Edit Agent Team"}
-          </h3>
+          <h3>New Agent Team</h3>
           <button
             type="button"
             className="modal-close"
@@ -80,14 +67,7 @@ export default function AgentTeamFormModal({
           </button>
         </div>
         <fetcher.Form method="post" action={`/plugins/${pluginId}`}>
-          <input type="hidden" name="intent" value={intent} />
-          {mode === "edit" && initialValues?.teamId && (
-            <input
-              type="hidden"
-              name="teamId"
-              value={initialValues.teamId}
-            />
-          )}
+          <input type="hidden" name="intent" value="create-agent-team" />
 
           <div className="form-group">
             <label htmlFor="modal-team-name">Name</label>
@@ -95,8 +75,8 @@ export default function AgentTeamFormModal({
               id="modal-team-name"
               name="name"
               type="text"
-              defaultValue={initialValues?.name ?? ""}
-              key={initialValues?.teamId ?? "new"}
+              defaultValue=""
+              key="new"
               required
             />
             {errors?.name && <div className="form-error">{errors.name}</div>}
@@ -107,8 +87,8 @@ export default function AgentTeamFormModal({
             <textarea
               id="modal-team-description"
               name="description"
-              defaultValue={initialValues?.description ?? ""}
-              key={`desc-${initialValues?.teamId ?? "new"}`}
+              defaultValue=""
+              key="desc-new"
             />
             {errors?.description && (
               <div className="form-error">{errors.description}</div>
@@ -119,26 +99,19 @@ export default function AgentTeamFormModal({
             <label htmlFor="modal-team-orchestratorId">
               Orchestrator (Entry Point Skill)
             </label>
-            {mode === "create" ? (
-              <select
-                id="modal-team-orchestratorId"
-                name="orchestratorId"
-                className="form-select"
-                required
-              >
-                <option value="">-- Select --</option>
-                {entryPointSkills.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.skillConfig?.name ?? "(unnamed)"}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="card-description">
-                {initialValues?.orchestratorName ?? "(unnamed)"} (not
-                editable)
-              </p>
-            )}
+            <select
+              id="modal-team-orchestratorId"
+              name="orchestratorId"
+              className="form-select"
+              required
+            >
+              <option value="">-- Select --</option>
+              {entryPointSkills.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.skillConfig?.name ?? "(unnamed)"}
+                </option>
+              ))}
+            </select>
             {errors?.orchestratorId && (
               <div className="form-error">{errors.orchestratorId}</div>
             )}
@@ -150,11 +123,7 @@ export default function AgentTeamFormModal({
               className="btn btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting
-                ? "Saving..."
-                : mode === "create"
-                  ? "Create Agent Team"
-                  : "Save Changes"}
+              {isSubmitting ? "Saving..." : "Create Agent Team"}
             </button>
             <button
               type="button"

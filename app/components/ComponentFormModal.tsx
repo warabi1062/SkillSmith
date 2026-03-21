@@ -11,15 +11,7 @@ interface ComponentFetcherData {
 interface ComponentFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: "create" | "edit";
   componentType?: "SKILL" | "AGENT";
-  initialValues?: {
-    componentId: string;
-    name: string;
-    description: string;
-    skillType: string;
-    type: string;
-  };
   fetcher: ReturnType<typeof useFetcher<ComponentFetcherData>>;
   pluginId: string;
 }
@@ -27,22 +19,20 @@ interface ComponentFormModalProps {
 export default function ComponentFormModal({
   isOpen,
   onClose,
-  mode,
   componentType,
-  initialValues,
   fetcher,
   pluginId,
 }: ComponentFormModalProps) {
-  const [selectedType, setSelectedType] = useState(
-    componentType ?? initialValues?.type ?? "SKILL",
+  const [selectedType, setSelectedType] = useState<"SKILL" | "AGENT">(
+    componentType ?? "SKILL",
   );
 
   // Reset selectedType when modal opens with new props
   useEffect(() => {
     if (isOpen) {
-      setSelectedType(componentType ?? initialValues?.type ?? "SKILL");
+      setSelectedType(componentType ?? "SKILL");
     }
-  }, [isOpen, componentType, initialValues?.type]);
+  }, [isOpen, componentType]);
 
   // Close modal on successful submission
   // Track previous fetcher.state via ref so we only close when transitioning
@@ -67,16 +57,13 @@ export default function ComponentFormModal({
     | Record<string, string>
     | undefined;
   const isSubmitting = fetcher.state !== "idle";
-  const intent = mode === "create" ? "create-component" : "update-component";
   const isSkill = selectedType === "SKILL";
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>
-            {mode === "create" ? "New Component" : "Edit Component"}
-          </h3>
+          <h3>New Component</h3>
           <button
             type="button"
             className="modal-close"
@@ -87,38 +74,20 @@ export default function ComponentFormModal({
           </button>
         </div>
         <fetcher.Form method="post" action={`/plugins/${pluginId}`}>
-          <input type="hidden" name="intent" value={intent} />
-          {mode === "edit" && initialValues?.componentId && (
-            <input
-              type="hidden"
-              name="componentId"
-              value={initialValues.componentId}
-            />
-          )}
+          <input type="hidden" name="intent" value="create-component" />
 
           <div className="form-group">
             <label htmlFor="modal-type">Type</label>
-            {mode === "create" ? (
-              <select
-                id="modal-type"
-                name="type"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="form-select"
-              >
-                <option value="SKILL">Skill</option>
-                <option value="AGENT">Agent</option>
-              </select>
-            ) : (
-              <>
-                <input type="hidden" name="type" value={selectedType} />
-                <span
-                  className={`badge ${isSkill ? "badge-skill" : "badge-agent"}`}
-                >
-                  {selectedType}
-                </span>
-              </>
-            )}
+            <select
+              id="modal-type"
+              name="type"
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as "SKILL" | "AGENT")}
+              className="form-select"
+            >
+              <option value="SKILL">Skill</option>
+              <option value="AGENT">Agent</option>
+            </select>
             {errors?.type && <div className="form-error">{errors.type}</div>}
           </div>
 
@@ -128,8 +97,8 @@ export default function ComponentFormModal({
               id="modal-name"
               name="name"
               type="text"
-              defaultValue={initialValues?.name ?? ""}
-              key={initialValues?.componentId ?? "new"}
+              defaultValue=""
+              key="new"
               required
             />
             {errors?.name && <div className="form-error">{errors.name}</div>}
@@ -142,8 +111,8 @@ export default function ComponentFormModal({
             <textarea
               id="modal-description"
               name="description"
-              defaultValue={initialValues?.description ?? ""}
-              key={`desc-${initialValues?.componentId ?? "new"}`}
+              defaultValue=""
+              key="desc-new"
               required={!isSkill}
             />
             {errors?.description && (
@@ -157,8 +126,8 @@ export default function ComponentFormModal({
               <select
                 id="modal-skillType"
                 name="skillType"
-                defaultValue={initialValues?.skillType ?? ""}
-                key={`st-${initialValues?.componentId ?? "new"}`}
+                defaultValue=""
+                key="st-new"
                 className="form-select"
               >
                 <option value="">-- Select --</option>
@@ -177,11 +146,7 @@ export default function ComponentFormModal({
               className="btn btn-primary"
               disabled={isSubmitting}
             >
-              {isSubmitting
-                ? "Saving..."
-                : mode === "create"
-                  ? "Create Component"
-                  : "Save Changes"}
+              {isSubmitting ? "Saving..." : "Create Component"}
             </button>
             <button
               type="button"

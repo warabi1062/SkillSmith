@@ -15,15 +15,12 @@ export type Plugin = NonNullable<Awaited<ReturnType<typeof getPlugin>>>;
 
 export interface ModalState {
   isOpen: boolean;
-  mode: "create" | "edit";
+  mode: "create";
   componentType?: "SKILL" | "AGENT";
-  componentId?: string;
 }
 
 export interface AgentTeamModalState {
   isOpen: boolean;
-  mode: "create" | "edit";
-  teamId?: string;
 }
 
 export interface FilesModalState {
@@ -76,7 +73,6 @@ export function usePluginGraph({
   const [agentTeamModalState, setAgentTeamModalState] =
     useState<AgentTeamModalState>({
       isOpen: false,
-      mode: "create",
     });
   const [filesModalState, setFilesModalState] = useState<FilesModalState>({
     isOpen: false,
@@ -259,21 +255,6 @@ export function usePluginGraph({
     [removeDependencyFetcher],
   );
 
-  const handleNodeDoubleClick = useCallback(
-    (componentId: string) => {
-      const comp = plugin.components.find((c) => c.id === componentId);
-      if (comp) {
-        setDeleteError(null);
-        onModalStateChange({
-          isOpen: true,
-          mode: "edit",
-          componentId,
-        });
-      }
-    },
-    [plugin.components, onModalStateChange],
-  );
-
   const handleCreateComponent = useCallback(
     (type: "SKILL" | "AGENT") => {
       setDeleteError(null);
@@ -322,26 +303,10 @@ export function usePluginGraph({
     onModalStateChange({ isOpen: false, mode: "create" });
   }, [onModalStateChange]);
 
-  const handleAgentTeamDoubleClick = useCallback(
-    (teamId: string) => {
-      const team = plugin.agentTeams.find((t) => t.id === teamId);
-      if (team) {
-        setDeleteError(null);
-        setAgentTeamModalState({
-          isOpen: true,
-          mode: "edit",
-          teamId,
-        });
-      }
-    },
-    [plugin.agentTeams],
-  );
-
   const handleCreateAgentTeam = useCallback(() => {
     setDeleteError(null);
     setAgentTeamModalState({
       isOpen: true,
-      mode: "create",
     });
   }, []);
 
@@ -357,48 +322,8 @@ export function usePluginGraph({
   );
 
   const handleAgentTeamModalClose = useCallback(() => {
-    setAgentTeamModalState({ isOpen: false, mode: "create" });
+    setAgentTeamModalState({ isOpen: false });
   }, []);
-
-  // Build initialValues for edit mode
-  const modalInitialValues =
-    modalState.mode === "edit" && modalState.componentId
-      ? (() => {
-          const comp = plugin.components.find(
-            (c) => c.id === modalState.componentId,
-          );
-          if (!comp) return undefined;
-          return {
-            componentId: comp.id,
-            name:
-              comp.skillConfig?.name ?? comp.agentConfig?.name ?? "",
-            description:
-              comp.skillConfig?.description ??
-              comp.agentConfig?.description ??
-              "",
-            skillType: comp.skillConfig?.skillType ?? "",
-            type: comp.type,
-          };
-        })()
-      : undefined;
-
-  // Build initialValues for agent team edit mode
-  const agentTeamModalInitialValues =
-    agentTeamModalState.mode === "edit" && agentTeamModalState.teamId
-      ? (() => {
-          const team = plugin.agentTeams.find(
-            (t) => t.id === agentTeamModalState.teamId,
-          );
-          if (!team) return undefined;
-          return {
-            teamId: team.id,
-            name: team.name,
-            description: team.description ?? "",
-            orchestratorName:
-              team.orchestrator.skillConfig?.name ?? "(unnamed)",
-          };
-        })()
-      : undefined;
 
   const graphComponents = plugin.components.map((c) => ({
     id: c.id,
@@ -468,8 +393,6 @@ export function usePluginGraph({
     entryPointSkills,
     agentTeamsForGraph,
     graphComponents,
-    modalInitialValues,
-    agentTeamModalInitialValues,
 
     // View computed values
     filesModalComponentName,
@@ -486,7 +409,6 @@ export function usePluginGraph({
     // Handlers
     handleConnect,
     handleEdgeClick,
-    handleNodeDoubleClick,
     handleCreateComponent,
     handleDeleteComponent,
     handleManageFiles,
@@ -494,7 +416,6 @@ export function usePluginGraph({
     handleManageMembers,
     handleMembersModalClose,
     handleModalClose,
-    handleAgentTeamDoubleClick,
     handleCreateAgentTeam,
     handleDeleteAgentTeam,
     handleAgentTeamModalClose,
