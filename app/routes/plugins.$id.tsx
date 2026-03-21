@@ -13,6 +13,7 @@ import {
   addAgentTeamMember,
   removeAgentTeamMember,
   deleteDependenciesBatch,
+  verifyDependenciesOwnership,
 } from "../lib/plugins.server";
 import {
   validateComponentData,
@@ -340,6 +341,12 @@ export async function action({ request, params }: Route.ActionArgs) {
     const ids = dependencyIds.split(",").filter(Boolean);
     if (ids.length === 0) {
       throw data("dependencyIds is required", { status: 400 });
+    }
+    const owned = await verifyDependenciesOwnership(ids, params.id);
+    if (!owned) {
+      throw data("Forbidden: dependencies do not belong to this plugin", {
+        status: 403,
+      });
     }
     await deleteDependenciesBatch(ids);
     return { ok: true };

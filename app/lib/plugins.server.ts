@@ -691,6 +691,20 @@ export async function reorderDependency(
   ]);
 }
 
+export async function verifyDependenciesOwnership(
+  ids: string[],
+  pluginId: string,
+): Promise<boolean> {
+  const dependencies = await prisma.componentDependency.findMany({
+    where: { id: { in: ids } },
+    include: { source: { select: { pluginId: true } } },
+  });
+  if (dependencies.length !== ids.length) {
+    return false;
+  }
+  return dependencies.every((dep) => dep.source.pluginId === pluginId);
+}
+
 export async function deleteDependenciesBatch(ids: string[]) {
   return prisma.componentDependency.deleteMany({
     where: { id: { in: ids } },
