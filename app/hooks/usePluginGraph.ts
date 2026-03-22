@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useFetcher } from "react-router";
 import type { Node } from "@xyflow/react";
-import {
-  buildGraphData,
-  type AgentTeamGraphData,
-} from "../lib/build-graph-data";
+import { buildGraphData } from "../lib/build-graph-data";
 
 import {
   loadGraphPositions,
@@ -21,10 +18,6 @@ export interface ModalState {
   mode: "create";
 }
 
-export interface AgentTeamModalState {
-  isOpen: boolean;
-}
-
 export interface FilesModalState {
   isOpen: boolean;
   componentId?: string;
@@ -32,7 +25,7 @@ export interface FilesModalState {
 
 export interface MembersModalState {
   isOpen: boolean;
-  teamId?: string;
+  agentTeamComponentId?: string;
 }
 
 export interface UsePluginGraphParams {
@@ -64,11 +57,6 @@ export function usePluginGraph({
     success?: boolean;
     error?: string;
   }>();
-  const agentTeamFetcher = useFetcher<{
-    success?: boolean;
-    teamId?: string;
-    errors?: Record<string, string>;
-  }>();
   const reorderDependencyFetcher = useFetcher();
   const deleteBatchFetcher = useFetcher();
 
@@ -99,10 +87,6 @@ export function usePluginGraph({
     prevDeleteBatchState.current = deleteBatchFetcher.state;
   }, [deleteBatchFetcher.state]);
 
-  const [agentTeamModalState, setAgentTeamModalState] =
-    useState<AgentTeamModalState>({
-      isOpen: false,
-    });
   const [filesModalState, setFilesModalState] = useState<FilesModalState>({
     isOpen: false,
   });
@@ -114,13 +98,11 @@ export function usePluginGraph({
   // サイドパネル用: 選択ノードの状態管理
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedNodeType, setSelectedNodeType] = useState<
-    "component" | "agentTeam" | null
+    "component" | null
   >(null);
 
   // サイドパネル用のfetcher
   const updateComponentFetcher = useFetcher();
-  const updateAgentTeamFetcher = useFetcher();
-  const agentConfigFetcher = useFetcher();
 
   // deleteFetcherのエラーメッセージを監視
   useEffect(() => {
@@ -129,38 +111,12 @@ export function usePluginGraph({
     }
   }, [deleteFetcher.state, deleteFetcher.data]);
 
-  const entryPointSkills = useMemo(
-    () =>
-      plugin.components
-        .filter(
-          (c) =>
-            c.type === "SKILL" && c.skillConfig?.skillType === "ENTRY_POINT",
-        )
-        .map((c) => ({
-          id: c.id,
-          skillConfig: c.skillConfig ? { name: c.skillConfig.name } : null,
-        })),
-    [plugin.components],
-  );
-
-  const agentTeamsForGraph: AgentTeamGraphData[] = useMemo(
-    () =>
-      plugin.agentTeams.map((team) => ({
-        id: team.id,
-        name: team.name,
-        description: team.description,
-        orchestratorName:
-          team.orchestrator.skillConfig?.name ?? "(unnamed)",
-      })),
-    [plugin.agentTeams],
-  );
-
   const rawGraphData = useMemo(
     () =>
-      plugin.components.length > 0 || plugin.agentTeams.length > 0
-        ? buildGraphData(plugin.components, agentTeamsForGraph)
+      plugin.components.length > 0
+        ? buildGraphData(plugin.components)
         : { nodes: [], edges: [] },
-    [plugin.components, agentTeamsForGraph],
+    [plugin.components],
   );
 
   const handleReorderStep = useCallback(
@@ -216,17 +172,6 @@ export function usePluginGraph({
             data: {
               ...node.data,
               componentId: node.id,
-              pluginId: plugin.id,
-            },
-          };
-        }
-        if (node.type === "agentteam") {
-          const teamId = node.id.replace("agentteam-", "");
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              teamId,
               pluginId: plugin.id,
             },
           };
@@ -348,9 +293,9 @@ export function usePluginGraph({
   }, []);
 
   const handleManageMembers = useCallback(
-    (teamId: string) => {
+    (agentTeamComponentId: string) => {
       setDeleteError(null);
-      onMembersModalStateChange({ isOpen: true, teamId });
+      onMembersModalStateChange({ isOpen: true, agentTeamComponentId });
     },
     [onMembersModalStateChange],
   );
@@ -363,31 +308,9 @@ export function usePluginGraph({
     onModalStateChange({ isOpen: false, mode: "create" });
   }, [onModalStateChange]);
 
-  const handleCreateAgentTeam = useCallback(() => {
-    setDeleteError(null);
-    setAgentTeamModalState({
-      isOpen: true,
-    });
-  }, []);
-
-  const handleDeleteAgentTeam = useCallback(
-    (teamId: string) => {
-      setDeleteError(null);
-      deleteFetcher.submit(
-        { intent: "delete-agent-team", teamId },
-        { method: "post", action: `/plugins/${plugin.id}` },
-      );
-    },
-    [deleteFetcher, plugin.id],
-  );
-
-  const handleAgentTeamModalClose = useCallback(() => {
-    setAgentTeamModalState({ isOpen: false });
-  }, []);
-
   // サイドパネル: ノードクリック時のハンドラ
   const handleNodeClick = useCallback(
-    (nodeId: string, nodeType: "component" | "agentTeam") => {
+    (nodeId: string, nodeType: "component") => {
       setSelectedNodeId(nodeId);
       setSelectedNodeType(nodeType);
     },
@@ -442,67 +365,9 @@ export function usePluginGraph({
     [updateComponentFetcher, plugin.id],
   );
 
-  // サイドパネル: Agent Team更新ハンドラ
-  const handleUpdateAgentTeam = useCallback(
-    (teamId: string, fields: { name: string; description: string }) => {
-      updateAgentTeamFetcher.submit(
-        {
-          intent: "update-agent-team",
-          teamId,
-          name: fields.name,
-          description: fields.description,
-        },
-        { method: "post", action: `/plugins/${plugin.id}` },
-      );
-    },
-    [updateAgentTeamFetcher, plugin.id],
-  );
-
-  // サイドパネル: AgentConfig追加
-  const handleAddAgentConfig = useCallback(
-    (componentId: string) => {
-      agentConfigFetcher.submit(
-        { intent: "add-agent-config", componentId },
-        { method: "post", action: `/plugins/${plugin.id}` },
-      );
-    },
-    [agentConfigFetcher, plugin.id],
-  );
-
-  // サイドパネル: AgentConfig削除
-  const handleRemoveAgentConfig = useCallback(
-    (componentId: string) => {
-      agentConfigFetcher.submit(
-        { intent: "remove-agent-config", componentId },
-        { method: "post", action: `/plugins/${plugin.id}` },
-      );
-    },
-    [agentConfigFetcher, plugin.id],
-  );
-
   // サイドパネル: 選択ノードのデータを算出
   const selectedNodeData = useMemo(() => {
     if (!selectedNodeId || !selectedNodeType) return null;
-
-    if (selectedNodeType === "agentTeam") {
-      const team = plugin.agentTeams.find((t) => t.id === selectedNodeId);
-      if (!team) return null;
-      return {
-        nodeId: selectedNodeId,
-        nodeType: "agentTeam" as const,
-        componentType: "AGENT_TEAM" as const,
-        name: team.name,
-        description: team.description,
-        skillType: null,
-        hasAgentConfig: false,
-        agentConfig: null,
-        orchestratorName:
-          team.orchestrator.skillConfig?.name ?? "(unnamed)",
-        content: "",
-        input: "",
-        output: "",
-      };
-    }
 
     const comp = plugin.components.find((c) => c.id === selectedNodeId);
     if (!comp) return null;
@@ -547,7 +412,7 @@ export function usePluginGraph({
       input: comp.skillConfig?.input ?? "",
       output: comp.skillConfig?.output ?? "",
     };
-  }, [selectedNodeId, selectedNodeType, plugin.components, plugin.agentTeams]);
+  }, [selectedNodeId, selectedNodeType, plugin.components]);
 
   const graphComponents = plugin.components.map((c) => ({
     id: c.id,
@@ -574,32 +439,35 @@ export function usePluginGraph({
     );
   }, [filesModalState.componentId, plugin.components]);
 
+  // membersModal: WORKER_WITH_AGENT_TEAM Componentに紐づくメンバー情報
+  // 注: getPlugin の include に agentTeamMembers が含まれていないため、
+  // 現在のデータ構造からはメンバー情報を直接取得できない。
+  // この情報はComponentDependencyで管理されるようになったため、
+  // 将来的にはgetPluginのincludeを更新する必要がある。
   const membersModalTeamName = useMemo(() => {
-    if (!membersModalState.teamId) return "(unknown)";
-    const team = plugin.agentTeams.find(
-      (t) => t.id === membersModalState.teamId,
+    if (!membersModalState.agentTeamComponentId) return "(unknown)";
+    const comp = plugin.components.find(
+      (c) => c.id === membersModalState.agentTeamComponentId,
     );
-    return team?.name ?? "(unknown)";
-  }, [membersModalState.teamId, plugin.agentTeams]);
+    return comp?.skillConfig?.name ?? "(unknown)";
+  }, [membersModalState.agentTeamComponentId, plugin.components]);
 
-  const membersModalMembers = useMemo(() => {
-    if (!membersModalState.teamId) return [];
-    return (
-      plugin.agentTeams.find(
-        (t) => t.id === membersModalState.teamId,
-      )?.members ?? []
-    );
-  }, [membersModalState.teamId, plugin.agentTeams]);
+  const membersModalMembers: Array<{
+    id: string;
+    component: {
+      id: string;
+      skillConfig: { name: string } | null;
+    };
+  }> = [];
 
-  // WORKER Skill + agentConfig有りのコンポーネントのみ
+  // WORKER_WITH_SUB_AGENT Skillのコンポーネントのみ
   const membersModalAgentComponents = useMemo(
     () =>
       plugin.components
         .filter(
           (c) =>
             c.type === "SKILL" &&
-            c.skillConfig?.skillType === "WORKER" &&
-            c.skillConfig?.agentConfig != null,
+            c.skillConfig?.skillType === "WORKER_WITH_SUB_AGENT",
         )
         .map((c) => ({
           id: c.id,
@@ -611,15 +479,12 @@ export function usePluginGraph({
   return {
     // 状態
     isClient,
-    agentTeamModalState,
     filesModalState,
     deleteError,
     resetCounter,
 
     // 算出データ
     graphDataWithPositions,
-    entryPointSkills,
-    agentTeamsForGraph,
     graphComponents,
 
     // ビュー算出値
@@ -632,7 +497,6 @@ export function usePluginGraph({
     // フェッチャー
     addDependencyFetcher,
     componentFetcher,
-    agentTeamFetcher,
 
     // 自動レイアウト
     autoLayoutPending,
@@ -649,9 +513,6 @@ export function usePluginGraph({
     handleManageMembers,
     handleMembersModalClose,
     handleModalClose,
-    handleCreateAgentTeam,
-    handleDeleteAgentTeam,
-    handleAgentTeamModalClose,
     handleNodeDragStop,
     handleResetLayout,
     handleReorderStep,
@@ -662,8 +523,5 @@ export function usePluginGraph({
     handleNodeClick,
     handleSidePanelClose,
     handleUpdateComponent,
-    handleUpdateAgentTeam,
-    handleAddAgentConfig,
-    handleRemoveAgentConfig,
   };
 }

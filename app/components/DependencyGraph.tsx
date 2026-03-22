@@ -13,13 +13,11 @@ import {
 import "@xyflow/react/dist/style.css";
 import OrchestratorNode from "./OrchestratorNode";
 import SkillNode from "./SkillNode";
-import AgentTeamNode from "./AgentTeamNode";
 import { computeAutoLayout } from "../lib/auto-layout";
 
 const nodeTypes = {
   orchestrator: OrchestratorNode,
   skill: SkillNode,
-  agentteam: AgentTeamNode,
 };
 
 interface DependencyGraphProps {
@@ -31,24 +29,16 @@ interface DependencyGraphProps {
     type: string;
     skillConfig: { skillType: string } | null;
   }>;
-  agentTeams: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    orchestratorName: string;
-  }>;
   onConnect: (sourceId: string, targetId: string, sourceHandle?: string) => void;
   onEdgeClick: (dependencyId: string) => void;
   onCreateComponent?: () => void;
   onDeleteComponent?: (componentId: string) => void;
   onManageFiles?: (componentId: string) => void;
-  onCreateAgentTeam?: () => void;
-  onDeleteAgentTeam?: (teamId: string) => void;
-  onManageMembers?: (teamId: string) => void;
+  onManageMembers?: (componentId: string) => void;
   onNodeDragStop?: (positions: Record<string, { x: number; y: number }>) => void;
   onResetLayout?: () => void;
   onPositionsPersist?: (positions: Record<string, { x: number; y: number }>) => void;
-  onNodeClick?: (nodeId: string, nodeType: "component" | "agentTeam") => void;
+  onNodeClick?: (nodeId: string, nodeType: "component") => void;
   onPaneClickCallback?: () => void;
   autoLayoutPending?: boolean;
   onAutoLayoutApplied?: () => void;
@@ -60,7 +50,6 @@ interface ContextMenuState {
   x: number;
   y: number;
   nodeId: string;
-  nodeType: "component" | "agentTeam";
 }
 
 export default function DependencyGraph({
@@ -68,14 +57,11 @@ export default function DependencyGraph({
   edges,
   pluginId,
   components,
-  agentTeams,
   onConnect,
   onEdgeClick,
   onCreateComponent,
   onDeleteComponent,
   onManageFiles,
-  onCreateAgentTeam,
-  onDeleteAgentTeam,
   onManageMembers,
   onNodeDragStop,
   onResetLayout,
@@ -173,9 +159,7 @@ export default function DependencyGraph({
     setFlowNodes(nodes);
   }, [nodes, resetKey, setFlowNodes, cancelAnimation]);
 
-  // 自動レイアウトの処理: React Flowがノードを計測するのを待ってからレイアウトを計算する。
-  // requestAnimationFrameを使用して、React Flowが更新されたノードを計測した後まで
-  // 遅延する（measuredプロパティはレンダー+レイアウト後に設定される）。
+  // 自動レイアウトの処理
   const pendingLayoutRef = useRef(false);
   useEffect(() => {
     if (autoLayoutPending) {
@@ -185,7 +169,6 @@ export default function DependencyGraph({
 
   useEffect(() => {
     if (!pendingLayoutRef.current) return;
-    // 全ノードが計測済みかチェック
     const allMeasured = flowNodes.every(
       (n) => n.measured?.width != null && n.measured?.height != null,
     );
@@ -235,7 +218,6 @@ export default function DependencyGraph({
     x: 0,
     y: 0,
     nodeId: "",
-    nodeType: "component",
   });
 
   const isValidConnection = useCallback(
@@ -244,26 +226,21 @@ export default function DependencyGraph({
       if (!source || !target) return false;
       if (source === target) return false;
 
-      // Agent Teamノードは接続できない
-      if (source.startsWith("agentteam-") || target.startsWith("agentteam-"))
-        return false;
-
       const sourceComp = components.find((c) => c.id === source);
       const targetComp = components.find((c) => c.id === target);
       if (!sourceComp || !targetComp) return false;
 
-      // EntryPoint -> Skill: ターゲットはWORKERでなければならない
+      // EntryPoint -> Skill: ターゲットはWORKER系でなければならない
+      const VALID_WORKER_TYPES = ["WORKER", "WORKER_WITH_SUB_AGENT", "WORKER_WITH_AGENT_TEAM"];
       if (
         sourceComp.type === "SKILL" &&
         sourceComp.skillConfig?.skillType === "ENTRY_POINT" &&
         targetComp.type === "SKILL"
       ) {
-        if (targetComp.skillConfig?.skillType !== "WORKER") return false;
+        if (!targetComp.skillConfig?.skillType || !VALID_WORKER_TYPES.includes(targetComp.skillConfig.skillType)) return false;
       }
 
-      // 楽観的バリデーション（UX目的のみ）: UIで明らかに無効な接続を防止する。
-      // サーバーがトランザクション内で権威あるチェックを行い、
-      // 競合状態を防止する。dependency.server.tsを参照。
+      // 楽観的バリデーション（UX目的のみ）
       const adjacency = new Map<string, string[]>();
       for (const edge of edges) {
         const neighbors = adjacency.get(edge.source);
@@ -322,13 +299,11 @@ export default function DependencyGraph({
   const handleNodeContextMenu = useCallback(
     (event: React.MouseEvent, node: Node) => {
       event.preventDefault();
-      const isAgentTeam = node.id.startsWith("agentteam-");
       setContextMenu({
         visible: true,
         x: event.clientX,
         y: event.clientY,
-        nodeId: isAgentTeam ? node.id.replace("agentteam-", "") : node.id,
-        nodeType: isAgentTeam ? "agentTeam" : "component",
+        nodeId: node.id,
       });
     },
     [],
@@ -337,12 +312,7 @@ export default function DependencyGraph({
   // ノード左クリック時にサイドパネルを開く
   const handleNodeClick = useCallback(
     (_event: React.MouseEvent, node: Node) => {
-      const isAgentTeam = node.id.startsWith("agentteam-");
-      const nodeId = isAgentTeam
-        ? node.id.replace("agentteam-", "")
-        : node.id;
-      const nodeType = isAgentTeam ? "agentTeam" : "component";
-      onNodeClick?.(nodeId, nodeType);
+      onNodeClick?.(node.id, "component");
     },
     [onNodeClick],
   );
@@ -384,20 +354,23 @@ export default function DependencyGraph({
   }, [contextMenu.nodeId, onManageMembers]);
 
   const handleContextMenuDelete = useCallback(() => {
-    const label =
-      contextMenu.nodeType === "agentTeam" ? "agent team" : "component";
     const confirmed = window.confirm(
-      `Are you sure you want to delete this ${label}?`,
+      "Are you sure you want to delete this component?",
     );
     if (confirmed) {
-      if (contextMenu.nodeType === "agentTeam") {
-        onDeleteAgentTeam?.(contextMenu.nodeId);
-      } else {
-        onDeleteComponent?.(contextMenu.nodeId);
-      }
+      onDeleteComponent?.(contextMenu.nodeId);
     }
     setContextMenu((prev) => ({ ...prev, visible: false }));
-  }, [contextMenu.nodeId, contextMenu.nodeType, onDeleteComponent, onDeleteAgentTeam]);
+  }, [contextMenu.nodeId, onDeleteComponent]);
+
+  // WORKER_WITH_AGENT_TEAM コンポーネントかどうかを判定
+  const isAgentTeamComponent = useCallback(
+    (nodeId: string) => {
+      const comp = components.find((c) => c.id === nodeId);
+      return comp?.skillConfig?.skillType === "WORKER_WITH_AGENT_TEAM";
+    },
+    [components],
+  );
 
   return (
     <div className="dependency-graph">
@@ -418,7 +391,7 @@ export default function DependencyGraph({
       >
         <Background />
         <Controls />
-        {(onCreateComponent || onCreateAgentTeam || onResetLayout) && (
+        {(onCreateComponent || onResetLayout) && (
           <Panel position="top-right">
             <div className="graph-toolbar">
               {onCreateComponent && (
@@ -428,16 +401,6 @@ export default function DependencyGraph({
                   onClick={() => onCreateComponent()}
                 >
                   + New Skill
-                </button>
-              )}
-              {onCreateAgentTeam && (
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  style={{ background: "#dcfce7", borderColor: "#86efac" }}
-                  onClick={onCreateAgentTeam}
-                >
-                  + New Agent Team
                 </button>
               )}
               {onResetLayout && (
@@ -462,16 +425,14 @@ export default function DependencyGraph({
             top: contextMenu.y,
           }}
         >
-          {contextMenu.nodeType === "component" && (
-            <button
-              type="button"
-              className="context-menu-item"
-              onClick={handleContextMenuManageFiles}
-            >
-              Manage Files
-            </button>
-          )}
-          {contextMenu.nodeType === "agentTeam" && (
+          <button
+            type="button"
+            className="context-menu-item"
+            onClick={handleContextMenuManageFiles}
+          >
+            Manage Files
+          </button>
+          {isAgentTeamComponent(contextMenu.nodeId) && (
             <button
               type="button"
               className="context-menu-item"

@@ -12,8 +12,8 @@ export interface AgentConfigFields {
 
 export interface SidePanelProps {
   nodeId: string;
-  nodeType: "component" | "agentTeam";
-  componentType: "SKILL" | "ORCHESTRATOR" | "AGENT_TEAM";
+  nodeType: "component";
+  componentType: "SKILL" | "ORCHESTRATOR";
   name: string;
   description: string | null;
   content: string;
@@ -35,14 +35,15 @@ export interface SidePanelProps {
       agentConfig?: AgentConfigFields;
     },
   ) => void;
-  onUpdateAgentTeam: (
-    teamId: string,
-    fields: { name: string; description: string },
-  ) => void;
-  onAddAgentConfig?: (componentId: string) => void;
-  onRemoveAgentConfig?: (componentId: string) => void;
   onClose: () => void;
 }
+
+// skillType変更時の選択肢（ENTRY_POINTは変更不可のため含まない）
+const WORKER_SKILL_TYPES = [
+  { value: "WORKER", label: "Worker" },
+  { value: "WORKER_WITH_SUB_AGENT", label: "Worker + Sub Agent" },
+  { value: "WORKER_WITH_AGENT_TEAM", label: "Worker + Agent Team" },
+];
 
 export default function SidePanel({
   nodeId,
@@ -56,11 +57,7 @@ export default function SidePanel({
   skillType,
   hasAgentConfig,
   agentConfig,
-  orchestratorName,
   onUpdateComponent,
-  onUpdateAgentTeam,
-  onAddAgentConfig,
-  onRemoveAgentConfig,
   onClose,
 }: SidePanelProps) {
   const [editName, setEditName] = useState(name);
@@ -68,6 +65,7 @@ export default function SidePanel({
   const [editContent, setEditContent] = useState(content ?? "");
   const [editInput, setEditInput] = useState(input ?? "");
   const [editOutput, setEditOutput] = useState(output ?? "");
+  const [editSkillType, setEditSkillType] = useState(skillType ?? "");
 
   // AgentConfig編集状態
   const [editAgentModel, setEditAgentModel] = useState(agentConfig?.model ?? "");
@@ -85,8 +83,8 @@ export default function SidePanel({
   const prevEditContentRef = useRef(editContent);
   const prevEditInputRef = useRef(editInput);
   const prevEditOutputRef = useRef(editOutput);
-  const prevNodeTypeRef = useRef(nodeType);
   const prevSkillTypeRef = useRef(skillType);
+  const prevEditSkillTypeRef = useRef(editSkillType);
   const prevHasAgentConfigRef = useRef(hasAgentConfig);
   const prevEditAgentModelRef = useRef(editAgentModel);
   const prevEditAgentToolsRef = useRef(editAgentTools);
@@ -102,6 +100,7 @@ export default function SidePanel({
   useEffect(() => { prevEditContentRef.current = editContent; }, [editContent]);
   useEffect(() => { prevEditInputRef.current = editInput; }, [editInput]);
   useEffect(() => { prevEditOutputRef.current = editOutput; }, [editOutput]);
+  useEffect(() => { prevEditSkillTypeRef.current = editSkillType; }, [editSkillType]);
   useEffect(() => { prevEditAgentModelRef.current = editAgentModel; }, [editAgentModel]);
   useEffect(() => { prevEditAgentToolsRef.current = editAgentTools; }, [editAgentTools]);
   useEffect(() => { prevEditAgentDisallowedToolsRef.current = editAgentDisallowedTools; }, [editAgentDisallowedTools]);
@@ -118,37 +117,29 @@ export default function SidePanel({
       const prevName = prevEditNameRef.current;
       const prevDesc = prevEditDescriptionRef.current;
       if (prevName.trim() !== "") {
-        if (prevNodeTypeRef.current === "agentTeam") {
-          onUpdateAgentTeam(prevNodeIdRef.current, {
-            name: prevName,
-            description: prevDesc,
-          });
-        } else {
-          const updateFields: Parameters<typeof onUpdateComponent>[1] = {
-            name: prevName,
-            description: prevDesc,
-            content: prevEditContentRef.current,
-            input: prevEditInputRef.current,
-            output: prevEditOutputRef.current,
-            skillType: prevSkillTypeRef.current ?? undefined,
+        const updateFields: Parameters<typeof onUpdateComponent>[1] = {
+          name: prevName,
+          description: prevDesc,
+          content: prevEditContentRef.current,
+          input: prevEditInputRef.current,
+          output: prevEditOutputRef.current,
+          skillType: prevEditSkillTypeRef.current || (prevSkillTypeRef.current ?? undefined),
+        };
+        if (prevHasAgentConfigRef.current) {
+          updateFields.agentConfig = {
+            model: prevEditAgentModelRef.current,
+            tools: prevEditAgentToolsRef.current,
+            disallowedTools: prevEditAgentDisallowedToolsRef.current,
+            permissionMode: prevEditAgentPermissionModeRef.current,
+            hooks: prevEditAgentHooksRef.current,
+            memory: prevEditAgentMemoryRef.current,
+            agentContent: prevEditAgentContentRef.current,
           };
-          if (prevHasAgentConfigRef.current) {
-            updateFields.agentConfig = {
-              model: prevEditAgentModelRef.current,
-              tools: prevEditAgentToolsRef.current,
-              disallowedTools: prevEditAgentDisallowedToolsRef.current,
-              permissionMode: prevEditAgentPermissionModeRef.current,
-              hooks: prevEditAgentHooksRef.current,
-              memory: prevEditAgentMemoryRef.current,
-              agentContent: prevEditAgentContentRef.current,
-            };
-          }
-          onUpdateComponent(prevNodeIdRef.current, updateFields);
         }
+        onUpdateComponent(prevNodeIdRef.current, updateFields);
       }
       // refを新しいノードの情報に更新
       prevNodeIdRef.current = nodeId;
-      prevNodeTypeRef.current = nodeType;
       prevSkillTypeRef.current = skillType;
       prevHasAgentConfigRef.current = hasAgentConfig;
     }
@@ -157,6 +148,7 @@ export default function SidePanel({
     setEditContent(content ?? "");
     setEditInput(input ?? "");
     setEditOutput(output ?? "");
+    setEditSkillType(skillType ?? "");
     setEditAgentModel(agentConfig?.model ?? "");
     setEditAgentTools(agentConfig?.tools ?? "");
     setEditAgentDisallowedTools(agentConfig?.disallowedTools ?? "");
@@ -164,61 +156,42 @@ export default function SidePanel({
     setEditAgentHooks(agentConfig?.hooks ?? "");
     setEditAgentMemory(agentConfig?.memory ?? "");
     setEditAgentContent(agentConfig?.agentContent ?? "");
-  }, [nodeId, name, description, content, input, output, nodeType, skillType, hasAgentConfig, agentConfig, onUpdateComponent, onUpdateAgentTeam]);
+  }, [nodeId, name, description, content, input, output, nodeType, skillType, hasAgentConfig, agentConfig, onUpdateComponent]);
 
   const handleSave = () => {
     // 空文字の名前は保存しない
     if (editName.trim() === "") return;
-    if (nodeType === "agentTeam") {
-      onUpdateAgentTeam(nodeId, {
-        name: editName,
-        description: editDescription,
-      });
-    } else {
-      const updateFields: Parameters<typeof onUpdateComponent>[1] = {
-        name: editName,
-        description: editDescription,
-        content: editContent,
-        input: editInput,
-        output: editOutput,
-        skillType: skillType ?? undefined,
+    const updateFields: Parameters<typeof onUpdateComponent>[1] = {
+      name: editName,
+      description: editDescription,
+      content: editContent,
+      input: editInput,
+      output: editOutput,
+      skillType: editSkillType || (skillType ?? undefined),
+    };
+    if (hasAgentConfig) {
+      updateFields.agentConfig = {
+        model: editAgentModel,
+        tools: editAgentTools,
+        disallowedTools: editAgentDisallowedTools,
+        permissionMode: editAgentPermissionMode,
+        hooks: editAgentHooks,
+        memory: editAgentMemory,
+        agentContent: editAgentContent,
       };
-      if (hasAgentConfig) {
-        updateFields.agentConfig = {
-          model: editAgentModel,
-          tools: editAgentTools,
-          disallowedTools: editAgentDisallowedTools,
-          permissionMode: editAgentPermissionMode,
-          hooks: editAgentHooks,
-          memory: editAgentMemory,
-          agentContent: editAgentContent,
-        };
-      }
-      onUpdateComponent(nodeId, updateFields);
     }
+    onUpdateComponent(nodeId, updateFields);
   };
 
   // コンポーネント種別に応じたバッジラベル
-  const badgeLabel = (() => {
-    switch (componentType) {
-      case "SKILL":
-        return "SKILL";
-      case "ORCHESTRATOR":
-        return "ORCHESTRATOR";
-      case "AGENT_TEAM":
-        return "AGENT TEAM";
-      default:
-        return "";
-    }
-  })();
+  const badgeLabel = componentType === "ORCHESTRATOR" ? "ORCHESTRATOR" : "SKILL";
 
-  // AgentConfig編集セクションの表示条件
+  // AgentConfig編集セクションの表示条件: WORKER_WITH_SUB_AGENTのみ
   const showAgentConfigSection =
-    componentType === "SKILL" && skillType === "WORKER" && hasAgentConfig;
+    componentType === "SKILL" && skillType === "WORKER_WITH_SUB_AGENT" && hasAgentConfig;
 
-  // WORKER Skill でagentConfigがない場合に追加ボタンを表示
-  const showAddAgentConfigButton =
-    componentType === "SKILL" && skillType === "WORKER" && !hasAgentConfig;
+  // skillType変更UIの表示条件: ENTRY_POINTでない場合のみ
+  const showSkillTypeSelect = componentType !== "ORCHESTRATOR";
 
   return (
     <div className="side-panel">
@@ -257,85 +230,72 @@ export default function SidePanel({
           />
         </div>
 
-        {/* 本文フィールド（AGENT_TEAMには非表示） */}
-        {componentType !== "AGENT_TEAM" && (
-          <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <label htmlFor="side-panel-content">Content</label>
-            <textarea
-              id="side-panel-content"
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              style={{ flex: 1 }}
-              placeholder="Write content in Markdown..."
-            />
-          </div>
-        )}
+        {/* 本文フィールド */}
+        <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <label htmlFor="side-panel-content">Content</label>
+          <textarea
+            id="side-panel-content"
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            style={{ flex: 1 }}
+            placeholder="Write content in Markdown..."
+          />
+        </div>
 
-        {/* 入力フィールド（AGENT_TEAMには非表示） */}
-        {componentType !== "AGENT_TEAM" && (
+        {/* 入力フィールド */}
+        <div className="form-group">
+          <label htmlFor="side-panel-input">Input</label>
+          <textarea
+            id="side-panel-input"
+            value={editInput}
+            onChange={(e) => setEditInput(e.target.value)}
+            rows={3}
+            placeholder="Describe input..."
+          />
+        </div>
+
+        {/* 出力フィールド */}
+        <div className="form-group">
+          <label htmlFor="side-panel-output">Output</label>
+          <textarea
+            id="side-panel-output"
+            value={editOutput}
+            onChange={(e) => setEditOutput(e.target.value)}
+            rows={3}
+            placeholder="Describe output..."
+          />
+        </div>
+
+        {/* skillType変更UI（ENTRY_POINTの場合は非表示） */}
+        {showSkillTypeSelect && (
           <div className="form-group">
-            <label htmlFor="side-panel-input">Input</label>
-            <textarea
-              id="side-panel-input"
-              value={editInput}
-              onChange={(e) => setEditInput(e.target.value)}
-              rows={3}
-              placeholder="Describe input..."
-            />
+            <label htmlFor="side-panel-skill-type">Skill Type</label>
+            <select
+              id="side-panel-skill-type"
+              className="form-select"
+              value={editSkillType}
+              onChange={(e) => setEditSkillType(e.target.value)}
+            >
+              {WORKER_SKILL_TYPES.map((st) => (
+                <option key={st.value} value={st.value}>{st.label}</option>
+              ))}
+            </select>
           </div>
         )}
 
-        {/* 出力フィールド（AGENT_TEAMには非表示） */}
-        {componentType !== "AGENT_TEAM" && (
-          <div className="form-group">
-            <label htmlFor="side-panel-output">Output</label>
-            <textarea
-              id="side-panel-output"
-              value={editOutput}
-              onChange={(e) => setEditOutput(e.target.value)}
-              rows={3}
-              placeholder="Describe output..."
-            />
-          </div>
-        )}
-
-        {/* skillType（読み取り専用、SKILL/ORCHESTRATORのみ） */}
-        {skillType && (componentType === "SKILL" || componentType === "ORCHESTRATOR") && (
+        {/* ENTRY_POINTの場合はskillType読み取り専用表示 */}
+        {!showSkillTypeSelect && skillType && (
           <div className="form-group">
             <label>Skill Type</label>
             <div className="side-panel-readonly">{skillType}</div>
           </div>
         )}
 
-        {/* WORKER Skill でagentConfigがない場合の追加ボタン */}
-        {showAddAgentConfigButton && (
-          <div className="form-group">
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => onAddAgentConfig?.(nodeId)}
-            >
-              + Add Agent Config
-            </button>
-          </div>
-        )}
-
-        {/* AgentConfig編集セクション（WORKER Skill + agentConfig有りのみ） */}
+        {/* AgentConfig編集セクション（WORKER_WITH_SUB_AGENT + agentConfig有りのみ） */}
         {showAgentConfigSection && (
           <div className="side-panel-agent-config-section">
             <div className="side-panel-agent-config-header">
               <h4>Agent Config</h4>
-              <button
-                type="button"
-                className="btn btn-outline btn-sm btn-danger"
-                onClick={() => {
-                  if (window.confirm("Remove Agent Config?")) {
-                    onRemoveAgentConfig?.(nodeId);
-                  }
-                }}
-              >
-                Remove
-              </button>
             </div>
 
             <div className="form-group">
@@ -414,14 +374,6 @@ export default function SidePanel({
                 placeholder="Write agent content in Markdown..."
               />
             </div>
-          </div>
-        )}
-
-        {/* orchestratorName（読み取り専用、AGENT TEAMのみ） */}
-        {componentType === "AGENT_TEAM" && orchestratorName && (
-          <div className="form-group">
-            <label>Orchestrator</label>
-            <div className="side-panel-readonly">{orchestratorName}</div>
           </div>
         )}
 

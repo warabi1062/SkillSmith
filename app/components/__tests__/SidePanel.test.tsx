@@ -23,7 +23,6 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     agentConfig: null,
     orchestratorName: null,
     onUpdateComponent: vi.fn(),
-    onUpdateAgentTeam: vi.fn(),
     onClose: vi.fn(),
     ...overrides,
   };
@@ -42,7 +41,6 @@ describe("SidePanel", () => {
       });
       expect(screen.getByDisplayValue("my-skill")).toBeTruthy();
       expect(screen.getByDisplayValue("Skill description")).toBeTruthy();
-      expect(screen.getByText("WORKER")).toBeTruthy();
     });
 
     it("SKILLバッジを表示する", () => {
@@ -65,34 +63,42 @@ describe("SidePanel", () => {
     });
   });
 
-  describe("AGENT TEAMノードの表示", () => {
-    it("名前、説明、orchestratorNameを表示する", () => {
+  describe("skillType変更UI", () => {
+    it("ENTRY_POINT選択時にskillType変更selectが非表示であること", () => {
       renderPanel({
-        nodeType: "agentTeam",
-        componentType: "AGENT_TEAM",
-        name: "my-team",
-        description: "Team description",
-        orchestratorName: "dev",
+        componentType: "ORCHESTRATOR",
+        skillType: "ENTRY_POINT",
       });
-      expect(screen.getByDisplayValue("my-team")).toBeTruthy();
-      expect(screen.getByDisplayValue("Team description")).toBeTruthy();
-      expect(screen.getByText("dev")).toBeTruthy();
+      // selectの代わりに読み取り専用表示
+      expect(screen.queryByLabelText("Skill Type")).toBeNull();
+      expect(screen.getByText("ENTRY_POINT")).toBeTruthy();
     });
 
-    it("AGENT TEAMバッジを表示する", () => {
+    it("WORKER選択時にskillType変更selectが表示されること", () => {
       renderPanel({
-        nodeType: "agentTeam",
-        componentType: "AGENT_TEAM",
+        componentType: "SKILL",
+        skillType: "WORKER",
       });
-      expect(screen.getByText("AGENT TEAM")).toBeTruthy();
+      const select = screen.getByLabelText("Skill Type");
+      expect(select).toBeTruthy();
+      expect(select.tagName).toBe("SELECT");
+    });
+
+    it("WORKER_WITH_SUB_AGENT選択時にskillType変更selectが表示されること", () => {
+      renderPanel({
+        componentType: "SKILL",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      });
+      const select = screen.getByLabelText("Skill Type");
+      expect(select).toBeTruthy();
     });
   });
 
   describe("AgentConfig編集セクション", () => {
-    it("WORKER Skill + agentConfig有りの場合にAgentConfigフィールドを表示する", () => {
+    it("WORKER_WITH_SUB_AGENT + agentConfig有りの場合にAgentConfigフィールドを表示する", () => {
       renderPanel({
         componentType: "SKILL",
-        skillType: "WORKER",
+        skillType: "WORKER_WITH_SUB_AGENT",
         hasAgentConfig: true,
         agentConfig: {
           model: "sonnet",
@@ -161,30 +167,7 @@ describe("SidePanel", () => {
       });
     });
 
-    it("agentTeamノードの保存時にonUpdateAgentTeamを呼ぶ", () => {
-      const onUpdateAgentTeam = vi.fn();
-      renderPanel({
-        nodeId: "team-1",
-        nodeType: "agentTeam",
-        componentType: "AGENT_TEAM",
-        name: "old-team",
-        description: "team desc",
-        onUpdateAgentTeam,
-      });
-
-      const nameInput = screen.getByDisplayValue("old-team");
-      fireEvent.change(nameInput, { target: { value: "new-team" } });
-
-      const saveButton = screen.getByRole("button", { name: "Save" });
-      fireEvent.click(saveButton);
-
-      expect(onUpdateAgentTeam).toHaveBeenCalledWith("team-1", {
-        name: "new-team",
-        description: "team desc",
-      });
-    });
-
-    it("WORKER Skill + agentConfig有りの保存時にagentConfigフィールドが含まれる", () => {
+    it("WORKER_WITH_SUB_AGENT + agentConfig有りの保存時にagentConfigフィールドが含まれる", () => {
       const onUpdateComponent = vi.fn();
       renderPanel({
         nodeId: "comp-1",
@@ -192,7 +175,7 @@ describe("SidePanel", () => {
         componentType: "SKILL",
         name: "my-skill",
         description: "desc",
-        skillType: "WORKER",
+        skillType: "WORKER_WITH_SUB_AGENT",
         hasAgentConfig: true,
         agentConfig: {
           model: "sonnet",
@@ -286,35 +269,6 @@ describe("SidePanel", () => {
         input: "",
         output: "",
         skillType: "WORKER",
-      });
-    });
-
-    it("agentTeamノードの切り替え時にonUpdateAgentTeamが呼ばれる", () => {
-      const onUpdateAgentTeam = vi.fn();
-      const { rerender, props } = renderPanel({
-        nodeId: "team-1",
-        nodeType: "agentTeam",
-        componentType: "AGENT_TEAM",
-        name: "team-name",
-        description: "team desc",
-        onUpdateAgentTeam,
-      });
-
-      const nameInput = screen.getByDisplayValue("team-name");
-      fireEvent.change(nameInput, { target: { value: "edited-team" } });
-
-      rerender(
-        <SidePanel
-          {...props}
-          nodeId="team-2"
-          name="other-team"
-          description="other desc"
-        />,
-      );
-
-      expect(onUpdateAgentTeam).toHaveBeenCalledWith("team-1", {
-        name: "edited-team",
-        description: "team desc",
       });
     });
 
