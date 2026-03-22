@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 
 const ALL_ROLES = [
-  { value: "MAIN", label: "MAIN" },
   { value: "TEMPLATE", label: "TEMPLATE" },
   { value: "REFERENCE", label: "REFERENCE" },
   { value: "EXAMPLE", label: "EXAMPLE" },
@@ -167,10 +166,7 @@ export default function FilesManagementModal({
       ? files.find((f) => f.id === view.file.id) ?? view.file
       : null;
 
-  const hasMain = files.some((f) => f.role === "MAIN");
-  const availableRoles = hasMain
-    ? ALL_ROLES.filter((r) => r.value !== "MAIN")
-    : ALL_ROLES;
+  const availableRoles = ALL_ROLES;
 
   function renderBreadcrumb() {
     const parts: { label: string; onClick?: () => void }[] = [
@@ -265,9 +261,7 @@ export default function FilesManagementModal({
                 }}
               >
                 <span className="component-item-name">{file.filename}</span>
-                <span
-                  className={`badge${file.role === "MAIN" ? " badge-skill" : ""}`}
-                >
+                <span className="badge">
                   {file.role}
                 </span>
               </div>

@@ -6,11 +6,12 @@ export interface SidePanelProps {
   componentType: "SKILL" | "AGENT" | "ORCHESTRATOR" | "AGENT_TEAM";
   name: string;
   description: string | null;
+  content: string;
   skillType: string | null;
   orchestratorName: string | null;
   onUpdateComponent: (
     componentId: string,
-    fields: { name: string; description: string; skillType?: string },
+    fields: { name: string; description: string; content: string; skillType?: string },
   ) => void;
   onUpdateAgentTeam: (
     teamId: string,
@@ -25,6 +26,7 @@ export default function SidePanel({
   componentType,
   name,
   description,
+  content,
   skillType,
   orchestratorName,
   onUpdateComponent,
@@ -33,21 +35,26 @@ export default function SidePanel({
 }: SidePanelProps) {
   const [editName, setEditName] = useState(name);
   const [editDescription, setEditDescription] = useState(description ?? "");
+  const [editContent, setEditContent] = useState(content ?? "");
 
   // 前回のノードID・編集値・種別情報をrefで保持（ノード切り替え時の自動保存用）
   const prevNodeIdRef = useRef(nodeId);
   const prevEditNameRef = useRef(editName);
   const prevEditDescriptionRef = useRef(editDescription);
+  const prevEditContentRef = useRef(editContent);
   const prevNodeTypeRef = useRef(nodeType);
   const prevSkillTypeRef = useRef(skillType);
 
-  // editName/editDescriptionの変更をrefに反映
+  // editName/editDescription/editContentの変更をrefに反映
   useEffect(() => {
     prevEditNameRef.current = editName;
   }, [editName]);
   useEffect(() => {
     prevEditDescriptionRef.current = editDescription;
   }, [editDescription]);
+  useEffect(() => {
+    prevEditContentRef.current = editContent;
+  }, [editContent]);
 
   // propsが変わったら（別ノード選択時）フォーム値をリセット
   // ノード切り替え時は前の編集値を自動保存してからリセット
@@ -66,6 +73,7 @@ export default function SidePanel({
           onUpdateComponent(prevNodeIdRef.current, {
             name: prevName,
             description: prevDesc,
+            content: prevEditContentRef.current,
             skillType: prevSkillTypeRef.current ?? undefined,
           });
         }
@@ -77,7 +85,8 @@ export default function SidePanel({
     }
     setEditName(name);
     setEditDescription(description ?? "");
-  }, [nodeId, name, description, nodeType, skillType, onUpdateComponent, onUpdateAgentTeam]);
+    setEditContent(content ?? "");
+  }, [nodeId, name, description, content, nodeType, skillType, onUpdateComponent, onUpdateAgentTeam]);
 
   const handleSave = () => {
     // 空文字の名前は保存しない
@@ -91,6 +100,7 @@ export default function SidePanel({
       onUpdateComponent(nodeId, {
         name: editName,
         description: editDescription,
+        content: editContent,
         skillType: skillType ?? undefined,
       });
     }
@@ -148,6 +158,20 @@ export default function SidePanel({
             rows={3}
           />
         </div>
+
+        {/* 本文フィールド（AGENT_TEAMには非表示） */}
+        {componentType !== "AGENT_TEAM" && (
+          <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <label htmlFor="side-panel-content">Content</label>
+            <textarea
+              id="side-panel-content"
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              style={{ flex: 1 }}
+              placeholder="Write content in Markdown..."
+            />
+          </div>
+        )}
 
         {/* skillType（読み取り専用、SKILL/ORCHESTRATORのみ） */}
         {skillType && (componentType === "SKILL" || componentType === "ORCHESTRATOR") && (
