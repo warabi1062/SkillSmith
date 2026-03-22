@@ -151,6 +151,8 @@ export default function PluginGraphSection({
           name={selectedNodeData.name}
           description={selectedNodeData.description}
           content={selectedNodeData.content}
+          input={selectedNodeData.input}
+          output={selectedNodeData.output}
           skillType={selectedNodeData.skillType}
           orchestratorName={selectedNodeData.orchestratorName}
           onUpdateComponent={handleUpdateComponent}

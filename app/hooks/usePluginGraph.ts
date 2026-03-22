@@ -405,7 +405,7 @@ export function usePluginGraph({
   const handleUpdateComponent = useCallback(
     (
       componentId: string,
-      fields: { name: string; description: string; content: string; skillType?: string },
+      fields: { name: string; description: string; content: string; input: string; output: string; skillType?: string },
     ) => {
       updateComponentFetcher.submit(
         {
@@ -414,6 +414,8 @@ export function usePluginGraph({
           name: fields.name,
           description: fields.description,
           content: fields.content,
+          input: fields.input,
+          output: fields.output,
           skillType: fields.skillType ?? "",
         },
         { method: "post", action: `/plugins/${plugin.id}` },
@@ -455,6 +457,8 @@ export function usePluginGraph({
         orchestratorName:
           team.orchestrator.skillConfig?.name ?? "(unnamed)",
         content: "",
+        input: "",
+        output: "",
       };
     }
 
@@ -488,6 +492,8 @@ export function usePluginGraph({
       skillType: comp.skillConfig?.skillType ?? null,
       orchestratorName: null,
       content: comp.skillConfig?.content ?? comp.agentConfig?.content ?? "",
+      input: comp.skillConfig?.input ?? comp.agentConfig?.input ?? "",
+      output: comp.skillConfig?.output ?? comp.agentConfig?.output ?? "",
     };
   }, [selectedNodeId, selectedNodeType, plugin.components, plugin.agentTeams]);
 
