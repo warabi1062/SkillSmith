@@ -140,22 +140,23 @@ export default function PluginGraphSection({
               />
             </Suspense>
           </div>
-          {selectedNodeData && (
-            <SidePanel
-              nodeId={selectedNodeData.nodeId}
-              nodeType={selectedNodeData.nodeType}
-              componentType={selectedNodeData.componentType}
-              name={selectedNodeData.name}
-              description={selectedNodeData.description}
-              skillType={selectedNodeData.skillType}
-              orchestratorName={selectedNodeData.orchestratorName}
-              onUpdateComponent={handleUpdateComponent}
-              onUpdateAgentTeam={handleUpdateAgentTeam}
-              onClose={handleSidePanelClose}
-            />
-          )}
         </div>
       </div>
+
+      {selectedNodeData && (
+        <SidePanel
+          nodeId={selectedNodeData.nodeId}
+          nodeType={selectedNodeData.nodeType}
+          componentType={selectedNodeData.componentType}
+          name={selectedNodeData.name}
+          description={selectedNodeData.description}
+          skillType={selectedNodeData.skillType}
+          orchestratorName={selectedNodeData.orchestratorName}
+          onUpdateComponent={handleUpdateComponent}
+          onUpdateAgentTeam={handleUpdateAgentTeam}
+          onClose={handleSidePanelClose}
+        />
+      )}
 
       <Suspense fallback={null}>
         <ComponentFormModal
