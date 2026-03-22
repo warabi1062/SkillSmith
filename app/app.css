@@ -807,6 +807,20 @@ h3 {
   margin: 0;
 }
 
+.side-panel-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.side-panel-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
 .side-panel-agent-config-section {
   border-top: 1px solid #e5e7eb;
   padding-top: 0.75rem;

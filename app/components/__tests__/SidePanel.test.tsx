@@ -74,23 +74,25 @@ describe("SidePanel", () => {
       expect(screen.getByText("ENTRY_POINT")).toBeTruthy();
     });
 
-    it("WORKER選択時にskillType変更selectが表示されること", () => {
+    it("WORKER選択時にチェックボックスが表示されること", () => {
       renderPanel({
         componentType: "SKILL",
         skillType: "WORKER",
       });
-      const select = screen.getByLabelText("Skill Type");
-      expect(select).toBeTruthy();
-      expect(select.tagName).toBe("SELECT");
+      expect(screen.getByLabelText("Sub Agent")).toBeTruthy();
+      expect(screen.getByLabelText("Agent Team")).toBeTruthy();
+      // どちらもチェックされていない
+      expect((screen.getByLabelText("Sub Agent") as HTMLInputElement).checked).toBe(false);
+      expect((screen.getByLabelText("Agent Team") as HTMLInputElement).checked).toBe(false);
     });
 
-    it("WORKER_WITH_SUB_AGENT選択時にskillType変更selectが表示されること", () => {
+    it("WORKER_WITH_SUB_AGENT選択時にSub Agentがチェックされていること", () => {
       renderPanel({
         componentType: "SKILL",
         skillType: "WORKER_WITH_SUB_AGENT",
       });
-      const select = screen.getByLabelText("Skill Type");
-      expect(select).toBeTruthy();
+      expect((screen.getByLabelText("Sub Agent") as HTMLInputElement).checked).toBe(true);
+      expect((screen.getByLabelText("Agent Team") as HTMLInputElement).checked).toBe(false);
     });
   });
 

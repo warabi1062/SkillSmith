@@ -38,12 +38,11 @@ export interface SidePanelProps {
   onClose: () => void;
 }
 
-// skillType変更時の選択肢（ENTRY_POINTは変更不可のため含まない）
-const WORKER_SKILL_TYPES = [
-  { value: "WORKER", label: "Worker" },
-  { value: "WORKER_WITH_SUB_AGENT", label: "Worker + Sub Agent" },
-  { value: "WORKER_WITH_AGENT_TEAM", label: "Worker + Agent Team" },
-];
+// skillTypeのチェックボックスオプション（排他的）
+const SKILL_TYPE_OPTIONS = [
+  { flag: "subAgent", skillType: "WORKER_WITH_SUB_AGENT", label: "Sub Agent" },
+  { flag: "agentTeam", skillType: "WORKER_WITH_AGENT_TEAM", label: "Agent Team" },
+] as const;
 
 export default function SidePanel({
   nodeId,
@@ -266,20 +265,28 @@ export default function SidePanel({
           />
         </div>
 
-        {/* skillType変更UI（ENTRY_POINTの場合は非表示） */}
+        {/* skillTypeオプション（ENTRY_POINTの場合は非表示） */}
         {showSkillTypeSelect && (
           <div className="form-group">
-            <label htmlFor="side-panel-skill-type">Skill Type</label>
-            <select
-              id="side-panel-skill-type"
-              className="form-select"
-              value={editSkillType}
-              onChange={(e) => setEditSkillType(e.target.value)}
-            >
-              {WORKER_SKILL_TYPES.map((st) => (
-                <option key={st.value} value={st.value}>{st.label}</option>
+            <label>Options</label>
+            <div className="side-panel-checkboxes">
+              {SKILL_TYPE_OPTIONS.map((opt) => (
+                <label key={opt.flag} className="side-panel-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={editSkillType === opt.skillType}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setEditSkillType(opt.skillType);
+                      } else {
+                        setEditSkillType("WORKER");
+                      }
+                    }}
+                  />
+                  {opt.label}
+                </label>
               ))}
-            </select>
+            </div>
           </div>
         )}
 
