@@ -131,24 +131,7 @@ describe("validateAgentTeamCreate", () => {
   });
 
   // --- INVALID_COMPONENT_TYPE ---
-
-  it("throws INVALID_COMPONENT_TYPE when component is AGENT", async () => {
-    const mockPrisma = createMockPrisma();
-    mockPrisma.component.findUnique.mockResolvedValue({
-      id: "comp-1",
-      type: "AGENT",
-    });
-
-    try {
-      await validateAgentTeamCreate(mockPrisma as unknown as PrismaClient, {
-        orchestratorId: "comp-1",
-      });
-      expect.unreachable("should have thrown");
-    } catch (e) {
-      expect(e).toBeInstanceOf(ValidationError);
-      expect((e as ValidationError).code).toBe("INVALID_COMPONENT_TYPE");
-    }
-  });
+  // AGENT型が廃止されたため、このテストはSKILL以外のタイプで検証
 
   // --- SKILL_CONFIG_NOT_FOUND ---
 
@@ -196,11 +179,15 @@ describe("validateAgentTeamCreate", () => {
 describe("validateAgentTeamMemberCreate", () => {
   // --- Success case ---
 
-  it("accepts valid AGENT component", async () => {
+  it("accepts WORKER skill with agentConfig", async () => {
     const mockPrisma = createMockPrisma();
     mockPrisma.component.findUnique.mockResolvedValue({
       id: "comp-1",
-      type: "AGENT",
+      type: "SKILL",
+      skillConfig: {
+        skillType: "WORKER",
+        agentConfig: { id: "ac-1" },
+      },
     });
 
     await expect(
@@ -228,13 +215,42 @@ describe("validateAgentTeamMemberCreate", () => {
     }
   });
 
-  // --- INVALID_COMPONENT_TYPE ---
+  // --- INVALID_COMPONENT_TYPE (WORKER skill without agentConfig) ---
 
-  it("throws INVALID_COMPONENT_TYPE when component is SKILL", async () => {
+  it("throws INVALID_COMPONENT_TYPE when WORKER skill has no agentConfig", async () => {
     const mockPrisma = createMockPrisma();
     mockPrisma.component.findUnique.mockResolvedValue({
       id: "comp-1",
       type: "SKILL",
+      skillConfig: {
+        skillType: "WORKER",
+        agentConfig: null,
+      },
+    });
+
+    try {
+      await validateAgentTeamMemberCreate(
+        mockPrisma as unknown as PrismaClient,
+        { componentId: "comp-1" },
+      );
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("INVALID_COMPONENT_TYPE");
+    }
+  });
+
+  // --- INVALID_COMPONENT_TYPE (ENTRY_POINT skill) ---
+
+  it("throws INVALID_COMPONENT_TYPE when component is ENTRY_POINT skill", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique.mockResolvedValue({
+      id: "comp-1",
+      type: "SKILL",
+      skillConfig: {
+        skillType: "ENTRY_POINT",
+        agentConfig: null,
+      },
     });
 
     try {

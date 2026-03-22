@@ -2,7 +2,6 @@ import type { GeneratedFile, GenerationValidationError } from "./types";
 import {
   serializeFrontmatter,
   parseJsonArrayField,
-  checkHooksField,
 } from "./frontmatter.server";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -18,9 +17,6 @@ interface SkillConfigData {
   userInvocable: boolean;
   allowedTools: string | null;
   context: string | null;
-  agent: string | null;
-  model: string | null;
-  hooks: string | null;
   content: string;
   input: string;
   output: string;
@@ -64,12 +60,6 @@ export function generateSkillMd(component: SkillComponentData): {
     return { file: null, errors };
   }
 
-  // Check hooks
-  const hooksError = checkHooksField(config.hooks, component.id);
-  if (hooksError) {
-    errors.push(hooksError);
-  }
-
   // Parse JSON array fields
   const { parsed: allowedTools, error: allowedToolsError } =
     parseJsonArrayField(config.allowedTools, "allowed-tools", component.id);
@@ -102,12 +92,6 @@ export function generateSkillMd(component: SkillComponentData): {
   }
   if (config.context) {
     frontmatterFields.context = config.context;
-  }
-  if (config.agent) {
-    frontmatterFields.agent = config.agent;
-  }
-  if (config.model) {
-    frontmatterFields.model = config.model;
   }
   if (config.input) {
     frontmatterFields.input = config.input;

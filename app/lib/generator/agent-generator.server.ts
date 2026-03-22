@@ -7,9 +7,7 @@ import {
 
 interface AgentConfigData {
   id: string;
-  componentId: string;
-  name: string;
-  description: string;
+  skillConfigId: string;
   model: string | null;
   tools: string | null;
   disallowedTools: string | null;
@@ -17,23 +15,19 @@ interface AgentConfigData {
   hooks: string | null;
   memory: string | null;
   content: string;
+}
+
+interface SkillConfigInfo {
+  name: string;
+  description: string | null;
   input: string;
   output: string;
-}
-
-interface DependencyTarget {
-  skillConfig: { name: string } | null;
-}
-
-interface DependencyData {
-  target: DependencyTarget;
-  order: number;
 }
 
 interface AgentComponentData {
   id: string;
   agentConfig: AgentConfigData;
-  dependenciesFrom: DependencyData[];
+  skillConfig: SkillConfigInfo;
 }
 
 export function generateAgentMd(component: AgentComponentData): {
@@ -42,24 +36,17 @@ export function generateAgentMd(component: AgentComponentData): {
 } {
   const errors: GenerationValidationError[] = [];
   const config = component.agentConfig;
+  const skillConfig = component.skillConfig;
 
-  // Validate agent name convention
-  if (!config.name.endsWith("-agent")) {
-    errors.push({
-      severity: "warning",
-      code: "AGENT_NAME_CONVENTION",
-      message: `Agent name "${config.name}" does not end with "-agent"`,
-      componentId: component.id,
-      field: "name",
-    });
-  }
+  // Agent名はskillConfig.nameから導出: "{name}-agent"
+  const agentName = `${skillConfig.name}-agent`;
 
   // contentが空の場合はエラー
   if (!config.content) {
     errors.push({
       severity: "error",
       code: "EMPTY_CONTENT",
-      message: `Agent "${config.name}" has no content`,
+      message: `Agent "${agentName}" has no content`,
       componentId: component.id,
     });
     return { file: null, errors };
@@ -91,19 +78,13 @@ export function generateAgentMd(component: AgentComponentData): {
     errors.push(disallowedToolsError);
   }
 
-  // Derive skills from dependencies (Agent -> Skill)
-  const skillNames = component.dependenciesFrom
-    .sort((a, b) => a.order - b.order)
-    .filter((dep) => dep.target.skillConfig != null)
-    .map((dep) => dep.target.skillConfig!.name);
-
   // Build frontmatter
   const frontmatterFields: Record<
     string,
     string | number | boolean | string[] | null | undefined
   > = {
-    name: config.name,
-    description: config.description,
+    name: agentName,
+    description: skillConfig.description ?? undefined,
   };
 
   if (config.model) {
@@ -115,20 +96,19 @@ export function generateAgentMd(component: AgentComponentData): {
   if (disallowedTools) {
     frontmatterFields.disallowedTools = disallowedTools;
   }
-  if (skillNames.length > 0) {
-    frontmatterFields.skills = skillNames;
-  }
+  // skills: SkillConfigのnameを使用
+  frontmatterFields.skills = [skillConfig.name];
   if (config.permissionMode) {
     frontmatterFields.permissionMode = config.permissionMode;
   }
   if (config.memory) {
     frontmatterFields.memory = config.memory;
   }
-  if (config.input) {
-    frontmatterFields.input = config.input;
+  if (skillConfig.input) {
+    frontmatterFields.input = skillConfig.input;
   }
-  if (config.output) {
-    frontmatterFields.output = config.output;
+  if (skillConfig.output) {
+    frontmatterFields.output = skillConfig.output;
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
@@ -136,7 +116,7 @@ export function generateAgentMd(component: AgentComponentData): {
 
   return {
     file: {
-      path: `agents/${config.name}.md`,
+      path: `agents/${agentName}.md`,
       content,
       componentId: component.id,
     },

@@ -77,9 +77,6 @@ const defaultSkillConfigFields = {
   userInvocable: true,
   allowedTools: null,
   context: null,
-  agent: null,
-  model: null,
-  hooks: null,
   content: "",
 };
 
@@ -92,6 +89,7 @@ function createSkillConfig(
     description: "desc",
     skillType: "WORKER",
     componentId: "comp-1",
+    agentConfig: null,
     ...defaultSkillConfigFields,
     ...overrides,
   } as Plugin["components"][number]["skillConfig"];
@@ -107,7 +105,6 @@ function createComponent(
     createdAt: new Date(),
     updatedAt: new Date(),
     skillConfig: createSkillConfig(),
-    agentConfig: null,
     dependenciesFrom: [],
     files: [],
     ...overrides,
@@ -287,26 +284,6 @@ describe("usePluginGraph", () => {
       expect(node.data.pluginId).toBe("plugin-1");
     });
 
-    it("injects componentId and pluginId into agent nodes", () => {
-      const comp = createComponent({ id: "agent-1", type: "AGENT" });
-      const plugin = createPlugin({ components: [comp] });
-
-      mockBuildGraphData.mockReturnValue({
-        nodes: [
-          { id: "agent-1", type: "agent", position: { x: 0, y: 0 }, data: { label: "B" } },
-        ],
-        edges: [],
-      });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      const node = result.current.graphDataWithPositions.nodes[0];
-      expect(node.data.componentId).toBe("agent-1");
-      expect(node.data.pluginId).toBe("plugin-1");
-    });
-
     it("injects componentId and pluginId into orchestrator nodes", () => {
       const comp = createComponent({ id: "orch-1", type: "SKILL" });
       const plugin = createPlugin({ components: [comp] });
@@ -345,6 +322,42 @@ describe("usePluginGraph", () => {
       const node = result.current.graphDataWithPositions.nodes[0];
       expect(node.data.teamId).toBe("team-1");
       expect(node.data.pluginId).toBe("plugin-1");
+    });
+  });
+
+  describe("handleCreateComponent", () => {
+    it("calls onModalStateChange with create mode", () => {
+      const onModalStateChange = vi.fn();
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ onModalStateChange })),
+      );
+
+      act(() => {
+        result.current.handleCreateComponent();
+      });
+
+      expect(onModalStateChange).toHaveBeenCalledWith({
+        isOpen: true,
+        mode: "create",
+      });
+    });
+  });
+
+  describe("handleDeleteComponent", () => {
+    it("submits delete-component with correct args", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleDeleteComponent("comp-1");
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        { intent: "delete-component", componentId: "comp-1" },
+        { method: "post", action: "/plugins/plugin-1" },
+      );
     });
   });
 
@@ -398,43 +411,6 @@ describe("usePluginGraph", () => {
       expect(mockSubmit).toHaveBeenCalledWith(
         { intent: "remove-dependency", dependencyId: "dep-1" },
         { method: "post" },
-      );
-    });
-  });
-
-  describe("handleCreateComponent", () => {
-    it("calls onModalStateChange with create mode", () => {
-      const onModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ onModalStateChange })),
-      );
-
-      act(() => {
-        result.current.handleCreateComponent("SKILL");
-      });
-
-      expect(onModalStateChange).toHaveBeenCalledWith({
-        isOpen: true,
-        mode: "create",
-        componentType: "SKILL",
-      });
-    });
-  });
-
-  describe("handleDeleteComponent", () => {
-    it("submits delete-component with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleDeleteComponent("comp-1");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "delete-component", componentId: "comp-1" },
-        { method: "post", action: "/plugins/plugin-1" },
       );
     });
   });
@@ -582,22 +558,6 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("handleResetLayout", () => {
-    it("calls clearGraphPositions and increments resetCounter", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      const initialCounter = result.current.resetCounter;
-      act(() => {
-        result.current.handleResetLayout();
-      });
-
-      expect(mockClearGraphPositions).toHaveBeenCalledWith("plugin-1");
-      expect(result.current.resetCounter).toBe(initialCounter + 1);
-    });
-  });
-
   describe("handleReorderStep", () => {
     it("submits reorder-dependency with correct args", () => {
       const { result } = renderHook(() =>
@@ -705,28 +665,8 @@ describe("usePluginGraph", () => {
           componentId: "w-1",
         }),
       });
-      const agent = createComponent({
-        id: "a-1",
-        type: "AGENT",
-        skillConfig: null,
-        agentConfig: {
-          id: "ac-1",
-          name: "Agent",
-          description: "",
-          componentId: "a-1",
-          model: null,
-          hooks: null,
-          tools: null,
-          disallowedTools: null,
-          permissionMode: null,
-          memory: null,
-          content: "",
-          input: "",
-          output: "",
-        },
-      });
       const plugin = createPlugin({
-        components: [entryPoint, worker, agent],
+        components: [entryPoint, worker],
       });
 
       const { result } = renderHook(() =>
@@ -736,6 +676,83 @@ describe("usePluginGraph", () => {
       expect(result.current.entryPointSkills).toEqual([
         { id: "ep-1", skillConfig: { name: "Entry Point" } },
       ]);
+    });
+  });
+
+  describe("membersModalAgentComponents computation", () => {
+    it("filters WORKER Skill + agentConfig components", () => {
+      const workerWithAgent = createComponent({
+        id: "w-1",
+        type: "SKILL",
+        skillConfig: createSkillConfig({
+          id: "sc-1",
+          name: "Worker With Agent",
+          skillType: "WORKER",
+          componentId: "w-1",
+          agentConfig: {
+            id: "ac-1",
+            skillConfigId: "sc-1",
+            model: null,
+            tools: null,
+            disallowedTools: null,
+            permissionMode: null,
+            hooks: null,
+            memory: null,
+            content: "",
+          },
+        }),
+      });
+      const workerWithoutAgent = createComponent({
+        id: "w-2",
+        type: "SKILL",
+        skillConfig: createSkillConfig({
+          id: "sc-2",
+          name: "Worker Without Agent",
+          skillType: "WORKER",
+          componentId: "w-2",
+          agentConfig: null,
+        }),
+      });
+      const entryPoint = createComponent({
+        id: "ep-1",
+        type: "SKILL",
+        skillConfig: createSkillConfig({
+          id: "sc-3",
+          name: "Entry Point",
+          skillType: "ENTRY_POINT",
+          componentId: "ep-1",
+        }),
+      });
+      const plugin = createPlugin({
+        components: [workerWithAgent, workerWithoutAgent, entryPoint],
+      });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      expect(result.current.membersModalAgentComponents).toEqual([
+        { id: "w-1", skillConfig: { name: "Worker With Agent" } },
+      ]);
+    });
+  });
+
+  describe("handleModalClose", () => {
+    it("calls onModalStateChange with closed state", () => {
+      const onModalStateChange = vi.fn();
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ onModalStateChange })),
+      );
+
+      act(() => {
+        result.current.handleModalClose();
+      });
+
+      expect(onModalStateChange).toHaveBeenCalledWith({
+        isOpen: false,
+        mode: "create",
+      });
     });
   });
 
@@ -848,11 +865,26 @@ describe("usePluginGraph", () => {
           sortOrder: 0,
           component: {
             id: "comp-1",
-            type: "AGENT",
+            type: "SKILL" as const,
             pluginId: "plugin-1",
             createdAt: new Date(),
             updatedAt: new Date(),
-            agentConfig: { name: "Agent A" },
+            skillConfig: createSkillConfig({
+              name: "Worker Skill",
+              skillType: "WORKER",
+              componentId: "comp-1",
+              agentConfig: {
+                id: "ac-1",
+                skillConfigId: "sc-1",
+                model: null,
+                tools: null,
+                disallowedTools: null,
+                permissionMode: null,
+                hooks: null,
+                memory: null,
+                content: "",
+              },
+            }),
           },
         },
       ];
@@ -884,60 +916,6 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("membersModalAgentComponents computation", () => {
-    it("filters AGENT components and maps to id/name", () => {
-      const skill = createComponent({ id: "s-1", type: "SKILL" });
-      const agent = createComponent({
-        id: "a-1",
-        type: "AGENT",
-        skillConfig: null,
-        agentConfig: {
-          id: "ac-1",
-          name: "My Agent",
-          description: "",
-          componentId: "a-1",
-          model: null,
-          hooks: null,
-          tools: null,
-          disallowedTools: null,
-          permissionMode: null,
-          memory: null,
-          content: "",
-          input: "",
-          output: "",
-        },
-      });
-      const plugin = createPlugin({ components: [skill, agent] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      expect(result.current.membersModalAgentComponents).toEqual([
-        { id: "a-1", agentConfig: { name: "My Agent" } },
-      ]);
-    });
-  });
-
-  describe("handleModalClose", () => {
-    it("calls onModalStateChange with closed state", () => {
-      const onModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ onModalStateChange })),
-      );
-
-      act(() => {
-        result.current.handleModalClose();
-      });
-
-      expect(onModalStateChange).toHaveBeenCalledWith({
-        isOpen: false,
-        mode: "create",
-      });
-    });
-  });
-
   describe("auto-layout", () => {
     it("returns autoLayoutPending as false initially", () => {
       const { result } = renderHook(() =>
@@ -958,13 +936,13 @@ describe("usePluginGraph", () => {
         edges: [],
       });
 
-      // Start with loading state (simulates all fetchers in loading state)
+      // fetcherがloading状態からidle状態に遷移したときにフラグを設定
       mockFetcherData.state = "loading";
       const { result, rerender } = renderHook(() =>
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
-      // Transition to idle triggers the auto-layout pending flag
+      // idleに遷移すると自動レイアウトフラグが立つ
       mockFetcherData.state = "idle";
       rerender();
 
@@ -982,19 +960,19 @@ describe("usePluginGraph", () => {
         edges: [],
       });
 
-      // Start with loading state
+      // loading状態から開始
       mockFetcherData.state = "loading";
       const { result, rerender } = renderHook(() =>
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
-      // Transition to idle
+      // idleに遷移
       mockFetcherData.state = "idle";
       rerender();
 
       expect(result.current.autoLayoutPending).toBe(true);
 
-      // Apply the layout
+      // レイアウト適用
       act(() => {
         result.current.handleAutoLayoutApplied();
       });
@@ -1016,6 +994,22 @@ describe("usePluginGraph", () => {
         "plugin-1",
         positions,
       );
+    });
+  });
+
+  describe("handleResetLayout", () => {
+    it("calls clearGraphPositions and increments resetCounter", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      const initialCounter = result.current.resetCounter;
+      act(() => {
+        result.current.handleResetLayout();
+      });
+
+      expect(mockClearGraphPositions).toHaveBeenCalledWith("plugin-1");
+      expect(result.current.resetCounter).toBe(initialCounter + 1);
     });
   });
 });

@@ -13,14 +13,12 @@ import {
 import "@xyflow/react/dist/style.css";
 import OrchestratorNode from "./OrchestratorNode";
 import SkillNode from "./SkillNode";
-import AgentNode from "./AgentNode";
 import AgentTeamNode from "./AgentTeamNode";
 import { computeAutoLayout } from "../lib/auto-layout";
 
 const nodeTypes = {
   orchestrator: OrchestratorNode,
   skill: SkillNode,
-  agent: AgentNode,
   agentteam: AgentTeamNode,
 };
 
@@ -41,7 +39,7 @@ interface DependencyGraphProps {
   }>;
   onConnect: (sourceId: string, targetId: string, sourceHandle?: string) => void;
   onEdgeClick: (dependencyId: string) => void;
-  onCreateComponent?: (type: "SKILL" | "AGENT") => void;
+  onCreateComponent?: () => void;
   onDeleteComponent?: (componentId: string) => void;
   onManageFiles?: (componentId: string) => void;
   onCreateAgentTeam?: () => void;
@@ -254,8 +252,12 @@ export default function DependencyGraph({
       const targetComp = components.find((c) => c.id === target);
       if (!sourceComp || !targetComp) return false;
 
-      // Agent -> Skill: ターゲットはWORKERでなければならない
-      if (sourceComp.type === "AGENT" && targetComp.type === "SKILL") {
+      // EntryPoint -> Skill: ターゲットはWORKERでなければならない
+      if (
+        sourceComp.type === "SKILL" &&
+        sourceComp.skillConfig?.skillType === "ENTRY_POINT" &&
+        targetComp.type === "SKILL"
+      ) {
         if (targetComp.skillConfig?.skillType !== "WORKER") return false;
       }
 
@@ -420,22 +422,13 @@ export default function DependencyGraph({
           <Panel position="top-right">
             <div className="graph-toolbar">
               {onCreateComponent && (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={() => onCreateComponent("SKILL")}
-                  >
-                    + New Skill
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => onCreateComponent("AGENT")}
-                  >
-                    + New Agent
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => onCreateComponent()}
+                >
+                  + New Skill
+                </button>
               )}
               {onCreateAgentTeam && (
                 <button

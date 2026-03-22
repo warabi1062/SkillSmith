@@ -10,9 +10,6 @@ function makeSkillComponent(overrides: {
   userInvocable?: boolean;
   allowedTools?: string | null;
   context?: string | null;
-  agent?: string | null;
-  model?: string | null;
-  hooks?: string | null;
   input?: string;
   output?: string;
 }) {
@@ -28,9 +25,6 @@ function makeSkillComponent(overrides: {
       userInvocable: overrides.userInvocable ?? true,
       allowedTools: overrides.allowedTools ?? null,
       context: overrides.context ?? null,
-      agent: overrides.agent ?? null,
-      model: overrides.model ?? null,
-      hooks: overrides.hooks ?? null,
       content: overrides.content ?? "# Hello",
       input: overrides.input ?? "",
       output: overrides.output ?? "",
@@ -114,14 +108,6 @@ describe("generateSkillMd", () => {
     );
     expect(file).toBeNull();
     expect(errors.some((e) => e.code === "EMPTY_CONTENT")).toBe(true);
-  });
-
-  it("returns warning when hooks field is set", () => {
-    const { file, errors } = generateSkillMd(
-      makeSkillComponent({ hooks: "some-hook" }),
-    );
-    expect(file).not.toBeNull();
-    expect(errors.some((e) => e.code === "HOOKS_NOT_SUPPORTED")).toBe(true);
   });
 
   it("includes input in frontmatter when set", () => {

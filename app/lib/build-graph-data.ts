@@ -161,7 +161,7 @@ export function buildGraphData(
   const dagrePositions = hasCycle ? null : getPositionWithDagre();
 
   const nodes: Node[] = components.map((c, i) => {
-    const label = c.skillConfig?.name ?? c.agentConfig?.name ?? "(unnamed)";
+    const label = c.skillConfig?.name ?? "(unnamed)";
     const isOrchestrator = c.skillConfig?.skillType === "ENTRY_POINT";
     const position = hasCycle
       ? getPositionGrid(c.id, i)
@@ -197,15 +197,19 @@ export function buildGraphData(
       };
     }
 
+    // WORKER SkillにagentConfigが紐付いているかどうか
+    const hasAgentConfig = !!(c.skillConfig?.agentConfig);
+
     return {
       id: c.id,
       position,
-      type: c.type === "SKILL" ? "skill" : "agent",
+      type: "skill",
       data: {
         label,
-        description: c.skillConfig?.description ?? c.agentConfig?.description ?? null,
+        description: c.skillConfig?.description ?? null,
         componentType: c.type,
         skillType: c.skillConfig?.skillType ?? null,
+        hasAgentConfig,
       },
     };
   });

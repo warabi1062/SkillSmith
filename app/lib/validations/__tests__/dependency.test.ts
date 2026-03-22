@@ -22,9 +22,9 @@ describe("validateDependencyCreate", () => {
     mockPrisma.component.findUnique
       .mockResolvedValueOnce({
         id: "source-1",
-        type: "AGENT",
+        type: "SKILL",
         pluginId: "plugin-1",
-        skillConfig: null,
+        skillConfig: { skillType: "ENTRY_POINT" },
       })
       .mockResolvedValueOnce({
         id: "target-1",
@@ -169,19 +169,19 @@ describe("validateDependencyCreate", () => {
     }
   });
 
-  // --- INVALID_SKILL_TYPE (Agent -> ENTRY_POINT) ---
+  // --- INVALID_SKILL_TYPE (EntryPoint -> ENTRY_POINT) ---
 
-  it("throws INVALID_SKILL_TYPE when Agent depends on ENTRY_POINT skill", async () => {
+  it("throws INVALID_SKILL_TYPE when EntryPoint depends on ENTRY_POINT skill", async () => {
     const mockPrisma = createMockPrisma();
     mockPrisma.component.findUnique
       .mockResolvedValueOnce({
-        id: "agent-1",
-        type: "AGENT",
+        id: "ep-1",
+        type: "SKILL",
         pluginId: "plugin-1",
-        skillConfig: null,
+        skillConfig: { skillType: "ENTRY_POINT" },
       })
       .mockResolvedValueOnce({
-        id: "skill-1",
+        id: "ep-2",
         type: "SKILL",
         pluginId: "plugin-1",
         skillConfig: { skillType: "ENTRY_POINT" },
@@ -189,8 +189,8 @@ describe("validateDependencyCreate", () => {
 
     try {
       await validateDependencyCreate(mockPrisma as unknown as PrismaLike, {
-        sourceId: "agent-1",
-        targetId: "skill-1",
+        sourceId: "ep-1",
+        targetId: "ep-2",
       });
       expect.unreachable("should have thrown");
     } catch (e) {

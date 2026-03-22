@@ -26,21 +26,26 @@ describe("validateComponentData", () => {
     ).not.toThrow();
   });
 
-  it("accepts valid AGENT component", () => {
-    expect(() =>
-      validateComponentData({
-        type: "AGENT",
-        name: "my-agent",
-        description: "Agent description",
-      }),
-    ).not.toThrow();
-  });
-
   // --- INVALID_TYPE ---
 
   it("throws INVALID_TYPE for unknown type", () => {
     try {
       validateComponentData({ type: "UNKNOWN", name: "x" });
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).field).toBe("type");
+      expect((e as ValidationError).code).toBe("INVALID_TYPE");
+    }
+  });
+
+  it("throws INVALID_TYPE for AGENT type (AGENT型は廃止)", () => {
+    try {
+      validateComponentData({
+        type: "AGENT",
+        name: "my-agent",
+        description: "Agent description",
+      });
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -78,9 +83,9 @@ describe("validateComponentData", () => {
     const name = "a".repeat(100);
     expect(() =>
       validateComponentData({
-        type: "AGENT",
+        type: "SKILL",
         name,
-        description: "desc",
+        skillType: "WORKER",
       }),
     ).not.toThrow();
   });
@@ -88,7 +93,7 @@ describe("validateComponentData", () => {
   it("throws NAME_TOO_LONG for name at 101 characters", () => {
     const name = "a".repeat(101);
     try {
-      validateComponentData({ type: "AGENT", name, description: "desc" });
+      validateComponentData({ type: "SKILL", name, skillType: "WORKER" });
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -101,9 +106,9 @@ describe("validateComponentData", () => {
   it("throws INVALID_NAME_FORMAT for uppercase letters", () => {
     try {
       validateComponentData({
-        type: "AGENT",
+        type: "SKILL",
         name: "MySkill",
-        description: "desc",
+        skillType: "WORKER",
       });
       expect.unreachable("should have thrown");
     } catch (e) {
@@ -115,9 +120,9 @@ describe("validateComponentData", () => {
   it("throws INVALID_NAME_FORMAT for name starting with hyphen", () => {
     try {
       validateComponentData({
-        type: "AGENT",
+        type: "SKILL",
         name: "-my-skill",
-        description: "desc",
+        skillType: "WORKER",
       });
       expect.unreachable("should have thrown");
     } catch (e) {
@@ -131,9 +136,10 @@ describe("validateComponentData", () => {
   it("accepts description at exactly 500 characters", () => {
     expect(() =>
       validateComponentData({
-        type: "AGENT",
-        name: "my-agent",
+        type: "SKILL",
+        name: "my-skill",
         description: "a".repeat(500),
+        skillType: "WORKER",
       }),
     ).not.toThrow();
   });
@@ -141,9 +147,10 @@ describe("validateComponentData", () => {
   it("throws DESCRIPTION_TOO_LONG for description at 501 characters", () => {
     try {
       validateComponentData({
-        type: "AGENT",
-        name: "my-agent",
+        type: "SKILL",
+        name: "my-skill",
         description: "a".repeat(501),
+        skillType: "WORKER",
       });
       expect.unreachable("should have thrown");
     } catch (e) {
@@ -177,18 +184,6 @@ describe("validateComponentData", () => {
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
       expect((e as ValidationError).code).toBe("INVALID_SKILL_TYPE");
-    }
-  });
-
-  // --- DESCRIPTION_REQUIRED (AGENT) ---
-
-  it("throws DESCRIPTION_REQUIRED when AGENT has no description", () => {
-    try {
-      validateComponentData({ type: "AGENT", name: "my-agent" });
-      expect.unreachable("should have thrown");
-    } catch (e) {
-      expect(e).toBeInstanceOf(ValidationError);
-      expect((e as ValidationError).code).toBe("DESCRIPTION_REQUIRED");
     }
   });
 });

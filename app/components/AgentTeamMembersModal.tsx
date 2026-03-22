@@ -11,12 +11,12 @@ interface AgentTeamMembersModalProps {
     id: string;
     component: {
       id: string;
-      agentConfig: { name: string } | null;
+      skillConfig: { name: string } | null;
     };
   }>;
   agentComponents: Array<{
     id: string;
-    agentConfig: { name: string } | null;
+    skillConfig: { name: string } | null;
   }>;
 }
 
@@ -127,16 +127,16 @@ export default function AgentTeamMembersModal({
                 }}
               >
                 <span className="component-item-name">
-                  {member.component.agentConfig?.name ?? "(unnamed)"}
+                  {member.component.skillConfig?.name ?? "(unnamed)"}
                 </span>
-                <span className="badge badge-agent">AGENT</span>
+                <span className="badge badge-skill">WORKER + AGENT</span>
               </div>
               <button
                 type="button"
                 className="btn btn-danger btn-sm"
                 onClick={() => {
                   const name =
-                    member.component.agentConfig?.name ?? "(unnamed)";
+                    member.component.skillConfig?.name ?? "(unnamed)";
                   if (
                     window.confirm(
                       `Remove "${name}" from the team?`,
@@ -183,7 +183,7 @@ export default function AgentTeamMembersModal({
           <input type="hidden" name="teamId" value={teamId} />
 
           <div className="form-group">
-            <label htmlFor="members-modal-componentId">Agent</label>
+            <label htmlFor="members-modal-componentId">Worker Skill (with Agent)</label>
             <select
               id="members-modal-componentId"
               name="componentId"
@@ -191,10 +191,10 @@ export default function AgentTeamMembersModal({
               className="form-select"
               required
             >
-              <option value="">-- Select an Agent --</option>
+              <option value="">-- Select a Worker Skill --</option>
               {agentComponents.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.agentConfig?.name ?? "(unnamed)"}
+                  {c.skillConfig?.name ?? "(unnamed)"}
                 </option>
               ))}
             </select>

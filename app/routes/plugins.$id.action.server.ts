@@ -6,6 +6,8 @@ import {
   createComponent,
   updateComponent,
   deleteComponent,
+  addAgentConfig,
+  removeAgentConfig,
   getAgentTeam,
   createAgentTeam,
   updateAgentTeam,
@@ -70,7 +72,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     const component = await createComponent(params.id, {
-      type: type as "SKILL" | "AGENT",
+      type: type as "SKILL",
       name,
       description: description || null,
       skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
@@ -114,14 +116,48 @@ export async function action({ request, params }: Route.ActionArgs) {
       throw error;
     }
 
+    // agentConfigフィールドの取得（WORKER Skill + agentConfig有りの場合）
+    const agentModel = String(formData.get("agentModel") ?? "");
+    const agentTools = String(formData.get("agentTools") ?? "");
+    const agentDisallowedTools = String(formData.get("agentDisallowedTools") ?? "");
+    const agentPermissionMode = String(formData.get("agentPermissionMode") ?? "");
+    const agentHooks = String(formData.get("agentHooks") ?? "");
+    const agentMemory = String(formData.get("agentMemory") ?? "");
+    const agentContent = String(formData.get("agentContent") ?? "");
+
+    // agentConfig関連フィールドが1つでも送信されていればagentConfigを更新
+    const agentConfigFieldNames = [
+      "agentModel",
+      "agentContent",
+      "agentTools",
+      "agentDisallowedTools",
+      "agentPermissionMode",
+      "agentHooks",
+      "agentMemory",
+    ];
+    const hasAgentFields = agentConfigFieldNames.some((f) => formData.has(f));
+
     await updateComponent(componentId, {
-      type: type as "SKILL" | "AGENT",
+      type: type as "SKILL",
       name,
       description: description || null,
       skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
       content,
       input,
       output,
+      ...(hasAgentFields
+        ? {
+            agentConfig: {
+              model: agentModel,
+              tools: agentTools,
+              disallowedTools: agentDisallowedTools,
+              permissionMode: agentPermissionMode,
+              hooks: agentHooks,
+              memory: agentMemory,
+              content: agentContent,
+            },
+          }
+        : {}),
     });
 
     return { success: true, componentId };
@@ -140,6 +176,40 @@ export async function action({ request, params }: Route.ActionArgs) {
     } catch (error) {
       if (error instanceof ValidationError) {
         return data({ error: error.message }, { status: 409 });
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "add-agent-config") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+    try {
+      await addAgentConfig(componentId);
+      return { success: true, componentId };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data({ error: error.message }, { status: 400 });
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "remove-agent-config") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+    try {
+      await removeAgentConfig(componentId);
+      return { success: true, componentId };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data({ error: error.message }, { status: 400 });
       }
       throw error;
     }

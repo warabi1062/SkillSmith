@@ -164,18 +164,20 @@ describe("plugins.server", () => {
       expect(component.skillConfig!.skillType).toBe("ENTRY_POINT");
     });
 
-    it("createComponent(AGENT): creates with agentConfig", async () => {
+    it("createComponent(WORKER): creates with skillConfig and agentConfig", async () => {
       const plugin = await createPlugin({ name: "P" });
 
       const component = await createComponent(plugin.id, {
-        type: "AGENT",
-        name: "my-agent",
-        description: "An agent",
+        type: "SKILL",
+        name: "my-worker",
+        skillType: "WORKER",
+        description: "A worker",
       });
 
-      expect(component.type).toBe("AGENT");
-      expect(component.agentConfig).not.toBeNull();
-      expect(component.agentConfig!.name).toBe("my-agent");
+      expect(component.type).toBe("SKILL");
+      expect(component.skillConfig).not.toBeNull();
+      expect(component.skillConfig!.name).toBe("my-worker");
+      expect(component.skillConfig!.agentConfig).not.toBeNull();
     });
 
     it("getComponent: returns component with includes", async () => {
@@ -334,16 +336,18 @@ describe("plugins.server", () => {
       expect(result).toBeNull();
     });
 
-    it("addAgentTeamMember: adds a member", async () => {
+    it("addAgentTeamMember: adds a WORKER Skill member", async () => {
       const plugin = await createPlugin({ name: "P" });
       const orch = await createComponent(plugin.id, {
         type: "SKILL",
         name: "orch",
         skillType: "ENTRY_POINT",
       });
-      const agent = await createComponent(plugin.id, {
-        type: "AGENT",
-        name: "agent",
+      // WORKER Skill は自動的に agentConfig を持つ
+      const worker = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "worker",
+        skillType: "WORKER",
       });
       const team = await createAgentTeam(plugin.id, {
         orchestratorId: orch.id,
@@ -351,11 +355,11 @@ describe("plugins.server", () => {
       });
 
       const member = await addAgentTeamMember(team.id, {
-        componentId: agent.id,
+        componentId: worker.id,
       });
 
       expect(member.teamId).toBe(team.id);
-      expect(member.componentId).toBe(agent.id);
+      expect(member.componentId).toBe(worker.id);
     });
 
     it("addAgentTeamMember: throws DUPLICATE_MEMBER on duplicate", async () => {
@@ -365,19 +369,20 @@ describe("plugins.server", () => {
         name: "orch",
         skillType: "ENTRY_POINT",
       });
-      const agent = await createComponent(plugin.id, {
-        type: "AGENT",
-        name: "agent",
+      const worker = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "worker",
+        skillType: "WORKER",
       });
       const team = await createAgentTeam(plugin.id, {
         orchestratorId: orch.id,
         name: "Team",
       });
 
-      await addAgentTeamMember(team.id, { componentId: agent.id });
+      await addAgentTeamMember(team.id, { componentId: worker.id });
 
       await expect(
-        addAgentTeamMember(team.id, { componentId: agent.id }),
+        addAgentTeamMember(team.id, { componentId: worker.id }),
       ).rejects.toThrow(ValidationError);
     });
 
@@ -388,16 +393,17 @@ describe("plugins.server", () => {
         name: "orch",
         skillType: "ENTRY_POINT",
       });
-      const agent = await createComponent(plugin.id, {
-        type: "AGENT",
-        name: "agent",
+      const worker = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "worker",
+        skillType: "WORKER",
       });
       const team = await createAgentTeam(plugin.id, {
         orchestratorId: orch.id,
         name: "Team",
       });
       const member = await addAgentTeamMember(team.id, {
-        componentId: agent.id,
+        componentId: worker.id,
       });
 
       await removeAgentTeamMember(member.id);
@@ -528,24 +534,26 @@ describe("plugins.server", () => {
       expect(updated.skillConfig!.output).toBe("- 実装結果のパス");
     });
 
-    it("updateComponent(AGENT): input/outputが保存・取得できる", async () => {
+    it("updateComponent(WORKER SKILL): agentConfigの更新ができる", async () => {
       const plugin = await createPlugin({ name: "P" });
       const created = await createComponent(plugin.id, {
-        type: "AGENT",
-        name: "a",
-        description: "desc",
+        type: "SKILL",
+        name: "w",
+        skillType: "WORKER",
       });
 
       const updated = await updateComponent(created.id, {
-        type: "AGENT",
-        name: "a",
-        description: "desc",
-        input: "入力テキスト",
-        output: "出力テキスト",
+        type: "SKILL",
+        name: "w",
+        skillType: "WORKER",
+        agentConfig: {
+          model: "sonnet",
+          content: "# Agent body",
+        },
       });
 
-      expect(updated.agentConfig!.input).toBe("入力テキスト");
-      expect(updated.agentConfig!.output).toBe("出力テキスト");
+      expect(updated.skillConfig!.agentConfig!.model).toBe("sonnet");
+      expect(updated.skillConfig!.agentConfig!.content).toBe("# Agent body");
     });
 
     it("updateComponent: input/outputが未指定の場合は既存値が保持される", async () => {
