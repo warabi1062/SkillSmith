@@ -4,7 +4,7 @@ import { generateAgentMd } from "../agent-generator.server";
 function makeAgentComponent(overrides: {
   name?: string;
   description?: string;
-  files?: { role: string; content: string }[];
+  content?: string;
   model?: string | null;
   tools?: string | null;
   disallowedTools?: string | null;
@@ -29,8 +29,8 @@ function makeAgentComponent(overrides: {
       permissionMode: overrides.permissionMode ?? null,
       hooks: overrides.hooks ?? null,
       memory: overrides.memory ?? null,
+      content: overrides.content ?? "# Agent body",
     },
-    files: overrides.files ?? [{ role: "MAIN", content: "# Agent body" }],
     dependenciesFrom: overrides.dependenciesFrom ?? [],
   };
 }
@@ -61,12 +61,12 @@ describe("generateAgentMd", () => {
     expect(errors.some((e) => e.code === "AGENT_NAME_CONVENTION")).toBe(false);
   });
 
-  it("returns error when MAIN file is missing", () => {
+  it("returns error when content is empty", () => {
     const { file, errors } = generateAgentMd(
-      makeAgentComponent({ files: [] }),
+      makeAgentComponent({ content: "" }),
     );
     expect(file).toBeNull();
-    expect(errors.some((e) => e.code === "MISSING_MAIN_FILE")).toBe(true);
+    expect(errors.some((e) => e.code === "EMPTY_CONTENT")).toBe(true);
   });
 
   it("includes model in frontmatter when set", () => {

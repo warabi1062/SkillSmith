@@ -21,17 +21,12 @@ interface SkillConfigData {
   agent: string | null;
   model: string | null;
   hooks: string | null;
-}
-
-interface ComponentFileData {
-  role: string;
   content: string;
 }
 
 interface SkillComponentData {
   id: string;
   skillConfig: SkillConfigData;
-  files: ComponentFileData[];
 }
 
 export function generateSkillMd(component: SkillComponentData): {
@@ -56,13 +51,12 @@ export function generateSkillMd(component: SkillComponentData): {
     return { file: null, errors };
   }
 
-  // Find MAIN file
-  const mainFile = component.files.find((f) => f.role === "MAIN");
-  if (!mainFile) {
+  // contentが空の場合はエラー
+  if (!config.content) {
     errors.push({
       severity: "error",
-      code: "MISSING_MAIN_FILE",
-      message: `Skill "${config.name}" has no MAIN file`,
+      code: "EMPTY_CONTENT",
+      message: `Skill "${config.name}" has no content`,
       componentId: component.id,
     });
     return { file: null, errors };
@@ -115,7 +109,7 @@ export function generateSkillMd(component: SkillComponentData): {
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
-  const content = `${frontmatter}\n\n${mainFile.content}\n`;
+  const content = `${frontmatter}\n\n${config.content}\n`;
 
   return {
     file: {
