@@ -1,6 +1,7 @@
 import dagre from "@dagrejs/dagre";
 import type { Node, Edge } from "@xyflow/react";
 import type { getPlugin } from "./plugins.server";
+import { applyStepOrderPostProcessing } from "./layout-utils";
 
 export type PluginComponent = Awaited<
   ReturnType<typeof getPlugin>
@@ -125,112 +126,25 @@ export function buildGraphData(
     }
 
     // Post-process: reorder step targets and their descendants vertically
-    // by step order.
-    // Build adjacency list (include all edges for nested orchestrator traversal)
+    // by step order. Delegate to the shared utility.
     const childrenMap = new Map<string, string[]>();
     for (const edge of edges) {
       if (!childrenMap.has(edge.source)) childrenMap.set(edge.source, []);
       childrenMap.get(edge.source)!.push(edge.target);
     }
 
-    // Sort orchestrators: process innermost (children) first
-    const orchestrators = components.filter(
-      (c) => c.skillConfig?.skillType === "ENTRY_POINT" && c.dependenciesFrom,
-    );
-    function isReachable(fromId: string, toId: string): boolean {
-      const queue = [fromId];
-      const visited = new Set<string>([fromId]);
-      while (queue.length > 0) {
-        const cur = queue.shift()!;
-        for (const child of childrenMap.get(cur) ?? []) {
-          if (child === toId) return true;
-          if (!visited.has(child)) {
-            visited.add(child);
-            queue.push(child);
-          }
-        }
-      }
-      return false;
-    }
-    orchestrators.sort((a, b) => {
-      if (isReachable(a.id, b.id)) return 1;  // a is parent → process b first
-      if (isReachable(b.id, a.id)) return -1;
-      return 0;
+    const orchestratorIds = components
+      .filter((c) => c.skillConfig?.skillType === "ENTRY_POINT" && c.dependenciesFrom)
+      .map((c) => c.id);
+
+    applyStepOrderPostProcessing({
+      edges,
+      orchestratorIds,
+      childrenMap,
+      getPosition: (id) => positions.get(id),
+      setPosition: (id, pos) => positions.set(id, pos),
+      getSize: (id) => getNodeSize(id),
     });
-
-    for (const c of orchestrators) {
-        const stepsByOrder = [...c.dependenciesFrom]
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-        if (stepsByOrder.length < 2) continue;
-
-        const stepTargetSet = new Set(stepsByOrder.map((d) => d.targetId));
-        const targetPositions = stepsByOrder
-          .map((dep) => ({ id: dep.targetId, pos: positions.get(dep.targetId) }))
-          .filter((t): t is { id: string; pos: { x: number; y: number } } => t.pos != null);
-
-        // Collect descendants via BFS
-        function getDescendants(rootId: string): string[] {
-          const desc: string[] = [];
-          const queue = [rootId];
-          const visited = new Set<string>([rootId]);
-          while (queue.length > 0) {
-            const cur = queue.shift()!;
-            for (const child of childrenMap.get(cur) ?? []) {
-              if (!visited.has(child) && !stepTargetSet.has(child)) {
-                visited.add(child);
-                desc.push(child);
-                queue.push(child);
-              }
-            }
-          }
-          return desc;
-        }
-
-        // Compute the vertical extent below the target node.
-        // Also considers the target's own height (e.g. a tall orchestrator).
-        function getSubtreeDepth(targetId: string): number {
-          const targetPos = positions.get(targetId);
-          const targetHeight = getNodeSize(targetId).height;
-          if (!targetPos) return targetHeight;
-          const descs = getDescendants(targetId);
-          let maxYBottom = targetPos.y + targetHeight;
-          for (const descId of descs) {
-            const dPos = positions.get(descId);
-            if (dPos) {
-              maxYBottom = Math.max(maxYBottom, dPos.y + getNodeSize(descId).height);
-            }
-          }
-          return Math.max(targetHeight, maxYBottom - targetPos.y);
-        }
-
-        const oldYs = targetPositions.map((t) => t.pos.y);
-
-        // Recalculate Y positions sequentially, accounting for subtree height
-        const orchPos = positions.get(c.id);
-        const gap = 10;
-        const newYs: number[] = [];
-        let currentY = orchPos?.y ?? 0;
-        for (let i = 0; i < targetPositions.length; i++) {
-          newYs.push(currentY);
-          const subtreeH = getSubtreeDepth(targetPositions[i].id);
-          currentY += subtreeH + gap;
-        }
-
-        const moved = new Set<string>();
-        for (let i = 0; i < targetPositions.length; i++) {
-          const delta = newYs[i] - oldYs[i];
-          targetPositions[i].pos.y = newYs[i];
-          moved.add(targetPositions[i].id);
-
-          if (delta === 0) continue;
-          for (const descId of getDescendants(targetPositions[i].id)) {
-            if (moved.has(descId)) continue;
-            moved.add(descId);
-            const descPos = positions.get(descId);
-            if (descPos) descPos.y += delta;
-          }
-        }
-      }
     return positions;
   }
 
