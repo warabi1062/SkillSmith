@@ -9,26 +9,17 @@ export type PluginComponent = Awaited<
   ? C
   : never;
 
-export interface AgentTeamGraphData {
-  id: string;
-  name: string;
-  description: string | null;
-  orchestratorName: string;
-}
-
 export const DEFAULT_NODE_WIDTH = 250;
 export const DEFAULT_NODE_HEIGHT = 60;
 
 export function buildGraphData(
   components: PluginComponent[],
-  agentTeams: AgentTeamGraphData[] = [],
   nodeSizes?: Map<string, { width: number; height: number }>,
 ): {
   nodes: Node[];
   edges: Edge[];
 } {
-  if (components.length === 0 && agentTeams.length === 0)
-    return { nodes: [], edges: [] };
+  if (components.length === 0) return { nodes: [], edges: [] };
 
   // 循環検出用の隣接リストを構築
   const adjacency = new Map<string, string[]>();
@@ -197,7 +188,7 @@ export function buildGraphData(
       };
     }
 
-    // WORKER SkillにagentConfigが紐付いているかどうか
+    // WORKER_WITH_SUB_AGENTにagentConfigが紐付いているかどうか
     const hasAgentConfig = !!(c.skillConfig?.agentConfig);
 
     return {
@@ -213,29 +204,6 @@ export function buildGraphData(
       },
     };
   });
-
-  // Agent Teamノード: 全コンポーネントノードの下の別行に配置
-  if (agentTeams.length > 0) {
-    const maxY = nodes.reduce((max, n) => {
-      const size = getNodeSize(n.id);
-      return Math.max(max, n.position.y + size.height);
-    }, 0);
-    const teamRowY = maxY + VERTICAL_SPACING / 2;
-
-    for (let i = 0; i < agentTeams.length; i++) {
-      const team = agentTeams[i];
-      nodes.push({
-        id: `agentteam-${team.id}`,
-        position: { x: i * HORIZONTAL_SPACING, y: teamRowY },
-        type: "agentteam",
-        data: {
-          label: team.name,
-          description: team.description,
-          orchestratorName: team.orchestratorName,
-        },
-      });
-    }
-  }
 
   return { nodes, edges };
 }

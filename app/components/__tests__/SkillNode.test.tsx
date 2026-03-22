@@ -68,11 +68,6 @@ describe("SkillNode", () => {
     expect(screen.getByText("(no description)")).toBeTruthy();
   });
 
-  it("skillTypeを表示する", () => {
-    renderSkillNode({ skillType: "WORKER" });
-    expect(screen.getByText("WORKER")).toBeTruthy();
-  });
-
   it("SKILLバッジを表示する", () => {
     renderSkillNode();
     expect(screen.getByText("SKILL")).toBeTruthy();
@@ -83,13 +78,18 @@ describe("SkillNode", () => {
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 
-  it("hasAgentConfig=trueの場合に'+ AGENT'バッジを表示する", () => {
-    renderSkillNode({ hasAgentConfig: true });
-    expect(screen.getByText("+ AGENT")).toBeTruthy();
+  it("WORKER skillTypeの場合に'WORKER'バッジを表示する", () => {
+    renderSkillNode({ skillType: "WORKER" });
+    expect(screen.getByText("WORKER")).toBeTruthy();
   });
 
-  it("hasAgentConfig=falseの場合に'+ AGENT'バッジを表示しない", () => {
-    renderSkillNode({ hasAgentConfig: false });
-    expect(screen.queryByText("+ AGENT")).toBeNull();
+  it("WORKER_WITH_SUB_AGENT skillTypeの場合に'WORKER + AGENT'バッジを表示する", () => {
+    renderSkillNode({ skillType: "WORKER_WITH_SUB_AGENT" });
+    expect(screen.getByText("WORKER + AGENT")).toBeTruthy();
+  });
+
+  it("WORKER_WITH_AGENT_TEAM skillTypeの場合に'WORKER + TEAM'バッジを表示する", () => {
+    renderSkillNode({ skillType: "WORKER_WITH_AGENT_TEAM" });
+    expect(screen.getByText("WORKER + TEAM")).toBeTruthy();
   });
 });
