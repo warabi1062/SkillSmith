@@ -43,16 +43,6 @@ describe("validateComponentFileData", () => {
     ).not.toThrow();
   });
 
-  it("accepts valid OUTPUT_SCHEMA file", () => {
-    expect(() =>
-      validateComponentFileData({
-        role: "OUTPUT_SCHEMA",
-        filename: "schema.md",
-        content: "",
-      }),
-    ).not.toThrow();
-  });
-
   // --- INVALID_ROLE ---
 
   it("throws INVALID_ROLE for unknown role", () => {
