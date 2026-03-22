@@ -9,10 +9,6 @@ const mockCreateComponent = vi.fn();
 const mockUpdateComponent = vi.fn();
 const mockDeleteComponent = vi.fn();
 const mockDeletePlugin = vi.fn();
-const mockGetAgentTeam = vi.fn();
-const mockCreateAgentTeam = vi.fn();
-const mockUpdateAgentTeam = vi.fn();
-const mockDeleteAgentTeam = vi.fn();
 const mockAddAgentTeamMember = vi.fn();
 const mockRemoveAgentTeamMember = vi.fn();
 const mockGetDependency = vi.fn();
@@ -32,10 +28,6 @@ vi.mock("../../lib/plugins.server", () => ({
   updateComponent: (...args: unknown[]) => mockUpdateComponent(...args),
   deleteComponent: (...args: unknown[]) => mockDeleteComponent(...args),
   deletePlugin: (...args: unknown[]) => mockDeletePlugin(...args),
-  getAgentTeam: (...args: unknown[]) => mockGetAgentTeam(...args),
-  createAgentTeam: (...args: unknown[]) => mockCreateAgentTeam(...args),
-  updateAgentTeam: (...args: unknown[]) => mockUpdateAgentTeam(...args),
-  deleteAgentTeam: (...args: unknown[]) => mockDeleteAgentTeam(...args),
   addAgentTeamMember: (...args: unknown[]) =>
     mockAddAgentTeamMember(...args),
   removeAgentTeamMember: (...args: unknown[]) =>
@@ -116,7 +108,6 @@ const MOCK_PLUGIN = {
   id: PLUGIN_ID,
   name: "Test Plugin",
   components: [],
-  agentTeams: [],
 };
 
 /**
@@ -331,97 +322,124 @@ describe("action", () => {
 
       expect(result).toEqual({ success: true });
     });
+  });
 
-    it("returns 409 on HAS_DEPENDENT_TEAMS", async () => {
-      mockGetComponent.mockResolvedValue({
-        id: "comp-1",
-        pluginId: PLUGIN_ID,
-      });
-      mockDeleteComponent.mockRejectedValue(
-        new ValidationError({
-          field: "orchestratedTeams",
-          code: "HAS_DEPENDENT_TEAMS",
-          message: "Has dependent teams",
-        }),
-      );
-
-      const result = await action(
-        makeActionArgs(
-          makeFormData({
-            intent: "delete-component",
-            componentId: "comp-1",
-          }),
+  // ============================
+  // 廃止されたintent
+  // ============================
+  describe("deprecated intents", () => {
+    it("create-agent-team returns Unknown intent", async () => {
+      const thrown = await extractThrown(() =>
+        action(
+          makeActionArgs(
+            makeFormData({
+              intent: "create-agent-team",
+              name: "Team",
+              orchestratorId: "orch-1",
+            }),
+          ),
         ),
       );
 
-      expect(isDataWithResponseInit(result)).toBe(true);
-      const dwri = result as DataWithResponseInit;
-      expect(dwri.init.status).toBe(409);
-      expect((dwri.data as any).error).toContain("Has dependent teams");
+      expect(isDataWithResponseInit(thrown)).toBe(true);
+      expect((thrown as DataWithResponseInit).init.status).toBe(400);
+    });
+
+    it("update-agent-team returns Unknown intent", async () => {
+      const thrown = await extractThrown(() =>
+        action(
+          makeActionArgs(
+            makeFormData({
+              intent: "update-agent-team",
+              teamId: "team-1",
+              name: "New Name",
+            }),
+          ),
+        ),
+      );
+
+      expect(isDataWithResponseInit(thrown)).toBe(true);
+      expect((thrown as DataWithResponseInit).init.status).toBe(400);
+    });
+
+    it("delete-agent-team returns Unknown intent", async () => {
+      const thrown = await extractThrown(() =>
+        action(
+          makeActionArgs(
+            makeFormData({
+              intent: "delete-agent-team",
+              teamId: "team-1",
+            }),
+          ),
+        ),
+      );
+
+      expect(isDataWithResponseInit(thrown)).toBe(true);
+      expect((thrown as DataWithResponseInit).init.status).toBe(400);
+    });
+
+    it("add-agent-config returns Unknown intent", async () => {
+      const thrown = await extractThrown(() =>
+        action(
+          makeActionArgs(
+            makeFormData({
+              intent: "add-agent-config",
+              componentId: "comp-1",
+            }),
+          ),
+        ),
+      );
+
+      expect(isDataWithResponseInit(thrown)).toBe(true);
+      expect((thrown as DataWithResponseInit).init.status).toBe(400);
+    });
+
+    it("remove-agent-config returns Unknown intent", async () => {
+      const thrown = await extractThrown(() =>
+        action(
+          makeActionArgs(
+            makeFormData({
+              intent: "remove-agent-config",
+              componentId: "comp-1",
+            }),
+          ),
+        ),
+      );
+
+      expect(isDataWithResponseInit(thrown)).toBe(true);
+      expect((thrown as DataWithResponseInit).init.status).toBe(400);
     });
   });
 
   // ============================
-  // create-agent-team
+  // add-agent-team-member
   // ============================
-  describe("create-agent-team", () => {
-    it("returns success with teamId", async () => {
-      mockCreateAgentTeam.mockResolvedValue({ id: "team-1" });
+  describe("add-agent-team-member", () => {
+    it("returns success with agentTeamComponentId", async () => {
+      mockGetComponent.mockResolvedValue({
+        id: "team-comp-1",
+        pluginId: PLUGIN_ID,
+      });
+      mockAddAgentTeamMember.mockResolvedValue({
+        id: "member-1",
+        agentTeamComponentId: "team-comp-1",
+        componentId: "worker-1",
+      });
 
       const result = await action(
         makeActionArgs(
           makeFormData({
-            intent: "create-agent-team",
-            name: "Team",
-            description: "desc",
-            orchestratorId: "orch-1",
+            intent: "add-agent-team-member",
+            agentTeamComponentId: "team-comp-1",
+            memberComponentId: "worker-1",
           }),
         ),
       );
 
-      expect(result).toEqual({ success: true, teamId: "team-1" });
-    });
-
-    it("returns 400 when orchestratorId is empty", async () => {
-      const result = await action(
-        makeActionArgs(
-          makeFormData({
-            intent: "create-agent-team",
-            name: "Team",
-            description: "",
-            orchestratorId: "",
-          }),
-        ),
-      );
-
-      expect(isDataWithResponseInit(result)).toBe(true);
-      const dwri = result as DataWithResponseInit;
-      expect(dwri.init.status).toBe(400);
-      expect((dwri.data as any).errors.orchestratorId).toBeDefined();
-    });
-
-    it("returns 400 on createAgentTeam ValidationError", async () => {
-      mockCreateAgentTeam.mockRejectedValue(
-        new ValidationError({
-          field: "orchestratorId",
-          code: "INVALID_ORCHESTRATOR",
-          message: "Invalid orchestrator",
-        }),
-      );
-
-      const result = await action(
-        makeActionArgs(
-          makeFormData({
-            intent: "create-agent-team",
-            name: "Team",
-            description: "",
-            orchestratorId: "orch-1",
-          }),
-        ),
-      );
-
-      expect(isDataWithResponseInit(result)).toBe(true);
-      expect((result as DataWithResponseInit).init.status).toBe(400);
+      expect(result).toEqual({ success: true, agentTeamComponentId: "team-comp-1" });
+      expect(mockAddAgentTeamMember).toHaveBeenCalledWith("team-comp-1", {
+        memberComponentId: "worker-1",
+      });
     });
   });
 
