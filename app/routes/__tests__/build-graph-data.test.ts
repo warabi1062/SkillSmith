@@ -4,9 +4,8 @@ import { buildGraphData, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from "../../l
 // Minimal component fixture factory
 function makeComponent(overrides: {
   id: string;
-  type: "SKILL" | "AGENT";
-  skillConfig?: { skillType: string; name: string; description?: string | null } | null;
-  agentConfig?: { name: string; description?: string | null } | null;
+  type: "SKILL";
+  skillConfig?: { skillType: string; name: string; description?: string | null; agentConfig?: { id: string } | null } | null;
   dependenciesFrom?: Array<{ id: string; targetId: string; order: number }>;
 }) {
   return {
@@ -22,14 +21,7 @@ function makeComponent(overrides: {
           name: overrides.skillConfig.name,
           skillType: overrides.skillConfig.skillType,
           description: overrides.skillConfig.description ?? null,
-        }
-      : null,
-    agentConfig: overrides.agentConfig
-      ? {
-          id: `ac-${overrides.id}`,
-          componentId: overrides.id,
-          name: overrides.agentConfig.name,
-          description: overrides.agentConfig.description ?? "",
+          agentConfig: overrides.skillConfig.agentConfig ?? null,
         }
       : null,
     dependenciesFrom: overrides.dependenciesFrom ?? [],
@@ -163,20 +155,40 @@ describe("buildGraphData", () => {
     expect(workerNode!.type).toBe("skill");
   });
 
-  it("AGENTノードにtype:'agent'が設定されること", () => {
+  it("WORKER Skill + agentConfigノードがskillタイプで生成され、hasAgentConfig=trueであること", () => {
     const components = [
       makeComponent({
-        id: "agent-1",
-        type: "AGENT",
-        agentConfig: { name: "my-agent" },
+        id: "worker-1",
+        type: "SKILL",
+        skillConfig: {
+          skillType: "WORKER",
+          name: "implement",
+          agentConfig: { id: "ac-1" },
+        },
       }),
     ];
 
     const { nodes } = buildGraphData(components);
-    const agentNode = nodes.find((n) => n.id === "agent-1");
+    const workerNode = nodes.find((n) => n.id === "worker-1");
 
-    expect(agentNode).toBeDefined();
-    expect(agentNode!.type).toBe("agent");
+    expect(workerNode).toBeDefined();
+    expect(workerNode!.type).toBe("skill");
+    expect(workerNode!.data.hasAgentConfig).toBe(true);
+  });
+
+  it("agentConfigなしのWORKER SkillはhasAgentConfig=falseであること", () => {
+    const components = [
+      makeComponent({
+        id: "worker-1",
+        type: "SKILL",
+        skillConfig: { skillType: "WORKER", name: "implement" },
+      }),
+    ];
+
+    const { nodes } = buildGraphData(components);
+    const workerNode = nodes.find((n) => n.id === "worker-1");
+
+    expect(workerNode!.data.hasAgentConfig).toBe(false);
   });
 
   it("ENTRY_POINTノードにstyleが設定されないこと", () => {
@@ -196,7 +208,6 @@ describe("buildGraphData", () => {
   });
 
   it("order値にギャップがある場合でもstepsが正しい順序で生成されること", () => {
-    // 並び替えや削除後にorderにギャップ(0, 2, 5)がある場合を想定
     const components = [
       makeComponent({
         id: "orch-1",
@@ -230,22 +241,20 @@ describe("buildGraphData", () => {
     const steps = orchNode!.data.steps as Array<{ order: number }>;
 
     expect(steps).toHaveLength(3);
-    // orderの昇順でソートされること
     expect(steps[0].order).toBe(0);
     expect(steps[1].order).toBe(2);
     expect(steps[2].order).toBe(5);
   });
 
   it("並び替え後のorder値(スワップ済み)でstepsが正しく生成されること", () => {
-    // order 0 と order 1 がスワップされた後の状態を想定
     const components = [
       makeComponent({
         id: "orch-1",
         type: "SKILL",
         skillConfig: { skillType: "ENTRY_POINT", name: "dev" },
         dependenciesFrom: [
-          { id: "dep-1", targetId: "w-1", order: 1 }, // was 0, swapped to 1
-          { id: "dep-2", targetId: "w-2", order: 0 }, // was 1, swapped to 0
+          { id: "dep-1", targetId: "w-1", order: 1 },
+          { id: "dep-2", targetId: "w-2", order: 0 },
         ],
       }),
       makeComponent({
@@ -268,65 +277,44 @@ describe("buildGraphData", () => {
     }>;
 
     expect(steps).toHaveLength(2);
-    // order 0 が先（w-2）、order 1 が後（w-1）
     expect(steps[0].order).toBe(0);
     expect(steps[0].dependencies[0].targetId).toBe("w-2");
     expect(steps[1].order).toBe(1);
     expect(steps[1].dependencies[0].targetId).toBe("w-1");
   });
 
-  it("カスタムノード化されたSkill/Agentノードにstyleが設定されないこと", () => {
+  it("Skillノードにstyleが設定されないこと", () => {
     const components = [
       makeComponent({
         id: "worker-1",
         type: "SKILL",
         skillConfig: { skillType: "WORKER", name: "implement" },
       }),
-      makeComponent({
-        id: "agent-1",
-        type: "AGENT",
-        agentConfig: { name: "my-agent" },
-      }),
     ];
 
     const { nodes } = buildGraphData(components);
     const workerNode = nodes.find((n) => n.id === "worker-1");
-    const agentNode = nodes.find((n) => n.id === "agent-1");
 
     expect(workerNode!.style).toBeUndefined();
-    expect(agentNode!.style).toBeUndefined();
   });
 
-  it("Skill/Agentノードのdataにdescription/componentType/skillTypeが含まれること", () => {
+  it("Skillノードのdataにdescription/componentType/skillTypeが含まれること", () => {
     const components = [
       makeComponent({
         id: "worker-1",
         type: "SKILL",
         skillConfig: { skillType: "WORKER", name: "implement", description: "Implement code" },
       }),
-      makeComponent({
-        id: "agent-1",
-        type: "AGENT",
-        agentConfig: { name: "my-agent", description: "Agent desc" },
-      }),
     ];
 
     const { nodes } = buildGraphData(components);
     const workerNode = nodes.find((n) => n.id === "worker-1");
-    const agentNode = nodes.find((n) => n.id === "agent-1");
 
     expect(workerNode!.data).toMatchObject({
       label: "implement",
       description: "Implement code",
       componentType: "SKILL",
       skillType: "WORKER",
-    });
-
-    expect(agentNode!.data).toMatchObject({
-      label: "my-agent",
-      description: "Agent desc",
-      componentType: "AGENT",
-      skillType: null,
     });
   });
 
@@ -410,10 +398,8 @@ describe("buildGraphData", () => {
       const orchNode = nodes.find((n) => n.id === "orch-1");
       const workerNode = nodes.find((n) => n.id === "worker-1");
 
-      // Both nodes should have positions (dagre calculates them)
       expect(orchNode!.position).toBeDefined();
       expect(workerNode!.position).toBeDefined();
-      // Orchestrator (source) should be above worker (target) in TB layout
       expect(orchNode!.position.y).toBeLessThan(workerNode!.position.y);
     });
 
@@ -431,12 +417,10 @@ describe("buildGraphData", () => {
         }),
       ];
 
-      // No nodeSizes - should use defaults and not throw
       const { nodes } = buildGraphData(components);
       expect(nodes).toHaveLength(2);
       expect(nodes[0].position).toBeDefined();
       expect(nodes[1].position).toBeDefined();
-      // Verify default constants are exported
       expect(DEFAULT_NODE_WIDTH).toBe(250);
       expect(DEFAULT_NODE_HEIGHT).toBe(60);
     });
@@ -462,12 +446,10 @@ describe("buildGraphData", () => {
       const sourceNode = nodes.find((n) => n.id === "source")!;
       const targetNode = nodes.find((n) => n.id === "target")!;
 
-      // In LR layout, source should be to the left of target (lower x value)
       expect(sourceNode.position.x).toBeLessThan(targetNode.position.x);
     });
 
     it("サイクルがある場合にグリッドフォールバックが維持されること", () => {
-      // Create a cycle: A -> B -> C -> A
       const components = [
         makeComponent({
           id: "a",
@@ -490,10 +472,7 @@ describe("buildGraphData", () => {
       ];
 
       const { nodes } = buildGraphData(components);
-      // Grid layout: 3 nodes -> ceil(sqrt(3)) = 2 cols
-      // Node positions should be grid-based (multiples of HORIZONTAL_SPACING / VERTICAL_SPACING)
       expect(nodes).toHaveLength(3);
-      // First node should be at (0, 0)
       expect(nodes[0].position).toEqual({ x: 0, y: 0 });
     });
   });

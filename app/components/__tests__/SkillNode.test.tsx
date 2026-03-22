@@ -20,6 +20,7 @@ function renderSkillNode(
     label: string;
     description: string | null;
     skillType: string | null;
+    hasAgentConfig: boolean;
     componentId: string;
     pluginId: string;
   }> = {},
@@ -29,6 +30,7 @@ function renderSkillNode(
     description: "A test skill",
     componentType: "SKILL" as const,
     skillType: "WORKER",
+    hasAgentConfig: false,
     componentId: "comp-1",
     pluginId: "plugin-1",
     ...overrides,
@@ -79,5 +81,15 @@ describe("SkillNode", () => {
   it("InlineEditableFieldが存在しない（inputやtextareaがない）", () => {
     renderSkillNode();
     expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
+  it("hasAgentConfig=trueの場合に'+ AGENT'バッジを表示する", () => {
+    renderSkillNode({ hasAgentConfig: true });
+    expect(screen.getByText("+ AGENT")).toBeTruthy();
+  });
+
+  it("hasAgentConfig=falseの場合に'+ AGENT'バッジを表示しない", () => {
+    renderSkillNode({ hasAgentConfig: false });
+    expect(screen.queryByText("+ AGENT")).toBeNull();
   });
 });

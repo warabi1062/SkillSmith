@@ -6,6 +6,7 @@ interface SkillNodeData {
   description: string | null;
   componentType: "SKILL";
   skillType: string | null;
+  hasAgentConfig: boolean;
   componentId: string;
   pluginId: string;
   [key: string]: unknown;
@@ -14,7 +15,7 @@ interface SkillNodeData {
 export default function SkillNode({
   data,
 }: NodeProps & { data: SkillNodeData }) {
-  const { label, description, skillType } = data as SkillNodeData;
+  const { label, description, skillType, hasAgentConfig } = data as SkillNodeData;
 
   return (
     <div className="skill-node">
@@ -23,6 +24,9 @@ export default function SkillNode({
         <span className="skill-node-badge">SKILL</span>
         {skillType && (
           <span className="skill-node-skill-type">{skillType}</span>
+        )}
+        {hasAgentConfig && (
+          <span className="skill-node-agent-badge">+ AGENT</span>
         )}
       </div>
       <div className="skill-node-title">{label || "(unnamed)"}</div>
