@@ -241,11 +241,20 @@ describe("action", () => {
             name: "updated",
             description: "",
             skillType: "WORKER",
+            content: "# Updated content",
           }),
         ),
       );
 
       expect(result).toEqual({ success: true, componentId: "comp-1" });
+      // contentがupdateComponentに渡されることを確認
+      expect(mockUpdateComponent).toHaveBeenCalledWith("comp-1", {
+        type: "SKILL",
+        name: "updated",
+        description: null,
+        skillType: "WORKER",
+        content: "# Updated content",
+      });
     });
 
     it("throws 404 when component not found", async () => {
@@ -501,8 +510,8 @@ describe("action", () => {
           makeFormData({
             intent: "create-file",
             componentId: "comp-1",
-            role: "MAIN",
-            filename: "SKILL.md",
+            role: "TEMPLATE",
+            filename: "template.md",
             content: "# Content",
           }),
         ),
@@ -520,7 +529,7 @@ describe("action", () => {
             makeFormData({
               intent: "create-file",
               componentId: "non-existent",
-              role: "MAIN",
+              role: "TEMPLATE",
               filename: "f.md",
               content: "",
             }),
@@ -571,7 +580,7 @@ describe("action", () => {
       mockGetComponentFile.mockResolvedValue({
         id: "file-1",
         componentId: "comp-1",
-        role: "MAIN",
+        role: "TEMPLATE",
       });
       mockGetComponent.mockResolvedValue({
         id: "comp-1",

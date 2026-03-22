@@ -95,6 +95,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     const name = String(formData.get("name") ?? "");
     const description = String(formData.get("description") ?? "");
     const skillType = String(formData.get("skillType") ?? "");
+    const content = String(formData.get("content") ?? "");
 
     try {
       validateComponentData({
@@ -121,6 +122,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       name,
       description: description || null,
       skillType: skillType as "ENTRY_POINT" | "WORKER" | undefined,
+      content,
     });
 
     return { success: true, componentId };
