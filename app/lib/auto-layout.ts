@@ -1,6 +1,7 @@
 import dagre from "@dagrejs/dagre";
 import type { Node, Edge } from "@xyflow/react";
 import { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from "./build-graph-data";
+import { applyStepOrderPostProcessing } from "./layout-utils";
 
 const HORIZONTAL_SPACING = 300;
 const VERTICAL_SPACING = 150;
@@ -95,138 +96,37 @@ export function computeAutoLayout(
   });
 
   // Post-process: reorder step targets (and their descendants) vertically
-  // by step order. Dagre doesn't know about step ordering, so we compute
-  // a Y delta for each step target and apply it to the entire subtree.
-  const orchestratorNodes = componentNodes.filter((n) => n.type === "orchestrator");
-  const orchestratorIds = new Set(orchestratorNodes.map((n) => n.id));
+  // by step order. Dagre doesn't know about step ordering, so we delegate
+  // to the shared utility.
+  const nodeMap = new Map(updatedComponentNodes.map((n) => [n.id, n]));
 
-  // Build adjacency list for descendant traversal (include all edges)
   const children = new Map<string, string[]>();
   for (const edge of edges) {
     if (!children.has(edge.source)) children.set(edge.source, []);
     children.get(edge.source)!.push(edge.target);
   }
 
-  const nodeMap = new Map(updatedComponentNodes.map((n) => [n.id, n]));
+  const orchestratorIds = componentNodes
+    .filter((n) => n.type === "orchestrator")
+    .map((n) => n.id);
 
-  // Sort orchestrators: process innermost (children) first, then outermost (parents).
-  // An orchestrator that is reachable from another orchestrator is "inner".
-  function isAncestor(ancestorId: string, descendantId: string): boolean {
-    const queue = [ancestorId];
-    const visited = new Set<string>([ancestorId]);
-    while (queue.length > 0) {
-      const cur = queue.shift()!;
-      for (const child of children.get(cur) ?? []) {
-        if (child === descendantId) return true;
-        if (!visited.has(child)) {
-          visited.add(child);
-          queue.push(child);
-        }
-      }
-    }
-    return false;
-  }
-
-  const sortedOrchIds = [...orchestratorIds].sort((a, b) => {
-    if (isAncestor(a, b)) return 1;  // a is parent of b → process b first
-    if (isAncestor(b, a)) return -1; // b is parent of a → process a first
-    return 0;
+  applyStepOrderPostProcessing({
+    edges,
+    orchestratorIds,
+    childrenMap: children,
+    getPosition: (id) => nodeMap.get(id)?.position,
+    setPosition: (id, pos) => {
+      const node = nodeMap.get(id);
+      if (node) node.position = pos;
+    },
+    getSize: (id) => {
+      const node = nodeMap.get(id);
+      return {
+        width: node?.measured?.width ?? DEFAULT_NODE_WIDTH,
+        height: node?.measured?.height ?? DEFAULT_NODE_HEIGHT,
+      };
+    },
   });
-
-  for (const orchId of sortedOrchIds) {
-    const stepTargets: { order: number; targetId: string }[] = [];
-    for (const edge of edges) {
-      if (
-        edge.source === orchId &&
-        edge.sourceHandle?.startsWith("step-")
-      ) {
-        const order = parseInt(edge.sourceHandle.replace("step-", ""), 10);
-        stepTargets.push({ order, targetId: edge.target });
-      }
-    }
-    if (stepTargets.length < 2) continue;
-
-    stepTargets.sort((a, b) => a.order - b.order);
-
-    const orchNode = nodeMap.get(orchId);
-    const orchY = orchNode?.position.y ?? 0;
-
-    const targetNodes = stepTargets
-      .map((st) => nodeMap.get(st.targetId))
-      .filter((n): n is (typeof updatedComponentNodes)[number] => n != null);
-
-    // Collect descendants for each step target (excluding other step targets)
-    const stepTargetSet = new Set(stepTargets.map((st) => st.targetId));
-    function getDescendants(rootId: string): string[] {
-      const descendants: string[] = [];
-      const queue = [rootId];
-      const visited = new Set<string>([rootId]);
-      while (queue.length > 0) {
-        const current = queue.shift()!;
-        for (const child of children.get(current) ?? []) {
-          if (!visited.has(child) && !stepTargetSet.has(child)) {
-            visited.add(child);
-            descendants.push(child);
-            queue.push(child);
-          }
-        }
-      }
-      return descendants;
-    }
-
-    // Compute the vertical extent below the target node (target + descendants).
-    // Also considers the target node's own height (e.g. a tall orchestrator
-    // whose step targets don't extend beyond its own bottom edge).
-    function getSubtreeDepth(targetNode: (typeof updatedComponentNodes)[number]): number {
-      const targetHeight = targetNode.measured?.height ?? DEFAULT_NODE_HEIGHT;
-      const descs = getDescendants(targetNode.id);
-      let maxYBottom = targetNode.position.y + targetHeight;
-      for (const descId of descs) {
-        const d = nodeMap.get(descId);
-        if (d) {
-          maxYBottom = Math.max(maxYBottom, d.position.y + (d.measured?.height ?? DEFAULT_NODE_HEIGHT));
-        }
-      }
-      // Ensure at least the target's own height is used
-      return Math.max(targetHeight, maxYBottom - targetNode.position.y);
-    }
-
-    // Record old Y positions before reordering
-    const oldYs = targetNodes.map((n) => n.position.y);
-
-    // Recalculate Y positions sequentially, accounting for subtree height
-    const gap = 10;
-    const newYs: number[] = [];
-    let currentY = orchY;
-    for (let i = 0; i < targetNodes.length; i++) {
-      newYs.push(currentY);
-      const subtreeHeight = getSubtreeDepth(targetNodes[i]);
-      currentY += subtreeHeight + gap;
-    }
-
-    // Apply delta to each step target and its descendants
-    const moved = new Set<string>();
-    for (let i = 0; i < targetNodes.length; i++) {
-      const delta = newYs[i] - oldYs[i];
-      if (delta === 0) continue;
-
-      const node = targetNodes[i];
-      node.position = { ...node.position, y: newYs[i] };
-      moved.add(node.id);
-
-      for (const descId of getDescendants(node.id)) {
-        if (moved.has(descId)) continue;
-        moved.add(descId);
-        const descNode = nodeMap.get(descId);
-        if (descNode) {
-          descNode.position = {
-            ...descNode.position,
-            y: descNode.position.y + delta,
-          };
-        }
-      }
-    }
-  }
 
   // Place AgentTeam nodes below component nodes
   if (agentTeamNodes.length > 0) {
