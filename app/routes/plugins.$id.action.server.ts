@@ -221,7 +221,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       throw data("Agent Team component not found", { status: 404 });
     }
 
-    await removeAgentTeamMember(memberId);
+    await removeAgentTeamMember(memberId, agentTeamComponentId);
     return { success: true, agentTeamComponentId };
   }
 

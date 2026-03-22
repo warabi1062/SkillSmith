@@ -440,10 +440,7 @@ export function usePluginGraph({
   }, [filesModalState.componentId, plugin.components]);
 
   // membersModal: WORKER_WITH_AGENT_TEAM Componentに紐づくメンバー情報
-  // 注: getPlugin の include に agentTeamMembers が含まれていないため、
-  // 現在のデータ構造からはメンバー情報を直接取得できない。
-  // この情報はComponentDependencyで管理されるようになったため、
-  // 将来的にはgetPluginのincludeを更新する必要がある。
+  // AgentTeamMember テーブルで管理されている
   const membersModalTeamName = useMemo(() => {
     if (!membersModalState.agentTeamComponentId) return "(unknown)";
     const comp = plugin.components.find(
@@ -452,13 +449,22 @@ export function usePluginGraph({
     return comp?.skillConfig?.name ?? "(unknown)";
   }, [membersModalState.agentTeamComponentId, plugin.components]);
 
-  const membersModalMembers: Array<{
-    id: string;
-    component: {
-      id: string;
-      skillConfig: { name: string } | null;
-    };
-  }> = [];
+  const membersModalMembers = useMemo(() => {
+    if (!membersModalState.agentTeamComponentId) return [];
+    const comp = plugin.components.find(
+      (c) => c.id === membersModalState.agentTeamComponentId,
+    );
+    if (!comp?.agentTeamMembers) return [];
+    return comp.agentTeamMembers.map((m) => ({
+      id: m.id,
+      component: {
+        id: m.component.id,
+        skillConfig: m.component.skillConfig
+          ? { name: m.component.skillConfig.name }
+          : null,
+      },
+    }));
+  }, [membersModalState.agentTeamComponentId, plugin.components]);
 
   // WORKER_WITH_SUB_AGENT Skillのコンポーネントのみ
   const membersModalAgentComponents = useMemo(

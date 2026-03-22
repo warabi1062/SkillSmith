@@ -34,10 +34,19 @@ export async function getPlugin(id: string) {
           files: {
             orderBy: { sortOrder: "asc" },
           },
+          agentTeamMembers: {
+            include: {
+              component: {
+                include: {
+                  skillConfig: { select: { name: true } },
+                },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
+          },
         },
         orderBy: { createdAt: "asc" },
       },
-      // 注: agentTeams includeはコミット#7でフロントエンド変更と同時に一括削除する
     },
   });
 }
@@ -300,7 +309,19 @@ export async function addAgentTeamMember(
   }
 }
 
-export async function removeAgentTeamMember(memberId: string) {
+export async function removeAgentTeamMember(
+  memberId: string,
+  agentTeamComponentId: string,
+) {
+  // メンバーが指定されたagentTeamComponentに属するか検証
+  const member = await prisma.agentTeamMember.findUnique({
+    where: { id: memberId },
+  });
+  if (!member || member.agentTeamComponentId !== agentTeamComponentId) {
+    throw new Error(
+      "Member does not belong to the specified agent team component",
+    );
+  }
   return prisma.agentTeamMember.delete({
     where: { id: memberId },
   });

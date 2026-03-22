@@ -372,12 +372,41 @@ describe("plugins.server", () => {
         memberComponentId: worker.id,
       });
 
-      await removeAgentTeamMember(member.id);
+      await removeAgentTeamMember(member.id, agentTeam.id);
 
       const members = await testPrisma.agentTeamMember.findMany({
         where: { agentTeamComponentId: agentTeam.id },
       });
       expect(members.length).toBe(0);
+    });
+
+    it("removeAgentTeamMember: rejects if member does not belong to specified team", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const agentTeam1 = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "team1",
+        skillType: "WORKER_WITH_AGENT_TEAM",
+      });
+      const agentTeam2 = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "team2",
+        skillType: "WORKER_WITH_AGENT_TEAM",
+      });
+      const worker = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "worker",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      });
+      const member = await addAgentTeamMember(agentTeam1.id, {
+        memberComponentId: worker.id,
+      });
+
+      // agentTeam2のIDを渡しても、memberはagentTeam1に属するのでエラー
+      await expect(
+        removeAgentTeamMember(member.id, agentTeam2.id),
+      ).rejects.toThrow(
+        "Member does not belong to the specified agent team component",
+      );
     });
   });
 

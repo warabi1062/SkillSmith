@@ -26,14 +26,6 @@ function getSkillTypeBadge(skillType: string | null): string | null {
   }
 }
 
-// sourceハンドルを表示すべきかどうか（ENTRY_POINTのみ非表示にする必要はなく、
-// WORKER系でも他のWORKERへの依存が可能なため、ENTRY_POINT以外にはハンドルを表示しない仕様を維持）
-function shouldShowSourceHandle(skillType: string | null): boolean {
-  // SkillNode はWORKER系のみなので、sourceハンドルは表示しない
-  // （ENTRY_POINTはOrchestratorNodeで表示される）
-  return false;
-}
-
 export default function SkillNode({
   data,
 }: NodeProps & { data: SkillNodeData }) {
@@ -56,9 +48,6 @@ export default function SkillNode({
       >
         {description || "(no description)"}
       </div>
-      {shouldShowSourceHandle(skillType) && (
-        <Handle type="source" position={Position.Right} />
-      )}
     </div>
   );
 }
