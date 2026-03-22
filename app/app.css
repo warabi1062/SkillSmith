@@ -28,18 +28,27 @@ a:hover {
 }
 
 .layout {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1rem 1.5rem;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.layout > main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-header h1 {
@@ -326,14 +335,19 @@ h3 {
 }
 
 .dependency-graph {
-  height: 400px;
+  flex: 1;
+  min-height: 300px;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .dependency-graph-section {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .react-flow__edge:hover .react-flow__edge-path {
