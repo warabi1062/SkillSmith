@@ -30,7 +30,7 @@ export function buildGraphData(
   if (components.length === 0 && agentTeams.length === 0)
     return { nodes: [], edges: [] };
 
-  // Build adjacency for cycle detection
+  // 循環検出用の隣接リストを構築
   const adjacency = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
 
@@ -61,7 +61,7 @@ export function buildGraphData(
     }
   }
 
-  // Cycle detection via topological sort (Kahn's algorithm)
+  // トポロジカルソートによる循環検出（Kahnのアルゴリズム）
   let processed = 0;
   const tempInDegree = new Map(inDegree);
   const tempQueue: string[] = [];
@@ -83,7 +83,7 @@ export function buildGraphData(
 
   const hasCycle = processed < components.length;
 
-  // Position nodes
+  // ノードの位置を決定
   const HORIZONTAL_SPACING = 300;
   const VERTICAL_SPACING = 150;
 
@@ -118,15 +118,15 @@ export function buildGraphData(
     for (const c of components) {
       const nodeData = g.node(c.id);
       const size = getNodeSize(c.id);
-      // dagre returns center coordinates; convert to top-left
+      // dagreは中心座標を返すため、左上座標に変換
       positions.set(c.id, {
         x: nodeData.x - size.width / 2,
         y: nodeData.y - size.height / 2,
       });
     }
 
-    // Post-process: reorder step targets and their descendants vertically
-    // by step order. Delegate to the shared utility.
+    // 後処理: ステップターゲットとその子孫をステップ順に垂直方向に並べ替える。
+    // 共有ユーティリティに委譲する。
     const childrenMap = new Map<string, string[]>();
     for (const edge of edges) {
       if (!childrenMap.has(edge.source)) childrenMap.set(edge.source, []);
@@ -168,7 +168,7 @@ export function buildGraphData(
       : dagrePositions!.get(c.id)!;
 
     if (isOrchestrator) {
-      // Build steps data: group dependencies by order
+      // ステップデータの構築: 依存関係をorder順にグループ化
       const orderMap = new Map<
         number,
         Array<{ id: string; targetId: string }>
@@ -205,7 +205,7 @@ export function buildGraphData(
     };
   });
 
-  // Agent Team nodes: placed in a separate row below all component nodes
+  // Agent Teamノード: 全コンポーネントノードの下の別行に配置
   if (agentTeams.length > 0) {
     const maxY = nodes.reduce((max, n) => {
       const size = getNodeSize(n.id);

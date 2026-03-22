@@ -86,16 +86,16 @@ export default function DependencyGraph({
 }: DependencyGraphProps) {
   const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
 
-  // Keep a ref to the latest flowNodes for synchronous reads (e.g. animation start)
+  // 同期的な読み取り（例: アニメーション開始時）のために最新のflowNodesをrefで保持
   const flowNodesRef = useRef(flowNodes);
   useEffect(() => {
     flowNodesRef.current = flowNodes;
   }, [flowNodes]);
 
-  // Animation ref for auto-layout
+  // 自動レイアウト用のアニメーションref
   const animationRef = useRef<number | null>(null);
 
-  // Cancel any running animation
+  // 実行中のアニメーションをキャンセル
   const cancelAnimation = useCallback(() => {
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
@@ -103,7 +103,7 @@ export default function DependencyGraph({
     }
   }, []);
 
-  // Persist positions after auto-layout animation completes
+  // 自動レイアウトアニメーション完了後に位置を永続化
   const persistPositionsAfterAutoLayout = useCallback(
     (targetNodes: Node[]) => {
       const positions: Record<string, { x: number; y: number }> = {};
@@ -115,17 +115,17 @@ export default function DependencyGraph({
     [onPositionsPersist],
   );
 
-  // Animate nodes from current positions to target positions
+  // ノードを現在の位置からターゲット位置にアニメーション
   function animateToPositions(targetNodes: Node[], duration = 300) {
     cancelAnimation();
 
-    // Read start positions synchronously from the ref (avoids React batching issues)
+    // refから同期的に開始位置を読み取る（Reactのバッチ処理の問題を回避）
     const startPositions: Record<string, { x: number; y: number }> = {};
     for (const node of flowNodesRef.current) {
       startPositions[node.id] = { x: node.position.x, y: node.position.y };
     }
 
-    // Build a Map for O(1) lookup instead of Array.find per frame
+    // フレームごとのArray.findの代わりにO(1)ルックアップ用のMapを構築
     const targetMap = new Map<string, Node>();
     for (const node of targetNodes) {
       targetMap.set(node.id, node);
@@ -136,7 +136,7 @@ export default function DependencyGraph({
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
+      // イーズアウト3次関数
       const eased = 1 - (1 - progress) ** 3;
 
       setFlowNodes((currentNodes) =>
@@ -165,15 +165,15 @@ export default function DependencyGraph({
     animationRef.current = requestAnimationFrame(animate);
   }
 
-  // Sync internal node state when props change or layout is reset
+  // propsの変更またはレイアウトリセット時に内部ノード状態を同期
   useEffect(() => {
     cancelAnimation();
     setFlowNodes(nodes);
   }, [nodes, resetKey, setFlowNodes, cancelAnimation]);
 
-  // Handle auto-layout: wait for React Flow to measure nodes, then compute layout.
-  // We use requestAnimationFrame to defer until after React Flow has measured
-  // the updated nodes (measured property is set after render + layout).
+  // 自動レイアウトの処理: React Flowがノードを計測するのを待ってからレイアウトを計算する。
+  // requestAnimationFrameを使用して、React Flowが更新されたノードを計測した後まで
+  // 遅延する（measuredプロパティはレンダー+レイアウト後に設定される）。
   const pendingLayoutRef = useRef(false);
   useEffect(() => {
     if (autoLayoutPending) {
@@ -183,7 +183,7 @@ export default function DependencyGraph({
 
   useEffect(() => {
     if (!pendingLayoutRef.current) return;
-    // Check if all nodes have been measured
+    // 全ノードが計測済みかチェック
     const allMeasured = flowNodes.every(
       (n) => n.measured?.width != null && n.measured?.height != null,
     );
@@ -196,14 +196,14 @@ export default function DependencyGraph({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowNodes, onAutoLayoutApplied]);
 
-  // Cleanup animation on unmount
+  // アンマウント時にアニメーションをクリーンアップ
   useEffect(() => {
     return () => {
       cancelAnimation();
     };
   }, [cancelAnimation]);
 
-  // Wrap onNodesChange to cancel animation on drag
+  // ドラッグ時にアニメーションをキャンセルするためonNodesChangeをラップ
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       const hasDrag = changes.some(
@@ -242,7 +242,7 @@ export default function DependencyGraph({
       if (!source || !target) return false;
       if (source === target) return false;
 
-      // Agent Team nodes cannot be connected
+      // Agent Teamノードは接続できない
       if (source.startsWith("agentteam-") || target.startsWith("agentteam-"))
         return false;
 
@@ -250,14 +250,14 @@ export default function DependencyGraph({
       const targetComp = components.find((c) => c.id === target);
       if (!sourceComp || !targetComp) return false;
 
-      // Agent -> Skill: target must be WORKER
+      // Agent -> Skill: ターゲットはWORKERでなければならない
       if (sourceComp.type === "AGENT" && targetComp.type === "SKILL") {
         if (targetComp.skillConfig?.skillType !== "WORKER") return false;
       }
 
-      // Optimistic validation (UX only): prevents obviously invalid connections
-      // in the UI. The server performs the authoritative check within a transaction
-      // to prevent race conditions. See dependency.server.ts.
+      // 楽観的バリデーション（UX目的のみ）: UIで明らかに無効な接続を防止する。
+      // サーバーがトランザクション内で権威あるチェックを行い、
+      // 競合状態を防止する。dependency.server.tsを参照。
       const adjacency = new Map<string, string[]>();
       for (const edge of edges) {
         const neighbors = adjacency.get(edge.source);
@@ -332,7 +332,7 @@ export default function DependencyGraph({
     setContextMenu((prev) => ({ ...prev, visible: false }));
   }, []);
 
-  // Close context menu on document click outside or Escape key
+  // ドキュメント外クリックまたはEscapeキーでコンテキストメニューを閉じる
   useEffect(() => {
     if (!contextMenu.visible) return;
 
