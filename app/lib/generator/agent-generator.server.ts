@@ -5,6 +5,75 @@ import {
   checkHooksField,
 } from "./frontmatter.server";
 
+// --- Agent Team MD生成 ---
+
+interface AgentTeamComponentData {
+  id: string;
+  skillConfig: {
+    name: string;
+    description: string | null;
+    input: string;
+    output: string;
+  };
+  memberSkillNames: string[];
+}
+
+/**
+ * WORKER_WITH_AGENT_TEAM用のagent.mdを生成する。
+ * skills:にメンバーのskill名を列挙する。
+ */
+export function generateAgentTeamMd(component: AgentTeamComponentData): {
+  file: GeneratedFile | null;
+  errors: GenerationValidationError[];
+} {
+  const errors: GenerationValidationError[] = [];
+  const skillConfig = component.skillConfig;
+  const agentName = `${skillConfig.name}-agent`;
+
+  if (component.memberSkillNames.length === 0) {
+    errors.push({
+      severity: "warning",
+      code: "NO_TEAM_MEMBERS",
+      message: `Agent Team "${skillConfig.name}" has no members`,
+      componentId: component.id,
+    });
+  }
+
+  // Build frontmatter
+  const frontmatterFields: Record<
+    string,
+    string | number | boolean | string[] | null | undefined
+  > = {
+    name: agentName,
+    description: skillConfig.description ?? undefined,
+  };
+
+  // skills: メンバーのskill名を列挙
+  if (component.memberSkillNames.length > 0) {
+    frontmatterFields.skills = component.memberSkillNames;
+  }
+
+  if (skillConfig.input) {
+    frontmatterFields.input = skillConfig.input;
+  }
+  if (skillConfig.output) {
+    frontmatterFields.output = skillConfig.output;
+  }
+
+  const frontmatter = serializeFrontmatter(frontmatterFields);
+  // Agent Team agentのcontentは空（frontmatterのみ）
+  const content = `${frontmatter}\n`;
+
+  return {
+    file: {
+      path: `agents/${agentName}.md`,
+      content,
+      componentId: component.id,
+    },
+    errors,
+  };
+}
+
 interface AgentConfigData {
   id: string;
   skillConfigId: string;

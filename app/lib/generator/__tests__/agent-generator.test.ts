@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateAgentMd } from "../agent-generator.server";
+import { generateAgentMd, generateAgentTeamMd } from "../agent-generator.server";
 
 function makeAgentComponent(overrides: {
   skillName?: string;
@@ -125,5 +125,64 @@ describe("generateAgentMd", () => {
       makeAgentComponent({ content: "# Agent body" }),
     );
     expect(file!.content).toContain("# Agent body");
+  });
+});
+
+describe("generateAgentTeamMd", () => {
+  it("複数skill名をskills:に列挙したagentファイルを生成する", () => {
+    const { file, errors } = generateAgentTeamMd({
+      id: "comp-team-1",
+      skillConfig: {
+        name: "review-team",
+        description: "A review team",
+        input: "- PR URL",
+        output: "- review result",
+      },
+      memberSkillNames: ["code-review", "security-check", "style-lint"],
+    });
+
+    expect(file).not.toBeNull();
+    expect(file!.path).toBe("agents/review-team-agent.md");
+    expect(file!.content).toContain("name: review-team-agent");
+    expect(file!.content).toContain("description: A review team");
+    expect(file!.content).toContain("skills:");
+    expect(file!.content).toContain("  - code-review");
+    expect(file!.content).toContain("  - security-check");
+    expect(file!.content).toContain("  - style-lint");
+    expect(file!.content).toContain("input:");
+    expect(file!.content).toContain("output:");
+    expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);
+  });
+
+  it("メンバーがいない場合にwarningを返す", () => {
+    const { file, errors } = generateAgentTeamMd({
+      id: "comp-team-2",
+      skillConfig: {
+        name: "empty-team",
+        description: null,
+        input: "",
+        output: "",
+      },
+      memberSkillNames: [],
+    });
+
+    expect(file).not.toBeNull();
+    expect(errors.some((e) => e.code === "NO_TEAM_MEMBERS")).toBe(true);
+  });
+
+  it("agent名は{name}-agent形式になる", () => {
+    const { file } = generateAgentTeamMd({
+      id: "comp-team-3",
+      skillConfig: {
+        name: "deploy-team",
+        description: "Deploy team",
+        input: "",
+        output: "",
+      },
+      memberSkillNames: ["deploy-worker"],
+    });
+
+    expect(file!.path).toBe("agents/deploy-team-agent.md");
+    expect(file!.content).toContain("name: deploy-team-agent");
   });
 });
