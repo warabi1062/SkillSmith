@@ -8,6 +8,8 @@ export interface SidePanelProps {
   description: string | null;
   skillType: string | null;
   orchestratorName: string | null;
+  mainFileId: string | null;
+  mainFileContent: string | null;
   onUpdateComponent: (
     componentId: string,
     fields: { name: string; description: string; skillType?: string },
@@ -16,6 +18,7 @@ export interface SidePanelProps {
     teamId: string,
     fields: { name: string; description: string },
   ) => void;
+  onUpdateMainFile: (fileId: string, content: string) => void;
   onClose: () => void;
 }
 
@@ -27,12 +30,16 @@ export default function SidePanel({
   description,
   skillType,
   orchestratorName,
+  mainFileId,
+  mainFileContent,
   onUpdateComponent,
   onUpdateAgentTeam,
+  onUpdateMainFile,
   onClose,
 }: SidePanelProps) {
   const [editName, setEditName] = useState(name);
   const [editDescription, setEditDescription] = useState(description ?? "");
+  const [editMainContent, setEditMainContent] = useState(mainFileContent ?? "");
 
   // 前回のノードID・編集値・種別情報をrefで保持（ノード切り替え時の自動保存用）
   const prevNodeIdRef = useRef(nodeId);
@@ -40,14 +47,19 @@ export default function SidePanel({
   const prevEditDescriptionRef = useRef(editDescription);
   const prevNodeTypeRef = useRef(nodeType);
   const prevSkillTypeRef = useRef(skillType);
+  const prevMainFileIdRef = useRef(mainFileId);
+  const prevEditMainContentRef = useRef(editMainContent);
 
-  // editName/editDescriptionの変更をrefに反映
+  // editName/editDescription/editMainContentの変更をrefに反映
   useEffect(() => {
     prevEditNameRef.current = editName;
   }, [editName]);
   useEffect(() => {
     prevEditDescriptionRef.current = editDescription;
   }, [editDescription]);
+  useEffect(() => {
+    prevEditMainContentRef.current = editMainContent;
+  }, [editMainContent]);
 
   // propsが変わったら（別ノード選択時）フォーム値をリセット
   // ノード切り替え時は前の編集値を自動保存してからリセット
@@ -70,14 +82,20 @@ export default function SidePanel({
           });
         }
       }
+      // MAINファイルの自動保存
+      if (prevMainFileIdRef.current) {
+        onUpdateMainFile(prevMainFileIdRef.current, prevEditMainContentRef.current);
+      }
       // refを新しいノードの情報に更新
       prevNodeIdRef.current = nodeId;
       prevNodeTypeRef.current = nodeType;
       prevSkillTypeRef.current = skillType;
+      prevMainFileIdRef.current = mainFileId;
     }
     setEditName(name);
     setEditDescription(description ?? "");
-  }, [nodeId, name, description, nodeType, skillType, onUpdateComponent, onUpdateAgentTeam]);
+    setEditMainContent(mainFileContent ?? "");
+  }, [nodeId, name, description, nodeType, skillType, mainFileId, mainFileContent, onUpdateComponent, onUpdateAgentTeam, onUpdateMainFile]);
 
   const handleSave = () => {
     // 空文字の名前は保存しない
@@ -93,6 +111,10 @@ export default function SidePanel({
         description: editDescription,
         skillType: skillType ?? undefined,
       });
+      // MAINファイルの保存
+      if (mainFileId) {
+        onUpdateMainFile(mainFileId, editMainContent);
+      }
     }
   };
 
@@ -162,6 +184,20 @@ export default function SidePanel({
           <div className="form-group">
             <label>Orchestrator</label>
             <div className="side-panel-readonly">{orchestratorName}</div>
+          </div>
+        )}
+
+        {/* 本文（MAINファイル）- AGENT_TEAMは対象外 */}
+        {componentType !== "AGENT_TEAM" && mainFileId && (
+          <div className="form-group">
+            <label htmlFor="side-panel-main-content">Content</label>
+            <textarea
+              id="side-panel-main-content"
+              className="side-panel-main-content"
+              value={editMainContent}
+              onChange={(e) => setEditMainContent(e.target.value)}
+              rows={10}
+            />
           </div>
         )}
 

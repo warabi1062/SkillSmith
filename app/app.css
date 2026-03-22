@@ -795,3 +795,12 @@ h3 {
   font-size: 0.875rem;
   color: #6b7280;
 }
+
+.side-panel-main-content {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.6;
+  tab-size: 2;
+}

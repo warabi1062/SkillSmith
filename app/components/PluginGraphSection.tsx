@@ -78,6 +78,7 @@ export default function PluginGraphSection({
     handleSidePanelClose,
     handleUpdateComponent,
     handleUpdateAgentTeam,
+    handleUpdateMainFile,
   } = usePluginGraph({
     plugin,
     modalState,
@@ -152,8 +153,11 @@ export default function PluginGraphSection({
           description={selectedNodeData.description}
           skillType={selectedNodeData.skillType}
           orchestratorName={selectedNodeData.orchestratorName}
+          mainFileId={selectedNodeData.mainFileId}
+          mainFileContent={selectedNodeData.mainFileContent}
           onUpdateComponent={handleUpdateComponent}
           onUpdateAgentTeam={handleUpdateAgentTeam}
+          onUpdateMainFile={handleUpdateMainFile}
           onClose={handleSidePanelClose}
         />
       )}

@@ -120,6 +120,7 @@ export function usePluginGraph({
   // サイドパネル用のfetcher
   const updateComponentFetcher = useFetcher();
   const updateAgentTeamFetcher = useFetcher();
+  const updateMainFileFetcher = useFetcher();
 
   // deleteFetcherのエラーメッセージを監視
   useEffect(() => {
@@ -437,6 +438,27 @@ export function usePluginGraph({
     [updateAgentTeamFetcher, plugin.id],
   );
 
+  // サイドパネル: MAINファイル更新ハンドラ
+  const handleUpdateMainFile = useCallback(
+    (fileId: string, content: string) => {
+      // filenameはサーバー側のupdate-fileで必須のため、既存のファイル名を取得して送信
+      const file = plugin.components
+        .flatMap((c) => c.files ?? [])
+        .find((f) => f.id === fileId);
+      if (!file) return;
+      updateMainFileFetcher.submit(
+        {
+          intent: "update-file",
+          fileId,
+          filename: file.filename,
+          content,
+        },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [updateMainFileFetcher, plugin.id, plugin.components],
+  );
+
   // サイドパネル: 選択ノードのデータを算出
   const selectedNodeData = useMemo(() => {
     if (!selectedNodeId || !selectedNodeType) return null;
@@ -453,6 +475,8 @@ export function usePluginGraph({
         skillType: null,
         orchestratorName:
           team.orchestrator.skillConfig?.name ?? "(unnamed)",
+        mainFileId: null,
+        mainFileContent: null,
       };
     }
 
@@ -477,6 +501,9 @@ export function usePluginGraph({
       componentType = "ORCHESTRATOR";
     }
 
+    // MAINロールのファイルを取得
+    const mainFile = comp.files?.find((f) => f.role === "MAIN") ?? null;
+
     return {
       nodeId: selectedNodeId,
       nodeType: "component" as const,
@@ -485,6 +512,8 @@ export function usePluginGraph({
       description: compDescription,
       skillType: comp.skillConfig?.skillType ?? null,
       orchestratorName: null,
+      mainFileId: mainFile?.id ?? null,
+      mainFileContent: mainFile?.content ?? null,
     };
   }, [selectedNodeId, selectedNodeType, plugin.components, plugin.agentTeams]);
 
@@ -598,5 +627,6 @@ export function usePluginGraph({
     handleSidePanelClose,
     handleUpdateComponent,
     handleUpdateAgentTeam,
+    handleUpdateMainFile,
   };
 }

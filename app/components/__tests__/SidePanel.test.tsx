@@ -17,8 +17,11 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     description: "A test skill",
     skillType: "WORKER",
     orchestratorName: null,
+    mainFileId: null,
+    mainFileContent: null,
     onUpdateComponent: vi.fn(),
     onUpdateAgentTeam: vi.fn(),
+    onUpdateMainFile: vi.fn(),
     onClose: vi.fn(),
     ...overrides,
   };
@@ -292,6 +295,86 @@ describe("SidePanel", () => {
 
       // 空文字名なので自動保存されない
       expect(onUpdateComponent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("MAINファイル本文の編集", () => {
+    it("mainFileIdがある場合にContentテキストエリアを表示する", () => {
+      renderPanel({
+        componentType: "SKILL",
+        mainFileId: "file-1",
+        mainFileContent: "# Hello",
+      });
+      const textarea = screen.getByLabelText("Content");
+      expect(textarea).toBeTruthy();
+      expect((textarea as HTMLTextAreaElement).value).toBe("# Hello");
+    });
+
+    it("mainFileIdがnullの場合はContentテキストエリアを表示しない", () => {
+      renderPanel({
+        componentType: "SKILL",
+        mainFileId: null,
+        mainFileContent: null,
+      });
+      expect(screen.queryByLabelText("Content")).toBeNull();
+    });
+
+    it("AGENT_TEAMの場合はContentテキストエリアを表示しない", () => {
+      renderPanel({
+        nodeType: "agentTeam",
+        componentType: "AGENT_TEAM",
+        mainFileId: "file-1",
+        mainFileContent: "content",
+      });
+      expect(screen.queryByLabelText("Content")).toBeNull();
+    });
+
+    it("保存時にonUpdateMainFileが呼ばれる", () => {
+      const onUpdateMainFile = vi.fn();
+      renderPanel({
+        nodeId: "comp-1",
+        componentType: "SKILL",
+        mainFileId: "file-1",
+        mainFileContent: "original content",
+        onUpdateMainFile,
+      });
+
+      const textarea = screen.getByLabelText("Content");
+      fireEvent.change(textarea, { target: { value: "updated content" } });
+
+      const saveButton = screen.getByRole("button", { name: "Save" });
+      fireEvent.click(saveButton);
+
+      expect(onUpdateMainFile).toHaveBeenCalledWith("file-1", "updated content");
+    });
+
+    it("ノード切り替え時にMAINファイルの内容が自動保存される", () => {
+      const onUpdateMainFile = vi.fn();
+      const { rerender, props } = renderPanel({
+        nodeId: "comp-1",
+        componentType: "SKILL",
+        mainFileId: "file-1",
+        mainFileContent: "original content",
+        onUpdateMainFile,
+      });
+
+      const textarea = screen.getByLabelText("Content");
+      fireEvent.change(textarea, { target: { value: "edited content" } });
+
+      // 別ノードに切り替え
+      rerender(
+        <SidePanel
+          {...props}
+          nodeId="comp-2"
+          name="other-node"
+          description="other desc"
+          mainFileId="file-2"
+          mainFileContent="other content"
+          onUpdateMainFile={onUpdateMainFile}
+        />,
+      );
+
+      expect(onUpdateMainFile).toHaveBeenCalledWith("file-1", "edited content");
     });
   });
 
