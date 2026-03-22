@@ -50,6 +50,8 @@ interface DependencyGraphProps {
   onNodeDragStop?: (positions: Record<string, { x: number; y: number }>) => void;
   onResetLayout?: () => void;
   onPositionsPersist?: (positions: Record<string, { x: number; y: number }>) => void;
+  onNodeClick?: (nodeId: string, nodeType: "component" | "agentTeam") => void;
+  onPaneClickCallback?: () => void;
   autoLayoutPending?: boolean;
   onAutoLayoutApplied?: () => void;
   resetKey?: number;
@@ -80,6 +82,8 @@ export default function DependencyGraph({
   onNodeDragStop,
   onResetLayout,
   onPositionsPersist,
+  onNodeClick,
+  onPaneClickCallback,
   autoLayoutPending,
   onAutoLayoutApplied,
   resetKey,
@@ -328,9 +332,23 @@ export default function DependencyGraph({
     [],
   );
 
+  // ノード左クリック時にサイドパネルを開く
+  const handleNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      const isAgentTeam = node.id.startsWith("agentteam-");
+      const nodeId = isAgentTeam
+        ? node.id.replace("agentteam-", "")
+        : node.id;
+      const nodeType = isAgentTeam ? "agentTeam" : "component";
+      onNodeClick?.(nodeId, nodeType);
+    },
+    [onNodeClick],
+  );
+
   const handlePaneClick = useCallback(() => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
-  }, []);
+    onPaneClickCallback?.();
+  }, [onPaneClickCallback]);
 
   // ドキュメント外クリックまたはEscapeキーでコンテキストメニューを閉じる
   useEffect(() => {
@@ -389,6 +407,7 @@ export default function DependencyGraph({
         onNodeDragStop={handleNodeDragStop}
         onConnect={handleConnect}
         onEdgeClick={handleEdgeClick}
+        onNodeClick={handleNodeClick}
         onNodeContextMenu={handleNodeContextMenu}
         onPaneClick={handlePaneClick}
         isValidConnection={isValidConnection}
