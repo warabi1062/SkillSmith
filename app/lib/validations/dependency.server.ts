@@ -78,13 +78,14 @@ export async function validateDependencyCreate(
     });
   }
 
-  // EntryPoint -> Skill: target must be WORKER skill
+  // EntryPoint -> Skill: target must be WORKER, WORKER_WITH_SUB_AGENT, or WORKER_WITH_AGENT_TEAM skill
+  const VALID_WORKER_TYPES = ["WORKER", "WORKER_WITH_SUB_AGENT", "WORKER_WITH_AGENT_TEAM"];
   if (
     source.type === "SKILL" &&
     source.skillConfig?.skillType === "ENTRY_POINT" &&
     target.type === "SKILL"
   ) {
-    if (target.skillConfig?.skillType !== "WORKER") {
+    if (!target.skillConfig?.skillType || !VALID_WORKER_TYPES.includes(target.skillConfig.skillType)) {
       throw new ValidationError({
         field: "targetId",
         code: "INVALID_SKILL_TYPE",

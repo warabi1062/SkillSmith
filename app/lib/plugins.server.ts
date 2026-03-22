@@ -2,7 +2,6 @@ import { Prisma } from "../generated/prisma/client";
 import { logAuditEvent } from "./audit-log.server";
 import { prisma } from "./db.server";
 import {
-  validateAgentTeamCreate,
   validateAgentTeamMemberCreate,
   validateComponentFileData,
   validateDependencyCreate,
@@ -35,26 +34,15 @@ export async function getPlugin(id: string) {
           files: {
             orderBy: { sortOrder: "asc" },
           },
-        },
-        orderBy: { createdAt: "asc" },
-      },
-      agentTeams: {
-        include: {
-          orchestrator: {
-            include: { skillConfig: true },
-          },
-          members: {
+          agentTeamMembers: {
             include: {
               component: {
                 include: {
-                  skillConfig: { include: { agentConfig: true } },
+                  skillConfig: { select: { name: true } },
                 },
               },
             },
             orderBy: { sortOrder: "asc" },
-          },
-          _count: {
-            select: { members: true },
           },
         },
         orderBy: { createdAt: "asc" },
@@ -129,7 +117,7 @@ export async function createComponent(
     type: "SKILL";
     name: string;
     description?: string | null;
-    skillType?: "ENTRY_POINT" | "WORKER";
+    skillType?: "ENTRY_POINT" | "WORKER" | "WORKER_WITH_SUB_AGENT" | "WORKER_WITH_AGENT_TEAM";
   },
 ) {
   return prisma.component.create({
@@ -141,8 +129,8 @@ export async function createComponent(
           name: data.name.trim(),
           skillType: data.skillType!,
           description: data.description?.trim() || null,
-          // WORKER Skill作成時にagentConfigをデフォルトで同時作成
-          ...(data.skillType === "WORKER"
+          // WORKER_WITH_SUB_AGENT作成時にagentConfigをデフォルトで同時作成
+          ...(data.skillType === "WORKER_WITH_SUB_AGENT"
             ? {
                 agentConfig: {
                   create: {},
@@ -166,7 +154,7 @@ export async function updateComponent(
     type: "SKILL";
     name: string;
     description?: string | null;
-    skillType?: "ENTRY_POINT" | "WORKER";
+    skillType?: "ENTRY_POINT" | "WORKER" | "WORKER_WITH_SUB_AGENT" | "WORKER_WITH_AGENT_TEAM";
     content?: string;
     input?: string;
     output?: string;
@@ -181,6 +169,39 @@ export async function updateComponent(
     };
   },
 ) {
+  // skillType変更時のagentConfig自動管理
+  if (data.skillType) {
+    const existing = await prisma.component.findUnique({
+      where: { id },
+      include: { skillConfig: { include: { agentConfig: true } } },
+    });
+
+    if (existing?.skillConfig) {
+      const oldSkillType = existing.skillConfig.skillType;
+      const newSkillType = data.skillType;
+
+      // WORKER_WITH_SUB_AGENTに変更 & agentConfigが未作成の場合 -> 自動作成
+      if (newSkillType === "WORKER_WITH_SUB_AGENT" && !existing.skillConfig.agentConfig) {
+        await prisma.agentConfig.create({
+          data: { skillConfigId: existing.skillConfig.id },
+        });
+      }
+
+      // WORKER_WITH_SUB_AGENT以外に変更 & agentConfigが存在する場合 -> 自動削除
+      if (
+        oldSkillType === "WORKER_WITH_SUB_AGENT" &&
+        newSkillType !== "WORKER_WITH_SUB_AGENT" &&
+        existing.skillConfig.agentConfig
+      ) {
+        await prisma.agentConfig.delete({
+          where: { id: existing.skillConfig.agentConfig.id },
+        });
+        // agentConfigフィールドの更新をスキップ（削除済みのため）
+        delete data.agentConfig;
+      }
+    }
+  }
+
   return prisma.component.update({
     where: { id },
     data: {
@@ -234,20 +255,6 @@ export async function updateComponent(
 }
 
 export async function deleteComponent(id: string) {
-  const orchestratedTeams = await prisma.agentTeam.findMany({
-    where: { orchestratorId: id },
-    select: { name: true },
-  });
-
-  if (orchestratedTeams.length > 0) {
-    const teamNames = orchestratedTeams.map((t) => t.name).join(", ");
-    throw new ValidationError({
-      field: "orchestratedTeams",
-      code: "HAS_DEPENDENT_TEAMS",
-      message: `This component is used as orchestrator in the following teams: ${teamNames}. Please remove these teams first.`,
-    });
-  }
-
   const component = await prisma.component.findUnique({
     where: { id },
     include: { skillConfig: true },
@@ -269,144 +276,21 @@ export async function deleteComponent(id: string) {
   return deleted;
 }
 
-// AgentConfig の追加・削除
-
-export async function addAgentConfig(componentId: string) {
-  const component = await prisma.component.findUnique({
-    where: { id: componentId },
-    include: { skillConfig: { include: { agentConfig: true } } },
-  });
-  if (!component?.skillConfig) {
-    throw new ValidationError({
-      field: "componentId",
-      code: "SKILL_CONFIG_NOT_FOUND",
-      message: "SkillConfig not found",
-    });
-  }
-  if (component.skillConfig.skillType !== "WORKER") {
-    throw new ValidationError({
-      field: "skillType",
-      code: "NOT_WORKER_SKILL",
-      message: "AgentConfig can only be added to WORKER skills",
-    });
-  }
-  if (component.skillConfig.agentConfig) {
-    throw new ValidationError({
-      field: "agentConfig",
-      code: "ALREADY_EXISTS",
-      message: "AgentConfig already exists",
-    });
-  }
-  return prisma.agentConfig.create({
-    data: { skillConfigId: component.skillConfig.id },
-  });
-}
-
-export async function removeAgentConfig(componentId: string) {
-  const component = await prisma.component.findUnique({
-    where: { id: componentId },
-    include: { skillConfig: { include: { agentConfig: true } } },
-  });
-  if (!component?.skillConfig?.agentConfig) {
-    throw new ValidationError({
-      field: "agentConfig",
-      code: "NOT_FOUND",
-      message: "AgentConfig not found",
-    });
-  }
-  return prisma.agentConfig.delete({
-    where: { id: component.skillConfig.agentConfig.id },
-  });
-}
-
-// AgentTeam CRUD
-
-export async function getAgentTeam(id: string) {
-  return prisma.agentTeam.findUnique({
-    where: { id },
-    include: {
-      orchestrator: {
-        include: { skillConfig: true },
-      },
-      members: {
-        include: {
-          component: {
-            include: {
-              skillConfig: { include: { agentConfig: true } },
-            },
-          },
-        },
-        orderBy: { sortOrder: "asc" },
-      },
-    },
-  });
-}
-
-export async function getAgentTeams(pluginId: string) {
-  return prisma.agentTeam.findMany({
-    where: { pluginId },
-    include: {
-      orchestrator: {
-        include: { skillConfig: true },
-      },
-      _count: {
-        select: { members: true },
-      },
-    },
-    orderBy: { createdAt: "asc" },
-  });
-}
-
-export async function createAgentTeam(
-  pluginId: string,
-  data: { orchestratorId: string; name: string; description?: string },
-) {
-  await validateAgentTeamCreate(prisma, {
-    orchestratorId: data.orchestratorId,
-  });
-
-  return prisma.agentTeam.create({
-    data: {
-      pluginId,
-      orchestratorId: data.orchestratorId,
-      name: data.name.trim(),
-      description: data.description?.trim() || null,
-    },
-  });
-}
-
-export async function updateAgentTeam(
-  id: string,
-  data: { name: string; description?: string },
-) {
-  return prisma.agentTeam.update({
-    where: { id },
-    data: {
-      name: data.name.trim(),
-      description: data.description?.trim() || null,
-    },
-  });
-}
-
-export async function deleteAgentTeam(id: string) {
-  return prisma.agentTeam.delete({
-    where: { id },
-  });
-}
+// AgentTeamMember CRUD
 
 export async function addAgentTeamMember(
-  teamId: string,
-  data: { componentId: string; sortOrder?: number },
+  agentTeamComponentId: string,
+  data: { memberComponentId: string; sortOrder?: number },
 ) {
   await validateAgentTeamMemberCreate(prisma, {
-    componentId: data.componentId,
+    componentId: data.memberComponentId,
   });
 
   try {
     return await prisma.agentTeamMember.create({
       data: {
-        teamId,
-        componentId: data.componentId,
+        agentTeamComponentId,
+        componentId: data.memberComponentId,
         sortOrder: data.sortOrder ?? 0,
       },
     });
@@ -425,7 +309,19 @@ export async function addAgentTeamMember(
   }
 }
 
-export async function removeAgentTeamMember(memberId: string) {
+export async function removeAgentTeamMember(
+  memberId: string,
+  agentTeamComponentId: string,
+) {
+  // メンバーが指定されたagentTeamComponentに属するか検証
+  const member = await prisma.agentTeamMember.findUnique({
+    where: { id: memberId },
+  });
+  if (!member || member.agentTeamComponentId !== agentTeamComponentId) {
+    throw new Error(
+      "Member does not belong to the specified agent team component",
+    );
+  }
   return prisma.agentTeamMember.delete({
     where: { id: memberId },
   });
@@ -681,4 +577,3 @@ export async function deleteDependenciesBatch(ids: string[]) {
     where: { id: { in: ids } },
   });
 }
-

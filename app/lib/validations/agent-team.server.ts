@@ -21,94 +21,8 @@ export class ValidationError extends Error {
 }
 
 /**
- * AgentTeam 作成時のバリデーション。
- * orchestratorId が指す Component が SKILL タイプかつ
- * SkillConfig.skillType が ENTRY_POINT であることを検証する。
- */
-export async function validateAgentTeamCreate(
-  prisma: PrismaClient,
-  data: { orchestratorId: string }
-): Promise<void> {
-  const component = await prisma.component.findUnique({
-    where: { id: data.orchestratorId },
-    include: { skillConfig: true },
-  });
-
-  if (!component) {
-    throw new ValidationError({
-      field: "orchestratorId",
-      code: "COMPONENT_NOT_FOUND",
-      message: `Component with id "${data.orchestratorId}" not found`,
-    });
-  }
-
-  if (component.type !== "SKILL") {
-    throw new ValidationError({
-      field: "orchestratorId",
-      code: "INVALID_COMPONENT_TYPE",
-      message: `orchestratorId must reference a SKILL component, but got "${component.type}"`,
-    });
-  }
-
-  if (!component.skillConfig) {
-    throw new ValidationError({
-      field: "orchestratorId",
-      code: "SKILL_CONFIG_NOT_FOUND",
-      message: `Component "${data.orchestratorId}" does not have a SkillConfig`,
-    });
-  }
-
-  if (component.skillConfig.skillType !== "ENTRY_POINT") {
-    throw new ValidationError({
-      field: "orchestratorId",
-      code: "INVALID_SKILL_TYPE",
-      message: `orchestratorId must reference an ENTRY_POINT skill, but got "${component.skillConfig.skillType}"`,
-    });
-  }
-}
-
-const NAME_MAX_LENGTH = 100;
-const DESCRIPTION_MAX_LENGTH = 500;
-
-/**
- * AgentTeam のフォーム入力バリデーション（同期）。
- * name 必須・長さ制限、description 長さ制限を検証する。
- */
-export function validateAgentTeamData(data: {
-  name: string;
-  description?: string;
-}): void {
-  if (!data.name || data.name.trim().length === 0) {
-    throw new ValidationError({
-      field: "name",
-      code: "NAME_REQUIRED",
-      message: "Agent team name is required",
-    });
-  }
-
-  if (data.name.trim().length > NAME_MAX_LENGTH) {
-    throw new ValidationError({
-      field: "name",
-      code: "NAME_TOO_LONG",
-      message: `Agent team name must be ${NAME_MAX_LENGTH} characters or less`,
-    });
-  }
-
-  if (
-    data.description &&
-    data.description.trim().length > DESCRIPTION_MAX_LENGTH
-  ) {
-    throw new ValidationError({
-      field: "description",
-      code: "DESCRIPTION_TOO_LONG",
-      message: `Description must be ${DESCRIPTION_MAX_LENGTH} characters or less`,
-    });
-  }
-}
-
-/**
  * AgentTeamMember 作成時のバリデーション。
- * componentId が指す Component が WORKER Skill かつ agentConfig を持つことを検証する。
+ * componentId が指す Component が WORKER_WITH_SUB_AGENT Skill であることを検証する。
  */
 export async function validateAgentTeamMemberCreate(
   prisma: PrismaClient,
@@ -129,13 +43,12 @@ export async function validateAgentTeamMemberCreate(
 
   if (
     component.type !== "SKILL" ||
-    component.skillConfig?.skillType !== "WORKER" ||
-    !component.skillConfig?.agentConfig
+    component.skillConfig?.skillType !== "WORKER_WITH_SUB_AGENT"
   ) {
     throw new ValidationError({
       field: "componentId",
       code: "INVALID_COMPONENT_TYPE",
-      message: `AgentTeamMember.componentId must reference a WORKER skill with an agent config`,
+      message: `AgentTeamMember.componentId must reference a WORKER_WITH_SUB_AGENT skill`,
     });
   }
 }

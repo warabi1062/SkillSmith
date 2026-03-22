@@ -14,7 +14,7 @@ interface ModalState {
 
 interface MembersModalState {
   isOpen: boolean;
-  teamId?: string;
+  agentTeamComponentId?: string;
 }
 
 export function meta({ data: loaderData }: Route.MetaArgs) {

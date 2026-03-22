@@ -5,7 +5,7 @@ interface AgentTeamMembersModalProps {
   isOpen: boolean;
   onClose: () => void;
   pluginId: string;
-  teamId: string;
+  agentTeamComponentId: string;
   teamName: string;
   members: Array<{
     id: string;
@@ -26,7 +26,7 @@ export default function AgentTeamMembersModal({
   isOpen,
   onClose,
   pluginId,
-  teamId,
+  agentTeamComponentId,
   teamName,
   members,
   agentComponents,
@@ -145,7 +145,7 @@ export default function AgentTeamMembersModal({
                     removeMemberFetcher.submit(
                       {
                         intent: "remove-agent-team-member",
-                        teamId,
+                        agentTeamComponentId,
                         memberId: member.id,
                       },
                       {
@@ -180,14 +180,14 @@ export default function AgentTeamMembersModal({
           style={{ maxWidth: "480px" }}
         >
           <input type="hidden" name="intent" value="add-agent-team-member" />
-          <input type="hidden" name="teamId" value={teamId} />
+          <input type="hidden" name="agentTeamComponentId" value={agentTeamComponentId} />
 
           <div className="form-group">
-            <label htmlFor="members-modal-componentId">Worker Skill (with Agent)</label>
+            <label htmlFor="members-modal-memberComponentId">Worker Skill (with Agent)</label>
             <select
-              id="members-modal-componentId"
-              name="componentId"
-              defaultValue={values?.componentId ?? ""}
+              id="members-modal-memberComponentId"
+              name="memberComponentId"
+              defaultValue={values?.memberComponentId ?? ""}
               className="form-select"
               required
             >

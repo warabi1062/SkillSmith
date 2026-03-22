@@ -7,7 +7,7 @@ import type {
 import type { ValidatorComponentData } from "./validator.server";
 import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
-import { generateAgentMd } from "./agent-generator.server";
+import { generateAgentMd, generateAgentTeamMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
 
 /**
@@ -30,6 +30,14 @@ async function fetchPluginData(pluginId: string) {
               },
             },
             orderBy: { order: "asc" },
+          },
+          agentTeamMembers: {
+            include: {
+              component: {
+                include: { skillConfig: true },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
           },
         },
       },
@@ -154,8 +162,8 @@ function generateSkillComponent(
     files.push(...supportFiles);
   }
 
-  // WORKER Skill + agentConfig の場合はagent.mdも生成
-  if (config.agentConfig) {
+  // WORKER_WITH_SUB_AGENT + agentConfig の場合はagent.mdも生成
+  if (config.skillType === "WORKER_WITH_SUB_AGENT" && config.agentConfig) {
     const agentResult = generateAgentMd({
       id: component.id,
       agentConfig: {
@@ -180,6 +188,29 @@ function generateSkillComponent(
     errors.push(...agentResult.errors);
     if (agentResult.file) {
       files.push(agentResult.file);
+    }
+  }
+
+  // WORKER_WITH_AGENT_TEAM の場合はagent-team用のagent.mdを生成
+  if (config.skillType === "WORKER_WITH_AGENT_TEAM") {
+    const memberSkillNames = (component.agentTeamMembers ?? [])
+      .map((m) => m.component.skillConfig?.name)
+      .filter((name): name is string => name != null);
+
+    const agentTeamResult = generateAgentTeamMd({
+      id: component.id,
+      skillConfig: {
+        name: config.name,
+        description: config.description,
+        input: config.input,
+        output: config.output,
+      },
+      memberSkillNames,
+    });
+
+    errors.push(...agentTeamResult.errors);
+    if (agentTeamResult.file) {
+      files.push(agentTeamResult.file);
     }
   }
 }

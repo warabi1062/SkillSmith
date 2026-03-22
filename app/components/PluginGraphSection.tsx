@@ -13,9 +13,6 @@ const DependencyGraph = React.lazy(
 const ComponentFormModal = React.lazy(
   () => import("../components/ComponentFormModal"),
 );
-const AgentTeamFormModal = React.lazy(
-  () => import("../components/AgentTeamFormModal"),
-);
 const FilesManagementModal = React.lazy(
   () => import("../components/FilesManagementModal"),
 );
@@ -40,13 +37,10 @@ export default function PluginGraphSection({
 }: PluginGraphSectionProps) {
   const {
     isClient,
-    agentTeamModalState,
     filesModalState,
     deleteError,
     resetCounter,
     graphDataWithPositions,
-    entryPointSkills,
-    agentTeamsForGraph,
     graphComponents,
     filesModalComponentName,
     filesModalFiles,
@@ -55,7 +49,6 @@ export default function PluginGraphSection({
     membersModalAgentComponents,
     addDependencyFetcher,
     componentFetcher,
-    agentTeamFetcher,
     handleConnect,
     handleEdgeClick,
     handleCreateComponent,
@@ -65,9 +58,6 @@ export default function PluginGraphSection({
     handleManageMembers,
     handleMembersModalClose,
     handleModalClose,
-    handleCreateAgentTeam,
-    handleDeleteAgentTeam,
-    handleAgentTeamModalClose,
     handleNodeDragStop,
     handleResetLayout,
     autoLayoutPending,
@@ -77,9 +67,6 @@ export default function PluginGraphSection({
     handleNodeClick,
     handleSidePanelClose,
     handleUpdateComponent,
-    handleUpdateAgentTeam,
-    handleAddAgentConfig,
-    handleRemoveAgentConfig,
   } = usePluginGraph({
     plugin,
     modalState,
@@ -122,14 +109,11 @@ export default function PluginGraphSection({
                 edges={graphDataWithPositions.edges}
                 pluginId={plugin.id}
                 components={graphComponents}
-                agentTeams={agentTeamsForGraph}
                 onConnect={handleConnect}
                 onEdgeClick={handleEdgeClick}
                 onCreateComponent={handleCreateComponent}
                 onDeleteComponent={handleDeleteComponent}
                 onManageFiles={handleManageFiles}
-                onCreateAgentTeam={handleCreateAgentTeam}
-                onDeleteAgentTeam={handleDeleteAgentTeam}
                 onManageMembers={handleManageMembers}
                 onNodeDragStop={handleNodeDragStop}
                 onResetLayout={handleResetLayout}
@@ -160,9 +144,6 @@ export default function PluginGraphSection({
           agentConfig={selectedNodeData.agentConfig}
           orchestratorName={selectedNodeData.orchestratorName}
           onUpdateComponent={handleUpdateComponent}
-          onUpdateAgentTeam={handleUpdateAgentTeam}
-          onAddAgentConfig={handleAddAgentConfig}
-          onRemoveAgentConfig={handleRemoveAgentConfig}
           onClose={handleSidePanelClose}
         />
       )}
@@ -188,23 +169,13 @@ export default function PluginGraphSection({
         </Suspense>
       )}
 
-      <Suspense fallback={null}>
-        <AgentTeamFormModal
-          isOpen={agentTeamModalState.isOpen}
-          onClose={handleAgentTeamModalClose}
-          entryPointSkills={entryPointSkills}
-          fetcher={agentTeamFetcher}
-          pluginId={plugin.id}
-        />
-      </Suspense>
-
-      {membersModalState.isOpen && membersModalState.teamId && (
+      {membersModalState.isOpen && membersModalState.agentTeamComponentId && (
         <Suspense fallback={null}>
           <AgentTeamMembersModal
             isOpen={membersModalState.isOpen}
             onClose={handleMembersModalClose}
             pluginId={plugin.id}
-            teamId={membersModalState.teamId}
+            agentTeamComponentId={membersModalState.agentTeamComponentId}
             teamName={membersModalTeamName}
             members={membersModalMembers}
             agentComponents={membersModalAgentComponents}

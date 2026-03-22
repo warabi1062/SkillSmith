@@ -14,6 +14,8 @@ enum ComponentType {
 enum SkillType {
   ENTRY_POINT
   WORKER
+  WORKER_WITH_SUB_AGENT
+  WORKER_WITH_AGENT_TEAM
 }
 
 enum ComponentFileRole {
@@ -29,7 +31,6 @@ model Plugin {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   components  Component[]
-  agentTeams  AgentTeam[]
 }
 
 model Component {
@@ -44,8 +45,8 @@ model Component {
   files            ComponentFile[]
   dependenciesFrom   ComponentDependency[] @relation("DependencySource")
   dependenciesTo     ComponentDependency[] @relation("DependencyTarget")
-  orchestratedTeams  AgentTeam[]
-  teamMemberships    AgentTeamMember[]
+  teamMemberships    AgentTeamMember[]     @relation("MemberComponent")
+  agentTeamMembers   AgentTeamMember[]     @relation("AgentTeamComponent")
 }
 
 model SkillConfig {
@@ -96,30 +97,16 @@ model ComponentFile {
   @@unique([componentId, filename])
 }
 
-model AgentTeam {
-  id              String            @id @default(cuid())
-  pluginId        String
-  orchestratorId  String
-  name            String
-  description     String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
-  plugin       Plugin             @relation(fields: [pluginId], references: [id], onDelete: Cascade)
-  orchestrator Component          @relation(fields: [orchestratorId], references: [id], onDelete: Restrict)
-  members      AgentTeamMember[]
-}
-
 model AgentTeamMember {
-  id          String @id @default(cuid())
-  teamId      String
-  componentId String
-  sortOrder   Int    @default(0)
+  id                   String @id @default(cuid())
+  agentTeamComponentId String
+  componentId          String
+  sortOrder            Int    @default(0)
 
-  team      AgentTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  agentTeamComponent Component @relation("AgentTeamComponent", fields: [agentTeamComponentId], references: [id], onDelete: Cascade)
+  component          Component @relation("MemberComponent", fields: [componentId], references: [id], onDelete: Cascade)
 
-  @@unique([teamId, componentId])
+  @@unique([agentTeamComponentId, componentId])
 }
 
 model ComponentDependency {

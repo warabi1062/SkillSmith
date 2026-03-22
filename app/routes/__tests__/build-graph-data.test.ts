@@ -161,7 +161,7 @@ describe("buildGraphData", () => {
         id: "worker-1",
         type: "SKILL",
         skillConfig: {
-          skillType: "WORKER",
+          skillType: "WORKER_WITH_SUB_AGENT",
           name: "implement",
           agentConfig: { id: "ac-1" },
         },
@@ -318,42 +318,18 @@ describe("buildGraphData", () => {
     });
   });
 
-  it("AgentTeamノードにtype:'agentteam'が設定されること", () => {
-    const agentTeams = [
-      { id: "team-1", name: "Team Alpha", description: "A team", orchestratorName: "dev" },
+  it("agentTeams引数なしでbuildGraphDataが正常動作すること", () => {
+    const components = [
+      makeComponent({
+        id: "worker-1",
+        type: "SKILL",
+        skillConfig: { skillType: "WORKER", name: "implement" },
+      }),
     ];
 
-    const { nodes } = buildGraphData([], agentTeams);
-    const teamNode = nodes.find((n) => n.id === "agentteam-team-1");
-
-    expect(teamNode).toBeDefined();
-    expect(teamNode!.type).toBe("agentteam");
-  });
-
-  it("AgentTeamノードのdataにdescription/orchestratorNameが含まれること", () => {
-    const agentTeams = [
-      { id: "team-1", name: "Team Alpha", description: "A team", orchestratorName: "dev" },
-    ];
-
-    const { nodes } = buildGraphData([], agentTeams);
-    const teamNode = nodes.find((n) => n.id === "agentteam-team-1");
-
-    expect(teamNode!.data).toMatchObject({
-      label: "Team Alpha",
-      description: "A team",
-      orchestratorName: "dev",
-    });
-  });
-
-  it("AgentTeamノードにstyleが設定されないこと", () => {
-    const agentTeams = [
-      { id: "team-1", name: "Team Alpha", description: null, orchestratorName: "dev" },
-    ];
-
-    const { nodes } = buildGraphData([], agentTeams);
-    const teamNode = nodes.find((n) => n.id === "agentteam-team-1");
-
-    expect(teamNode!.style).toBeUndefined();
+    const { nodes, edges } = buildGraphData(components);
+    expect(nodes).toHaveLength(1);
+    expect(edges).toHaveLength(0);
   });
 
   it("OrchestratorNodeのdataにdescriptionとskillTypeが含まれること", () => {
@@ -394,7 +370,7 @@ describe("buildGraphData", () => {
       nodeSizes.set("orch-1", { width: 300, height: 120 });
       nodeSizes.set("worker-1", { width: 200, height: 80 });
 
-      const { nodes } = buildGraphData(components, [], nodeSizes);
+      const { nodes } = buildGraphData(components, nodeSizes);
       const orchNode = nodes.find((n) => n.id === "orch-1");
       const workerNode = nodes.find((n) => n.id === "worker-1");
 

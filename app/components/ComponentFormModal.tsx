@@ -98,6 +98,8 @@ export default function ComponentFormModal({
               <option value="">-- Select --</option>
               <option value="ENTRY_POINT">Entry Point</option>
               <option value="WORKER">Worker</option>
+              <option value="WORKER_WITH_SUB_AGENT">Worker + Sub Agent</option>
+              <option value="WORKER_WITH_AGENT_TEAM">Worker + Agent Team</option>
             </select>
             {errors?.skillType && (
               <div className="form-error">{errors.skillType}</div>
