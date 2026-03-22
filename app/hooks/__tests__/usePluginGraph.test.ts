@@ -77,9 +77,6 @@ const defaultSkillConfigFields = {
   userInvocable: true,
   allowedTools: null,
   context: null,
-  agent: null,
-  model: null,
-  hooks: null,
   content: "",
 };
 
@@ -92,6 +89,7 @@ function createSkillConfig(
     description: "desc",
     skillType: "WORKER",
     componentId: "comp-1",
+    agentConfig: null,
     ...defaultSkillConfigFields,
     ...overrides,
   } as Plugin["components"][number]["skillConfig"];
@@ -107,7 +105,6 @@ function createComponent(
     createdAt: new Date(),
     updatedAt: new Date(),
     skillConfig: createSkillConfig(),
-    agentConfig: null,
     dependenciesFrom: [],
     files: [],
     ...overrides,
@@ -287,26 +284,6 @@ describe("usePluginGraph", () => {
       expect(node.data.pluginId).toBe("plugin-1");
     });
 
-    it("injects componentId and pluginId into agent nodes", () => {
-      const comp = createComponent({ id: "agent-1", type: "AGENT" });
-      const plugin = createPlugin({ components: [comp] });
-
-      mockBuildGraphData.mockReturnValue({
-        nodes: [
-          { id: "agent-1", type: "agent", position: { x: 0, y: 0 }, data: { label: "B" } },
-        ],
-        edges: [],
-      });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      const node = result.current.graphDataWithPositions.nodes[0];
-      expect(node.data.componentId).toBe("agent-1");
-      expect(node.data.pluginId).toBe("plugin-1");
-    });
-
     it("injects componentId and pluginId into orchestrator nodes", () => {
       const comp = createComponent({ id: "orch-1", type: "SKILL" });
       const plugin = createPlugin({ components: [comp] });
@@ -348,60 +325,6 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("handleConnect", () => {
-    it("submits add-dependency with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleConnect("source-1", "target-1");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "add-dependency", sourceId: "source-1", targetId: "target-1" },
-        { method: "post" },
-      );
-    });
-
-    it("includes order when sourceHandle is provided", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleConnect("source-1", "target-1", "step-3");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        {
-          intent: "add-dependency",
-          sourceId: "source-1",
-          targetId: "target-1",
-          order: "3",
-        },
-        { method: "post" },
-      );
-    });
-  });
-
-  describe("handleEdgeClick", () => {
-    it("submits remove-dependency with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleEdgeClick("dep-1");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "remove-dependency", dependencyId: "dep-1" },
-        { method: "post" },
-      );
-    });
-  });
-
   describe("handleCreateComponent", () => {
     it("calls onModalStateChange with create mode", () => {
       const onModalStateChange = vi.fn();
@@ -411,13 +334,12 @@ describe("usePluginGraph", () => {
       );
 
       act(() => {
-        result.current.handleCreateComponent("SKILL");
+        result.current.handleCreateComponent();
       });
 
       expect(onModalStateChange).toHaveBeenCalledWith({
         isOpen: true,
         mode: "create",
-        componentType: "SKILL",
       });
     });
   });
@@ -436,250 +358,6 @@ describe("usePluginGraph", () => {
         { intent: "delete-component", componentId: "comp-1" },
         { method: "post", action: "/plugins/plugin-1" },
       );
-    });
-  });
-
-  describe("handleManageFiles", () => {
-    it("opens filesModalState with componentId", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleManageFiles("comp-1");
-      });
-
-      expect(result.current.filesModalState).toEqual({
-        isOpen: true,
-        componentId: "comp-1",
-      });
-    });
-  });
-
-  describe("handleFilesModalClose", () => {
-    it("closes filesModalState", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleManageFiles("comp-1");
-      });
-      act(() => {
-        result.current.handleFilesModalClose();
-      });
-
-      expect(result.current.filesModalState).toEqual({ isOpen: false });
-    });
-  });
-
-  describe("handleCreateAgentTeam", () => {
-    it("opens agentTeamModalState in create mode", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleCreateAgentTeam();
-      });
-
-      expect(result.current.agentTeamModalState).toEqual({
-        isOpen: true,
-      });
-    });
-  });
-
-  describe("handleDeleteAgentTeam", () => {
-    it("submits delete-agent-team with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleDeleteAgentTeam("team-1");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "delete-agent-team", teamId: "team-1" },
-        { method: "post", action: "/plugins/plugin-1" },
-      );
-    });
-  });
-
-  describe("handleAgentTeamModalClose", () => {
-    it("closes agentTeamModalState", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleCreateAgentTeam();
-      });
-      act(() => {
-        result.current.handleAgentTeamModalClose();
-      });
-
-      expect(result.current.agentTeamModalState).toEqual({
-        isOpen: false,
-      });
-    });
-  });
-
-  describe("handleManageMembers / handleMembersModalClose", () => {
-    it("calls onMembersModalStateChange with open state", () => {
-      const onMembersModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(
-          createDefaultParams({ onMembersModalStateChange }),
-        ),
-      );
-
-      act(() => {
-        result.current.handleManageMembers("team-1");
-      });
-
-      expect(onMembersModalStateChange).toHaveBeenCalledWith({
-        isOpen: true,
-        teamId: "team-1",
-      });
-    });
-
-    it("calls onMembersModalStateChange with closed state", () => {
-      const onMembersModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(
-          createDefaultParams({ onMembersModalStateChange }),
-        ),
-      );
-
-      act(() => {
-        result.current.handleMembersModalClose();
-      });
-
-      expect(onMembersModalStateChange).toHaveBeenCalledWith({
-        isOpen: false,
-      });
-    });
-  });
-
-  describe("handleNodeDragStop", () => {
-    it("calls saveGraphPositions with plugin id and positions", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      const positions = { "node-1": { x: 10, y: 20 } };
-      act(() => {
-        result.current.handleNodeDragStop(positions);
-      });
-
-      expect(mockSaveGraphPositions).toHaveBeenCalledWith(
-        "plugin-1",
-        positions,
-      );
-    });
-  });
-
-  describe("handleResetLayout", () => {
-    it("calls clearGraphPositions and increments resetCounter", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      const initialCounter = result.current.resetCounter;
-      act(() => {
-        result.current.handleResetLayout();
-      });
-
-      expect(mockClearGraphPositions).toHaveBeenCalledWith("plugin-1");
-      expect(result.current.resetCounter).toBe(initialCounter + 1);
-    });
-  });
-
-  describe("handleReorderStep", () => {
-    it("submits reorder-dependency with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleReorderStep("dep-1", "up");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "reorder-dependency", dependencyId: "dep-1", direction: "up" },
-        { method: "post" },
-      );
-    });
-  });
-
-  describe("handleDeleteStep", () => {
-    it("submits delete-dependencies-batch when confirmed", () => {
-      vi.spyOn(window, "confirm").mockReturnValue(true);
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleDeleteStep(["dep-1", "dep-2"]);
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        {
-          intent: "delete-dependencies-batch",
-          dependencyIds: "dep-1,dep-2",
-        },
-        { method: "post", action: "/plugins/plugin-1" },
-      );
-    });
-
-    it("does not submit when cancelled", () => {
-      vi.spyOn(window, "confirm").mockReturnValue(false);
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleDeleteStep(["dep-1"]);
-      });
-
-      expect(mockSubmit).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("deleteFetcher error monitoring", () => {
-    it("sets deleteError when deleteFetcher returns error", () => {
-      mockFetcherData.state = "idle";
-      mockFetcherData.data = { error: "Cannot delete" };
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      expect(result.current.deleteError).toBe("Cannot delete");
-    });
-  });
-
-  describe("deleteError clearing", () => {
-    it("clears deleteError when handleConnect is called", () => {
-      mockFetcherData.state = "idle";
-      mockFetcherData.data = { error: "Some error" };
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      expect(result.current.deleteError).toBe("Some error");
-
-      act(() => {
-        result.current.handleConnect("a", "b");
-      });
-
-      expect(result.current.deleteError).toBeNull();
     });
   });
 
@@ -705,28 +383,8 @@ describe("usePluginGraph", () => {
           componentId: "w-1",
         }),
       });
-      const agent = createComponent({
-        id: "a-1",
-        type: "AGENT",
-        skillConfig: null,
-        agentConfig: {
-          id: "ac-1",
-          name: "Agent",
-          description: "",
-          componentId: "a-1",
-          model: null,
-          hooks: null,
-          tools: null,
-          disallowedTools: null,
-          permissionMode: null,
-          memory: null,
-          content: "",
-          input: "",
-          output: "",
-        },
-      });
       const plugin = createPlugin({
-        components: [entryPoint, worker, agent],
+        components: [entryPoint, worker],
       });
 
       const { result } = renderHook(() =>
@@ -739,182 +397,60 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("filesModalComponentName computation", () => {
-    it("resolves component name from componentId", () => {
-      const comp = createComponent({
-        id: "comp-1",
+  describe("membersModalAgentComponents computation", () => {
+    it("filters WORKER Skill + agentConfig components", () => {
+      const workerWithAgent = createComponent({
+        id: "w-1",
+        type: "SKILL",
         skillConfig: createSkillConfig({
-          name: "My Skill",
-          componentId: "comp-1",
+          id: "sc-1",
+          name: "Worker With Agent",
+          skillType: "WORKER",
+          componentId: "w-1",
+          agentConfig: {
+            id: "ac-1",
+            skillConfigId: "sc-1",
+            model: null,
+            tools: null,
+            disallowedTools: null,
+            permissionMode: null,
+            hooks: null,
+            memory: null,
+            content: "",
+          },
         }),
       });
-      const plugin = createPlugin({ components: [comp] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      act(() => {
-        result.current.handleManageFiles("comp-1");
+      const workerWithoutAgent = createComponent({
+        id: "w-2",
+        type: "SKILL",
+        skillConfig: createSkillConfig({
+          id: "sc-2",
+          name: "Worker Without Agent",
+          skillType: "WORKER",
+          componentId: "w-2",
+          agentConfig: null,
+        }),
       });
-
-      expect(result.current.filesModalComponentName).toBe("My Skill");
-    });
-
-    it("returns (unknown) when no componentId is set", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      expect(result.current.filesModalComponentName).toBe("(unknown)");
-    });
-  });
-
-  describe("filesModalFiles computation", () => {
-    it("returns files for the selected component", () => {
-      const files = [
-        {
-          id: "f-1",
-          filename: "SKILL.md",
-          role: "main",
-          content: "content",
-          sortOrder: 0,
-          outputSchemaFields: [],
-          componentId: "comp-1",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
-      const comp = createComponent({
-        id: "comp-1",
-        files: files as unknown as Plugin["components"][number]["files"],
+      const entryPoint = createComponent({
+        id: "ep-1",
+        type: "SKILL",
+        skillConfig: createSkillConfig({
+          id: "sc-3",
+          name: "Entry Point",
+          skillType: "ENTRY_POINT",
+          componentId: "ep-1",
+        }),
       });
-      const plugin = createPlugin({ components: [comp] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      act(() => {
-        result.current.handleManageFiles("comp-1");
+      const plugin = createPlugin({
+        components: [workerWithAgent, workerWithoutAgent, entryPoint],
       });
-
-      expect(result.current.filesModalFiles).toHaveLength(1);
-      expect(result.current.filesModalFiles[0].id).toBe("f-1");
-    });
-
-    it("returns empty array when no componentId is set", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      expect(result.current.filesModalFiles).toEqual([]);
-    });
-  });
-
-  describe("membersModalTeamName computation", () => {
-    it("resolves team name from teamId", () => {
-      const team = createAgentTeam({ id: "team-1", name: "Alpha Team" });
-      const plugin = createPlugin({ agentTeams: [team] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(
-          createDefaultParams({
-            plugin,
-            membersModalState: { isOpen: true, teamId: "team-1" },
-          }),
-        ),
-      );
-
-      expect(result.current.membersModalTeamName).toBe("Alpha Team");
-    });
-
-    it("returns (unknown) when no teamId is set", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      expect(result.current.membersModalTeamName).toBe("(unknown)");
-    });
-  });
-
-  describe("membersModalMembers computation", () => {
-    it("returns members for the selected team", () => {
-      const members = [
-        {
-          id: "m-1",
-          teamId: "team-1",
-          componentId: "comp-1",
-          sortOrder: 0,
-          component: {
-            id: "comp-1",
-            type: "AGENT",
-            pluginId: "plugin-1",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            agentConfig: { name: "Agent A" },
-          },
-        },
-      ];
-      const team = createAgentTeam({
-        id: "team-1",
-        members: members as Plugin["agentTeams"][number]["members"],
-      });
-      const plugin = createPlugin({ agentTeams: [team] });
-
-      const { result } = renderHook(() =>
-        usePluginGraph(
-          createDefaultParams({
-            plugin,
-            membersModalState: { isOpen: true, teamId: "team-1" },
-          }),
-        ),
-      );
-
-      expect(result.current.membersModalMembers).toHaveLength(1);
-      expect(result.current.membersModalMembers[0].id).toBe("m-1");
-    });
-
-    it("returns empty array when no teamId is set", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      expect(result.current.membersModalMembers).toEqual([]);
-    });
-  });
-
-  describe("membersModalAgentComponents computation", () => {
-    it("filters AGENT components and maps to id/name", () => {
-      const skill = createComponent({ id: "s-1", type: "SKILL" });
-      const agent = createComponent({
-        id: "a-1",
-        type: "AGENT",
-        skillConfig: null,
-        agentConfig: {
-          id: "ac-1",
-          name: "My Agent",
-          description: "",
-          componentId: "a-1",
-          model: null,
-          hooks: null,
-          tools: null,
-          disallowedTools: null,
-          permissionMode: null,
-          memory: null,
-          content: "",
-          input: "",
-          output: "",
-        },
-      });
-      const plugin = createPlugin({ components: [skill, agent] });
 
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
       expect(result.current.membersModalAgentComponents).toEqual([
-        { id: "a-1", agentConfig: { name: "My Agent" } },
+        { id: "w-1", skillConfig: { name: "Worker With Agent" } },
       ]);
     });
   });
@@ -938,84 +474,19 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("auto-layout", () => {
-    it("returns autoLayoutPending as false initially", () => {
+  describe("handleResetLayout", () => {
+    it("calls clearGraphPositions and increments resetCounter", () => {
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams()),
       );
 
-      expect(result.current.autoLayoutPending).toBe(false);
-    });
-
-    it("sets autoLayoutPending to true when fetcher transitions from loading to idle", () => {
-      const comp = createComponent();
-      const plugin = createPlugin({ components: [comp] });
-
-      mockBuildGraphData.mockReturnValue({
-        nodes: [
-          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
-        ],
-        edges: [],
-      });
-
-      // Start with loading state (simulates all fetchers in loading state)
-      mockFetcherData.state = "loading";
-      const { result, rerender } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      // Transition to idle triggers the auto-layout pending flag
-      mockFetcherData.state = "idle";
-      rerender();
-
-      expect(result.current.autoLayoutPending).toBe(true);
-    });
-
-    it("clears autoLayoutPending when handleAutoLayoutApplied is called", () => {
-      const comp = createComponent();
-      const plugin = createPlugin({ components: [comp] });
-
-      mockBuildGraphData.mockReturnValue({
-        nodes: [
-          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
-        ],
-        edges: [],
-      });
-
-      // Start with loading state
-      mockFetcherData.state = "loading";
-      const { result, rerender } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ plugin })),
-      );
-
-      // Transition to idle
-      mockFetcherData.state = "idle";
-      rerender();
-
-      expect(result.current.autoLayoutPending).toBe(true);
-
-      // Apply the layout
+      const initialCounter = result.current.resetCounter;
       act(() => {
-        result.current.handleAutoLayoutApplied();
+        result.current.handleResetLayout();
       });
 
-      expect(result.current.autoLayoutPending).toBe(false);
-    });
-
-    it("handlePositionsPersist saves positions via saveGraphPositions", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      const positions = { "node-1": { x: 50, y: 100 } };
-      act(() => {
-        result.current.handlePositionsPersist(positions);
-      });
-
-      expect(mockSaveGraphPositions).toHaveBeenCalledWith(
-        "plugin-1",
-        positions,
-      );
+      expect(mockClearGraphPositions).toHaveBeenCalledWith("plugin-1");
+      expect(result.current.resetCounter).toBe(initialCounter + 1);
     });
   });
 });

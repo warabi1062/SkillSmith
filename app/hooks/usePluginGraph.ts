@@ -12,13 +12,13 @@ import {
   clearGraphPositions,
 } from "../lib/graph-positions";
 import type { getPlugin } from "../lib/plugins.server";
+import type { AgentConfigFields } from "../components/SidePanel";
 
 export type Plugin = NonNullable<Awaited<ReturnType<typeof getPlugin>>>;
 
 export interface ModalState {
   isOpen: boolean;
   mode: "create";
-  componentType?: "SKILL" | "AGENT";
 }
 
 export interface AgentTeamModalState {
@@ -209,7 +209,7 @@ export function usePluginGraph({
             },
           };
         }
-        if (node.type === "skill" || node.type === "agent") {
+        if (node.type === "skill") {
           return {
             ...node,
             data: {
@@ -252,8 +252,7 @@ export function usePluginGraph({
     };
   }, [graphData, plugin.id]);
 
-  // 自動レイアウト: rawGraphDataが更新されpendingAutoLayoutがtrueの場合、
-  // DependencyGraphに計測済みflowNodesを使用してレイアウトを再計算するよう通知
+  // 自動レイアウト
   const [autoLayoutPending, setAutoLayoutPending] = useState(false);
 
   useEffect(() => {
@@ -317,12 +316,11 @@ export function usePluginGraph({
   );
 
   const handleCreateComponent = useCallback(
-    (type: "SKILL" | "AGENT") => {
+    () => {
       setDeleteError(null);
       onModalStateChange({
         isOpen: true,
         mode: "create",
-        componentType: type,
       });
     },
     [onModalStateChange],
@@ -405,19 +403,38 @@ export function usePluginGraph({
   const handleUpdateComponent = useCallback(
     (
       componentId: string,
-      fields: { name: string; description: string; content: string; input: string; output: string; skillType?: string },
+      fields: {
+        name: string;
+        description: string;
+        content: string;
+        input: string;
+        output: string;
+        skillType?: string;
+        agentConfig?: AgentConfigFields;
+      },
     ) => {
+      const formFields: Record<string, string> = {
+        intent: "update-component",
+        componentId,
+        name: fields.name,
+        description: fields.description,
+        content: fields.content,
+        input: fields.input,
+        output: fields.output,
+        skillType: fields.skillType ?? "",
+      };
+      // agentConfig関連フィールド
+      if (fields.agentConfig) {
+        formFields.agentModel = fields.agentConfig.model;
+        formFields.agentTools = fields.agentConfig.tools;
+        formFields.agentDisallowedTools = fields.agentConfig.disallowedTools;
+        formFields.agentPermissionMode = fields.agentConfig.permissionMode;
+        formFields.agentHooks = fields.agentConfig.hooks;
+        formFields.agentMemory = fields.agentConfig.memory;
+        formFields.agentContent = fields.agentConfig.agentContent;
+      }
       updateComponentFetcher.submit(
-        {
-          intent: "update-component",
-          componentId,
-          name: fields.name,
-          description: fields.description,
-          content: fields.content,
-          input: fields.input,
-          output: fields.output,
-          skillType: fields.skillType ?? "",
-        },
+        formFields,
         { method: "post", action: `/plugins/${plugin.id}` },
       );
     },
@@ -454,6 +471,8 @@ export function usePluginGraph({
         name: team.name,
         description: team.description,
         skillType: null,
+        hasAgentConfig: false,
+        agentConfig: null,
         orchestratorName:
           team.orchestrator.skillConfig?.name ?? "(unnamed)",
         content: "",
@@ -465,23 +484,21 @@ export function usePluginGraph({
     const comp = plugin.components.find((c) => c.id === selectedNodeId);
     if (!comp) return null;
 
-    const compName =
-      comp.skillConfig?.name ?? comp.agentConfig?.name ?? "(unnamed)";
-    const compDescription =
-      comp.skillConfig?.description ??
-      comp.agentConfig?.description ??
-      null;
+    const compName = comp.skillConfig?.name ?? "(unnamed)";
+    const compDescription = comp.skillConfig?.description ?? null;
 
     // typeとskillTypeからcomponentTypeを判定
-    let componentType: "SKILL" | "AGENT" | "ORCHESTRATOR" = comp.type as
-      | "SKILL"
-      | "AGENT";
+    let componentType: "SKILL" | "ORCHESTRATOR" = "SKILL";
     if (
       comp.type === "SKILL" &&
       comp.skillConfig?.skillType === "ENTRY_POINT"
     ) {
       componentType = "ORCHESTRATOR";
     }
+
+    // agentConfig情報
+    const agentConfigData = comp.skillConfig?.agentConfig ?? null;
+    const hasAgentConfig = agentConfigData !== null;
 
     return {
       nodeId: selectedNodeId,
@@ -490,10 +507,22 @@ export function usePluginGraph({
       name: compName,
       description: compDescription,
       skillType: comp.skillConfig?.skillType ?? null,
+      hasAgentConfig,
+      agentConfig: agentConfigData
+        ? {
+            model: agentConfigData.model ?? "",
+            tools: agentConfigData.tools ?? "",
+            disallowedTools: agentConfigData.disallowedTools ?? "",
+            permissionMode: agentConfigData.permissionMode ?? "",
+            hooks: agentConfigData.hooks ?? "",
+            memory: agentConfigData.memory ?? "",
+            agentContent: agentConfigData.content ?? "",
+          }
+        : null,
       orchestratorName: null,
-      content: comp.skillConfig?.content ?? comp.agentConfig?.content ?? "",
-      input: comp.skillConfig?.input ?? comp.agentConfig?.input ?? "",
-      output: comp.skillConfig?.output ?? comp.agentConfig?.output ?? "",
+      content: comp.skillConfig?.content ?? "",
+      input: comp.skillConfig?.input ?? "",
+      output: comp.skillConfig?.output ?? "",
     };
   }, [selectedNodeId, selectedNodeType, plugin.components, plugin.agentTeams]);
 
@@ -510,9 +539,7 @@ export function usePluginGraph({
       (c) => c.id === filesModalState.componentId,
     );
     if (!comp) return "(unknown)";
-    return (
-      comp.skillConfig?.name ?? comp.agentConfig?.name ?? "(unnamed)"
-    );
+    return comp.skillConfig?.name ?? "(unnamed)";
   }, [filesModalState.componentId, plugin.components]);
 
   const filesModalFiles = useMemo(() => {
@@ -541,13 +568,19 @@ export function usePluginGraph({
     );
   }, [membersModalState.teamId, plugin.agentTeams]);
 
+  // WORKER Skill + agentConfig有りのコンポーネントのみ
   const membersModalAgentComponents = useMemo(
     () =>
       plugin.components
-        .filter((c) => c.type === "AGENT")
+        .filter(
+          (c) =>
+            c.type === "SKILL" &&
+            c.skillConfig?.skillType === "WORKER" &&
+            c.skillConfig?.agentConfig != null,
+        )
         .map((c) => ({
           id: c.id,
-          agentConfig: c.agentConfig ? { name: c.agentConfig.name } : null,
+          skillConfig: c.skillConfig ? { name: c.skillConfig.name } : null,
         })),
     [plugin.components],
   );

@@ -19,6 +19,8 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     input: "",
     output: "",
     skillType: "WORKER",
+    hasAgentConfig: false,
+    agentConfig: null,
     orchestratorName: null,
     onUpdateComponent: vi.fn(),
     onUpdateAgentTeam: vi.fn(),
@@ -38,40 +40,14 @@ describe("SidePanel", () => {
         description: "Skill description",
         skillType: "WORKER",
       });
-      // 名前の入力フィールド
       expect(screen.getByDisplayValue("my-skill")).toBeTruthy();
-      // 説明のテキストエリア
       expect(screen.getByDisplayValue("Skill description")).toBeTruthy();
-      // skillTypeを読み取り専用で表示
       expect(screen.getByText("WORKER")).toBeTruthy();
     });
 
     it("SKILLバッジを表示する", () => {
       renderPanel({ componentType: "SKILL" });
       expect(screen.getByText("SKILL")).toBeTruthy();
-    });
-  });
-
-  describe("AGENTノードの表示", () => {
-    it("名前と説明のフィールドを表示する", () => {
-      renderPanel({
-        componentType: "AGENT",
-        name: "my-agent",
-        description: "Agent description",
-        skillType: null,
-      });
-      expect(screen.getByDisplayValue("my-agent")).toBeTruthy();
-      expect(screen.getByDisplayValue("Agent description")).toBeTruthy();
-    });
-
-    it("AGENTバッジを表示する", () => {
-      renderPanel({ componentType: "AGENT" });
-      expect(screen.getByText("AGENT")).toBeTruthy();
-    });
-
-    it("skillTypeを表示しない", () => {
-      renderPanel({ componentType: "AGENT", skillType: null });
-      expect(screen.queryByText("Skill Type")).toBeNull();
     });
   });
 
@@ -109,6 +85,50 @@ describe("SidePanel", () => {
         componentType: "AGENT_TEAM",
       });
       expect(screen.getByText("AGENT TEAM")).toBeTruthy();
+    });
+  });
+
+  describe("AgentConfig編集セクション", () => {
+    it("WORKER Skill + agentConfig有りの場合にAgentConfigフィールドを表示する", () => {
+      renderPanel({
+        componentType: "SKILL",
+        skillType: "WORKER",
+        hasAgentConfig: true,
+        agentConfig: {
+          model: "sonnet",
+          tools: '["Read"]',
+          disallowedTools: "",
+          permissionMode: "bypassPermissions",
+          hooks: "",
+          memory: "",
+          agentContent: "# Agent body",
+        },
+      });
+      expect(screen.getByText("Agent Config")).toBeTruthy();
+      expect(screen.getByDisplayValue("sonnet")).toBeTruthy();
+      expect(screen.getByDisplayValue('["Read"]')).toBeTruthy();
+      expect(screen.getByDisplayValue("bypassPermissions")).toBeTruthy();
+      expect(screen.getByDisplayValue("# Agent body")).toBeTruthy();
+    });
+
+    it("ENTRY_POINT SkillにはAgentConfig編集セクションを表示しない", () => {
+      renderPanel({
+        componentType: "ORCHESTRATOR",
+        skillType: "ENTRY_POINT",
+        hasAgentConfig: false,
+        agentConfig: null,
+      });
+      expect(screen.queryByText("Agent Config")).toBeNull();
+    });
+
+    it("WORKER Skill + agentConfig無しの場合にAgentConfig編集セクションを表示しない", () => {
+      renderPanel({
+        componentType: "SKILL",
+        skillType: "WORKER",
+        hasAgentConfig: false,
+        agentConfig: null,
+      });
+      expect(screen.queryByText("Agent Config")).toBeNull();
     });
   });
 
@@ -163,6 +183,37 @@ describe("SidePanel", () => {
         description: "team desc",
       });
     });
+
+    it("WORKER Skill + agentConfig有りの保存時にagentConfigフィールドが含まれる", () => {
+      const onUpdateComponent = vi.fn();
+      renderPanel({
+        nodeId: "comp-1",
+        nodeType: "component",
+        componentType: "SKILL",
+        name: "my-skill",
+        description: "desc",
+        skillType: "WORKER",
+        hasAgentConfig: true,
+        agentConfig: {
+          model: "sonnet",
+          tools: "",
+          disallowedTools: "",
+          permissionMode: "",
+          hooks: "",
+          memory: "",
+          agentContent: "# body",
+        },
+        onUpdateComponent,
+      });
+
+      const saveButton = screen.getByRole("button", { name: "Save" });
+      fireEvent.click(saveButton);
+
+      const call = onUpdateComponent.mock.calls[0];
+      expect(call[1].agentConfig).toBeDefined();
+      expect(call[1].agentConfig.model).toBe("sonnet");
+      expect(call[1].agentConfig.agentContent).toBe("# body");
+    });
   });
 
   describe("閉じるボタン", () => {
@@ -185,12 +236,10 @@ describe("SidePanel", () => {
         description: "original desc",
       });
 
-      // 名前を変更（未保存）
       const nameInput = screen.getByDisplayValue("original");
       fireEvent.change(nameInput, { target: { value: "edited" } });
       expect(screen.getByDisplayValue("edited")).toBeTruthy();
 
-      // propsが変わる（別ノード選択）
       rerender(
         <SidePanel
           {...props}
@@ -218,11 +267,9 @@ describe("SidePanel", () => {
         onUpdateComponent,
       });
 
-      // 名前を変更（未保存）
       const nameInput = screen.getByDisplayValue("original");
       fireEvent.change(nameInput, { target: { value: "edited-name" } });
 
-      // 別ノードに切り替え
       rerender(
         <SidePanel
           {...props}
@@ -232,7 +279,6 @@ describe("SidePanel", () => {
         />,
       );
 
-      // 前のノードの値で自動保存が呼ばれる
       expect(onUpdateComponent).toHaveBeenCalledWith("comp-1", {
         name: "edited-name",
         description: "original desc",
@@ -254,11 +300,9 @@ describe("SidePanel", () => {
         onUpdateAgentTeam,
       });
 
-      // 名前を変更（未保存）
       const nameInput = screen.getByDisplayValue("team-name");
       fireEvent.change(nameInput, { target: { value: "edited-team" } });
 
-      // 別ノードに切り替え
       rerender(
         <SidePanel
           {...props}
@@ -285,11 +329,9 @@ describe("SidePanel", () => {
         onUpdateComponent,
       });
 
-      // 名前を空にする
       const nameInput = screen.getByDisplayValue("original");
       fireEvent.change(nameInput, { target: { value: "   " } });
 
-      // 別ノードに切り替え
       rerender(
         <SidePanel
           {...props}
@@ -299,7 +341,6 @@ describe("SidePanel", () => {
         />,
       );
 
-      // 空文字名なので自動保存されない
       expect(onUpdateComponent).not.toHaveBeenCalled();
     });
   });
@@ -315,15 +356,12 @@ describe("SidePanel", () => {
         onUpdateComponent,
       });
 
-      // 名前を空にする
       const nameInput = screen.getByDisplayValue("my-skill");
       fireEvent.change(nameInput, { target: { value: "" } });
 
-      // 保存ボタンをクリック
       const saveButton = screen.getByRole("button", { name: "Save" });
       fireEvent.click(saveButton);
 
-      // 保存が呼ばれない
       expect(onUpdateComponent).not.toHaveBeenCalled();
     });
 
@@ -337,7 +375,6 @@ describe("SidePanel", () => {
         onUpdateComponent,
       });
 
-      // 名前を空白のみにする
       const nameInput = screen.getByDisplayValue("my-skill");
       fireEvent.change(nameInput, { target: { value: "   " } });
 

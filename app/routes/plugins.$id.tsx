@@ -10,7 +10,6 @@ export { action } from "./plugins.$id.action.server";
 interface ModalState {
   isOpen: boolean;
   mode: "create";
-  componentType?: "SKILL" | "AGENT";
 }
 
 interface MembersModalState {
