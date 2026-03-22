@@ -4,7 +4,6 @@ import { getPlugin } from "../lib/plugins.server";
 import type { Route } from "./+types/plugins.$id";
 import PluginGraphSection from "../components/PluginGraphSection";
 import PluginActionsSection from "../components/PluginActionsSection";
-import PluginInfoSection from "../components/PluginInfoSection";
 
 export { action } from "./plugins.$id.action.server";
 
@@ -46,11 +45,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <PluginActionsSection plugin={plugin} />
-
-      <PluginInfoSection
-        plugin={plugin}
-        onTeamClick={(id) => setMembersModalState({ isOpen: true, teamId: id })}
-      />
 
       <PluginGraphSection
         plugin={plugin}
