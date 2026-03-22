@@ -3,7 +3,7 @@ import { ValidationError } from "./agent-team.server";
 const NAME_MAX_LENGTH = 100;
 const NAME_FORMAT_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 const DESCRIPTION_MAX_LENGTH = 500;
-const VALID_TYPES = ["SKILL", "AGENT"] as const;
+const VALID_TYPES = ["SKILL"] as const;
 const VALID_SKILL_TYPES = ["ENTRY_POINT", "WORKER"] as const;
 
 export function validateComponentData(data: {
@@ -16,7 +16,7 @@ export function validateComponentData(data: {
     throw new ValidationError({
       field: "type",
       code: "INVALID_TYPE",
-      message: "Component type must be SKILL or AGENT",
+      message: "Component type must be SKILL",
     });
   }
 
@@ -78,13 +78,4 @@ export function validateComponentData(data: {
     }
   }
 
-  if (data.type === "AGENT") {
-    if (!data.description || data.description.trim().length === 0) {
-      throw new ValidationError({
-        field: "description",
-        code: "DESCRIPTION_REQUIRED",
-        message: "Description is required for Agent components",
-      });
-    }
-  }
 }

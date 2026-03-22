@@ -78,14 +78,18 @@ export async function validateDependencyCreate(
     });
   }
 
-  // Agent -> Skill: target must be WORKER skill
-  if (source.type === "AGENT" && target.type === "SKILL") {
+  // EntryPoint -> Skill: target must be WORKER skill
+  if (
+    source.type === "SKILL" &&
+    source.skillConfig?.skillType === "ENTRY_POINT" &&
+    target.type === "SKILL"
+  ) {
     if (target.skillConfig?.skillType !== "WORKER") {
       throw new ValidationError({
         field: "targetId",
         code: "INVALID_SKILL_TYPE",
         message:
-          "An agent can only depend on a WORKER skill, not an ENTRY_POINT skill",
+          "An entry point skill can only depend on a WORKER skill, not an ENTRY_POINT skill",
       });
     }
   }

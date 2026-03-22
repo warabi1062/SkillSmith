@@ -108,7 +108,7 @@ export function validateAgentTeamData(data: {
 
 /**
  * AgentTeamMember 作成時のバリデーション。
- * componentId が指す Component が AGENT タイプであることを検証する。
+ * componentId が指す Component が WORKER Skill かつ agentConfig を持つことを検証する。
  */
 export async function validateAgentTeamMemberCreate(
   prisma: PrismaClient,
@@ -116,6 +116,7 @@ export async function validateAgentTeamMemberCreate(
 ): Promise<void> {
   const component = await prisma.component.findUnique({
     where: { id: data.componentId },
+    include: { skillConfig: { include: { agentConfig: true } } },
   });
 
   if (!component) {
@@ -126,11 +127,15 @@ export async function validateAgentTeamMemberCreate(
     });
   }
 
-  if (component.type !== "AGENT") {
+  if (
+    component.type !== "SKILL" ||
+    component.skillConfig?.skillType !== "WORKER" ||
+    !component.skillConfig?.agentConfig
+  ) {
     throw new ValidationError({
       field: "componentId",
       code: "INVALID_COMPONENT_TYPE",
-      message: `AgentTeamMember.componentId must reference an AGENT component, but got "${component.type}"`,
+      message: `AgentTeamMember.componentId must reference a WORKER skill with an agent config`,
     });
   }
 }
