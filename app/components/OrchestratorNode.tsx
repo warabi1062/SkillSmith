@@ -39,18 +39,18 @@ export default function OrchestratorNode({
   const isSaving = fetcher.state !== "idle";
   const { setNodes } = useReactFlow();
 
-  // localSteps manages both server-persisted steps and client-only empty step slots.
-  // Empty steps (those with no dependencies) are intentionally lost on server reload.
+  // localStepsはサーバー永続化済みステップとクライアント専用の空ステップスロットの両方を管理する。
+  // 空ステップ（依存関係のないもの）はサーバーリロード時に意図的に失われる。
   const [localSteps, setLocalSteps] = useState<Step[]>(steps);
 
-  // Use JSON.stringify to stabilize the dependency: React Flow may produce a new
-  // array reference on every render even when the contents are identical.
-  // Without this, setLocalSteps would fire on every render and discard
-  // client-only empty step slots that the user just added.
+  // JSON.stringifyで依存関係を安定化: React Flowはコンテンツが同一でも
+  // レンダーごとに新しい配列参照を生成する可能性がある。
+  // これがないと、setLocalStepsがレンダーごとに発火し、ユーザーが追加した
+  // クライアント専用の空ステップスロットが破棄される。
   const stepsJson = JSON.stringify(steps);
   useEffect(() => {
-    // Sync localSteps with server data when data.steps actually changes.
-    // This intentionally discards any unsaved empty step slots.
+    // data.stepsが実際に変更されたときにlocalStepsをサーバーデータと同期する。
+    // 未保存の空ステップスロットは意図的に破棄される。
     setLocalSteps(JSON.parse(stepsJson));
   }, [stepsJson]);
 
@@ -181,9 +181,9 @@ export default function OrchestratorNode({
                           className="orchestrator-node-step-btn"
                           title="Move down"
                           disabled={
-                            // Use server-persisted step count (steps with dependencies)
-                            // rather than localSteps.length, since localSteps may include
-                            // client-only empty slots appended at the end.
+                            // localSteps.lengthではなく、サーバー永続化済みステップ数
+                            // （依存関係を持つステップ）を使用する。localStepsには末尾に
+                            // クライアント専用の空スロットが含まれる場合があるため。
                             index ===
                             localSteps.filter((s) => s.dependencies.length > 0)
                               .length - 1

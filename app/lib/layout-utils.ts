@@ -1,35 +1,35 @@
 /**
- * Shared post-processing utilities for step-order-based vertical layout.
+ * ステップ順序に基づく垂直レイアウトの共有後処理ユーティリティ。
  *
- * Both auto-layout.ts and build-graph-data.ts apply a post-processing pass
- * after dagre layout to reorder step targets (and their subtrees) vertically
- * by step order. This module extracts the shared logic so that both callers
- * delegate to a single implementation.
+ * auto-layout.tsとbuild-graph-data.tsの両方が、dagreレイアウト後に
+ * ステップターゲット（およびそのサブツリー）をステップ順に垂直方向に
+ * 並べ替える後処理を適用する。このモジュールは共有ロジックを抽出し、
+ * 両方の呼び出し元が単一の実装に委譲できるようにする。
  */
 
-/** Callback that returns the size of a node by its id. */
+/** ノードIDからノードのサイズを返すコールバック。 */
 export type NodeSizeGetter = (nodeId: string) => {
   width: number;
   height: number;
 };
 
-/** Callback that returns the position of a node, or undefined if unknown. */
+/** ノードの位置を返すコールバック。不明な場合はundefinedを返す。 */
 export type PositionGetter = (
   nodeId: string,
 ) => { x: number; y: number } | undefined;
 
-/** Callback that sets the position of a node. */
+/** ノードの位置を設定するコールバック。 */
 export type PositionSetter = (
   nodeId: string,
   pos: { x: number; y: number },
 ) => void;
 
-/** Gap (in px) inserted between consecutive step-target subtrees. */
+/** 連続するステップターゲットのサブツリー間に挿入されるギャップ（px）。 */
 const SUBTREE_GAP = 10;
 
 /**
- * BFS reachability check: returns true if `toId` is reachable from `fromId`
- * via `childrenMap`.
+ * BFSによる到達可能性チェック: `childrenMap`を経由して`fromId`から`toId`に
+ * 到達可能な場合にtrueを返す。
  */
 export function isReachable(
   fromId: string,
@@ -52,25 +52,25 @@ export function isReachable(
 }
 
 /**
- * Sort orchestrator IDs so that inner (descendant) orchestrators come before
- * outer (ancestor) orchestrators. This ensures that when we reorder step
- * targets, inner subtrees are already laid out correctly before the outer
- * orchestrator computes subtree depths.
+ * オーケストレーターIDを、内側（子孫）のオーケストレーターが外側（祖先）の
+ * オーケストレーターより先に来るようにソートする。これにより、ステップターゲットを
+ * 並べ替える際、外側のオーケストレーターがサブツリーの深さを計算する前に
+ * 内側のサブツリーが既に正しくレイアウトされていることを保証する。
  */
 export function sortOrchestratorsByDepth(
   orchestratorIds: string[],
   childrenMap: Map<string, string[]>,
 ): string[] {
   return [...orchestratorIds].sort((a, b) => {
-    if (isReachable(a, b, childrenMap)) return 1; // a is parent of b -> process b first
-    if (isReachable(b, a, childrenMap)) return -1; // b is parent of a -> process a first
+    if (isReachable(a, b, childrenMap)) return 1; // aはbの親 -> bを先に処理
+    if (isReachable(b, a, childrenMap)) return -1; // bはaの親 -> aを先に処理
     return 0;
   });
 }
 
 /**
- * BFS collection of descendant node IDs starting from `rootId`.
- * Nodes in `excludeSet` are NOT traversed (they act as subtree boundaries).
+ * `rootId`から開始して子孫ノードIDをBFSで収集する。
+ * `excludeSet`内のノードは走査されない（サブツリーの境界として機能する）。
  */
 export function getDescendants(
   rootId: string,
@@ -94,9 +94,9 @@ export function getDescendants(
 }
 
 /**
- * Compute the vertical extent (in px) of the subtree rooted at `targetId`.
- * Returns at least the target node's own height, even if it has no
- * descendants or if its position is unavailable.
+ * `targetId`をルートとするサブツリーの垂直方向の広がり（px）を計算する。
+ * 子孫がない場合や位置が取得できない場合でも、少なくともターゲットノード
+ * 自身の高さを返す。
  */
 export function getSubtreeDepth(
   targetId: string,
@@ -107,8 +107,8 @@ export function getSubtreeDepth(
 ): number {
   const targetHeight = getSize(targetId).height;
   const targetPos = getPosition(targetId);
-  // Guard: if position is unavailable (possible in build-graph-data.ts where
-  // positions.get() may return undefined), fall back to the node's own height.
+  // ガード: 位置が取得できない場合（build-graph-data.tsでpositions.get()が
+  // undefinedを返す可能性がある）、ノード自身の高さにフォールバックする。
   if (!targetPos) return targetHeight;
 
   const descs = getDescendants(targetId, childrenMap, excludeSet);
@@ -132,9 +132,9 @@ export interface ApplyStepOrderPostProcessingParams {
 }
 
 /**
- * Main post-processing pass: for each orchestrator, reorder its step targets
- * (and their subtrees) vertically by step order, then propagate the Y delta
- * to all descendants.
+ * メインの後処理パス: 各オーケストレーターについて、ステップターゲット
+ * （およびそのサブツリー）をステップ順に垂直方向に並べ替え、Y方向の差分を
+ * 全ての子孫に伝播する。
  */
 export function applyStepOrderPostProcessing({
   edges,
@@ -147,7 +147,7 @@ export function applyStepOrderPostProcessing({
   const sortedOrchIds = sortOrchestratorsByDepth(orchestratorIds, childrenMap);
 
   for (const orchId of sortedOrchIds) {
-    // Extract step targets from edges via sourceHandle parsing
+    // sourceHandleの解析によりエッジからステップターゲットを抽出
     const stepTargets: { order: number; targetId: string }[] = [];
     for (const edge of edges) {
       if (edge.source === orchId && edge.sourceHandle?.startsWith("step-")) {
@@ -165,7 +165,7 @@ export function applyStepOrderPostProcessing({
     const orchPos = getPosition(orchId);
     const orchY = orchPos?.y ?? 0;
 
-    // Filter targets whose position is available
+    // 位置が利用可能なターゲットをフィルタリング
     const targetPositions = stepTargets
       .map((st) => ({ id: st.targetId, pos: getPosition(st.targetId) }))
       .filter(
@@ -175,10 +175,10 @@ export function applyStepOrderPostProcessing({
 
     const stepTargetSet = new Set(stepTargets.map((st) => st.targetId));
 
-    // Record old Y positions
+    // 旧Y位置を記録
     const oldYs = targetPositions.map((t) => t.pos.y);
 
-    // Recalculate Y positions sequentially
+    // Y位置を順番に再計算
     const newYs: number[] = [];
     let currentY = orchY;
     for (let i = 0; i < targetPositions.length; i++) {
@@ -193,15 +193,15 @@ export function applyStepOrderPostProcessing({
       currentY += subtreeHeight + SUBTREE_GAP;
     }
 
-    // Apply delta to each step target and propagate to descendants.
-    // We track moved nodes to avoid double-moving shared descendants.
-    // delta === 0 nodes are still added to `moved` for defensive correctness.
+    // 各ステップターゲットに差分を適用し、子孫に伝播する。
+    // 共有された子孫の二重移動を防ぐため、移動済みノードを追跡する。
+    // delta === 0のノードも防御的な正確性のために`moved`に追加される。
     const moved = new Set<string>();
     for (let i = 0; i < targetPositions.length; i++) {
       const delta = newYs[i] - oldYs[i];
       const targetId = targetPositions[i].id;
 
-      // Always set the new position and mark as moved
+      // 常に新しい位置を設定し、移動済みとしてマーク
       const currentPos = getPosition(targetId);
       if (currentPos) {
         setPosition(targetId, { ...currentPos, y: newYs[i] });

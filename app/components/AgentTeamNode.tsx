@@ -4,9 +4,9 @@ import type { NodeProps } from "@xyflow/react";
 import { useFetcher } from "react-router";
 import InlineEditableField from "./InlineEditableField";
 
-// Note: AgentTeamNode does not have Handle components because AgentTeam nodes
-// are not valid edge connection targets (isValidConnection in DependencyGraph
-// rejects any connection involving agentteam- prefixed nodes).
+// 注: AgentTeamNodeはHandleコンポーネントを持たない。AgentTeamノードは有効な
+// エッジ接続ターゲットではないため（DependencyGraphのisValidConnectionが
+// agentteam-プレフィックスを持つノードを含む接続を拒否する）。
 
 interface AgentTeamNodeData {
   label: string;

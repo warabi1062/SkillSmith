@@ -7,10 +7,10 @@ const HORIZONTAL_SPACING = 300;
 const VERTICAL_SPACING = 150;
 
 /**
- * Compute auto-layout positions for the given nodes and edges using dagre.
- * Returns a new array of nodes with updated positions.
- * AgentTeam nodes (id prefix "agentteam-") are excluded from dagre layout
- * and placed in a separate row below component nodes.
+ * dagreを使用して、指定されたノードとエッジの自動レイアウト位置を計算する。
+ * 更新された位置を持つ新しいノード配列を返す。
+ * AgentTeamノード（idプレフィックス "agentteam-"）はdagreレイアウトから除外され、
+ * コンポーネントノードの下の別行に配置される。
  */
 export function computeAutoLayout(
   currentNodes: Node[],
@@ -27,8 +27,8 @@ export function computeAutoLayout(
     return [...currentNodes];
   }
 
-  // Cycle detection via topological sort (Kahn's algorithm)
-  // dagre assumes a DAG; cycles produce unpredictable results
+  // トポロジカルソートによる循環検出（Kahnのアルゴリズム）
+  // dagreはDAGを前提としており、循環があると予測不能な結果になる
   const componentIds = new Set(componentNodes.map((n) => n.id));
   const adjacency = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
@@ -59,7 +59,7 @@ export function computeAutoLayout(
     }
   }
   if (processed < componentNodes.length) {
-    // Cycle detected: return nodes unchanged
+    // 循環検出: ノードを変更せずに返す
     return [...currentNodes];
   }
 
@@ -74,7 +74,7 @@ export function computeAutoLayout(
   }
 
   for (const edge of edges) {
-    // Only add edges between component nodes
+    // コンポーネントノード間のエッジのみ追加
     if (g.hasNode(edge.source) && g.hasNode(edge.target)) {
       g.setEdge(edge.source, edge.target);
     }
@@ -95,9 +95,8 @@ export function computeAutoLayout(
     };
   });
 
-  // Post-process: reorder step targets (and their descendants) vertically
-  // by step order. Dagre doesn't know about step ordering, so we delegate
-  // to the shared utility.
+  // 後処理: ステップターゲット（およびその子孫）をステップ順に垂直方向に並べ替える。
+  // Dagreはステップ順序を認識しないため、共有ユーティリティに委譲する。
   const nodeMap = new Map(updatedComponentNodes.map((n) => [n.id, n]));
 
   const children = new Map<string, string[]>();
@@ -128,7 +127,7 @@ export function computeAutoLayout(
     },
   });
 
-  // Place AgentTeam nodes below component nodes
+  // AgentTeamノードをコンポーネントノードの下に配置
   if (agentTeamNodes.length > 0) {
     const maxY = updatedComponentNodes.reduce((max, n) => {
       const height = n.measured?.height ?? DEFAULT_NODE_HEIGHT;

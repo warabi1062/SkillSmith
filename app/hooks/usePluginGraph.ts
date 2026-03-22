@@ -72,7 +72,7 @@ export function usePluginGraph({
   const reorderDependencyFetcher = useFetcher();
   const deleteBatchFetcher = useFetcher();
 
-  // Auto-layout flag: set to true when a fetcher completes that should trigger re-layout
+  // 自動レイアウトフラグ: 再レイアウトをトリガーすべきfetcherが完了したときにtrueに設定
   const pendingAutoLayout = useRef(false);
   const prevAddState = useRef(addDependencyFetcher.state);
   const prevReorderState = useRef(reorderDependencyFetcher.state);
@@ -111,7 +111,7 @@ export function usePluginGraph({
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
 
-  // Watch deleteFetcher for error messages
+  // deleteFetcherのエラーメッセージを監視
   useEffect(() => {
     if (deleteFetcher.state === "idle" && deleteFetcher.data?.error) {
       setDeleteError(deleteFetcher.data.error);
@@ -182,7 +182,7 @@ export function usePluginGraph({
     [deleteBatchFetcher, plugin.id],
   );
 
-  // Inject callbacks and IDs into nodes
+  // コールバックとIDをノードに注入
   const graphData = useMemo(
     () => ({
       ...rawGraphData,
@@ -226,7 +226,7 @@ export function usePluginGraph({
     [rawGraphData, handleReorderStep, handleDeleteStep, plugin.id],
   );
 
-  // Merge saved positions from localStorage
+  // localStorageから保存済み位置をマージ
   const graphDataWithPositions = useMemo(() => {
     const savedPositions = loadGraphPositions(plugin.id);
     if (!savedPositions) return graphData;
@@ -242,8 +242,8 @@ export function usePluginGraph({
     };
   }, [graphData, plugin.id]);
 
-  // Auto-layout: when rawGraphData updates and pendingAutoLayout is true,
-  // signal DependencyGraph to recompute layout using its measured flowNodes
+  // 自動レイアウト: rawGraphDataが更新されpendingAutoLayoutがtrueの場合、
+  // DependencyGraphに計測済みflowNodesを使用してレイアウトを再計算するよう通知
   const [autoLayoutPending, setAutoLayoutPending] = useState(false);
 
   useEffect(() => {
@@ -432,37 +432,37 @@ export function usePluginGraph({
   );
 
   return {
-    // State
+    // 状態
     isClient,
     agentTeamModalState,
     filesModalState,
     deleteError,
     resetCounter,
 
-    // Computed data
+    // 算出データ
     graphDataWithPositions,
     entryPointSkills,
     agentTeamsForGraph,
     graphComponents,
 
-    // View computed values
+    // ビュー算出値
     filesModalComponentName,
     filesModalFiles,
     membersModalTeamName,
     membersModalMembers,
     membersModalAgentComponents,
 
-    // Fetchers
+    // フェッチャー
     addDependencyFetcher,
     componentFetcher,
     agentTeamFetcher,
 
-    // Auto-layout
+    // 自動レイアウト
     autoLayoutPending,
     handleAutoLayoutApplied,
     handlePositionsPersist,
 
-    // Handlers
+    // ハンドラー
     handleConnect,
     handleEdgeClick,
     handleCreateComponent,
