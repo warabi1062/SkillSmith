@@ -723,14 +723,13 @@ h3 {
 /* Side Panel（グラフ上にオーバーレイ表示） */
 .side-panel {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: 300px;
-  max-height: calc(100% - 1rem);
   background-color: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-left: 1px solid #e5e7eb;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -740,12 +739,10 @@ h3 {
 
 @keyframes side-panel-slide-in {
   from {
-    transform: translateY(-8px);
-    opacity: 0;
+    transform: translateX(100%);
   }
   to {
-    transform: translateY(0);
-    opacity: 1;
+    transform: translateX(0);
   }
 }
 
