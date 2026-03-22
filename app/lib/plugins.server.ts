@@ -26,8 +26,9 @@ export async function getPlugin(id: string) {
     include: {
       components: {
         include: {
-          skillConfig: true,
-          agentConfig: true,
+          skillConfig: {
+            include: { agentConfig: true },
+          },
           dependenciesFrom: {
             select: { id: true, targetId: true, order: true },
           },
@@ -44,7 +45,11 @@ export async function getPlugin(id: string) {
           },
           members: {
             include: {
-              component: { include: { agentConfig: true } },
+              component: {
+                include: {
+                  skillConfig: { include: { agentConfig: true } },
+                },
+              },
             },
             orderBy: { sortOrder: "asc" },
           },
@@ -110,8 +115,9 @@ export async function getComponent(id: string) {
   return prisma.component.findUnique({
     where: { id },
     include: {
-      skillConfig: true,
-      agentConfig: true,
+      skillConfig: {
+        include: { agentConfig: true },
+      },
       files: { orderBy: { sortOrder: "asc" } },
     },
   });
@@ -120,7 +126,7 @@ export async function getComponent(id: string) {
 export async function createComponent(
   pluginId: string,
   data: {
-    type: "SKILL" | "AGENT";
+    type: "SKILL";
     name: string;
     description?: string | null;
     skillType?: "ENTRY_POINT" | "WORKER";
@@ -130,28 +136,26 @@ export async function createComponent(
     data: {
       pluginId,
       type: data.type,
-      ...(data.type === "SKILL"
-        ? {
-            skillConfig: {
-              create: {
-                name: data.name.trim(),
-                skillType: data.skillType!,
-                description: data.description?.trim() || null,
-              },
-            },
-          }
-        : {
-            agentConfig: {
-              create: {
-                name: data.name.trim(),
-                description: data.description?.trim() ?? "",
-              },
-            },
-          }),
+      skillConfig: {
+        create: {
+          name: data.name.trim(),
+          skillType: data.skillType!,
+          description: data.description?.trim() || null,
+          // WORKER Skill作成時にagentConfigも同時作成
+          ...(data.skillType === "WORKER"
+            ? {
+                agentConfig: {
+                  create: {},
+                },
+              }
+            : {}),
+        },
+      },
     },
     include: {
-      skillConfig: true,
-      agentConfig: true,
+      skillConfig: {
+        include: { agentConfig: true },
+      },
     },
   });
 }
@@ -159,46 +163,72 @@ export async function createComponent(
 export async function updateComponent(
   id: string,
   data: {
-    type: "SKILL" | "AGENT";
+    type: "SKILL";
     name: string;
     description?: string | null;
     skillType?: "ENTRY_POINT" | "WORKER";
     content?: string;
     input?: string;
     output?: string;
+    agentConfig?: {
+      model?: string;
+      tools?: string;
+      disallowedTools?: string;
+      permissionMode?: string;
+      hooks?: string;
+      memory?: string;
+      content?: string;
+    };
   },
 ) {
   return prisma.component.update({
     where: { id },
     data: {
-      ...(data.type === "SKILL"
-        ? {
-            skillConfig: {
-              update: {
-                name: data.name.trim(),
-                skillType: data.skillType!,
-                description: data.description?.trim() || null,
-                ...(data.content !== undefined ? { content: data.content } : {}),
-                ...(data.input !== undefined ? { input: data.input } : {}),
-                ...(data.output !== undefined ? { output: data.output } : {}),
-              },
-            },
-          }
-        : {
-            agentConfig: {
-              update: {
-                name: data.name.trim(),
-                description: data.description?.trim() ?? "",
-                ...(data.content !== undefined ? { content: data.content } : {}),
-                ...(data.input !== undefined ? { input: data.input } : {}),
-                ...(data.output !== undefined ? { output: data.output } : {}),
-              },
-            },
-          }),
+      skillConfig: {
+        update: {
+          name: data.name.trim(),
+          skillType: data.skillType!,
+          description: data.description?.trim() || null,
+          ...(data.content !== undefined ? { content: data.content } : {}),
+          ...(data.input !== undefined ? { input: data.input } : {}),
+          ...(data.output !== undefined ? { output: data.output } : {}),
+          // agentConfig更新（存在する場合のみ）
+          ...(data.agentConfig
+            ? {
+                agentConfig: {
+                  update: {
+                    ...(data.agentConfig.model !== undefined
+                      ? { model: data.agentConfig.model || null }
+                      : {}),
+                    ...(data.agentConfig.tools !== undefined
+                      ? { tools: data.agentConfig.tools || null }
+                      : {}),
+                    ...(data.agentConfig.disallowedTools !== undefined
+                      ? { disallowedTools: data.agentConfig.disallowedTools || null }
+                      : {}),
+                    ...(data.agentConfig.permissionMode !== undefined
+                      ? { permissionMode: data.agentConfig.permissionMode || null }
+                      : {}),
+                    ...(data.agentConfig.hooks !== undefined
+                      ? { hooks: data.agentConfig.hooks || null }
+                      : {}),
+                    ...(data.agentConfig.memory !== undefined
+                      ? { memory: data.agentConfig.memory || null }
+                      : {}),
+                    ...(data.agentConfig.content !== undefined
+                      ? { content: data.agentConfig.content }
+                      : {}),
+                  },
+                },
+              }
+            : {}),
+        },
+      },
     },
     include: {
-      skillConfig: true,
-      agentConfig: true,
+      skillConfig: {
+        include: { agentConfig: true },
+      },
     },
   });
 }
@@ -220,15 +250,14 @@ export async function deleteComponent(id: string) {
 
   const component = await prisma.component.findUnique({
     where: { id },
-    include: { skillConfig: true, agentConfig: true },
+    include: { skillConfig: true },
   });
 
   const deleted = await prisma.component.delete({
     where: { id },
   });
 
-  const entityName =
-    component?.skillConfig?.name ?? component?.agentConfig?.name;
+  const entityName = component?.skillConfig?.name;
   logAuditEvent({
     action: "DELETE",
     entityType: "Component",
@@ -252,7 +281,9 @@ export async function getAgentTeam(id: string) {
       members: {
         include: {
           component: {
-            include: { agentConfig: true },
+            include: {
+              skillConfig: { include: { agentConfig: true } },
+            },
           },
         },
         orderBy: { sortOrder: "asc" },
