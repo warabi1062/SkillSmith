@@ -188,7 +188,12 @@ export function buildGraphData(
         id: c.id,
         position,
         type: "orchestrator",
-        data: { label, steps, description: c.skillConfig?.description ?? null },
+        data: {
+          label,
+          steps,
+          description: c.skillConfig?.description ?? null,
+          skillType: c.skillConfig?.skillType ?? null,
+        },
       };
     }
 
