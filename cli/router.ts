@@ -49,21 +49,14 @@ export function parseGlobalArgs(argv: string[]): {
   // positionals の最初の 2 つが entity/action、残りは rest
   const rest = positionals.slice(2);
 
-  // コマンド固有のオプション（strict: false で無視されたもの）を rest に含める
-  // parseArgs は strict: false の場合、未知のオプションを tokens から取得できるが、
-  // 簡易実装として argv から再抽出する
-  const knownFlags = new Set(["--json", "--help", "--version"]);
-  const unknownArgs = argv.filter(
-    (arg) =>
-      arg.startsWith("-") &&
-      !knownFlags.has(arg) &&
-      !positionals.includes(arg),
-  );
+  // TODO: コマンド固有の未知オプション（--name value, --name=value 等）の抽出は
+  // parseArgs の tokens オプションを使って正確に実装する（後続チケットで対応）。
+  // 現段階では positional の残余引数のみを rest に含める。
 
   return {
     options: globalOptions,
     positionals,
-    rest: [...rest, ...unknownArgs],
+    rest,
   };
 }
 

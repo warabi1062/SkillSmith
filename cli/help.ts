@@ -1,10 +1,16 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { CommandDefinition } from "./types";
 
-// パッケージバージョンを取得するヘルパー
+// パッケージバージョンを package.json から取得するヘルパー
 export function getVersion(): string {
-  // CLI 実行時に package.json から取得するが、テスト時は固定値を返す
-  // 動的 import は避け、呼び出し側から注入可能にする
-  return "1.0.0";
+  const dir = typeof __dirname !== "undefined"
+    ? __dirname
+    : fileURLToPath(new URL(".", import.meta.url));
+  const pkgPath = resolve(dir, "..", "package.json");
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+  return pkg.version;
 }
 
 // 全体ヘルプを生成する
@@ -28,10 +34,15 @@ export function formatGeneralHelp(commands: CommandDefinition[]): string {
   }
 
   if (grouped.size > 0) {
+    // コマンド名の最大幅を計算して列を揃える
+    const maxWidth = Math.max(
+      ...commands.map((cmd) => `${cmd.entity} ${cmd.action}`.length),
+    );
     lines.push("Commands:");
     for (const [entity, cmds] of grouped) {
       for (const cmd of cmds) {
-        lines.push(`  ${entity} ${cmd.action}    ${cmd.description}`);
+        const name = `${entity} ${cmd.action}`;
+        lines.push(`  ${name.padEnd(maxWidth)}    ${cmd.description}`);
       }
     }
   } else {
@@ -59,8 +70,12 @@ export function formatEntityHelp(
     "Actions:",
   ];
 
+  // アクション名の最大幅を計算して列を揃える
+  const maxWidth = Math.max(
+    ...entityCommands.map((cmd) => cmd.action.length),
+  );
   for (const cmd of entityCommands) {
-    lines.push(`  ${cmd.action}    ${cmd.description}`);
+    lines.push(`  ${cmd.action.padEnd(maxWidth)}    ${cmd.description}`);
   }
 
   return lines.join("\n");
