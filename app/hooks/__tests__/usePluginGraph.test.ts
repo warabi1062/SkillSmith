@@ -361,6 +361,288 @@ describe("usePluginGraph", () => {
     });
   });
 
+  describe("handleConnect", () => {
+    it("submits add-dependency with correct args", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleConnect("source-1", "target-1");
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        { intent: "add-dependency", sourceId: "source-1", targetId: "target-1" },
+        { method: "post" },
+      );
+    });
+
+    it("includes order when sourceHandle is provided", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleConnect("source-1", "target-1", "step-3");
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        {
+          intent: "add-dependency",
+          sourceId: "source-1",
+          targetId: "target-1",
+          order: "3",
+        },
+        { method: "post" },
+      );
+    });
+  });
+
+  describe("handleEdgeClick", () => {
+    it("submits remove-dependency with correct args", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleEdgeClick("dep-1");
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        { intent: "remove-dependency", dependencyId: "dep-1" },
+        { method: "post" },
+      );
+    });
+  });
+
+  describe("handleManageFiles", () => {
+    it("opens filesModalState with componentId", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleManageFiles("comp-1");
+      });
+
+      expect(result.current.filesModalState).toEqual({
+        isOpen: true,
+        componentId: "comp-1",
+      });
+    });
+  });
+
+  describe("handleFilesModalClose", () => {
+    it("closes filesModalState", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleManageFiles("comp-1");
+      });
+      act(() => {
+        result.current.handleFilesModalClose();
+      });
+
+      expect(result.current.filesModalState).toEqual({ isOpen: false });
+    });
+  });
+
+  describe("handleCreateAgentTeam", () => {
+    it("opens agentTeamModalState in create mode", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleCreateAgentTeam();
+      });
+
+      expect(result.current.agentTeamModalState).toEqual({
+        isOpen: true,
+      });
+    });
+  });
+
+  describe("handleDeleteAgentTeam", () => {
+    it("submits delete-agent-team with correct args", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleDeleteAgentTeam("team-1");
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        { intent: "delete-agent-team", teamId: "team-1" },
+        { method: "post", action: "/plugins/plugin-1" },
+      );
+    });
+  });
+
+  describe("handleAgentTeamModalClose", () => {
+    it("closes agentTeamModalState", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleCreateAgentTeam();
+      });
+      act(() => {
+        result.current.handleAgentTeamModalClose();
+      });
+
+      expect(result.current.agentTeamModalState).toEqual({
+        isOpen: false,
+      });
+    });
+  });
+
+  describe("handleManageMembers / handleMembersModalClose", () => {
+    it("calls onMembersModalStateChange with open state", () => {
+      const onMembersModalStateChange = vi.fn();
+
+      const { result } = renderHook(() =>
+        usePluginGraph(
+          createDefaultParams({ onMembersModalStateChange }),
+        ),
+      );
+
+      act(() => {
+        result.current.handleManageMembers("team-1");
+      });
+
+      expect(onMembersModalStateChange).toHaveBeenCalledWith({
+        isOpen: true,
+        teamId: "team-1",
+      });
+    });
+
+    it("calls onMembersModalStateChange with closed state", () => {
+      const onMembersModalStateChange = vi.fn();
+
+      const { result } = renderHook(() =>
+        usePluginGraph(
+          createDefaultParams({ onMembersModalStateChange }),
+        ),
+      );
+
+      act(() => {
+        result.current.handleMembersModalClose();
+      });
+
+      expect(onMembersModalStateChange).toHaveBeenCalledWith({
+        isOpen: false,
+      });
+    });
+  });
+
+  describe("handleNodeDragStop", () => {
+    it("calls saveGraphPositions with plugin id and positions", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      const positions = { "node-1": { x: 10, y: 20 } };
+      act(() => {
+        result.current.handleNodeDragStop(positions);
+      });
+
+      expect(mockSaveGraphPositions).toHaveBeenCalledWith(
+        "plugin-1",
+        positions,
+      );
+    });
+  });
+
+  describe("handleReorderStep", () => {
+    it("submits reorder-dependency with correct args", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleReorderStep("dep-1", "up");
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        { intent: "reorder-dependency", dependencyId: "dep-1", direction: "up" },
+        { method: "post" },
+      );
+    });
+  });
+
+  describe("handleDeleteStep", () => {
+    it("submits delete-dependencies-batch when confirmed", () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleDeleteStep(["dep-1", "dep-2"]);
+      });
+
+      expect(mockSubmit).toHaveBeenCalledWith(
+        {
+          intent: "delete-dependencies-batch",
+          dependencyIds: "dep-1,dep-2",
+        },
+        { method: "post", action: "/plugins/plugin-1" },
+      );
+    });
+
+    it("does not submit when cancelled", () => {
+      vi.spyOn(window, "confirm").mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleDeleteStep(["dep-1"]);
+      });
+
+      expect(mockSubmit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("deleteFetcher error monitoring", () => {
+    it("sets deleteError when deleteFetcher returns error", () => {
+      mockFetcherData.state = "idle";
+      mockFetcherData.data = { error: "Cannot delete" };
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.deleteError).toBe("Cannot delete");
+    });
+  });
+
+  describe("deleteError clearing", () => {
+    it("clears deleteError when handleConnect is called", () => {
+      mockFetcherData.state = "idle";
+      mockFetcherData.data = { error: "Some error" };
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.deleteError).toBe("Some error");
+
+      act(() => {
+        result.current.handleConnect("a", "b");
+      });
+
+      expect(result.current.deleteError).toBeNull();
+    });
+  });
+
   describe("entryPointSkills computation", () => {
     it("filters only ENTRY_POINT skills and maps to id/name", () => {
       const entryPoint = createComponent({
@@ -471,6 +753,247 @@ describe("usePluginGraph", () => {
         isOpen: false,
         mode: "create",
       });
+    });
+  });
+
+  describe("filesModalComponentName computation", () => {
+    it("resolves component name from componentId", () => {
+      const comp = createComponent({
+        id: "comp-1",
+        skillConfig: createSkillConfig({
+          name: "My Skill",
+          componentId: "comp-1",
+        }),
+      });
+      const plugin = createPlugin({ components: [comp] });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      act(() => {
+        result.current.handleManageFiles("comp-1");
+      });
+
+      expect(result.current.filesModalComponentName).toBe("My Skill");
+    });
+
+    it("returns (unknown) when no componentId is set", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.filesModalComponentName).toBe("(unknown)");
+    });
+  });
+
+  describe("filesModalFiles computation", () => {
+    it("returns files for the selected component", () => {
+      const files = [
+        {
+          id: "f-1",
+          filename: "SKILL.md",
+          role: "main",
+          content: "content",
+          sortOrder: 0,
+          outputSchemaFields: [],
+          componentId: "comp-1",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+      const comp = createComponent({
+        id: "comp-1",
+        files: files as unknown as Plugin["components"][number]["files"],
+      });
+      const plugin = createPlugin({ components: [comp] });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      act(() => {
+        result.current.handleManageFiles("comp-1");
+      });
+
+      expect(result.current.filesModalFiles).toHaveLength(1);
+      expect(result.current.filesModalFiles[0].id).toBe("f-1");
+    });
+
+    it("returns empty array when no componentId is set", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.filesModalFiles).toEqual([]);
+    });
+  });
+
+  describe("membersModalTeamName computation", () => {
+    it("resolves team name from teamId", () => {
+      const team = createAgentTeam({ id: "team-1", name: "Alpha Team" });
+      const plugin = createPlugin({ agentTeams: [team] });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(
+          createDefaultParams({
+            plugin,
+            membersModalState: { isOpen: true, teamId: "team-1" },
+          }),
+        ),
+      );
+
+      expect(result.current.membersModalTeamName).toBe("Alpha Team");
+    });
+
+    it("returns (unknown) when no teamId is set", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.membersModalTeamName).toBe("(unknown)");
+    });
+  });
+
+  describe("membersModalMembers computation", () => {
+    it("returns members for the selected team", () => {
+      const members = [
+        {
+          id: "m-1",
+          teamId: "team-1",
+          componentId: "comp-1",
+          sortOrder: 0,
+          component: {
+            id: "comp-1",
+            type: "SKILL" as const,
+            pluginId: "plugin-1",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            skillConfig: createSkillConfig({
+              name: "Worker Skill",
+              skillType: "WORKER",
+              componentId: "comp-1",
+              agentConfig: {
+                id: "ac-1",
+                skillConfigId: "sc-1",
+                model: null,
+                tools: null,
+                disallowedTools: null,
+                permissionMode: null,
+                hooks: null,
+                memory: null,
+                content: "",
+              },
+            }),
+          },
+        },
+      ];
+      const team = createAgentTeam({
+        id: "team-1",
+        members: members as Plugin["agentTeams"][number]["members"],
+      });
+      const plugin = createPlugin({ agentTeams: [team] });
+
+      const { result } = renderHook(() =>
+        usePluginGraph(
+          createDefaultParams({
+            plugin,
+            membersModalState: { isOpen: true, teamId: "team-1" },
+          }),
+        ),
+      );
+
+      expect(result.current.membersModalMembers).toHaveLength(1);
+      expect(result.current.membersModalMembers[0].id).toBe("m-1");
+    });
+
+    it("returns empty array when no teamId is set", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.membersModalMembers).toEqual([]);
+    });
+  });
+
+  describe("auto-layout", () => {
+    it("returns autoLayoutPending as false initially", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      expect(result.current.autoLayoutPending).toBe(false);
+    });
+
+    it("sets autoLayoutPending to true when fetcher transitions from loading to idle", () => {
+      const comp = createComponent();
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+        ],
+        edges: [],
+      });
+
+      // fetcherがloading状態からidle状態に遷移したときにフラグを設定
+      mockFetcherData.state = "loading";
+      const { result, rerender } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      // idleに遷移すると自動レイアウトフラグが立つ
+      mockFetcherData.state = "idle";
+      rerender();
+
+      expect(result.current.autoLayoutPending).toBe(true);
+    });
+
+    it("clears autoLayoutPending when handleAutoLayoutApplied is called", () => {
+      const comp = createComponent();
+      const plugin = createPlugin({ components: [comp] });
+
+      mockBuildGraphData.mockReturnValue({
+        nodes: [
+          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+        ],
+        edges: [],
+      });
+
+      // loading状態から開始
+      mockFetcherData.state = "loading";
+      const { result, rerender } = renderHook(() =>
+        usePluginGraph(createDefaultParams({ plugin })),
+      );
+
+      // idleに遷移
+      mockFetcherData.state = "idle";
+      rerender();
+
+      expect(result.current.autoLayoutPending).toBe(true);
+
+      // レイアウト適用
+      act(() => {
+        result.current.handleAutoLayoutApplied();
+      });
+
+      expect(result.current.autoLayoutPending).toBe(false);
+    });
+
+    it("handlePositionsPersist saves positions via saveGraphPositions", () => {
+      const { result } = renderHook(() =>
+        usePluginGraph(createDefaultParams()),
+      );
+
+      const positions = { "node-1": { x: 50, y: 100 } };
+      act(() => {
+        result.current.handlePositionsPersist(positions);
+      });
+
+      expect(mockSaveGraphPositions).toHaveBeenCalledWith(
+        "plugin-1",
+        positions,
+      );
     });
   });
 

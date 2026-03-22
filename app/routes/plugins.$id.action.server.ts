@@ -124,7 +124,16 @@ export async function action({ request, params }: Route.ActionArgs) {
     const agentContent = String(formData.get("agentContent") ?? "");
 
     // agentConfig関連フィールドが1つでも送信されていればagentConfigを更新
-    const hasAgentFields = formData.has("agentModel") || formData.has("agentContent");
+    const agentConfigFieldNames = [
+      "agentModel",
+      "agentContent",
+      "agentTools",
+      "agentDisallowedTools",
+      "agentPermissionMode",
+      "agentHooks",
+      "agentMemory",
+    ];
+    const hasAgentFields = agentConfigFieldNames.some((f) => formData.has(f));
 
     await updateComponent(componentId, {
       type: type as "SKILL",

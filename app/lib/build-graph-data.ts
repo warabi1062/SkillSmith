@@ -198,7 +198,7 @@ export function buildGraphData(
     }
 
     // WORKER SkillにagentConfigが紐付いているかどうか
-    const hasAgentConfig = !!(c.skillConfig as { agentConfig?: unknown } | null)?.agentConfig;
+    const hasAgentConfig = !!(c.skillConfig?.agentConfig);
 
     return {
       id: c.id,
