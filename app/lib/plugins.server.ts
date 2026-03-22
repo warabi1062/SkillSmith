@@ -158,13 +158,11 @@ export async function updateComponent(
     content?: string;
     input?: string;
     output?: string;
+    allowedTools?: string;
+    argumentHint?: string;
     agentConfig?: {
       model?: string;
       tools?: string;
-      disallowedTools?: string;
-      permissionMode?: string;
-      hooks?: string;
-      memory?: string;
       content?: string;
     };
   },
@@ -213,6 +211,8 @@ export async function updateComponent(
           ...(data.content !== undefined ? { content: data.content } : {}),
           ...(data.input !== undefined ? { input: data.input } : {}),
           ...(data.output !== undefined ? { output: data.output } : {}),
+          ...(data.allowedTools !== undefined ? { allowedTools: data.allowedTools || null } : {}),
+          ...(data.argumentHint !== undefined ? { argumentHint: data.argumentHint || null } : {}),
           // agentConfig更新（存在する場合のみ）
           ...(data.agentConfig
             ? {
@@ -223,18 +223,6 @@ export async function updateComponent(
                       : {}),
                     ...(data.agentConfig.tools !== undefined
                       ? { tools: data.agentConfig.tools || null }
-                      : {}),
-                    ...(data.agentConfig.disallowedTools !== undefined
-                      ? { disallowedTools: data.agentConfig.disallowedTools || null }
-                      : {}),
-                    ...(data.agentConfig.permissionMode !== undefined
-                      ? { permissionMode: data.agentConfig.permissionMode || null }
-                      : {}),
-                    ...(data.agentConfig.hooks !== undefined
-                      ? { hooks: data.agentConfig.hooks || null }
-                      : {}),
-                    ...(data.agentConfig.memory !== undefined
-                      ? { memory: data.agentConfig.memory || null }
                       : {}),
                     ...(data.agentConfig.content !== undefined
                       ? { content: data.agentConfig.content }

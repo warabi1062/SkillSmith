@@ -9,10 +9,6 @@ function makeAgentComponent(overrides: {
   content?: string;
   model?: string | null;
   tools?: string | null;
-  disallowedTools?: string | null;
-  permissionMode?: string | null;
-  hooks?: string | null;
-  memory?: string | null;
 }) {
   return {
     id: "comp-1",
@@ -21,10 +17,6 @@ function makeAgentComponent(overrides: {
       skillConfigId: "sc-1",
       model: overrides.model ?? null,
       tools: overrides.tools ?? null,
-      disallowedTools: overrides.disallowedTools ?? null,
-      permissionMode: overrides.permissionMode ?? null,
-      hooks: overrides.hooks ?? null,
-      memory: overrides.memory ?? null,
       content: overrides.content ?? "# Agent body",
     },
     skillConfig: {
@@ -84,13 +76,6 @@ describe("generateAgentMd", () => {
     expect(file!.content).toContain("  - Grep");
   });
 
-  it("permissionModeをfrontmatterに含める", () => {
-    const { file } = generateAgentMd(
-      makeAgentComponent({ permissionMode: "bypassPermissions" }),
-    );
-    expect(file!.content).toContain("permissionMode: bypassPermissions");
-  });
-
   it("skillConfigのinputをfrontmatterに含める", () => {
     const { file } = generateAgentMd(
       makeAgentComponent({ skillInput: "- task ID" }),
@@ -111,13 +96,6 @@ describe("generateAgentMd", () => {
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
-  });
-
-  it("hooksフィールド設定時にwarningを返す", () => {
-    const { errors } = generateAgentMd(
-      makeAgentComponent({ hooks: "some-hook" }),
-    );
-    expect(errors.some((e) => e.code === "HOOKS_NOT_SUPPORTED")).toBe(true);
   });
 
   it("contentを本文に含める", () => {

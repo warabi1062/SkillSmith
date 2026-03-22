@@ -72,10 +72,7 @@ function createPlugin(overrides: Partial<Plugin> = {}): Plugin {
 
 const defaultSkillConfigFields = {
   argumentHint: null,
-  disableModelInvocation: false,
-  userInvocable: true,
   allowedTools: null,
-  context: null,
   content: "",
 };
 

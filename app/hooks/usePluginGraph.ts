@@ -334,6 +334,8 @@ export function usePluginGraph({
         input: string;
         output: string;
         skillType?: string;
+        allowedTools?: string;
+        argumentHint?: string;
         agentConfig?: AgentConfigFields;
       },
     ) => {
@@ -346,15 +348,13 @@ export function usePluginGraph({
         input: fields.input,
         output: fields.output,
         skillType: fields.skillType ?? "",
+        allowedTools: fields.allowedTools ?? "",
+        argumentHint: fields.argumentHint ?? "",
       };
       // agentConfig関連フィールド
       if (fields.agentConfig) {
         formFields.agentModel = fields.agentConfig.model;
         formFields.agentTools = fields.agentConfig.tools;
-        formFields.agentDisallowedTools = fields.agentConfig.disallowedTools;
-        formFields.agentPermissionMode = fields.agentConfig.permissionMode;
-        formFields.agentHooks = fields.agentConfig.hooks;
-        formFields.agentMemory = fields.agentConfig.memory;
         formFields.agentContent = fields.agentConfig.agentContent;
       }
       updateComponentFetcher.submit(
@@ -400,13 +400,11 @@ export function usePluginGraph({
         ? {
             model: agentConfigData.model ?? "",
             tools: agentConfigData.tools ?? "",
-            disallowedTools: agentConfigData.disallowedTools ?? "",
-            permissionMode: agentConfigData.permissionMode ?? "",
-            hooks: agentConfigData.hooks ?? "",
-            memory: agentConfigData.memory ?? "",
             agentContent: agentConfigData.content ?? "",
           }
         : null,
+      allowedTools: comp.skillConfig?.allowedTools ?? null,
+      argumentHint: comp.skillConfig?.argumentHint ?? null,
       orchestratorName: null,
       content: comp.skillConfig?.content ?? "",
       input: comp.skillConfig?.input ?? "",

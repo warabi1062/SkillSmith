@@ -3,10 +3,6 @@ import { useState, useEffect, useRef } from "react";
 export interface AgentConfigFields {
   model: string;
   tools: string;
-  disallowedTools: string;
-  permissionMode: string;
-  hooks: string;
-  memory: string;
   agentContent: string;
 }
 
@@ -20,6 +16,8 @@ export interface SidePanelProps {
   input: string;
   output: string;
   skillType: string | null;
+  allowedTools: string | null;
+  argumentHint: string | null;
   hasAgentConfig: boolean;
   agentConfig: AgentConfigFields | null;
   orchestratorName: string | null;
@@ -32,6 +30,8 @@ export interface SidePanelProps {
       input: string;
       output: string;
       skillType?: string;
+      allowedTools?: string;
+      argumentHint?: string;
       agentConfig?: AgentConfigFields;
     },
   ) => void;
@@ -54,6 +54,8 @@ export default function SidePanel({
   input,
   output,
   skillType,
+  allowedTools,
+  argumentHint,
   hasAgentConfig,
   agentConfig,
   onUpdateComponent,
@@ -65,14 +67,12 @@ export default function SidePanel({
   const [editInput, setEditInput] = useState(input ?? "");
   const [editOutput, setEditOutput] = useState(output ?? "");
   const [editSkillType, setEditSkillType] = useState(skillType ?? "");
+  const [editAllowedTools, setEditAllowedTools] = useState(allowedTools ?? "");
+  const [editArgumentHint, setEditArgumentHint] = useState(argumentHint ?? "");
 
   // AgentConfig編集状態
   const [editAgentModel, setEditAgentModel] = useState(agentConfig?.model ?? "");
   const [editAgentTools, setEditAgentTools] = useState(agentConfig?.tools ?? "");
-  const [editAgentDisallowedTools, setEditAgentDisallowedTools] = useState(agentConfig?.disallowedTools ?? "");
-  const [editAgentPermissionMode, setEditAgentPermissionMode] = useState(agentConfig?.permissionMode ?? "");
-  const [editAgentHooks, setEditAgentHooks] = useState(agentConfig?.hooks ?? "");
-  const [editAgentMemory, setEditAgentMemory] = useState(agentConfig?.memory ?? "");
   const [editAgentContent, setEditAgentContent] = useState(agentConfig?.agentContent ?? "");
 
   // 前回のノードID・編集値・種別情報をrefで保持（ノード切り替え時の自動保存用）
@@ -84,13 +84,11 @@ export default function SidePanel({
   const prevEditOutputRef = useRef(editOutput);
   const prevSkillTypeRef = useRef(skillType);
   const prevEditSkillTypeRef = useRef(editSkillType);
+  const prevEditAllowedToolsRef = useRef(editAllowedTools);
+  const prevEditArgumentHintRef = useRef(editArgumentHint);
   const prevHasAgentConfigRef = useRef(hasAgentConfig);
   const prevEditAgentModelRef = useRef(editAgentModel);
   const prevEditAgentToolsRef = useRef(editAgentTools);
-  const prevEditAgentDisallowedToolsRef = useRef(editAgentDisallowedTools);
-  const prevEditAgentPermissionModeRef = useRef(editAgentPermissionMode);
-  const prevEditAgentHooksRef = useRef(editAgentHooks);
-  const prevEditAgentMemoryRef = useRef(editAgentMemory);
   const prevEditAgentContentRef = useRef(editAgentContent);
 
   // editName/editDescription/editContentの変更をrefに反映
@@ -100,12 +98,10 @@ export default function SidePanel({
   useEffect(() => { prevEditInputRef.current = editInput; }, [editInput]);
   useEffect(() => { prevEditOutputRef.current = editOutput; }, [editOutput]);
   useEffect(() => { prevEditSkillTypeRef.current = editSkillType; }, [editSkillType]);
+  useEffect(() => { prevEditAllowedToolsRef.current = editAllowedTools; }, [editAllowedTools]);
+  useEffect(() => { prevEditArgumentHintRef.current = editArgumentHint; }, [editArgumentHint]);
   useEffect(() => { prevEditAgentModelRef.current = editAgentModel; }, [editAgentModel]);
   useEffect(() => { prevEditAgentToolsRef.current = editAgentTools; }, [editAgentTools]);
-  useEffect(() => { prevEditAgentDisallowedToolsRef.current = editAgentDisallowedTools; }, [editAgentDisallowedTools]);
-  useEffect(() => { prevEditAgentPermissionModeRef.current = editAgentPermissionMode; }, [editAgentPermissionMode]);
-  useEffect(() => { prevEditAgentHooksRef.current = editAgentHooks; }, [editAgentHooks]);
-  useEffect(() => { prevEditAgentMemoryRef.current = editAgentMemory; }, [editAgentMemory]);
   useEffect(() => { prevEditAgentContentRef.current = editAgentContent; }, [editAgentContent]);
 
   // propsが変わったら（別ノード選択時）フォーム値をリセット
@@ -123,15 +119,13 @@ export default function SidePanel({
           input: prevEditInputRef.current,
           output: prevEditOutputRef.current,
           skillType: prevEditSkillTypeRef.current || (prevSkillTypeRef.current ?? undefined),
+          allowedTools: prevEditAllowedToolsRef.current,
+          argumentHint: prevEditArgumentHintRef.current,
         };
         if (prevHasAgentConfigRef.current) {
           updateFields.agentConfig = {
             model: prevEditAgentModelRef.current,
             tools: prevEditAgentToolsRef.current,
-            disallowedTools: prevEditAgentDisallowedToolsRef.current,
-            permissionMode: prevEditAgentPermissionModeRef.current,
-            hooks: prevEditAgentHooksRef.current,
-            memory: prevEditAgentMemoryRef.current,
             agentContent: prevEditAgentContentRef.current,
           };
         }
@@ -148,14 +142,12 @@ export default function SidePanel({
     setEditInput(input ?? "");
     setEditOutput(output ?? "");
     setEditSkillType(skillType ?? "");
+    setEditAllowedTools(allowedTools ?? "");
+    setEditArgumentHint(argumentHint ?? "");
     setEditAgentModel(agentConfig?.model ?? "");
     setEditAgentTools(agentConfig?.tools ?? "");
-    setEditAgentDisallowedTools(agentConfig?.disallowedTools ?? "");
-    setEditAgentPermissionMode(agentConfig?.permissionMode ?? "");
-    setEditAgentHooks(agentConfig?.hooks ?? "");
-    setEditAgentMemory(agentConfig?.memory ?? "");
     setEditAgentContent(agentConfig?.agentContent ?? "");
-  }, [nodeId, name, description, content, input, output, nodeType, skillType, hasAgentConfig, agentConfig, onUpdateComponent]);
+  }, [nodeId, name, description, content, input, output, nodeType, skillType, allowedTools, argumentHint, hasAgentConfig, agentConfig, onUpdateComponent]);
 
   const handleSave = () => {
     // 空文字の名前は保存しない
@@ -167,15 +159,13 @@ export default function SidePanel({
       input: editInput,
       output: editOutput,
       skillType: editSkillType || (skillType ?? undefined),
+      allowedTools: editAllowedTools,
+      argumentHint: editArgumentHint,
     };
     if (hasAgentConfig) {
       updateFields.agentConfig = {
         model: editAgentModel,
         tools: editAgentTools,
-        disallowedTools: editAgentDisallowedTools,
-        permissionMode: editAgentPermissionMode,
-        hooks: editAgentHooks,
-        memory: editAgentMemory,
         agentContent: editAgentContent,
       };
     }
@@ -228,6 +218,32 @@ export default function SidePanel({
             rows={3}
           />
         </div>
+
+        {/* Allowed Tools フィールド */}
+        <div className="form-group">
+          <label htmlFor="side-panel-allowed-tools">Allowed Tools</label>
+          <textarea
+            id="side-panel-allowed-tools"
+            value={editAllowedTools}
+            onChange={(e) => setEditAllowedTools(e.target.value)}
+            rows={2}
+            placeholder='["Read", "Write", "Grep"]'
+          />
+        </div>
+
+        {/* Argument Hint フィールド（ENTRY_POINTのみ表示） */}
+        {componentType === "ORCHESTRATOR" && (
+          <div className="form-group">
+            <label htmlFor="side-panel-argument-hint">Argument Hint</label>
+            <input
+              id="side-panel-argument-hint"
+              type="text"
+              value={editArgumentHint}
+              onChange={(e) => setEditArgumentHint(e.target.value)}
+              placeholder="e.g. <file-path>"
+            />
+          </div>
+        )}
 
         {/* 本文フィールド */}
         <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -324,50 +340,6 @@ export default function SidePanel({
                 onChange={(e) => setEditAgentTools(e.target.value)}
                 rows={2}
                 placeholder='e.g. ["Read", "Grep"]'
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="side-panel-agent-disallowed-tools">Disallowed Tools</label>
-              <textarea
-                id="side-panel-agent-disallowed-tools"
-                value={editAgentDisallowedTools}
-                onChange={(e) => setEditAgentDisallowedTools(e.target.value)}
-                rows={2}
-                placeholder='e.g. ["Bash"]'
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="side-panel-agent-permission-mode">Permission Mode</label>
-              <input
-                id="side-panel-agent-permission-mode"
-                type="text"
-                value={editAgentPermissionMode}
-                onChange={(e) => setEditAgentPermissionMode(e.target.value)}
-                placeholder="e.g. bypassPermissions"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="side-panel-agent-hooks">Hooks</label>
-              <textarea
-                id="side-panel-agent-hooks"
-                value={editAgentHooks}
-                onChange={(e) => setEditAgentHooks(e.target.value)}
-                rows={2}
-                placeholder="Hook configuration..."
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="side-panel-agent-memory">Memory</label>
-              <textarea
-                id="side-panel-agent-memory"
-                value={editAgentMemory}
-                onChange={(e) => setEditAgentMemory(e.target.value)}
-                rows={2}
-                placeholder="Memory configuration..."
               />
             </div>
 

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   serializeFrontmatter,
   parseJsonArrayField,
-  checkHooksField,
 } from "../frontmatter.server";
 
 describe("serializeFrontmatter", () => {
@@ -159,28 +158,3 @@ describe("parseJsonArrayField", () => {
   });
 });
 
-describe("checkHooksField", () => {
-  it("returns null when hooks is null", () => {
-    expect(checkHooksField(null)).toBeNull();
-  });
-
-  it("returns null when hooks is undefined", () => {
-    expect(checkHooksField(undefined)).toBeNull();
-  });
-
-  it("returns null when hooks is empty string", () => {
-    expect(checkHooksField("")).toBeNull();
-  });
-
-  it("returns warning when hooks is set", () => {
-    const error = checkHooksField("some-hook");
-    expect(error).not.toBeNull();
-    expect(error!.severity).toBe("warning");
-    expect(error!.code).toBe("HOOKS_NOT_SUPPORTED");
-  });
-
-  it("includes componentId when provided", () => {
-    const error = checkHooksField("hook", "comp-1");
-    expect(error!.componentId).toBe("comp-1");
-  });
-});
