@@ -185,9 +185,9 @@ export default function SidePanel({
   // コンポーネント種別に応じたバッジラベル
   const badgeLabel = componentType === "ORCHESTRATOR" ? "ORCHESTRATOR" : "SKILL";
 
-  // AgentConfig編集セクションの表示条件: WORKER_WITH_SUB_AGENTのみ
+  // AgentConfig編集セクションの表示条件: editSkillTypeで即時反映
   const showAgentConfigSection =
-    componentType === "SKILL" && skillType === "WORKER_WITH_SUB_AGENT" && hasAgentConfig;
+    componentType === "SKILL" && editSkillType === "WORKER_WITH_SUB_AGENT";
 
   // skillType変更UIの表示条件: ENTRY_POINTでない場合のみ
   const showSkillTypeSelect = componentType !== "ORCHESTRATOR";
