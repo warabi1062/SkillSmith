@@ -9,7 +9,6 @@ datasource db {
 
 enum ComponentType {
   SKILL
-  AGENT
 }
 
 enum SkillType {
@@ -42,7 +41,6 @@ model Component {
 
   plugin           Plugin                @relation(fields: [pluginId], references: [id], onDelete: Cascade)
   skillConfig      SkillConfig?
-  agentConfig      AgentConfig?
   files            ComponentFile[]
   dependenciesFrom   ComponentDependency[] @relation("DependencySource")
   dependenciesTo     ComponentDependency[] @relation("DependencyTarget")
@@ -61,21 +59,17 @@ model SkillConfig {
   userInvocable          Boolean   @default(true)
   allowedTools           String?
   context                String?
-  agent                  String?
-  model                  String?
-  hooks                  String?
   content                String    @default("")
   input                  String    @default("")
   output                 String    @default("")
 
-  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  component   Component    @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  agentConfig AgentConfig?
 }
 
 model AgentConfig {
   id              String  @id @default(cuid())
-  componentId     String  @unique
-  name            String
-  description     String
+  skillConfigId   String  @unique
   model           String?
   tools           String?
   disallowedTools String?
@@ -83,10 +77,8 @@ model AgentConfig {
   hooks           String?
   memory          String?
   content         String  @default("")
-  input           String  @default("")
-  output          String  @default("")
 
-  component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  skillConfig SkillConfig @relation(fields: [skillConfigId], references: [id], onDelete: Cascade)
 }
 
 model ComponentFile {
