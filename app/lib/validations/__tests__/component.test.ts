@@ -26,6 +26,26 @@ describe("validateComponentData", () => {
     ).not.toThrow();
   });
 
+  it("accepts valid SKILL component with WORKER_WITH_SUB_AGENT skillType", () => {
+    expect(() =>
+      validateComponentData({
+        type: "SKILL",
+        name: "worker-agent-1",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      }),
+    ).not.toThrow();
+  });
+
+  it("accepts valid SKILL component with WORKER_WITH_AGENT_TEAM skillType", () => {
+    expect(() =>
+      validateComponentData({
+        type: "SKILL",
+        name: "worker-team-1",
+        skillType: "WORKER_WITH_AGENT_TEAM",
+      }),
+    ).not.toThrow();
+  });
+
   // --- INVALID_TYPE ---
 
   it("throws INVALID_TYPE for unknown type", () => {

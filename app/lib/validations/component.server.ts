@@ -4,7 +4,7 @@ const NAME_MAX_LENGTH = 100;
 const NAME_FORMAT_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 const DESCRIPTION_MAX_LENGTH = 500;
 const VALID_TYPES = ["SKILL"] as const;
-const VALID_SKILL_TYPES = ["ENTRY_POINT", "WORKER"] as const;
+const VALID_SKILL_TYPES = ["ENTRY_POINT", "WORKER", "WORKER_WITH_SUB_AGENT", "WORKER_WITH_AGENT_TEAM"] as const;
 
 export function validateComponentData(data: {
   type: string;
@@ -73,7 +73,7 @@ export function validateComponentData(data: {
       throw new ValidationError({
         field: "skillType",
         code: "INVALID_SKILL_TYPE",
-        message: "Skill type must be ENTRY_POINT or WORKER",
+        message: "Skill type must be ENTRY_POINT, WORKER, WORKER_WITH_SUB_AGENT, or WORKER_WITH_AGENT_TEAM",
       });
     }
   }

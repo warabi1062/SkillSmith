@@ -41,6 +41,54 @@ describe("validateDependencyCreate", () => {
     ).resolves.toBeUndefined();
   });
 
+  it("accepts ENTRY_POINT -> WORKER_WITH_SUB_AGENT dependency", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique
+      .mockResolvedValueOnce({
+        id: "source-1",
+        type: "SKILL",
+        pluginId: "plugin-1",
+        skillConfig: { skillType: "ENTRY_POINT" },
+      })
+      .mockResolvedValueOnce({
+        id: "target-1",
+        type: "SKILL",
+        pluginId: "plugin-1",
+        skillConfig: { skillType: "WORKER_WITH_SUB_AGENT" },
+      });
+
+    await expect(
+      validateDependencyCreate(mockPrisma as unknown as PrismaLike, {
+        sourceId: "source-1",
+        targetId: "target-1",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("accepts ENTRY_POINT -> WORKER_WITH_AGENT_TEAM dependency", async () => {
+    const mockPrisma = createMockPrisma();
+    mockPrisma.component.findUnique
+      .mockResolvedValueOnce({
+        id: "source-1",
+        type: "SKILL",
+        pluginId: "plugin-1",
+        skillConfig: { skillType: "ENTRY_POINT" },
+      })
+      .mockResolvedValueOnce({
+        id: "target-1",
+        type: "SKILL",
+        pluginId: "plugin-1",
+        skillConfig: { skillType: "WORKER_WITH_AGENT_TEAM" },
+      });
+
+    await expect(
+      validateDependencyCreate(mockPrisma as unknown as PrismaLike, {
+        sourceId: "source-1",
+        targetId: "target-1",
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   // --- SOURCE_REQUIRED ---
 
   it("throws SOURCE_REQUIRED when sourceId is empty", async () => {
