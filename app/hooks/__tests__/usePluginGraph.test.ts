@@ -721,6 +721,8 @@ describe("usePluginGraph", () => {
           permissionMode: null,
           memory: null,
           content: "",
+          input: "",
+          output: "",
         },
       });
       const plugin = createPlugin({
@@ -901,6 +903,8 @@ describe("usePluginGraph", () => {
           permissionMode: null,
           memory: null,
           content: "",
+          input: "",
+          output: "",
         },
       });
       const plugin = createPlugin({ components: [skill, agent] });

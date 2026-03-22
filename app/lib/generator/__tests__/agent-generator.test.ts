@@ -11,6 +11,8 @@ function makeAgentComponent(overrides: {
   permissionMode?: string | null;
   hooks?: string | null;
   memory?: string | null;
+  input?: string;
+  output?: string;
   dependenciesFrom?: {
     target: { skillConfig: { name: string } | null };
     order: number;
@@ -30,6 +32,8 @@ function makeAgentComponent(overrides: {
       hooks: overrides.hooks ?? null,
       memory: overrides.memory ?? null,
       content: overrides.content ?? "# Agent body",
+      input: overrides.input ?? "",
+      output: overrides.output ?? "",
     },
     dependenciesFrom: overrides.dependenciesFrom ?? [],
   };
@@ -116,6 +120,28 @@ describe("generateAgentMd", () => {
       makeAgentComponent({ permissionMode: "bypassPermissions" }),
     );
     expect(file!.content).toContain("permissionMode: bypassPermissions");
+  });
+
+  it("includes input in frontmatter when set", () => {
+    const { file } = generateAgentMd(
+      makeAgentComponent({ input: "- task ID" }),
+    );
+    expect(file!.content).toContain("input:");
+  });
+
+  it("includes output in frontmatter when set", () => {
+    const { file } = generateAgentMd(
+      makeAgentComponent({ output: "- result" }),
+    );
+    expect(file!.content).toContain("output:");
+  });
+
+  it("omits input/output when empty", () => {
+    const { file } = generateAgentMd(
+      makeAgentComponent({ input: "", output: "" }),
+    );
+    expect(file!.content).not.toContain("input:");
+    expect(file!.content).not.toContain("output:");
   });
 
   it("returns warning when hooks field is set", () => {

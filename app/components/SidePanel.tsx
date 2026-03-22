@@ -7,11 +7,13 @@ export interface SidePanelProps {
   name: string;
   description: string | null;
   content: string;
+  input: string;
+  output: string;
   skillType: string | null;
   orchestratorName: string | null;
   onUpdateComponent: (
     componentId: string,
-    fields: { name: string; description: string; content: string; skillType?: string },
+    fields: { name: string; description: string; content: string; input: string; output: string; skillType?: string },
   ) => void;
   onUpdateAgentTeam: (
     teamId: string,
@@ -27,6 +29,8 @@ export default function SidePanel({
   name,
   description,
   content,
+  input,
+  output,
   skillType,
   orchestratorName,
   onUpdateComponent,
@@ -36,12 +40,16 @@ export default function SidePanel({
   const [editName, setEditName] = useState(name);
   const [editDescription, setEditDescription] = useState(description ?? "");
   const [editContent, setEditContent] = useState(content ?? "");
+  const [editInput, setEditInput] = useState(input ?? "");
+  const [editOutput, setEditOutput] = useState(output ?? "");
 
   // 前回のノードID・編集値・種別情報をrefで保持（ノード切り替え時の自動保存用）
   const prevNodeIdRef = useRef(nodeId);
   const prevEditNameRef = useRef(editName);
   const prevEditDescriptionRef = useRef(editDescription);
   const prevEditContentRef = useRef(editContent);
+  const prevEditInputRef = useRef(editInput);
+  const prevEditOutputRef = useRef(editOutput);
   const prevNodeTypeRef = useRef(nodeType);
   const prevSkillTypeRef = useRef(skillType);
 
@@ -55,6 +63,12 @@ export default function SidePanel({
   useEffect(() => {
     prevEditContentRef.current = editContent;
   }, [editContent]);
+  useEffect(() => {
+    prevEditInputRef.current = editInput;
+  }, [editInput]);
+  useEffect(() => {
+    prevEditOutputRef.current = editOutput;
+  }, [editOutput]);
 
   // propsが変わったら（別ノード選択時）フォーム値をリセット
   // ノード切り替え時は前の編集値を自動保存してからリセット
@@ -74,6 +88,8 @@ export default function SidePanel({
             name: prevName,
             description: prevDesc,
             content: prevEditContentRef.current,
+            input: prevEditInputRef.current,
+            output: prevEditOutputRef.current,
             skillType: prevSkillTypeRef.current ?? undefined,
           });
         }
@@ -86,7 +102,9 @@ export default function SidePanel({
     setEditName(name);
     setEditDescription(description ?? "");
     setEditContent(content ?? "");
-  }, [nodeId, name, description, content, nodeType, skillType, onUpdateComponent, onUpdateAgentTeam]);
+    setEditInput(input ?? "");
+    setEditOutput(output ?? "");
+  }, [nodeId, name, description, content, input, output, nodeType, skillType, onUpdateComponent, onUpdateAgentTeam]);
 
   const handleSave = () => {
     // 空文字の名前は保存しない
@@ -101,6 +119,8 @@ export default function SidePanel({
         name: editName,
         description: editDescription,
         content: editContent,
+        input: editInput,
+        output: editOutput,
         skillType: skillType ?? undefined,
       });
     }
@@ -169,6 +189,34 @@ export default function SidePanel({
               onChange={(e) => setEditContent(e.target.value)}
               style={{ flex: 1 }}
               placeholder="Write content in Markdown..."
+            />
+          </div>
+        )}
+
+        {/* 入力フィールド（AGENT_TEAMには非表示） */}
+        {componentType !== "AGENT_TEAM" && (
+          <div className="form-group">
+            <label htmlFor="side-panel-input">Input</label>
+            <textarea
+              id="side-panel-input"
+              value={editInput}
+              onChange={(e) => setEditInput(e.target.value)}
+              rows={3}
+              placeholder="Describe input..."
+            />
+          </div>
+        )}
+
+        {/* 出力フィールド（AGENT_TEAMには非表示） */}
+        {componentType !== "AGENT_TEAM" && (
+          <div className="form-group">
+            <label htmlFor="side-panel-output">Output</label>
+            <textarea
+              id="side-panel-output"
+              value={editOutput}
+              onChange={(e) => setEditOutput(e.target.value)}
+              rows={3}
+              placeholder="Describe output..."
             />
           </div>
         )}

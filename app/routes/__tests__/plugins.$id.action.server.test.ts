@@ -25,12 +25,6 @@ const mockCreateComponentFile = vi.fn();
 const mockGetComponentFile = vi.fn();
 const mockUpdateComponentFile = vi.fn();
 const mockDeleteComponentFile = vi.fn();
-const mockCreateOutputSchemaField = vi.fn();
-const mockGetOutputSchemaField = vi.fn();
-const mockUpdateOutputSchemaField = vi.fn();
-const mockDeleteOutputSchemaField = vi.fn();
-const mockReorderOutputSchemaField = vi.fn();
-
 vi.mock("../../lib/plugins.server", () => ({
   getPlugin: (...args: unknown[]) => mockGetPlugin(...args),
   getComponent: (...args: unknown[]) => mockGetComponent(...args),
@@ -62,16 +56,6 @@ vi.mock("../../lib/plugins.server", () => ({
     mockUpdateComponentFile(...args),
   deleteComponentFile: (...args: unknown[]) =>
     mockDeleteComponentFile(...args),
-  createOutputSchemaField: (...args: unknown[]) =>
-    mockCreateOutputSchemaField(...args),
-  getOutputSchemaField: (...args: unknown[]) =>
-    mockGetOutputSchemaField(...args),
-  updateOutputSchemaField: (...args: unknown[]) =>
-    mockUpdateOutputSchemaField(...args),
-  deleteOutputSchemaField: (...args: unknown[]) =>
-    mockDeleteOutputSchemaField(...args),
-  reorderOutputSchemaField: (...args: unknown[]) =>
-    mockReorderOutputSchemaField(...args),
 }));
 
 const mockGeneratePlugin = vi.fn();
@@ -247,13 +231,15 @@ describe("action", () => {
       );
 
       expect(result).toEqual({ success: true, componentId: "comp-1" });
-      // contentがupdateComponentに渡されることを確認
+      // contentとinput/outputがupdateComponentに渡されることを確認
       expect(mockUpdateComponent).toHaveBeenCalledWith("comp-1", {
         type: "SKILL",
         name: "updated",
         description: null,
         skillType: "WORKER",
         content: "# Updated content",
+        input: "",
+        output: "",
       });
     });
 
@@ -543,68 +529,42 @@ describe("action", () => {
   });
 
   // ============================
-  // create-field
+  // update-component: input/output
   // ============================
-  describe("create-field", () => {
-    it("returns success on valid input", async () => {
-      mockGetComponentFile.mockResolvedValue({
-        id: "file-1",
-        componentId: "comp-1",
-        role: "OUTPUT_SCHEMA",
-      });
+  describe("update-component input/output", () => {
+    it("passes input and output from formData to updateComponent", async () => {
       mockGetComponent.mockResolvedValue({
         id: "comp-1",
         pluginId: PLUGIN_ID,
+        type: "SKILL",
       });
-      mockCreateOutputSchemaField.mockResolvedValue({ id: "field-1" });
+      mockUpdateComponent.mockResolvedValue({ id: "comp-1" });
 
       const result = await action(
         makeActionArgs(
           makeFormData({
-            intent: "create-field",
-            fileId: "file-1",
-            name: "fieldName",
-            fieldType: "TEXT",
-            required: "on",
+            intent: "update-component",
+            componentId: "comp-1",
+            name: "s",
             description: "",
-            enumValues: "",
-            placeholder: "",
+            skillType: "WORKER",
+            content: "",
+            input: "- task ID",
+            output: "- result path",
           }),
         ),
       );
 
-      expect(result).toEqual({ success: true });
-    });
-
-    it("throws 404 when file role is not OUTPUT_SCHEMA", async () => {
-      mockGetComponentFile.mockResolvedValue({
-        id: "file-1",
-        componentId: "comp-1",
-        role: "TEMPLATE",
+      expect(result).toEqual({ success: true, componentId: "comp-1" });
+      expect(mockUpdateComponent).toHaveBeenCalledWith("comp-1", {
+        type: "SKILL",
+        name: "s",
+        description: null,
+        skillType: "WORKER",
+        content: "",
+        input: "- task ID",
+        output: "- result path",
       });
-      mockGetComponent.mockResolvedValue({
-        id: "comp-1",
-        pluginId: PLUGIN_ID,
-      });
-
-      const thrown = await extractThrown(() =>
-        action(
-          makeActionArgs(
-            makeFormData({
-              intent: "create-field",
-              fileId: "file-1",
-              name: "f",
-              fieldType: "TEXT",
-              description: "",
-              enumValues: "",
-              placeholder: "",
-            }),
-          ),
-        ),
-      );
-
-      expect(isDataWithResponseInit(thrown)).toBe(true);
-      expect((thrown as DataWithResponseInit).init.status).toBe(404);
     });
   });
 

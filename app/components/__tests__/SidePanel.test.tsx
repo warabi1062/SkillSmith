@@ -16,6 +16,8 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     name: "my-skill",
     description: "A test skill",
     content: "",
+    input: "",
+    output: "",
     skillType: "WORKER",
     orchestratorName: null,
     onUpdateComponent: vi.fn(),
@@ -133,6 +135,8 @@ describe("SidePanel", () => {
         name: "new-name",
         description: "desc",
         content: "",
+        input: "",
+        output: "",
         skillType: "WORKER",
       });
     });
@@ -233,6 +237,8 @@ describe("SidePanel", () => {
         name: "edited-name",
         description: "original desc",
         content: "",
+        input: "",
+        output: "",
         skillType: "WORKER",
       });
     });

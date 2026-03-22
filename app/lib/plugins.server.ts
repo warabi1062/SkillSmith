@@ -6,7 +6,6 @@ import {
   validateAgentTeamMemberCreate,
   validateComponentFileData,
   validateDependencyCreate,
-  validateOutputSchemaFieldData,
   ValidationError,
 } from "./validations";
 
@@ -34,9 +33,6 @@ export async function getPlugin(id: string) {
           },
           files: {
             orderBy: { sortOrder: "asc" },
-            include: {
-              outputSchemaFields: { orderBy: { sortOrder: "asc" } },
-            },
           },
         },
         orderBy: { createdAt: "asc" },
@@ -168,6 +164,8 @@ export async function updateComponent(
     description?: string | null;
     skillType?: "ENTRY_POINT" | "WORKER";
     content?: string;
+    input?: string;
+    output?: string;
   },
 ) {
   return prisma.component.update({
@@ -181,6 +179,8 @@ export async function updateComponent(
                 skillType: data.skillType!,
                 description: data.description?.trim() || null,
                 ...(data.content !== undefined ? { content: data.content } : {}),
+                ...(data.input !== undefined ? { input: data.input } : {}),
+                ...(data.output !== undefined ? { output: data.output } : {}),
               },
             },
           }
@@ -190,6 +190,8 @@ export async function updateComponent(
                 name: data.name.trim(),
                 description: data.description?.trim() ?? "",
                 ...(data.content !== undefined ? { content: data.content } : {}),
+                ...(data.input !== undefined ? { input: data.input } : {}),
+                ...(data.output !== undefined ? { output: data.output } : {}),
               },
             },
           }),
@@ -353,11 +355,6 @@ export async function removeAgentTeamMember(memberId: string) {
 export async function getComponentFile(id: string) {
   return prisma.componentFile.findUnique({
     where: { id },
-    include: {
-      outputSchemaFields: {
-        orderBy: { sortOrder: "asc" },
-      },
-    },
   });
 }
 
@@ -375,7 +372,7 @@ export async function createComponentFile(
     return await prisma.componentFile.create({
       data: {
         componentId,
-        role: data.role as "TEMPLATE" | "REFERENCE" | "EXAMPLE" | "OUTPUT_SCHEMA",
+        role: data.role as "TEMPLATE" | "REFERENCE" | "EXAMPLE",
         filename: data.filename.trim(),
         content: data.content,
         sortOrder: existingCount,
@@ -463,114 +460,6 @@ export async function deleteComponentFile(id: string) {
   });
 
   return deleted;
-}
-
-// OutputSchemaField CRUD
-
-export async function getOutputSchemaField(id: string) {
-  return prisma.outputSchemaField.findUnique({
-    where: { id },
-  });
-}
-
-export async function createOutputSchemaField(
-  componentFileId: string,
-  data: {
-    name: string;
-    fieldType: string;
-    required: boolean;
-    description?: string;
-    enumValues?: string;
-    placeholder?: string;
-  },
-) {
-  await validateOutputSchemaFieldData(prisma, {
-    componentFileId,
-    name: data.name,
-    fieldType: data.fieldType,
-    required: data.required,
-    enumValues: data.enumValues,
-  });
-
-  const maxSortOrder = await prisma.outputSchemaField.aggregate({
-    where: { componentFileId },
-    _max: { sortOrder: true },
-  });
-  const nextSortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
-
-  return prisma.outputSchemaField.create({
-    data: {
-      componentFileId,
-      name: data.name.trim(),
-      fieldType: data.fieldType as "TEXT" | "ENUM" | "LIST" | "TABLE" | "GROUP",
-      required: data.required,
-      description: data.description?.trim() || null,
-      sortOrder: nextSortOrder,
-      enumValues: data.enumValues?.trim() || null,
-      placeholder: data.placeholder?.trim() || null,
-    },
-  });
-}
-
-export async function updateOutputSchemaField(
-  id: string,
-  data: {
-    name: string;
-    fieldType: string;
-    required: boolean;
-    description?: string;
-    enumValues?: string | null;
-    placeholder?: string;
-  },
-) {
-  const existing = await prisma.outputSchemaField.findUnique({
-    where: { id },
-  });
-  if (!existing) {
-    throw new ValidationError({
-      field: "id",
-      code: "FIELD_NOT_FOUND",
-      message: "Output schema field not found",
-    });
-  }
-
-  await validateOutputSchemaFieldData(prisma, {
-    componentFileId: existing.componentFileId,
-    name: data.name,
-    fieldType: data.fieldType,
-    required: data.required,
-    enumValues: data.enumValues,
-    excludeFieldId: id,
-  });
-
-  return prisma.outputSchemaField.update({
-    where: { id },
-    data: {
-      name: data.name.trim(),
-      fieldType: data.fieldType as "TEXT" | "ENUM" | "LIST" | "TABLE" | "GROUP",
-      required: data.required,
-      description: data.description?.trim() || null,
-      enumValues: data.enumValues?.trim() || null,
-      placeholder: data.placeholder?.trim() || null,
-    },
-  });
-}
-
-export async function deleteOutputSchemaField(id: string) {
-  const existing = await prisma.outputSchemaField.findUnique({
-    where: { id },
-  });
-  if (!existing) {
-    throw new ValidationError({
-      field: "id",
-      code: "FIELD_NOT_FOUND",
-      message: "Output schema field not found",
-    });
-  }
-
-  return prisma.outputSchemaField.delete({
-    where: { id },
-  });
 }
 
 // ComponentDependency CRUD
@@ -712,68 +601,3 @@ export async function deleteDependenciesBatch(ids: string[]) {
   });
 }
 
-export async function reorderOutputSchemaField(
-  id: string,
-  direction: "up" | "down",
-) {
-  const field = await prisma.outputSchemaField.findUnique({
-    where: { id },
-  });
-  if (!field) {
-    throw new ValidationError({
-      field: "id",
-      code: "FIELD_NOT_FOUND",
-      message: "Output schema field not found",
-    });
-  }
-
-  // Find adjacent field based on direction
-  // Use sortOrder + id for stable ordering
-  let adjacentField;
-  if (direction === "up") {
-    adjacentField = await prisma.outputSchemaField.findFirst({
-      where: {
-        componentFileId: field.componentFileId,
-        OR: [
-          { sortOrder: { lt: field.sortOrder } },
-          {
-            sortOrder: field.sortOrder,
-            id: { lt: field.id },
-          },
-        ],
-      },
-      orderBy: [{ sortOrder: "desc" }, { id: "desc" }],
-    });
-  } else {
-    adjacentField = await prisma.outputSchemaField.findFirst({
-      where: {
-        componentFileId: field.componentFileId,
-        OR: [
-          { sortOrder: { gt: field.sortOrder } },
-          {
-            sortOrder: field.sortOrder,
-            id: { gt: field.id },
-          },
-        ],
-      },
-      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-    });
-  }
-
-  // Guard: no adjacent field means we're at the boundary
-  if (!adjacentField) {
-    return;
-  }
-
-  // Swap sortOrders in a transaction
-  await prisma.$transaction([
-    prisma.outputSchemaField.update({
-      where: { id: field.id },
-      data: { sortOrder: adjacentField.sortOrder },
-    }),
-    prisma.outputSchemaField.update({
-      where: { id: adjacentField.id },
-      data: { sortOrder: field.sortOrder },
-    }),
-  ]);
-}

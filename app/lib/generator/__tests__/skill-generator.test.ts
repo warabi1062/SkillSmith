@@ -13,6 +13,8 @@ function makeSkillComponent(overrides: {
   agent?: string | null;
   model?: string | null;
   hooks?: string | null;
+  input?: string;
+  output?: string;
 }) {
   return {
     id: "comp-1",
@@ -30,6 +32,8 @@ function makeSkillComponent(overrides: {
       model: overrides.model ?? null,
       hooks: overrides.hooks ?? null,
       content: overrides.content ?? "# Hello",
+      input: overrides.input ?? "",
+      output: overrides.output ?? "",
     },
   };
 }
@@ -118,6 +122,28 @@ describe("generateSkillMd", () => {
     );
     expect(file).not.toBeNull();
     expect(errors.some((e) => e.code === "HOOKS_NOT_SUPPORTED")).toBe(true);
+  });
+
+  it("includes input in frontmatter when set", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ input: "- task ID\n- file path" }),
+    );
+    expect(file!.content).toContain("input:");
+  });
+
+  it("includes output in frontmatter when set", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ output: "- result path" }),
+    );
+    expect(file!.content).toContain("output:");
+  });
+
+  it("omits input/output when empty", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ input: "", output: "" }),
+    );
+    expect(file!.content).not.toContain("input:");
+    expect(file!.content).not.toContain("output:");
   });
 
   it("returns error for invalid allowed-tools JSON", () => {

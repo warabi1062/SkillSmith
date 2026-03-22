@@ -5,7 +5,6 @@ const VALID_ROLES = [
   "TEMPLATE",
   "REFERENCE",
   "EXAMPLE",
-  "OUTPUT_SCHEMA",
 ] as const;
 
 const FILENAME_MAX_LENGTH = 255;
@@ -24,7 +23,7 @@ export function validateComponentFileData(data: {
     throw new ValidationError({
       field: "role",
       code: "INVALID_ROLE",
-      message: "Role must be one of: TEMPLATE, REFERENCE, EXAMPLE, OUTPUT_SCHEMA",
+      message: "Role must be one of: TEMPLATE, REFERENCE, EXAMPLE",
     });
   }
 

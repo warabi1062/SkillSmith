@@ -46,11 +46,6 @@ const {
   getComponentFile,
   updateComponentFile,
   deleteComponentFile,
-  createOutputSchemaField,
-  getOutputSchemaField,
-  updateOutputSchemaField,
-  deleteOutputSchemaField,
-  reorderOutputSchemaField,
   createDependency,
   getDependency,
   deleteDependency,
@@ -64,7 +59,6 @@ const { ValidationError } = await import("../validations");
 // --- Helpers ---
 
 async function cleanDatabase() {
-  await testPrisma.outputSchemaField.deleteMany();
   await testPrisma.componentFile.deleteMany();
   await testPrisma.componentDependency.deleteMany();
   await testPrisma.agentTeamMember.deleteMany();
@@ -459,25 +453,6 @@ describe("plugins.server", () => {
       ).rejects.toThrow(ValidationError);
     });
 
-    it("getComponentFile: returns file with outputSchemaFields", async () => {
-      const plugin = await createPlugin({ name: "P" });
-      const component = await createComponent(plugin.id, {
-        type: "SKILL",
-        name: "s",
-        skillType: "WORKER",
-      });
-      const file = await createComponentFile(component.id, {
-        role: "OUTPUT_SCHEMA",
-        filename: "output.md",
-        content: "",
-      });
-
-      const result = await getComponentFile(file.id);
-
-      expect(result).not.toBeNull();
-      expect(result!.outputSchemaFields).toBeDefined();
-    });
-
     it("updateComponentFile: updates filename and content", async () => {
       const plugin = await createPlugin({ name: "P" });
       const component = await createComponent(plugin.id, {
@@ -530,134 +505,87 @@ describe("plugins.server", () => {
   });
 
   // ============================
-  // OutputSchemaField CRUD
+  // updateComponent: input/output フィールド
   // ============================
-  describe("OutputSchemaField CRUD", () => {
-    async function createOutputSchemaFile() {
+  describe("updateComponent input/output", () => {
+    it("updateComponent(SKILL): input/outputが保存・取得できる", async () => {
       const plugin = await createPlugin({ name: "P" });
-      const component = await createComponent(plugin.id, {
+      const created = await createComponent(plugin.id, {
         type: "SKILL",
         name: "s",
         skillType: "WORKER",
       });
-      const file = await createComponentFile(component.id, {
-        role: "OUTPUT_SCHEMA",
-        filename: "output.md",
-        content: "",
-      });
-      return file;
-    }
 
-    it("createOutputSchemaField: creates a field with auto sortOrder", async () => {
-      const file = await createOutputSchemaFile();
-
-      const field = await createOutputSchemaField(file.id, {
-        name: "field1",
-        fieldType: "TEXT",
-        required: true,
-        description: "A field",
+      const updated = await updateComponent(created.id, {
+        type: "SKILL",
+        name: "s",
+        skillType: "WORKER",
+        input: "- タスクID\n- ファイルパス",
+        output: "- 実装結果のパス",
       });
 
-      expect(field.id).toBeDefined();
-      expect(field.name).toBe("field1");
-      expect(field.sortOrder).toBe(0);
+      expect(updated.skillConfig!.input).toBe("- タスクID\n- ファイルパス");
+      expect(updated.skillConfig!.output).toBe("- 実装結果のパス");
     });
 
-    it("createOutputSchemaField: auto-increments sortOrder", async () => {
-      const file = await createOutputSchemaFile();
-
-      await createOutputSchemaField(file.id, {
-        name: "field1",
-        fieldType: "TEXT",
-        required: true,
-      });
-      const field2 = await createOutputSchemaField(file.id, {
-        name: "field2",
-        fieldType: "ENUM",
-        required: false,
-        enumValues: "a,b,c",
+    it("updateComponent(AGENT): input/outputが保存・取得できる", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const created = await createComponent(plugin.id, {
+        type: "AGENT",
+        name: "a",
+        description: "desc",
       });
 
-      expect(field2.sortOrder).toBe(1);
+      const updated = await updateComponent(created.id, {
+        type: "AGENT",
+        name: "a",
+        description: "desc",
+        input: "入力テキスト",
+        output: "出力テキスト",
+      });
+
+      expect(updated.agentConfig!.input).toBe("入力テキスト");
+      expect(updated.agentConfig!.output).toBe("出力テキスト");
     });
 
-    it("getOutputSchemaField: returns field", async () => {
-      const file = await createOutputSchemaFile();
-      const created = await createOutputSchemaField(file.id, {
-        name: "f",
-        fieldType: "TEXT",
-        required: true,
+    it("updateComponent: input/outputが未指定の場合は既存値が保持される", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const created = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "s",
+        skillType: "WORKER",
       });
 
-      const result = await getOutputSchemaField(created.id);
+      // まずinput/outputを設定
+      await updateComponent(created.id, {
+        type: "SKILL",
+        name: "s",
+        skillType: "WORKER",
+        input: "existing input",
+        output: "existing output",
+      });
 
-      expect(result).not.toBeNull();
-      expect(result!.name).toBe("f");
+      // input/output未指定で更新
+      const updated = await updateComponent(created.id, {
+        type: "SKILL",
+        name: "s-updated",
+        skillType: "WORKER",
+      });
+
+      expect(updated.skillConfig!.input).toBe("existing input");
+      expect(updated.skillConfig!.output).toBe("existing output");
     });
 
-    it("updateOutputSchemaField: updates field data", async () => {
-      const file = await createOutputSchemaFile();
-      const created = await createOutputSchemaField(file.id, {
-        name: "old",
-        fieldType: "TEXT",
-        required: true,
+    it("createComponent: input/outputのデフォルト値は空文字列", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const created = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "s",
+        skillType: "WORKER",
       });
 
-      const updated = await updateOutputSchemaField(created.id, {
-        name: "new",
-        fieldType: "ENUM",
-        required: false,
-        enumValues: "x,y",
-      });
-
-      expect(updated.name).toBe("new");
-      expect(updated.fieldType).toBe("ENUM");
-      expect(updated.required).toBe(false);
-    });
-
-    it("updateOutputSchemaField: throws FIELD_NOT_FOUND for non-existent", async () => {
-      await expect(
-        updateOutputSchemaField("non-existent", {
-          name: "n",
-          fieldType: "TEXT",
-          required: true,
-        }),
-      ).rejects.toThrow(ValidationError);
-    });
-
-    it("deleteOutputSchemaField: deletes field", async () => {
-      const file = await createOutputSchemaFile();
-      const created = await createOutputSchemaField(file.id, {
-        name: "to-delete",
-        fieldType: "TEXT",
-        required: true,
-      });
-
-      await deleteOutputSchemaField(created.id);
-
-      const result = await getOutputSchemaField(created.id);
-      expect(result).toBeNull();
-    });
-
-    it("reorderOutputSchemaField: swaps sortOrders", async () => {
-      const file = await createOutputSchemaFile();
-      const field1 = await createOutputSchemaField(file.id, {
-        name: "first",
-        fieldType: "TEXT",
-        required: true,
-      });
-      const field2 = await createOutputSchemaField(file.id, {
-        name: "second",
-        fieldType: "TEXT",
-        required: true,
-      });
-
-      await reorderOutputSchemaField(field1.id, "down");
-
-      const updatedField1 = await getOutputSchemaField(field1.id);
-      const updatedField2 = await getOutputSchemaField(field2.id);
-      expect(updatedField1!.sortOrder).toBe(1);
-      expect(updatedField2!.sortOrder).toBe(0);
+      expect(created.skillConfig!.input).toBe("");
+      expect(created.skillConfig!.output).toBe("");
     });
   });
 
