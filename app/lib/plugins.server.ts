@@ -161,10 +161,6 @@ export async function updateComponent(
     agentConfig?: {
       model?: string;
       tools?: string;
-      disallowedTools?: string;
-      permissionMode?: string;
-      hooks?: string;
-      memory?: string;
       content?: string;
     };
   },
@@ -223,18 +219,6 @@ export async function updateComponent(
                       : {}),
                     ...(data.agentConfig.tools !== undefined
                       ? { tools: data.agentConfig.tools || null }
-                      : {}),
-                    ...(data.agentConfig.disallowedTools !== undefined
-                      ? { disallowedTools: data.agentConfig.disallowedTools || null }
-                      : {}),
-                    ...(data.agentConfig.permissionMode !== undefined
-                      ? { permissionMode: data.agentConfig.permissionMode || null }
-                      : {}),
-                    ...(data.agentConfig.hooks !== undefined
-                      ? { hooks: data.agentConfig.hooks || null }
-                      : {}),
-                    ...(data.agentConfig.memory !== undefined
-                      ? { memory: data.agentConfig.memory || null }
                       : {}),
                     ...(data.agentConfig.content !== undefined
                       ? { content: data.agentConfig.content }

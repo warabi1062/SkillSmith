@@ -112,10 +112,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     // agentConfigフィールドの取得（WORKER_WITH_SUB_AGENT + agentConfig有りの場合）
     const agentModel = String(formData.get("agentModel") ?? "");
     const agentTools = String(formData.get("agentTools") ?? "");
-    const agentDisallowedTools = String(formData.get("agentDisallowedTools") ?? "");
-    const agentPermissionMode = String(formData.get("agentPermissionMode") ?? "");
-    const agentHooks = String(formData.get("agentHooks") ?? "");
-    const agentMemory = String(formData.get("agentMemory") ?? "");
     const agentContent = String(formData.get("agentContent") ?? "");
 
     // agentConfig関連フィールドが1つでも送信されていればagentConfigを更新
@@ -123,10 +119,6 @@ export async function action({ request, params }: Route.ActionArgs) {
       "agentModel",
       "agentContent",
       "agentTools",
-      "agentDisallowedTools",
-      "agentPermissionMode",
-      "agentHooks",
-      "agentMemory",
     ];
     const hasAgentFields = agentConfigFieldNames.some((f) => formData.has(f));
 
@@ -143,10 +135,6 @@ export async function action({ request, params }: Route.ActionArgs) {
             agentConfig: {
               model: agentModel,
               tools: agentTools,
-              disallowedTools: agentDisallowedTools,
-              permissionMode: agentPermissionMode,
-              hooks: agentHooks,
-              memory: agentMemory,
               content: agentContent,
             },
           }

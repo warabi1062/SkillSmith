@@ -129,23 +129,3 @@ export function serializeFrontmatter(
 
   return `---\n${lines.join("\n")}\n---`;
 }
-
-/**
- * Check if a hooks field is set and return a validation warning if so.
- */
-export function checkHooksField(
-  hooks: string | null | undefined,
-  componentId?: string,
-): GenerationValidationError | null {
-  if (hooks != null && hooks !== "") {
-    return {
-      severity: "warning",
-      code: "HOOKS_NOT_SUPPORTED",
-      message:
-        "hooks field is not supported in the current version and will be omitted",
-      componentId,
-      field: "hooks",
-    };
-  }
-  return null;
-}

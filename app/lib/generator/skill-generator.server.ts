@@ -12,11 +12,10 @@ interface SkillConfigData {
   componentId: string;
   name: string;
   description: string | null;
+  skillType: string;
   argumentHint: string | null;
   disableModelInvocation: boolean;
-  userInvocable: boolean;
   allowedTools: string | null;
-  context: string | null;
   content: string;
   input: string;
   output: string;
@@ -84,14 +83,12 @@ export function generateSkillMd(component: SkillComponentData): {
   if (config.disableModelInvocation) {
     frontmatterFields["disable-model-invocation"] = true;
   }
-  if (config.userInvocable === false) {
+  // ENTRY_POINT以外のスキルはユーザーが直接呼び出さない
+  if (config.skillType !== "ENTRY_POINT") {
     frontmatterFields["user-invocable"] = false;
   }
   if (allowedTools) {
     frontmatterFields["allowed-tools"] = allowedTools;
-  }
-  if (config.context) {
-    frontmatterFields.context = config.context;
   }
   if (config.input) {
     frontmatterFields.input = config.input;

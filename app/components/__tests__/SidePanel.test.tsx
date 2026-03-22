@@ -105,17 +105,12 @@ describe("SidePanel", () => {
         agentConfig: {
           model: "sonnet",
           tools: '["Read"]',
-          disallowedTools: "",
-          permissionMode: "bypassPermissions",
-          hooks: "",
-          memory: "",
           agentContent: "# Agent body",
         },
       });
       expect(screen.getByText("Agent Config")).toBeTruthy();
       expect(screen.getByDisplayValue("sonnet")).toBeTruthy();
       expect(screen.getByDisplayValue('["Read"]')).toBeTruthy();
-      expect(screen.getByDisplayValue("bypassPermissions")).toBeTruthy();
       expect(screen.getByDisplayValue("# Agent body")).toBeTruthy();
     });
 
@@ -182,10 +177,6 @@ describe("SidePanel", () => {
         agentConfig: {
           model: "sonnet",
           tools: "",
-          disallowedTools: "",
-          permissionMode: "",
-          hooks: "",
-          memory: "",
           agentContent: "# body",
         },
         onUpdateComponent,

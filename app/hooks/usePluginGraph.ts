@@ -351,10 +351,6 @@ export function usePluginGraph({
       if (fields.agentConfig) {
         formFields.agentModel = fields.agentConfig.model;
         formFields.agentTools = fields.agentConfig.tools;
-        formFields.agentDisallowedTools = fields.agentConfig.disallowedTools;
-        formFields.agentPermissionMode = fields.agentConfig.permissionMode;
-        formFields.agentHooks = fields.agentConfig.hooks;
-        formFields.agentMemory = fields.agentConfig.memory;
         formFields.agentContent = fields.agentConfig.agentContent;
       }
       updateComponentFetcher.submit(
@@ -400,10 +396,6 @@ export function usePluginGraph({
         ? {
             model: agentConfigData.model ?? "",
             tools: agentConfigData.tools ?? "",
-            disallowedTools: agentConfigData.disallowedTools ?? "",
-            permissionMode: agentConfigData.permissionMode ?? "",
-            hooks: agentConfigData.hooks ?? "",
-            memory: agentConfigData.memory ?? "",
             agentContent: agentConfigData.content ?? "",
           }
         : null,

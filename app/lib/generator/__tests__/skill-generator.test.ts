@@ -5,11 +5,10 @@ function makeSkillComponent(overrides: {
   name?: string;
   description?: string | null;
   content?: string;
+  skillType?: string;
   argumentHint?: string | null;
   disableModelInvocation?: boolean;
-  userInvocable?: boolean;
   allowedTools?: string | null;
-  context?: string | null;
   input?: string;
   output?: string;
 }) {
@@ -20,11 +19,10 @@ function makeSkillComponent(overrides: {
       componentId: "comp-1",
       name: overrides.name ?? "my-skill",
       description: overrides.description ?? null,
+      skillType: overrides.skillType ?? "ENTRY_POINT",
       argumentHint: overrides.argumentHint ?? null,
       disableModelInvocation: overrides.disableModelInvocation ?? false,
-      userInvocable: overrides.userInvocable ?? true,
       allowedTools: overrides.allowedTools ?? null,
-      context: overrides.context ?? null,
       content: overrides.content ?? "# Hello",
       input: overrides.input ?? "",
       output: overrides.output ?? "",
@@ -70,16 +68,23 @@ describe("generateSkillMd", () => {
     expect(file!.content).not.toContain("disable-model-invocation");
   });
 
-  it("includes user-invocable: false when set", () => {
+  it("includes user-invocable: false for WORKER skillType", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ userInvocable: false }),
+      makeSkillComponent({ skillType: "WORKER" }),
     );
     expect(file!.content).toContain("user-invocable: false");
   });
 
-  it("omits user-invocable when true (default)", () => {
+  it("includes user-invocable: false for WORKER_WITH_SUB_AGENT skillType", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ userInvocable: true }),
+      makeSkillComponent({ skillType: "WORKER_WITH_SUB_AGENT" }),
+    );
+    expect(file!.content).toContain("user-invocable: false");
+  });
+
+  it("omits user-invocable for ENTRY_POINT skillType", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ skillType: "ENTRY_POINT" }),
     );
     expect(file!.content).not.toContain("user-invocable");
   });

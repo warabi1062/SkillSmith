@@ -2,7 +2,6 @@ import type { GeneratedFile, GenerationValidationError } from "./types";
 import {
   serializeFrontmatter,
   parseJsonArrayField,
-  checkHooksField,
 } from "./frontmatter.server";
 
 // --- Agent Team MD生成 ---
@@ -79,10 +78,6 @@ interface AgentConfigData {
   skillConfigId: string;
   model: string | null;
   tools: string | null;
-  disallowedTools: string | null;
-  permissionMode: string | null;
-  hooks: string | null;
-  memory: string | null;
   content: string;
 }
 
@@ -121,12 +116,6 @@ export function generateAgentMd(component: AgentComponentData): {
     return { file: null, errors };
   }
 
-  // Check hooks
-  const hooksError = checkHooksField(config.hooks, component.id);
-  if (hooksError) {
-    errors.push(hooksError);
-  }
-
   // Parse JSON array fields
   const { parsed: tools, error: toolsError } = parseJsonArrayField(
     config.tools,
@@ -135,16 +124,6 @@ export function generateAgentMd(component: AgentComponentData): {
   );
   if (toolsError) {
     errors.push(toolsError);
-  }
-
-  const { parsed: disallowedTools, error: disallowedToolsError } =
-    parseJsonArrayField(
-      config.disallowedTools,
-      "disallowedTools",
-      component.id,
-    );
-  if (disallowedToolsError) {
-    errors.push(disallowedToolsError);
   }
 
   // Build frontmatter
@@ -162,17 +141,8 @@ export function generateAgentMd(component: AgentComponentData): {
   if (tools) {
     frontmatterFields.tools = tools;
   }
-  if (disallowedTools) {
-    frontmatterFields.disallowedTools = disallowedTools;
-  }
   // skills: SkillConfigのnameを使用
   frontmatterFields.skills = [skillConfig.name];
-  if (config.permissionMode) {
-    frontmatterFields.permissionMode = config.permissionMode;
-  }
-  if (config.memory) {
-    frontmatterFields.memory = config.memory;
-  }
   if (skillConfig.input) {
     frontmatterFields.input = skillConfig.input;
   }

@@ -57,9 +57,7 @@ model SkillConfig {
   skillType              SkillType
   argumentHint           String?
   disableModelInvocation Boolean   @default(false)
-  userInvocable          Boolean   @default(true)
   allowedTools           String?
-  context                String?
   content                String    @default("")
   input                  String    @default("")
   output                 String    @default("")
@@ -73,10 +71,6 @@ model AgentConfig {
   skillConfigId   String  @unique
   model           String?
   tools           String?
-  disallowedTools String?
-  permissionMode  String?
-  hooks           String?
-  memory          String?
   content         String  @default("")
 
   skillConfig SkillConfig @relation(fields: [skillConfigId], references: [id], onDelete: Cascade)
