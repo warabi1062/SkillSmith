@@ -88,6 +88,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     const content = String(formData.get("content") ?? "");
     const input = String(formData.get("input") ?? "");
     const output = String(formData.get("output") ?? "");
+    const allowedTools = String(formData.get("allowedTools") ?? "");
+    const argumentHint = String(formData.get("argumentHint") ?? "");
+    const disableModelInvocation = formData.get("disableModelInvocation") === "true";
 
     try {
       validateComponentData({
@@ -130,6 +133,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       content,
       input,
       output,
+      allowedTools,
+      argumentHint,
+      disableModelInvocation,
       ...(hasAgentFields
         ? {
             agentConfig: {

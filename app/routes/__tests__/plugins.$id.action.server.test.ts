@@ -231,6 +231,9 @@ describe("action", () => {
         content: "# Updated content",
         input: "",
         output: "",
+        allowedTools: "",
+        argumentHint: "",
+        disableModelInvocation: false,
       });
     });
 
@@ -547,6 +550,50 @@ describe("action", () => {
   });
 
   // ============================
+  // update-component: allowedTools / argumentHint / disableModelInvocation
+  // ============================
+  describe("update-component skill fields", () => {
+    it("passes allowedTools, argumentHint, disableModelInvocation to updateComponent", async () => {
+      mockGetComponent.mockResolvedValue({
+        id: "comp-1",
+        pluginId: PLUGIN_ID,
+        type: "SKILL",
+      });
+      mockUpdateComponent.mockResolvedValue({ id: "comp-1" });
+
+      const result = await action(
+        makeActionArgs(
+          makeFormData({
+            intent: "update-component",
+            componentId: "comp-1",
+            name: "s",
+            description: "",
+            skillType: "WORKER",
+            content: "",
+            allowedTools: '["Read"]',
+            argumentHint: "<file>",
+            disableModelInvocation: "true",
+          }),
+        ),
+      );
+
+      expect(result).toEqual({ success: true, componentId: "comp-1" });
+      expect(mockUpdateComponent).toHaveBeenCalledWith("comp-1", {
+        type: "SKILL",
+        name: "s",
+        description: null,
+        skillType: "WORKER",
+        content: "",
+        input: "",
+        output: "",
+        allowedTools: '["Read"]',
+        argumentHint: "<file>",
+        disableModelInvocation: true,
+      });
+    });
+  });
+
+  // ============================
   // update-component: input/output
   // ============================
   describe("update-component input/output", () => {
@@ -582,6 +629,9 @@ describe("action", () => {
         content: "",
         input: "- task ID",
         output: "- result path",
+        allowedTools: "",
+        argumentHint: "",
+        disableModelInvocation: false,
       });
     });
   });

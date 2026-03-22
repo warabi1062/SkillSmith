@@ -158,6 +158,9 @@ export async function updateComponent(
     content?: string;
     input?: string;
     output?: string;
+    allowedTools?: string;
+    argumentHint?: string;
+    disableModelInvocation?: boolean;
     agentConfig?: {
       model?: string;
       tools?: string;
@@ -209,6 +212,9 @@ export async function updateComponent(
           ...(data.content !== undefined ? { content: data.content } : {}),
           ...(data.input !== undefined ? { input: data.input } : {}),
           ...(data.output !== undefined ? { output: data.output } : {}),
+          ...(data.allowedTools !== undefined ? { allowedTools: data.allowedTools || null } : {}),
+          ...(data.argumentHint !== undefined ? { argumentHint: data.argumentHint || null } : {}),
+          ...(data.disableModelInvocation !== undefined ? { disableModelInvocation: data.disableModelInvocation } : {}),
           // agentConfig更新（存在する場合のみ）
           ...(data.agentConfig
             ? {

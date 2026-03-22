@@ -140,6 +140,9 @@ export default function PluginGraphSection({
           input={selectedNodeData.input}
           output={selectedNodeData.output}
           skillType={selectedNodeData.skillType}
+          allowedTools={selectedNodeData.allowedTools}
+          argumentHint={selectedNodeData.argumentHint}
+          disableModelInvocation={selectedNodeData.disableModelInvocation}
           hasAgentConfig={selectedNodeData.hasAgentConfig}
           agentConfig={selectedNodeData.agentConfig}
           orchestratorName={selectedNodeData.orchestratorName}

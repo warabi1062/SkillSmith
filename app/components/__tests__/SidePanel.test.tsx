@@ -19,6 +19,9 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     input: "",
     output: "",
     skillType: "WORKER",
+    allowedTools: null,
+    argumentHint: null,
+    disableModelInvocation: false,
     hasAgentConfig: false,
     agentConfig: null,
     orchestratorName: null,
@@ -161,6 +164,9 @@ describe("SidePanel", () => {
         input: "",
         output: "",
         skillType: "WORKER",
+        allowedTools: "",
+        argumentHint: "",
+        disableModelInvocation: false,
       });
     });
 
@@ -189,6 +195,78 @@ describe("SidePanel", () => {
       expect(call[1].agentConfig).toBeDefined();
       expect(call[1].agentConfig.model).toBe("sonnet");
       expect(call[1].agentConfig.agentContent).toBe("# body");
+    });
+  });
+
+  describe("新規スキルフィールド", () => {
+    it("Allowed Toolsテキストエリアが表示されること", () => {
+      renderPanel({
+        componentType: "SKILL",
+        skillType: "WORKER",
+        allowedTools: '["Read", "Write"]',
+      });
+      expect(screen.getByLabelText("Allowed Tools")).toBeTruthy();
+      expect(screen.getByDisplayValue('["Read", "Write"]')).toBeTruthy();
+    });
+
+    it("Argument HintがORCHESTRATOR時のみ表示されること", () => {
+      renderPanel({
+        componentType: "ORCHESTRATOR",
+        skillType: "ENTRY_POINT",
+        argumentHint: "<file-path>",
+      });
+      expect(screen.getByLabelText("Argument Hint")).toBeTruthy();
+      expect(screen.getByDisplayValue("<file-path>")).toBeTruthy();
+    });
+
+    it("Argument HintがSKILL時は表示されないこと", () => {
+      renderPanel({
+        componentType: "SKILL",
+        skillType: "WORKER",
+        argumentHint: "<file-path>",
+      });
+      expect(screen.queryByLabelText("Argument Hint")).toBeNull();
+    });
+
+    it("Disable Model Invocationチェックボックスが表示されること", () => {
+      renderPanel({
+        componentType: "SKILL",
+        skillType: "WORKER",
+        disableModelInvocation: true,
+      });
+      expect(screen.getByLabelText("Disable Model Invocation")).toBeTruthy();
+      expect((screen.getByLabelText("Disable Model Invocation") as HTMLInputElement).checked).toBe(true);
+    });
+
+    it("ORCHESTRATOR時もDisable Model Invocationが表示されること", () => {
+      renderPanel({
+        componentType: "ORCHESTRATOR",
+        skillType: "ENTRY_POINT",
+        disableModelInvocation: false,
+      });
+      expect(screen.getByLabelText("Disable Model Invocation")).toBeTruthy();
+      expect((screen.getByLabelText("Disable Model Invocation") as HTMLInputElement).checked).toBe(false);
+    });
+
+    it("保存時に各フィールドがonUpdateComponentに含まれること", () => {
+      const onUpdateComponent = vi.fn();
+      renderPanel({
+        nodeId: "comp-1",
+        componentType: "SKILL",
+        name: "my-skill",
+        description: "desc",
+        skillType: "WORKER",
+        allowedTools: '["Read"]',
+        disableModelInvocation: true,
+        onUpdateComponent,
+      });
+
+      const saveButton = screen.getByRole("button", { name: "Save" });
+      fireEvent.click(saveButton);
+
+      const call = onUpdateComponent.mock.calls[0];
+      expect(call[1].allowedTools).toBe('["Read"]');
+      expect(call[1].disableModelInvocation).toBe(true);
     });
   });
 
@@ -262,6 +340,9 @@ describe("SidePanel", () => {
         input: "",
         output: "",
         skillType: "WORKER",
+        allowedTools: "",
+        argumentHint: "",
+        disableModelInvocation: false,
       });
     });
 
