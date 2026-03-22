@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   useNodesState,
-  ConnectionMode,
   type Node,
   type Edge,
   type Connection,
@@ -412,7 +411,7 @@ export default function DependencyGraph({
         onNodeContextMenu={handleNodeContextMenu}
         onPaneClick={handlePaneClick}
         isValidConnection={isValidConnection}
-        connectionMode={ConnectionMode.Loose}
+        connectionRadius={80}
         fitView
       >
         <Background />
