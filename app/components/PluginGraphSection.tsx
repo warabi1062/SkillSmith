@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { ReactFlowProvider } from "@xyflow/react";
 import {
   usePluginGraph,
   type Plugin,
@@ -115,29 +116,31 @@ export default function PluginGraphSection({
         <div className="dependency-graph-content">
           <div className="dependency-graph-main">
             <Suspense fallback={<div>Loading graph...</div>}>
-              <DependencyGraph
-                nodes={graphDataWithPositions.nodes}
-                edges={graphDataWithPositions.edges}
-                pluginId={plugin.id}
-                components={graphComponents}
-                agentTeams={agentTeamsForGraph}
-                onConnect={handleConnect}
-                onEdgeClick={handleEdgeClick}
-                onCreateComponent={handleCreateComponent}
-                onDeleteComponent={handleDeleteComponent}
-                onManageFiles={handleManageFiles}
-                onCreateAgentTeam={handleCreateAgentTeam}
-                onDeleteAgentTeam={handleDeleteAgentTeam}
-                onManageMembers={handleManageMembers}
-                onNodeDragStop={handleNodeDragStop}
-                onResetLayout={handleResetLayout}
-                onPositionsPersist={handlePositionsPersist}
-                onNodeClick={handleNodeClick}
-                onPaneClickCallback={handleSidePanelClose}
-                autoLayoutPending={autoLayoutPending}
-                onAutoLayoutApplied={handleAutoLayoutApplied}
-                resetKey={resetCounter}
-              />
+              <ReactFlowProvider>
+                <DependencyGraph
+                  nodes={graphDataWithPositions.nodes}
+                  edges={graphDataWithPositions.edges}
+                  pluginId={plugin.id}
+                  components={graphComponents}
+                  agentTeams={agentTeamsForGraph}
+                  onConnect={handleConnect}
+                  onEdgeClick={handleEdgeClick}
+                  onCreateComponent={handleCreateComponent}
+                  onDeleteComponent={handleDeleteComponent}
+                  onManageFiles={handleManageFiles}
+                  onCreateAgentTeam={handleCreateAgentTeam}
+                  onDeleteAgentTeam={handleDeleteAgentTeam}
+                  onManageMembers={handleManageMembers}
+                  onNodeDragStop={handleNodeDragStop}
+                  onResetLayout={handleResetLayout}
+                  onPositionsPersist={handlePositionsPersist}
+                  onNodeClick={handleNodeClick}
+                  onPaneClickCallback={handleSidePanelClose}
+                  autoLayoutPending={autoLayoutPending}
+                  onAutoLayoutApplied={handleAutoLayoutApplied}
+                  resetKey={resetCounter}
+                />
+              </ReactFlowProvider>
             </Suspense>
           </div>
           {selectedNodeData && (
