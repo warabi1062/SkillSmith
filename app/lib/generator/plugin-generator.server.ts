@@ -139,7 +139,6 @@ function generateSkillComponent(
       description: config.description,
       skillType: config.skillType,
       argumentHint: config.argumentHint,
-      disableModelInvocation: config.disableModelInvocation,
       allowedTools: config.allowedTools,
       content: config.content,
       input: config.input,

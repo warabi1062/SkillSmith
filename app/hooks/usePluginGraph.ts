@@ -336,7 +336,6 @@ export function usePluginGraph({
         skillType?: string;
         allowedTools?: string;
         argumentHint?: string;
-        disableModelInvocation?: boolean;
         agentConfig?: AgentConfigFields;
       },
     ) => {
@@ -351,7 +350,6 @@ export function usePluginGraph({
         skillType: fields.skillType ?? "",
         allowedTools: fields.allowedTools ?? "",
         argumentHint: fields.argumentHint ?? "",
-        disableModelInvocation: String(fields.disableModelInvocation ?? false),
       };
       // agentConfig関連フィールド
       if (fields.agentConfig) {
@@ -407,7 +405,6 @@ export function usePluginGraph({
         : null,
       allowedTools: comp.skillConfig?.allowedTools ?? null,
       argumentHint: comp.skillConfig?.argumentHint ?? null,
-      disableModelInvocation: comp.skillConfig?.disableModelInvocation ?? false,
       orchestratorName: null,
       content: comp.skillConfig?.content ?? "",
       input: comp.skillConfig?.input ?? "",

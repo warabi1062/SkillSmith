@@ -56,7 +56,6 @@ model SkillConfig {
   description            String?
   skillType              SkillType
   argumentHint           String?
-  disableModelInvocation Boolean   @default(false)
   allowedTools           String?
   content                String    @default("")
   input                  String    @default("")

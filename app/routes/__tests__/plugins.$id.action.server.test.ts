@@ -233,7 +233,6 @@ describe("action", () => {
         output: "",
         allowedTools: "",
         argumentHint: "",
-        disableModelInvocation: false,
       });
     });
 
@@ -550,10 +549,10 @@ describe("action", () => {
   });
 
   // ============================
-  // update-component: allowedTools / argumentHint / disableModelInvocation
+  // update-component: allowedTools / argumentHint
   // ============================
   describe("update-component skill fields", () => {
-    it("passes allowedTools, argumentHint, disableModelInvocation to updateComponent", async () => {
+    it("passes allowedTools, argumentHint to updateComponent", async () => {
       mockGetComponent.mockResolvedValue({
         id: "comp-1",
         pluginId: PLUGIN_ID,
@@ -572,7 +571,6 @@ describe("action", () => {
             content: "",
             allowedTools: '["Read"]',
             argumentHint: "<file>",
-            disableModelInvocation: "true",
           }),
         ),
       );
@@ -588,7 +586,6 @@ describe("action", () => {
         output: "",
         allowedTools: '["Read"]',
         argumentHint: "<file>",
-        disableModelInvocation: true,
       });
     });
   });
@@ -631,7 +628,6 @@ describe("action", () => {
         output: "- result path",
         allowedTools: "",
         argumentHint: "",
-        disableModelInvocation: false,
       });
     });
   });

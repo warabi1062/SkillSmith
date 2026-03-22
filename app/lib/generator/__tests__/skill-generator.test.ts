@@ -7,7 +7,6 @@ function makeSkillComponent(overrides: {
   content?: string;
   skillType?: string;
   argumentHint?: string | null;
-  disableModelInvocation?: boolean;
   allowedTools?: string | null;
   input?: string;
   output?: string;
@@ -21,7 +20,6 @@ function makeSkillComponent(overrides: {
       description: overrides.description ?? null,
       skillType: overrides.skillType ?? "ENTRY_POINT",
       argumentHint: overrides.argumentHint ?? null,
-      disableModelInvocation: overrides.disableModelInvocation ?? false,
       allowedTools: overrides.allowedTools ?? null,
       content: overrides.content ?? "# Hello",
       input: overrides.input ?? "",
@@ -52,20 +50,6 @@ describe("generateSkillMd", () => {
       makeSkillComponent({ argumentHint: "<file>" }),
     );
     expect(file!.content).toContain("argument-hint:");
-  });
-
-  it("includes disable-model-invocation when true", () => {
-    const { file } = generateSkillMd(
-      makeSkillComponent({ disableModelInvocation: true }),
-    );
-    expect(file!.content).toContain("disable-model-invocation: true");
-  });
-
-  it("omits disable-model-invocation when false", () => {
-    const { file } = generateSkillMd(
-      makeSkillComponent({ disableModelInvocation: false }),
-    );
-    expect(file!.content).not.toContain("disable-model-invocation");
   });
 
   it("includes user-invocable: false for WORKER skillType", () => {

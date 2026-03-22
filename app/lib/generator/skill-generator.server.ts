@@ -14,7 +14,6 @@ interface SkillConfigData {
   description: string | null;
   skillType: string;
   argumentHint: string | null;
-  disableModelInvocation: boolean;
   allowedTools: string | null;
   content: string;
   input: string;
@@ -79,9 +78,6 @@ export function generateSkillMd(component: SkillComponentData): {
   }
   if (config.argumentHint) {
     frontmatterFields["argument-hint"] = config.argumentHint;
-  }
-  if (config.disableModelInvocation) {
-    frontmatterFields["disable-model-invocation"] = true;
   }
   // ENTRY_POINT以外のスキルはユーザーが直接呼び出さない
   if (config.skillType !== "ENTRY_POINT") {

@@ -21,7 +21,6 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     skillType: "WORKER",
     allowedTools: null,
     argumentHint: null,
-    disableModelInvocation: false,
     hasAgentConfig: false,
     agentConfig: null,
     orchestratorName: null,
@@ -166,7 +165,6 @@ describe("SidePanel", () => {
         skillType: "WORKER",
         allowedTools: "",
         argumentHint: "",
-        disableModelInvocation: false,
       });
     });
 
@@ -228,27 +226,7 @@ describe("SidePanel", () => {
       expect(screen.queryByLabelText("Argument Hint")).toBeNull();
     });
 
-    it("Disable Model Invocationチェックボックスが表示されること", () => {
-      renderPanel({
-        componentType: "SKILL",
-        skillType: "WORKER",
-        disableModelInvocation: true,
-      });
-      expect(screen.getByLabelText("Disable Model Invocation")).toBeTruthy();
-      expect((screen.getByLabelText("Disable Model Invocation") as HTMLInputElement).checked).toBe(true);
-    });
-
-    it("ORCHESTRATOR時もDisable Model Invocationが表示されること", () => {
-      renderPanel({
-        componentType: "ORCHESTRATOR",
-        skillType: "ENTRY_POINT",
-        disableModelInvocation: false,
-      });
-      expect(screen.getByLabelText("Disable Model Invocation")).toBeTruthy();
-      expect((screen.getByLabelText("Disable Model Invocation") as HTMLInputElement).checked).toBe(false);
-    });
-
-    it("保存時に各フィールドがonUpdateComponentに含まれること", () => {
+    it("保存時にallowedToolsがonUpdateComponentに含まれること", () => {
       const onUpdateComponent = vi.fn();
       renderPanel({
         nodeId: "comp-1",
@@ -257,7 +235,6 @@ describe("SidePanel", () => {
         description: "desc",
         skillType: "WORKER",
         allowedTools: '["Read"]',
-        disableModelInvocation: true,
         onUpdateComponent,
       });
 
@@ -266,7 +243,6 @@ describe("SidePanel", () => {
 
       const call = onUpdateComponent.mock.calls[0];
       expect(call[1].allowedTools).toBe('["Read"]');
-      expect(call[1].disableModelInvocation).toBe(true);
     });
   });
 
@@ -342,7 +318,6 @@ describe("SidePanel", () => {
         skillType: "WORKER",
         allowedTools: "",
         argumentHint: "",
-        disableModelInvocation: false,
       });
     });
 

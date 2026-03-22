@@ -18,7 +18,6 @@ export interface SidePanelProps {
   skillType: string | null;
   allowedTools: string | null;
   argumentHint: string | null;
-  disableModelInvocation: boolean;
   hasAgentConfig: boolean;
   agentConfig: AgentConfigFields | null;
   orchestratorName: string | null;
@@ -33,7 +32,6 @@ export interface SidePanelProps {
       skillType?: string;
       allowedTools?: string;
       argumentHint?: string;
-      disableModelInvocation?: boolean;
       agentConfig?: AgentConfigFields;
     },
   ) => void;
@@ -58,7 +56,6 @@ export default function SidePanel({
   skillType,
   allowedTools,
   argumentHint,
-  disableModelInvocation,
   hasAgentConfig,
   agentConfig,
   onUpdateComponent,
@@ -72,7 +69,6 @@ export default function SidePanel({
   const [editSkillType, setEditSkillType] = useState(skillType ?? "");
   const [editAllowedTools, setEditAllowedTools] = useState(allowedTools ?? "");
   const [editArgumentHint, setEditArgumentHint] = useState(argumentHint ?? "");
-  const [editDisableModelInvocation, setEditDisableModelInvocation] = useState(disableModelInvocation);
 
   // AgentConfig編集状態
   const [editAgentModel, setEditAgentModel] = useState(agentConfig?.model ?? "");
@@ -90,7 +86,6 @@ export default function SidePanel({
   const prevEditSkillTypeRef = useRef(editSkillType);
   const prevEditAllowedToolsRef = useRef(editAllowedTools);
   const prevEditArgumentHintRef = useRef(editArgumentHint);
-  const prevEditDisableModelInvocationRef = useRef(editDisableModelInvocation);
   const prevHasAgentConfigRef = useRef(hasAgentConfig);
   const prevEditAgentModelRef = useRef(editAgentModel);
   const prevEditAgentToolsRef = useRef(editAgentTools);
@@ -105,7 +100,6 @@ export default function SidePanel({
   useEffect(() => { prevEditSkillTypeRef.current = editSkillType; }, [editSkillType]);
   useEffect(() => { prevEditAllowedToolsRef.current = editAllowedTools; }, [editAllowedTools]);
   useEffect(() => { prevEditArgumentHintRef.current = editArgumentHint; }, [editArgumentHint]);
-  useEffect(() => { prevEditDisableModelInvocationRef.current = editDisableModelInvocation; }, [editDisableModelInvocation]);
   useEffect(() => { prevEditAgentModelRef.current = editAgentModel; }, [editAgentModel]);
   useEffect(() => { prevEditAgentToolsRef.current = editAgentTools; }, [editAgentTools]);
   useEffect(() => { prevEditAgentContentRef.current = editAgentContent; }, [editAgentContent]);
@@ -127,7 +121,6 @@ export default function SidePanel({
           skillType: prevEditSkillTypeRef.current || (prevSkillTypeRef.current ?? undefined),
           allowedTools: prevEditAllowedToolsRef.current,
           argumentHint: prevEditArgumentHintRef.current,
-          disableModelInvocation: prevEditDisableModelInvocationRef.current,
         };
         if (prevHasAgentConfigRef.current) {
           updateFields.agentConfig = {
@@ -151,11 +144,10 @@ export default function SidePanel({
     setEditSkillType(skillType ?? "");
     setEditAllowedTools(allowedTools ?? "");
     setEditArgumentHint(argumentHint ?? "");
-    setEditDisableModelInvocation(disableModelInvocation);
     setEditAgentModel(agentConfig?.model ?? "");
     setEditAgentTools(agentConfig?.tools ?? "");
     setEditAgentContent(agentConfig?.agentContent ?? "");
-  }, [nodeId, name, description, content, input, output, nodeType, skillType, allowedTools, argumentHint, disableModelInvocation, hasAgentConfig, agentConfig, onUpdateComponent]);
+  }, [nodeId, name, description, content, input, output, nodeType, skillType, allowedTools, argumentHint, hasAgentConfig, agentConfig, onUpdateComponent]);
 
   const handleSave = () => {
     // 空文字の名前は保存しない
@@ -169,7 +161,6 @@ export default function SidePanel({
       skillType: editSkillType || (skillType ?? undefined),
       allowedTools: editAllowedTools,
       argumentHint: editArgumentHint,
-      disableModelInvocation: editDisableModelInvocation,
     };
     if (hasAgentConfig) {
       updateFields.agentConfig = {
@@ -311,39 +302,16 @@ export default function SidePanel({
                   {opt.label}
                 </label>
               ))}
-              <label className="side-panel-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={editDisableModelInvocation}
-                  onChange={(e) => setEditDisableModelInvocation(e.target.checked)}
-                />
-                Disable Model Invocation
-              </label>
             </div>
           </div>
         )}
 
-        {/* ENTRY_POINTの場合はskillType読み取り専用表示 + オプション */}
+        {/* ENTRY_POINTの場合はskillType読み取り専用表示 */}
         {!showSkillTypeSelect && skillType && (
-          <>
-            <div className="form-group">
-              <label>Skill Type</label>
-              <div className="side-panel-readonly">{skillType}</div>
-            </div>
-            <div className="form-group">
-              <label>Options</label>
-              <div className="side-panel-checkboxes">
-                <label className="side-panel-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={editDisableModelInvocation}
-                    onChange={(e) => setEditDisableModelInvocation(e.target.checked)}
-                  />
-                  Disable Model Invocation
-                </label>
-              </div>
-            </div>
-          </>
+          <div className="form-group">
+            <label>Skill Type</label>
+            <div className="side-panel-readonly">{skillType}</div>
+          </div>
         )}
 
         {/* AgentConfig編集セクション（WORKER_WITH_SUB_AGENT + agentConfig有りのみ） */}
