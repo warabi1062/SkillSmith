@@ -16,10 +16,6 @@ interface AgentConfigData {
   permissionMode: string | null;
   hooks: string | null;
   memory: string | null;
-}
-
-interface ComponentFileData {
-  role: string;
   content: string;
 }
 
@@ -35,7 +31,6 @@ interface DependencyData {
 interface AgentComponentData {
   id: string;
   agentConfig: AgentConfigData;
-  files: ComponentFileData[];
   dependenciesFrom: DependencyData[];
 }
 
@@ -57,13 +52,12 @@ export function generateAgentMd(component: AgentComponentData): {
     });
   }
 
-  // Find MAIN file
-  const mainFile = component.files.find((f) => f.role === "MAIN");
-  if (!mainFile) {
+  // contentが空の場合はエラー
+  if (!config.content) {
     errors.push({
       severity: "error",
-      code: "MISSING_MAIN_FILE",
-      message: `Agent "${config.name}" has no MAIN file`,
+      code: "EMPTY_CONTENT",
+      message: `Agent "${config.name}" has no content`,
       componentId: component.id,
     });
     return { file: null, errors };
@@ -130,7 +124,7 @@ export function generateAgentMd(component: AgentComponentData): {
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
-  const content = `${frontmatter}\n\n${mainFile.content}\n`;
+  const content = `${frontmatter}\n\n${config.content}\n`;
 
   return {
     file: {

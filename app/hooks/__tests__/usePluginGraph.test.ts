@@ -80,6 +80,7 @@ const defaultSkillConfigFields = {
   agent: null,
   model: null,
   hooks: null,
+  content: "",
 };
 
 function createSkillConfig(
@@ -719,6 +720,7 @@ describe("usePluginGraph", () => {
           disallowedTools: null,
           permissionMode: null,
           memory: null,
+          content: "",
         },
       });
       const plugin = createPlugin({
@@ -898,6 +900,7 @@ describe("usePluginGraph", () => {
           disallowedTools: null,
           permissionMode: null,
           memory: null,
+          content: "",
         },
       });
       const plugin = createPlugin({ components: [skill, agent] });

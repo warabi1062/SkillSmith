@@ -1,21 +1,19 @@
-import { describe, expect, it, vi } from "vitest";
-import type { PrismaClient } from "../../../generated/prisma/client";
+import { describe, expect, it } from "vitest";
 import {
   validateComponentFileData,
-  validateMainRoleUniqueness,
 } from "../component-file.server";
 import { ValidationError } from "../agent-team.server";
 
 describe("validateComponentFileData", () => {
-  const validData = { role: "MAIN", filename: "SKILL.md", content: "" };
+  const validData = { role: "TEMPLATE", filename: "template.md", content: "" };
 
   // --- Success cases ---
 
-  it("accepts valid MAIN file", () => {
+  it("accepts valid TEMPLATE file", () => {
     expect(() => validateComponentFileData(validData)).not.toThrow();
   });
 
-  it("accepts valid TEMPLATE file", () => {
+  it("accepts valid TEMPLATE file with content", () => {
     expect(() =>
       validateComponentFileData({
         role: "TEMPLATE",
@@ -72,11 +70,25 @@ describe("validateComponentFileData", () => {
     }
   });
 
+  it("throws INVALID_ROLE for MAIN role (no longer valid)", () => {
+    try {
+      validateComponentFileData({
+        role: "MAIN",
+        filename: "SKILL.md",
+        content: "",
+      });
+      expect.unreachable("should have thrown");
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).code).toBe("INVALID_ROLE");
+    }
+  });
+
   // --- FILENAME_REQUIRED ---
 
   it("throws FILENAME_REQUIRED when filename is empty", () => {
     try {
-      validateComponentFileData({ role: "MAIN", filename: "", content: "" });
+      validateComponentFileData({ role: "TEMPLATE", filename: "", content: "" });
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -86,7 +98,7 @@ describe("validateComponentFileData", () => {
 
   it("throws FILENAME_REQUIRED when filename is whitespace only", () => {
     try {
-      validateComponentFileData({ role: "MAIN", filename: "   ", content: "" });
+      validateComponentFileData({ role: "TEMPLATE", filename: "   ", content: "" });
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -99,14 +111,14 @@ describe("validateComponentFileData", () => {
   it("accepts filename at exactly 255 characters", () => {
     const filename = "a".repeat(255);
     expect(() =>
-      validateComponentFileData({ role: "MAIN", filename, content: "" }),
+      validateComponentFileData({ role: "TEMPLATE", filename, content: "" }),
     ).not.toThrow();
   });
 
   it("throws FILENAME_TOO_LONG for filename at 256 characters", () => {
     const filename = "a".repeat(256);
     try {
-      validateComponentFileData({ role: "MAIN", filename, content: "" });
+      validateComponentFileData({ role: "TEMPLATE", filename, content: "" });
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -119,7 +131,7 @@ describe("validateComponentFileData", () => {
   it("throws FILENAME_NULL_BYTE for filename with null byte", () => {
     try {
       validateComponentFileData({
-        role: "MAIN",
+        role: "TEMPLATE",
         filename: "file\0.md",
         content: "",
       });
@@ -135,7 +147,7 @@ describe("validateComponentFileData", () => {
   it("throws FILENAME_ABSOLUTE_PATH for absolute path", () => {
     try {
       validateComponentFileData({
-        role: "MAIN",
+        role: "TEMPLATE",
         filename: "/etc/passwd",
         content: "",
       });
@@ -151,7 +163,7 @@ describe("validateComponentFileData", () => {
   it("throws FILENAME_PATH_TRAVERSAL for path traversal", () => {
     try {
       validateComponentFileData({
-        role: "MAIN",
+        role: "TEMPLATE",
         filename: "../etc/passwd",
         content: "",
       });
@@ -160,92 +172,5 @@ describe("validateComponentFileData", () => {
       expect(e).toBeInstanceOf(ValidationError);
       expect((e as ValidationError).code).toBe("FILENAME_PATH_TRAVERSAL");
     }
-  });
-});
-
-describe("validateMainRoleUniqueness", () => {
-  function createMockPrisma() {
-    return {
-      componentFile: {
-        findFirst: vi.fn(),
-      },
-    };
-  }
-
-  // --- Skips non-MAIN roles ---
-
-  it("skips validation when role is not MAIN", async () => {
-    const mockPrisma = createMockPrisma();
-
-    await expect(
-      validateMainRoleUniqueness(
-        mockPrisma as unknown as PrismaClient,
-        "comp-1",
-        "TEMPLATE",
-      ),
-    ).resolves.toBeUndefined();
-
-    expect(mockPrisma.componentFile.findFirst).not.toHaveBeenCalled();
-  });
-
-  // --- Success: no existing MAIN ---
-
-  it("succeeds when no MAIN file exists", async () => {
-    const mockPrisma = createMockPrisma();
-    mockPrisma.componentFile.findFirst.mockResolvedValue(null);
-
-    await expect(
-      validateMainRoleUniqueness(
-        mockPrisma as unknown as PrismaClient,
-        "comp-1",
-        "MAIN",
-      ),
-    ).resolves.toBeUndefined();
-  });
-
-  // --- Error: MAIN already exists ---
-
-  it("throws MAIN_ROLE_ALREADY_EXISTS when MAIN file already exists", async () => {
-    const mockPrisma = createMockPrisma();
-    mockPrisma.componentFile.findFirst.mockResolvedValue({
-      id: "file-1",
-      role: "MAIN",
-    });
-
-    try {
-      await validateMainRoleUniqueness(
-        mockPrisma as unknown as PrismaClient,
-        "comp-1",
-        "MAIN",
-      );
-      expect.unreachable("should have thrown");
-    } catch (e) {
-      expect(e).toBeInstanceOf(ValidationError);
-      expect((e as ValidationError).code).toBe("MAIN_ROLE_ALREADY_EXISTS");
-    }
-  });
-
-  // --- excludeFileId ---
-
-  it("succeeds when existing MAIN file is excluded by excludeFileId", async () => {
-    const mockPrisma = createMockPrisma();
-    mockPrisma.componentFile.findFirst.mockResolvedValue(null);
-
-    await expect(
-      validateMainRoleUniqueness(
-        mockPrisma as unknown as PrismaClient,
-        "comp-1",
-        "MAIN",
-        "file-1",
-      ),
-    ).resolves.toBeUndefined();
-
-    expect(mockPrisma.componentFile.findFirst).toHaveBeenCalledWith({
-      where: {
-        componentId: "comp-1",
-        role: "MAIN",
-        id: { not: "file-1" },
-      },
-    });
   });
 });

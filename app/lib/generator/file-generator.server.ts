@@ -9,12 +9,11 @@ interface ComponentFileData {
 }
 
 /**
- * Generate support files (template.md, reference.md, etc.) for a component.
- * MAIN files are handled by skill/agent generators, so they are excluded here.
+ * コンポーネントのサポートファイル（template.md, reference.md等）を生成する。
  *
- * @param componentDir - The directory path for this component (e.g., "skills/my-skill")
- * @param files - All ComponentFile records for the component
- * @param componentId - The component ID for traceability
+ * @param componentDir - コンポーネントのディレクトリパス（例: "skills/my-skill"）
+ * @param files - コンポーネントの全ComponentFileレコード
+ * @param componentId - トレーサビリティ用コンポーネントID
  */
 export function generateSupportFiles(
   componentDir: string,
@@ -22,7 +21,6 @@ export function generateSupportFiles(
   componentId: string,
 ): GeneratedFile[] {
   return files
-    .filter((f) => f.role !== "MAIN")
     .filter((f) => isSafeFilename(f.filename))
     .map((f) => ({
       path: `${componentDir}/${f.filename}`,

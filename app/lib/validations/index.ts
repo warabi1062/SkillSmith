@@ -9,10 +9,7 @@ export { validatePluginData } from "./plugin.server";
 
 export { validateComponentData } from "./component.server";
 
-export {
-  validateComponentFileData,
-  validateMainRoleUniqueness,
-} from "./component-file.server";
+export { validateComponentFileData } from "./component-file.server";
 
 export { validateOutputSchemaFieldData } from "./output-schema-field.server";
 

@@ -4,7 +4,7 @@ import { generateSkillMd } from "../skill-generator.server";
 function makeSkillComponent(overrides: {
   name?: string;
   description?: string | null;
-  files?: { role: string; content: string }[];
+  content?: string;
   argumentHint?: string | null;
   disableModelInvocation?: boolean;
   userInvocable?: boolean;
@@ -29,8 +29,8 @@ function makeSkillComponent(overrides: {
       agent: overrides.agent ?? null,
       model: overrides.model ?? null,
       hooks: overrides.hooks ?? null,
+      content: overrides.content ?? "# Hello",
     },
-    files: overrides.files ?? [{ role: "MAIN", content: "# Hello" }],
   };
 }
 
@@ -104,12 +104,12 @@ describe("generateSkillMd", () => {
     expect(errors[0].code).toBe("INVALID_SKILL_NAME");
   });
 
-  it("returns error when MAIN file is missing", () => {
+  it("returns error when content is empty", () => {
     const { file, errors } = generateSkillMd(
-      makeSkillComponent({ files: [] }),
+      makeSkillComponent({ content: "" }),
     );
     expect(file).toBeNull();
-    expect(errors.some((e) => e.code === "MISSING_MAIN_FILE")).toBe(true);
+    expect(errors.some((e) => e.code === "EMPTY_CONTENT")).toBe(true);
   });
 
   it("returns warning when hooks field is set", () => {

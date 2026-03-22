@@ -144,11 +144,8 @@ function generateSkillComponent(
       agent: config.agent,
       model: config.model,
       hooks: config.hooks,
+      content: config.content,
     },
-    files: component.files.map((f) => ({
-      role: f.role,
-      content: f.content,
-    })),
   });
 
   errors.push(...result.errors);
@@ -185,11 +182,8 @@ function generateAgentComponent(
       permissionMode: config.permissionMode,
       hooks: config.hooks,
       memory: config.memory,
+      content: config.content,
     },
-    files: component.files.map((f) => ({
-      role: f.role,
-      content: f.content,
-    })),
     dependenciesFrom: component.dependenciesFrom.map((dep) => ({
       target: {
         skillConfig: dep.target.skillConfig

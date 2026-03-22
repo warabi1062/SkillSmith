@@ -426,14 +426,14 @@ describe("plugins.server", () => {
       });
 
       const file = await createComponentFile(component.id, {
-        role: "MAIN",
-        filename: "SKILL.md",
+        role: "TEMPLATE",
+        filename: "template.md",
         content: "# Content",
       });
 
       expect(file.id).toBeDefined();
-      expect(file.filename).toBe("SKILL.md");
-      expect(file.role).toBe("MAIN");
+      expect(file.filename).toBe("template.md");
+      expect(file.role).toBe("TEMPLATE");
     });
 
     it("createComponentFile: throws DUPLICATE_FILENAME on duplicate", async () => {
@@ -445,15 +445,15 @@ describe("plugins.server", () => {
       });
 
       await createComponentFile(component.id, {
-        role: "MAIN",
-        filename: "SKILL.md",
+        role: "TEMPLATE",
+        filename: "template.md",
         content: "# A",
       });
 
       await expect(
         createComponentFile(component.id, {
-          role: "TEMPLATE",
-          filename: "SKILL.md",
+          role: "REFERENCE",
+          filename: "template.md",
           content: "# B",
         }),
       ).rejects.toThrow(ValidationError);

@@ -18,7 +18,6 @@ enum SkillType {
 }
 
 enum ComponentFileRole {
-  MAIN
   TEMPLATE
   REFERENCE
   EXAMPLE
@@ -74,6 +73,7 @@ model SkillConfig {
   agent                  String?
   model                  String?
   hooks                  String?
+  content                String    @default("")
 
   component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
 }
@@ -89,6 +89,7 @@ model AgentConfig {
   permissionMode  String?
   hooks           String?
   memory          String?
+  content         String  @default("")
 
   component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
 }
