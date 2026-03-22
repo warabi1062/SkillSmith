@@ -411,6 +411,7 @@ export default function DependencyGraph({
         onNodeContextMenu={handleNodeContextMenu}
         onPaneClick={handlePaneClick}
         isValidConnection={isValidConnection}
+        connectionRadius={80}
         fitView
       >
         <Background />
