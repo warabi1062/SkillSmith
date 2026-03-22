@@ -120,6 +120,7 @@ export function usePluginGraph({
   // サイドパネル用のfetcher
   const updateComponentFetcher = useFetcher();
   const updateAgentTeamFetcher = useFetcher();
+  const agentConfigFetcher = useFetcher();
 
   // deleteFetcherのエラーメッセージを監視
   useEffect(() => {
@@ -457,6 +458,28 @@ export function usePluginGraph({
     [updateAgentTeamFetcher, plugin.id],
   );
 
+  // サイドパネル: AgentConfig追加
+  const handleAddAgentConfig = useCallback(
+    (componentId: string) => {
+      agentConfigFetcher.submit(
+        { intent: "add-agent-config", componentId },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [agentConfigFetcher, plugin.id],
+  );
+
+  // サイドパネル: AgentConfig削除
+  const handleRemoveAgentConfig = useCallback(
+    (componentId: string) => {
+      agentConfigFetcher.submit(
+        { intent: "remove-agent-config", componentId },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [agentConfigFetcher, plugin.id],
+  );
+
   // サイドパネル: 選択ノードのデータを算出
   const selectedNodeData = useMemo(() => {
     if (!selectedNodeId || !selectedNodeType) return null;
@@ -640,5 +663,7 @@ export function usePluginGraph({
     handleSidePanelClose,
     handleUpdateComponent,
     handleUpdateAgentTeam,
+    handleAddAgentConfig,
+    handleRemoveAgentConfig,
   };
 }

@@ -6,6 +6,8 @@ import {
   createComponent,
   updateComponent,
   deleteComponent,
+  addAgentConfig,
+  removeAgentConfig,
   getAgentTeam,
   createAgentTeam,
   updateAgentTeam,
@@ -174,6 +176,40 @@ export async function action({ request, params }: Route.ActionArgs) {
     } catch (error) {
       if (error instanceof ValidationError) {
         return data({ error: error.message }, { status: 409 });
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "add-agent-config") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+    try {
+      await addAgentConfig(componentId);
+      return { success: true, componentId };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data({ error: error.message }, { status: 400 });
+      }
+      throw error;
+    }
+  }
+
+  if (intent === "remove-agent-config") {
+    const componentId = String(formData.get("componentId") ?? "");
+    const component = await getComponent(componentId);
+    if (!component || component.pluginId !== params.id) {
+      throw data("Component not found", { status: 404 });
+    }
+    try {
+      await removeAgentConfig(componentId);
+      return { success: true, componentId };
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        return data({ error: error.message }, { status: 400 });
       }
       throw error;
     }

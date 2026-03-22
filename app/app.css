@@ -795,3 +795,20 @@ h3 {
   font-size: 0.875rem;
   color: #6b7280;
 }
+
+.side-panel-agent-config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.side-panel-agent-config-header h4 {
+  margin: 0;
+}
+
+.side-panel-agent-config-section {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}

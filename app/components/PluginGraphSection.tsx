@@ -78,6 +78,8 @@ export default function PluginGraphSection({
     handleSidePanelClose,
     handleUpdateComponent,
     handleUpdateAgentTeam,
+    handleAddAgentConfig,
+    handleRemoveAgentConfig,
   } = usePluginGraph({
     plugin,
     modalState,
@@ -159,6 +161,8 @@ export default function PluginGraphSection({
           orchestratorName={selectedNodeData.orchestratorName}
           onUpdateComponent={handleUpdateComponent}
           onUpdateAgentTeam={handleUpdateAgentTeam}
+          onAddAgentConfig={handleAddAgentConfig}
+          onRemoveAgentConfig={handleRemoveAgentConfig}
           onClose={handleSidePanelClose}
         />
       )}

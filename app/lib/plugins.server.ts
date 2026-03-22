@@ -141,7 +141,7 @@ export async function createComponent(
           name: data.name.trim(),
           skillType: data.skillType!,
           description: data.description?.trim() || null,
-          // WORKER Skill作成時にagentConfigも同時作成
+          // WORKER Skill作成時にagentConfigをデフォルトで同時作成
           ...(data.skillType === "WORKER"
             ? {
                 agentConfig: {
@@ -267,6 +267,56 @@ export async function deleteComponent(id: string) {
   });
 
   return deleted;
+}
+
+// AgentConfig の追加・削除
+
+export async function addAgentConfig(componentId: string) {
+  const component = await prisma.component.findUnique({
+    where: { id: componentId },
+    include: { skillConfig: { include: { agentConfig: true } } },
+  });
+  if (!component?.skillConfig) {
+    throw new ValidationError({
+      field: "componentId",
+      code: "SKILL_CONFIG_NOT_FOUND",
+      message: "SkillConfig not found",
+    });
+  }
+  if (component.skillConfig.skillType !== "WORKER") {
+    throw new ValidationError({
+      field: "skillType",
+      code: "NOT_WORKER_SKILL",
+      message: "AgentConfig can only be added to WORKER skills",
+    });
+  }
+  if (component.skillConfig.agentConfig) {
+    throw new ValidationError({
+      field: "agentConfig",
+      code: "ALREADY_EXISTS",
+      message: "AgentConfig already exists",
+    });
+  }
+  return prisma.agentConfig.create({
+    data: { skillConfigId: component.skillConfig.id },
+  });
+}
+
+export async function removeAgentConfig(componentId: string) {
+  const component = await prisma.component.findUnique({
+    where: { id: componentId },
+    include: { skillConfig: { include: { agentConfig: true } } },
+  });
+  if (!component?.skillConfig?.agentConfig) {
+    throw new ValidationError({
+      field: "agentConfig",
+      code: "NOT_FOUND",
+      message: "AgentConfig not found",
+    });
+  }
+  return prisma.agentConfig.delete({
+    where: { id: component.skillConfig.agentConfig.id },
+  });
 }
 
 // AgentTeam CRUD

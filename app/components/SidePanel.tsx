@@ -39,6 +39,8 @@ export interface SidePanelProps {
     teamId: string,
     fields: { name: string; description: string },
   ) => void;
+  onAddAgentConfig?: (componentId: string) => void;
+  onRemoveAgentConfig?: (componentId: string) => void;
   onClose: () => void;
 }
 
@@ -57,6 +59,8 @@ export default function SidePanel({
   orchestratorName,
   onUpdateComponent,
   onUpdateAgentTeam,
+  onAddAgentConfig,
+  onRemoveAgentConfig,
   onClose,
 }: SidePanelProps) {
   const [editName, setEditName] = useState(name);
@@ -212,6 +216,10 @@ export default function SidePanel({
   const showAgentConfigSection =
     componentType === "SKILL" && skillType === "WORKER" && hasAgentConfig;
 
+  // WORKER Skill でagentConfigがない場合に追加ボタンを表示
+  const showAddAgentConfigButton =
+    componentType === "SKILL" && skillType === "WORKER" && !hasAgentConfig;
+
   return (
     <div className="side-panel">
       <div className="side-panel-header">
@@ -299,10 +307,36 @@ export default function SidePanel({
           </div>
         )}
 
+        {/* WORKER Skill でagentConfigがない場合の追加ボタン */}
+        {showAddAgentConfigButton && (
+          <div className="form-group">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => onAddAgentConfig?.(nodeId)}
+            >
+              + Add Agent Config
+            </button>
+          </div>
+        )}
+
         {/* AgentConfig編集セクション（WORKER Skill + agentConfig有りのみ） */}
         {showAgentConfigSection && (
           <div className="side-panel-agent-config-section">
-            <h4>Agent Config</h4>
+            <div className="side-panel-agent-config-header">
+              <h4>Agent Config</h4>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm btn-danger"
+                onClick={() => {
+                  if (window.confirm("Remove Agent Config?")) {
+                    onRemoveAgentConfig?.(nodeId);
+                  }
+                }}
+              >
+                Remove
+              </button>
+            </div>
 
             <div className="form-group">
               <label htmlFor="side-panel-agent-model">Model</label>
