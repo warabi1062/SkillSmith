@@ -43,7 +43,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
       <PluginActionsSection plugin={plugin} />
 
       <PluginGraphSection
@@ -53,12 +53,6 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         membersModalState={membersModalState}
         onMembersModalStateChange={setMembersModalState}
       />
-
-      <div style={{ marginTop: "2rem" }}>
-        <Link to="/plugins" className="btn btn-secondary">
-          Back to Plugins
-        </Link>
-      </div>
     </div>
   );
 }
