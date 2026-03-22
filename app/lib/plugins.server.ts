@@ -167,6 +167,7 @@ export async function updateComponent(
     name: string;
     description?: string | null;
     skillType?: "ENTRY_POINT" | "WORKER";
+    content?: string;
   },
 ) {
   return prisma.component.update({
@@ -179,6 +180,7 @@ export async function updateComponent(
                 name: data.name.trim(),
                 skillType: data.skillType!,
                 description: data.description?.trim() || null,
+                ...(data.content !== undefined ? { content: data.content } : {}),
               },
             },
           }
@@ -187,6 +189,7 @@ export async function updateComponent(
               update: {
                 name: data.name.trim(),
                 description: data.description?.trim() ?? "",
+                ...(data.content !== undefined ? { content: data.content } : {}),
               },
             },
           }),
@@ -363,7 +366,6 @@ export async function createComponentFile(
   data: { role: string; filename: string; content: string },
 ) {
   validateComponentFileData(data);
-  await validateMainRoleUniqueness(prisma, componentId, data.role);
 
   const existingCount = await prisma.componentFile.count({
     where: { componentId },
@@ -373,7 +375,7 @@ export async function createComponentFile(
     return await prisma.componentFile.create({
       data: {
         componentId,
-        role: data.role as "MAIN" | "TEMPLATE" | "REFERENCE" | "EXAMPLE" | "OUTPUT_SCHEMA",
+        role: data.role as "TEMPLATE" | "REFERENCE" | "EXAMPLE" | "OUTPUT_SCHEMA",
         filename: data.filename.trim(),
         content: data.content,
         sortOrder: existingCount,
