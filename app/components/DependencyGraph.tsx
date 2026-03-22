@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   useNodesState,
+  useReactFlow,
   type Node,
   type Edge,
   type Connection,
@@ -89,6 +90,7 @@ export default function DependencyGraph({
   resetKey,
 }: DependencyGraphProps) {
   const [flowNodes, setFlowNodes, onNodesChange] = useNodesState(nodes);
+  const { fitView } = useReactFlow();
 
   // 同期的な読み取り（例: アニメーション開始時）のために最新のflowNodesをrefで保持
   const flowNodesRef = useRef(flowNodes);
@@ -341,14 +343,22 @@ export default function DependencyGraph({
         : node.id;
       const nodeType = isAgentTeam ? "agentTeam" : "component";
       onNodeClick?.(nodeId, nodeType);
+      // サイドパネル開閉アニメーション完了後にfitViewを再計算
+      setTimeout(() => {
+        fitView();
+      }, 200);
     },
-    [onNodeClick],
+    [onNodeClick, fitView],
   );
 
   const handlePaneClick = useCallback(() => {
     setContextMenu((prev) => ({ ...prev, visible: false }));
     onPaneClickCallback?.();
-  }, [onPaneClickCallback]);
+    // サイドパネル閉じた後にfitViewを再計算
+    setTimeout(() => {
+      fitView();
+    }, 200);
+  }, [onPaneClickCallback, fitView]);
 
   // ドキュメント外クリックまたはEscapeキーでコンテキストメニューを閉じる
   useEffect(() => {

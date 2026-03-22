@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export interface SidePanelProps {
   nodeId: string;
@@ -34,13 +34,54 @@ export default function SidePanel({
   const [editName, setEditName] = useState(name);
   const [editDescription, setEditDescription] = useState(description ?? "");
 
-  // propsが変わったら（別ノード選択時）フォーム値をリセット
+  // 前回のノードID・編集値・種別情報をrefで保持（ノード切り替え時の自動保存用）
+  const prevNodeIdRef = useRef(nodeId);
+  const prevEditNameRef = useRef(editName);
+  const prevEditDescriptionRef = useRef(editDescription);
+  const prevNodeTypeRef = useRef(nodeType);
+  const prevSkillTypeRef = useRef(skillType);
+
+  // editName/editDescriptionの変更をrefに反映
   useEffect(() => {
+    prevEditNameRef.current = editName;
+  }, [editName]);
+  useEffect(() => {
+    prevEditDescriptionRef.current = editDescription;
+  }, [editDescription]);
+
+  // propsが変わったら（別ノード選択時）フォーム値をリセット
+  // ノード切り替え時は前の編集値を自動保存してからリセット
+  useEffect(() => {
+    if (prevNodeIdRef.current !== nodeId) {
+      // 前のノードの編集値が変更されていれば自動保存
+      const prevName = prevEditNameRef.current;
+      const prevDesc = prevEditDescriptionRef.current;
+      if (prevName.trim() !== "") {
+        if (prevNodeTypeRef.current === "agentTeam") {
+          onUpdateAgentTeam(prevNodeIdRef.current, {
+            name: prevName,
+            description: prevDesc,
+          });
+        } else {
+          onUpdateComponent(prevNodeIdRef.current, {
+            name: prevName,
+            description: prevDesc,
+            skillType: prevSkillTypeRef.current ?? undefined,
+          });
+        }
+      }
+      // refを新しいノードの情報に更新
+      prevNodeIdRef.current = nodeId;
+      prevNodeTypeRef.current = nodeType;
+      prevSkillTypeRef.current = skillType;
+    }
     setEditName(name);
     setEditDescription(description ?? "");
-  }, [nodeId, name, description]);
+  }, [nodeId, name, description, nodeType, skillType, onUpdateComponent, onUpdateAgentTeam]);
 
   const handleSave = () => {
+    // 空文字の名前は保存しない
+    if (editName.trim() === "") return;
     if (nodeType === "agentTeam") {
       onUpdateAgentTeam(nodeId, {
         name: editName,

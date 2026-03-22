@@ -198,4 +198,144 @@ describe("SidePanel", () => {
       expect(screen.getByDisplayValue("other desc")).toBeTruthy();
     });
   });
+
+  describe("ノード切り替え時の自動保存", () => {
+    it("ノードを切り替えたときに前のノードの編集値が自動保存される", () => {
+      const onUpdateComponent = vi.fn();
+      const { rerender, props } = renderPanel({
+        nodeId: "comp-1",
+        nodeType: "component",
+        componentType: "SKILL",
+        name: "original",
+        description: "original desc",
+        skillType: "WORKER",
+        onUpdateComponent,
+      });
+
+      // 名前を変更（未保存）
+      const nameInput = screen.getByDisplayValue("original");
+      fireEvent.change(nameInput, { target: { value: "edited-name" } });
+
+      // 別ノードに切り替え
+      rerender(
+        <SidePanel
+          {...props}
+          nodeId="comp-2"
+          name="other-node"
+          description="other desc"
+        />,
+      );
+
+      // 前のノードの値で自動保存が呼ばれる
+      expect(onUpdateComponent).toHaveBeenCalledWith("comp-1", {
+        name: "edited-name",
+        description: "original desc",
+        skillType: "WORKER",
+      });
+    });
+
+    it("agentTeamノードの切り替え時にonUpdateAgentTeamが呼ばれる", () => {
+      const onUpdateAgentTeam = vi.fn();
+      const { rerender, props } = renderPanel({
+        nodeId: "team-1",
+        nodeType: "agentTeam",
+        componentType: "AGENT_TEAM",
+        name: "team-name",
+        description: "team desc",
+        onUpdateAgentTeam,
+      });
+
+      // 名前を変更（未保存）
+      const nameInput = screen.getByDisplayValue("team-name");
+      fireEvent.change(nameInput, { target: { value: "edited-team" } });
+
+      // 別ノードに切り替え
+      rerender(
+        <SidePanel
+          {...props}
+          nodeId="team-2"
+          name="other-team"
+          description="other desc"
+        />,
+      );
+
+      expect(onUpdateAgentTeam).toHaveBeenCalledWith("team-1", {
+        name: "edited-team",
+        description: "team desc",
+      });
+    });
+
+    it("前のノードの名前が空文字の場合は自動保存しない", () => {
+      const onUpdateComponent = vi.fn();
+      const { rerender, props } = renderPanel({
+        nodeId: "comp-1",
+        nodeType: "component",
+        componentType: "SKILL",
+        name: "original",
+        description: "desc",
+        onUpdateComponent,
+      });
+
+      // 名前を空にする
+      const nameInput = screen.getByDisplayValue("original");
+      fireEvent.change(nameInput, { target: { value: "   " } });
+
+      // 別ノードに切り替え
+      rerender(
+        <SidePanel
+          {...props}
+          nodeId="comp-2"
+          name="other-node"
+          description="other desc"
+        />,
+      );
+
+      // 空文字名なので自動保存されない
+      expect(onUpdateComponent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("空文字バリデーション", () => {
+    it("名前が空文字の場合は保存を実行しない", () => {
+      const onUpdateComponent = vi.fn();
+      renderPanel({
+        nodeId: "comp-1",
+        nodeType: "component",
+        componentType: "SKILL",
+        name: "my-skill",
+        onUpdateComponent,
+      });
+
+      // 名前を空にする
+      const nameInput = screen.getByDisplayValue("my-skill");
+      fireEvent.change(nameInput, { target: { value: "" } });
+
+      // 保存ボタンをクリック
+      const saveButton = screen.getByRole("button", { name: "Save" });
+      fireEvent.click(saveButton);
+
+      // 保存が呼ばれない
+      expect(onUpdateComponent).not.toHaveBeenCalled();
+    });
+
+    it("名前が空白のみの場合も保存を実行しない", () => {
+      const onUpdateComponent = vi.fn();
+      renderPanel({
+        nodeId: "comp-1",
+        nodeType: "component",
+        componentType: "SKILL",
+        name: "my-skill",
+        onUpdateComponent,
+      });
+
+      // 名前を空白のみにする
+      const nameInput = screen.getByDisplayValue("my-skill");
+      fireEvent.change(nameInput, { target: { value: "   " } });
+
+      const saveButton = screen.getByRole("button", { name: "Save" });
+      fireEvent.click(saveButton);
+
+      expect(onUpdateComponent).not.toHaveBeenCalled();
+    });
+  });
 });
