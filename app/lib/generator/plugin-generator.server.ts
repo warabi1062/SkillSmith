@@ -145,6 +145,8 @@ function generateSkillComponent(
       model: config.model,
       hooks: config.hooks,
       content: config.content,
+      input: config.input,
+      output: config.output,
     },
   });
 
@@ -183,6 +185,8 @@ function generateAgentComponent(
       hooks: config.hooks,
       memory: config.memory,
       content: config.content,
+      input: config.input,
+      output: config.output,
     },
     dependenciesFrom: component.dependenciesFrom.map((dep) => ({
       target: {

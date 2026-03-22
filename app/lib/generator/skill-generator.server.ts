@@ -22,6 +22,8 @@ interface SkillConfigData {
   model: string | null;
   hooks: string | null;
   content: string;
+  input: string;
+  output: string;
 }
 
 interface SkillComponentData {
@@ -106,6 +108,12 @@ export function generateSkillMd(component: SkillComponentData): {
   }
   if (config.model) {
     frontmatterFields.model = config.model;
+  }
+  if (config.input) {
+    frontmatterFields.input = config.input;
+  }
+  if (config.output) {
+    frontmatterFields.output = config.output;
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);

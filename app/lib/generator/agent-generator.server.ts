@@ -17,6 +17,8 @@ interface AgentConfigData {
   hooks: string | null;
   memory: string | null;
   content: string;
+  input: string;
+  output: string;
 }
 
 interface DependencyTarget {
@@ -121,6 +123,12 @@ export function generateAgentMd(component: AgentComponentData): {
   }
   if (config.memory) {
     frontmatterFields.memory = config.memory;
+  }
+  if (config.input) {
+    frontmatterFields.input = config.input;
+  }
+  if (config.output) {
+    frontmatterFields.output = config.output;
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
