@@ -19,13 +19,14 @@ async function fetchPluginData(pluginId: string) {
     include: {
       components: {
         include: {
-          skillConfig: true,
-          agentConfig: true,
+          skillConfig: {
+            include: { agentConfig: true },
+          },
           files: { orderBy: { sortOrder: "asc" } },
           dependenciesFrom: {
             include: {
               target: {
-                include: { skillConfig: true, agentConfig: true },
+                include: { skillConfig: true },
               },
             },
             orderBy: { order: "asc" },
@@ -67,12 +68,10 @@ export async function generatePlugin(
     files.push(pluginJson.file);
   }
 
-  // Generate component files
+  // Generate component files (SKILL only - AGENT型は廃止)
   for (const component of plugin.components) {
     if (component.type === "SKILL" && component.skillConfig) {
       generateSkillComponent(component, files, validationErrors);
-    } else if (component.type === "AGENT" && component.agentConfig) {
-      generateAgentComponent(component, files, validationErrors);
     }
   }
 
@@ -95,28 +94,22 @@ function toValidatorComponentData(
 ): ValidatorComponentData {
   return {
     id: component.id,
-    type: component.type as "SKILL" | "AGENT",
+    type: "SKILL",
     skillConfig: component.skillConfig
       ? {
           name: component.skillConfig.name,
           skillType: component.skillConfig.skillType,
         }
       : null,
-    agentConfig: component.agentConfig
-      ? { name: component.agentConfig.name }
-      : null,
     dependenciesFrom: component.dependenciesFrom.map((dep) => ({
       target: {
         id: dep.target.id,
-        type: dep.target.type as "SKILL" | "AGENT",
+        type: "SKILL" as const,
         skillConfig: dep.target.skillConfig
           ? {
               name: dep.target.skillConfig.name,
               skillType: dep.target.skillConfig.skillType,
             }
-          : null,
-        agentConfig: dep.target.agentConfig
-          ? { name: dep.target.agentConfig.name }
           : null,
       },
     })),
@@ -141,9 +134,6 @@ function generateSkillComponent(
       userInvocable: config.userInvocable,
       allowedTools: config.allowedTools,
       context: config.context,
-      agent: config.agent,
-      model: config.model,
-      hooks: config.hooks,
       content: config.content,
       input: config.input,
       output: config.output,
@@ -163,45 +153,33 @@ function generateSkillComponent(
     );
     files.push(...supportFiles);
   }
-}
 
-function generateAgentComponent(
-  component: ComponentWithRelations,
-  files: GeneratedFile[],
-  errors: GenerationValidationError[],
-): void {
-  const config = component.agentConfig!;
-  const result = generateAgentMd({
-    id: component.id,
-    agentConfig: {
-      id: config.id,
-      componentId: config.componentId,
-      name: config.name,
-      description: config.description,
-      model: config.model,
-      tools: config.tools,
-      disallowedTools: config.disallowedTools,
-      permissionMode: config.permissionMode,
-      hooks: config.hooks,
-      memory: config.memory,
-      content: config.content,
-      input: config.input,
-      output: config.output,
-    },
-    dependenciesFrom: component.dependenciesFrom.map((dep) => ({
-      target: {
-        skillConfig: dep.target.skillConfig
-          ? { name: dep.target.skillConfig.name }
-          : null,
+  // WORKER Skill + agentConfig の場合はagent.mdも生成
+  if (config.agentConfig) {
+    const agentResult = generateAgentMd({
+      id: component.id,
+      agentConfig: {
+        id: config.agentConfig.id,
+        skillConfigId: config.agentConfig.skillConfigId,
+        model: config.agentConfig.model,
+        tools: config.agentConfig.tools,
+        disallowedTools: config.agentConfig.disallowedTools,
+        permissionMode: config.agentConfig.permissionMode,
+        hooks: config.agentConfig.hooks,
+        memory: config.agentConfig.memory,
+        content: config.agentConfig.content,
       },
-      order: dep.order,
-    })),
-  });
+      skillConfig: {
+        name: config.name,
+        description: config.description,
+        input: config.input,
+        output: config.output,
+      },
+    });
 
-  errors.push(...result.errors);
-  if (result.file) {
-    files.push(result.file);
+    errors.push(...agentResult.errors);
+    if (agentResult.file) {
+      files.push(agentResult.file);
+    }
   }
-
-  // Agents don't have support files in their directory (single-file convention)
 }
