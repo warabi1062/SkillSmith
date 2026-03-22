@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Handle, Position, useReactFlow } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
-import { useFetcher } from "react-router";
-import InlineEditableField from "./InlineEditableField";
 
 interface Step {
   order: number;
@@ -22,7 +20,6 @@ interface OrchestratorNodeData {
 }
 
 export default function OrchestratorNode({
-  id,
   data,
 }: NodeProps & { data: OrchestratorNodeData }) {
   const {
@@ -31,13 +28,7 @@ export default function OrchestratorNode({
     steps = [],
     onReorderStep,
     onDeleteStep,
-    componentId,
-    pluginId,
-    skillType,
   } = data as OrchestratorNodeData;
-  const fetcher = useFetcher();
-  const isSaving = fetcher.state !== "idle";
-  const { setNodes } = useReactFlow();
 
   // localStepsはサーバー永続化済みステップとクライアント専用の空ステップスロットの両方を管理する。
   // 空ステップ（依存関係のないもの）はサーバーリロード時に意図的に失われる。
@@ -66,74 +57,15 @@ export default function OrchestratorNode({
     setLocalSteps((prev) => prev.filter((s) => s.order !== order));
   }, []);
 
-  const handleEditStart = useCallback(() => {
-    setNodes((nodes) =>
-      nodes.map((n) => (n.id === id ? { ...n, draggable: false } : n)),
-    );
-  }, [id, setNodes]);
-
-  const handleEditEnd = useCallback(() => {
-    setNodes((nodes) =>
-      nodes.map((n) => (n.id === id ? { ...n, draggable: true } : n)),
-    );
-  }, [id, setNodes]);
-
-  const handleSaveName = useCallback(
-    (name: string) => {
-      fetcher.submit(
-        {
-          intent: "update-component",
-          componentId,
-          name,
-          description: description ?? "",
-          skillType: skillType ?? "",
-        },
-        { method: "post", action: `/plugins/${pluginId}` },
-      );
-    },
-    [fetcher, componentId, description, skillType, pluginId],
-  );
-
-  const handleSaveDescription = useCallback(
-    (newDescription: string) => {
-      fetcher.submit(
-        {
-          intent: "update-component",
-          componentId,
-          name: label,
-          description: newDescription,
-          skillType: skillType ?? "",
-        },
-        { method: "post", action: `/plugins/${pluginId}` },
-      );
-    },
-    [fetcher, componentId, label, skillType, pluginId],
-  );
-
   return (
     <div className="orchestrator-node">
       <Handle type="target" position={Position.Left} />
-      <InlineEditableField
-        value={label}
-        onSave={handleSaveName}
-        isLoading={isSaving}
-        error={null}
-        placeholder="(unnamed)"
-        className="orchestrator-node-title"
-        onEditStart={handleEditStart}
-        onEditEnd={handleEditEnd}
-      />
-      <InlineEditableField
-        value={description ?? ""}
-        onSave={handleSaveDescription}
-        isLoading={isSaving}
-        error={null}
-        placeholder="(no description)"
-        multiline
-        className="orchestrator-node-description"
-        onEditStart={handleEditStart}
-        onEditEnd={handleEditEnd}
-      />
+      <div className="orchestrator-node-title">{label || "(unnamed)"}</div>
+      <div
+        className={`orchestrator-node-description${!description ? " orchestrator-node-description-empty" : ""}`}
+      >
+        {description || "(no description)"}
+      </div>
       <div className="orchestrator-node-steps">
         {localSteps.map((step, index) => {
           const isEmpty = step.dependencies.length === 0;

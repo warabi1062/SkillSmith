@@ -43,7 +43,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+    <div className="plugin-detail-page">
       <PluginActionsSection plugin={plugin} />
 
       <PluginGraphSection

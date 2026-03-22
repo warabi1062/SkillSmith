@@ -111,6 +111,16 @@ export function usePluginGraph({
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
 
+  // サイドパネル用: 選択ノードの状態管理
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeType, setSelectedNodeType] = useState<
+    "component" | "agentTeam" | null
+  >(null);
+
+  // サイドパネル用のfetcher
+  const updateComponentFetcher = useFetcher();
+  const updateAgentTeamFetcher = useFetcher();
+
   // deleteFetcherのエラーメッセージを監視
   useEffect(() => {
     if (deleteFetcher.state === "idle" && deleteFetcher.data?.error) {
@@ -376,6 +386,108 @@ export function usePluginGraph({
     setAgentTeamModalState({ isOpen: false });
   }, []);
 
+  // サイドパネル: ノードクリック時のハンドラ
+  const handleNodeClick = useCallback(
+    (nodeId: string, nodeType: "component" | "agentTeam") => {
+      setSelectedNodeId(nodeId);
+      setSelectedNodeType(nodeType);
+    },
+    [],
+  );
+
+  // サイドパネル: 閉じるハンドラ
+  const handleSidePanelClose = useCallback(() => {
+    setSelectedNodeId(null);
+    setSelectedNodeType(null);
+  }, []);
+
+  // サイドパネル: コンポーネント更新ハンドラ
+  const handleUpdateComponent = useCallback(
+    (
+      componentId: string,
+      fields: { name: string; description: string; skillType?: string },
+    ) => {
+      updateComponentFetcher.submit(
+        {
+          intent: "update-component",
+          componentId,
+          name: fields.name,
+          description: fields.description,
+          skillType: fields.skillType ?? "",
+        },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [updateComponentFetcher, plugin.id],
+  );
+
+  // サイドパネル: Agent Team更新ハンドラ
+  const handleUpdateAgentTeam = useCallback(
+    (teamId: string, fields: { name: string; description: string }) => {
+      updateAgentTeamFetcher.submit(
+        {
+          intent: "update-agent-team",
+          teamId,
+          name: fields.name,
+          description: fields.description,
+        },
+        { method: "post", action: `/plugins/${plugin.id}` },
+      );
+    },
+    [updateAgentTeamFetcher, plugin.id],
+  );
+
+  // サイドパネル: 選択ノードのデータを算出
+  const selectedNodeData = useMemo(() => {
+    if (!selectedNodeId || !selectedNodeType) return null;
+
+    if (selectedNodeType === "agentTeam") {
+      const team = plugin.agentTeams.find((t) => t.id === selectedNodeId);
+      if (!team) return null;
+      return {
+        nodeId: selectedNodeId,
+        nodeType: "agentTeam" as const,
+        componentType: "AGENT_TEAM" as const,
+        name: team.name,
+        description: team.description,
+        skillType: null,
+        orchestratorName:
+          team.orchestrator.skillConfig?.name ?? "(unnamed)",
+      };
+    }
+
+    const comp = plugin.components.find((c) => c.id === selectedNodeId);
+    if (!comp) return null;
+
+    const compName =
+      comp.skillConfig?.name ?? comp.agentConfig?.name ?? "(unnamed)";
+    const compDescription =
+      comp.skillConfig?.description ??
+      comp.agentConfig?.description ??
+      null;
+
+    // typeとskillTypeからcomponentTypeを判定
+    let componentType: "SKILL" | "AGENT" | "ORCHESTRATOR" = comp.type as
+      | "SKILL"
+      | "AGENT";
+    if (
+      comp.type === "SKILL" &&
+      comp.skillConfig?.skillType === "ENTRY_POINT"
+    ) {
+      componentType = "ORCHESTRATOR";
+    }
+
+    return {
+      nodeId: selectedNodeId,
+      nodeType: "component" as const,
+      componentType,
+      name: compName,
+      description: compDescription,
+      skillType: comp.skillConfig?.skillType ?? null,
+      orchestratorName: null,
+    };
+  }, [selectedNodeId, selectedNodeType, plugin.components, plugin.agentTeams]);
+
   const graphComponents = plugin.components.map((c) => ({
     id: c.id,
     type: c.type,
@@ -479,5 +591,12 @@ export function usePluginGraph({
     handleResetLayout,
     handleReorderStep,
     handleDeleteStep,
+
+    // サイドパネル
+    selectedNodeData,
+    handleNodeClick,
+    handleSidePanelClose,
+    handleUpdateComponent,
+    handleUpdateAgentTeam,
   };
 }

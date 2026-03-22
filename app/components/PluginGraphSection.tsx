@@ -5,6 +5,7 @@ import {
   type ModalState,
   type MembersModalState,
 } from "../hooks/usePluginGraph";
+import SidePanel from "./SidePanel";
 
 const DependencyGraph = React.lazy(
   () => import("../components/DependencyGraph"),
@@ -72,6 +73,11 @@ export default function PluginGraphSection({
     autoLayoutPending,
     handleAutoLayoutApplied,
     handlePositionsPersist,
+    selectedNodeData,
+    handleNodeClick,
+    handleSidePanelClose,
+    handleUpdateComponent,
+    handleUpdateAgentTeam,
   } = usePluginGraph({
     plugin,
     modalState,
@@ -106,30 +112,51 @@ export default function PluginGraphSection({
             {deleteError}
           </p>
         )}
-        <Suspense fallback={<div>Loading graph...</div>}>
-          <DependencyGraph
-            nodes={graphDataWithPositions.nodes}
-            edges={graphDataWithPositions.edges}
-            pluginId={plugin.id}
-            components={graphComponents}
-            agentTeams={agentTeamsForGraph}
-            onConnect={handleConnect}
-            onEdgeClick={handleEdgeClick}
-            onCreateComponent={handleCreateComponent}
-            onDeleteComponent={handleDeleteComponent}
-            onManageFiles={handleManageFiles}
-            onCreateAgentTeam={handleCreateAgentTeam}
-            onDeleteAgentTeam={handleDeleteAgentTeam}
-            onManageMembers={handleManageMembers}
-            onNodeDragStop={handleNodeDragStop}
-            onResetLayout={handleResetLayout}
-            onPositionsPersist={handlePositionsPersist}
-            autoLayoutPending={autoLayoutPending}
-            onAutoLayoutApplied={handleAutoLayoutApplied}
-            resetKey={resetCounter}
-          />
-        </Suspense>
+        <div className="dependency-graph-content">
+          <div className="dependency-graph-main">
+            <Suspense fallback={<div>Loading graph...</div>}>
+              <DependencyGraph
+                nodes={graphDataWithPositions.nodes}
+                edges={graphDataWithPositions.edges}
+                pluginId={plugin.id}
+                components={graphComponents}
+                agentTeams={agentTeamsForGraph}
+                onConnect={handleConnect}
+                onEdgeClick={handleEdgeClick}
+                onCreateComponent={handleCreateComponent}
+                onDeleteComponent={handleDeleteComponent}
+                onManageFiles={handleManageFiles}
+                onCreateAgentTeam={handleCreateAgentTeam}
+                onDeleteAgentTeam={handleDeleteAgentTeam}
+                onManageMembers={handleManageMembers}
+                onNodeDragStop={handleNodeDragStop}
+                onResetLayout={handleResetLayout}
+                onPositionsPersist={handlePositionsPersist}
+                onNodeClick={handleNodeClick}
+                onPaneClickCallback={handleSidePanelClose}
+                autoLayoutPending={autoLayoutPending}
+                onAutoLayoutApplied={handleAutoLayoutApplied}
+                resetKey={resetCounter}
+              />
+            </Suspense>
+          </div>
+        </div>
       </div>
+
+      {selectedNodeData && (
+        <SidePanel
+          nodeId={selectedNodeData.nodeId}
+          nodeType={selectedNodeData.nodeType}
+          componentType={selectedNodeData.componentType}
+          name={selectedNodeData.name}
+          description={selectedNodeData.description}
+          skillType={selectedNodeData.skillType}
+          orchestratorName={selectedNodeData.orchestratorName}
+          onUpdateComponent={handleUpdateComponent}
+          onUpdateAgentTeam={handleUpdateAgentTeam}
+          onClose={handleSidePanelClose}
+        />
+      )}
 
       <Suspense fallback={null}>
         <ComponentFormModal

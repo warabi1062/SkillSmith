@@ -31,37 +31,37 @@ export default function PluginActionsSection({ plugin }: PluginActionsSectionPro
           {plugin.description && (
             <p className="card-description">{plugin.description}</p>
           )}
-        </div>
-        <div className="detail-actions">
-          <generateFetcher.Form method="post">
-            <input type="hidden" name="intent" value="generate-plugin" />
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={isGenerating}
+          <div className="detail-actions">
+            <generateFetcher.Form method="post">
+              <input type="hidden" name="intent" value="generate-plugin" />
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm"
+                disabled={isGenerating}
+              >
+                {isGenerating ? "Generating..." : "Generate"}
+              </button>
+            </generateFetcher.Form>
+            <Link to={`/plugins/${plugin.id}/edit`} className="btn btn-secondary btn-sm">
+              Edit
+            </Link>
+            <Form
+              method="post"
+              onSubmit={(event) => {
+                const confirmed = window.confirm(
+                  `Plugin "${plugin.name}" and all its components will be deleted. Are you sure?`,
+                );
+                if (!confirmed) {
+                  event.preventDefault();
+                }
+              }}
             >
-              {isGenerating ? "Generating..." : "Generate"}
-            </button>
-          </generateFetcher.Form>
-          <Link to={`/plugins/${plugin.id}/edit`} className="btn btn-secondary">
-            Edit
-          </Link>
-          <Form
-            method="post"
-            onSubmit={(event) => {
-              const confirmed = window.confirm(
-                `Plugin "${plugin.name}" and all its components will be deleted. Are you sure?`,
-              );
-              if (!confirmed) {
-                event.preventDefault();
-              }
-            }}
-          >
-            <input type="hidden" name="intent" value="delete-plugin" />
-            <button type="submit" className="btn btn-danger">
-              Delete
-            </button>
-          </Form>
+              <input type="hidden" name="intent" value="delete-plugin" />
+              <button type="submit" className="btn btn-danger btn-sm">
+                Delete
+              </button>
+            </Form>
+          </div>
         </div>
       </div>
 
