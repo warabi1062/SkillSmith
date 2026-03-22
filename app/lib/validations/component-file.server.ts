@@ -1,9 +1,7 @@
-import type { PrismaClient } from "../../generated/prisma/client";
 import { isSafeFilename } from "../path-validation.server";
 import { ValidationError } from "./agent-team.server";
 
 const VALID_ROLES = [
-  "MAIN",
   "TEMPLATE",
   "REFERENCE",
   "EXAMPLE",
@@ -26,7 +24,7 @@ export function validateComponentFileData(data: {
     throw new ValidationError({
       field: "role",
       code: "INVALID_ROLE",
-      message: "Role must be one of: MAIN, TEMPLATE, REFERENCE, EXAMPLE, OUTPUT_SCHEMA",
+      message: "Role must be one of: TEMPLATE, REFERENCE, EXAMPLE, OUTPUT_SCHEMA",
     });
   }
 
@@ -66,35 +64,6 @@ export function validateComponentFileData(data: {
       code: "FILENAME_PATH_TRAVERSAL",
       message:
         'Filename must not contain path traversal sequences (e.g., "..")',
-    });
-  }
-}
-
-/**
- * MAIN ロールがコンポーネントごとに1つのみであることを検証する。
- * 作成時・更新時に呼び出す。
- */
-export async function validateMainRoleUniqueness(
-  prisma: PrismaClient,
-  componentId: string,
-  role: string,
-  excludeFileId?: string,
-): Promise<void> {
-  if (role !== "MAIN") return;
-
-  const existing = await prisma.componentFile.findFirst({
-    where: {
-      componentId,
-      role: "MAIN",
-      ...(excludeFileId ? { id: { not: excludeFileId } } : {}),
-    },
-  });
-
-  if (existing) {
-    throw new ValidationError({
-      field: "role",
-      code: "MAIN_ROLE_ALREADY_EXISTS",
-      message: "A MAIN file already exists for this component. Only one MAIN file is allowed.",
     });
   }
 }

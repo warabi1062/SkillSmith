@@ -6,7 +6,6 @@ import {
   validateAgentTeamMemberCreate,
   validateComponentFileData,
   validateDependencyCreate,
-  validateMainRoleUniqueness,
   validateOutputSchemaFieldData,
   ValidationError,
 } from "./validations";
