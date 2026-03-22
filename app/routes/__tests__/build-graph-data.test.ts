@@ -368,7 +368,7 @@ describe("buildGraphData", () => {
     expect(teamNode!.style).toBeUndefined();
   });
 
-  it("OrchestratorNodeのdataにdescriptionが含まれること", () => {
+  it("OrchestratorNodeのdataにdescriptionとskillTypeが含まれること", () => {
     const components = [
       makeComponent({
         id: "orch-1",
@@ -381,6 +381,7 @@ describe("buildGraphData", () => {
     const orchNode = nodes.find((n) => n.id === "orch-1");
 
     expect(orchNode!.data.description).toBe("Orchestrator desc");
+    expect(orchNode!.data.skillType).toBe("ENTRY_POINT");
   });
 
   describe("dagre layout", () => {
