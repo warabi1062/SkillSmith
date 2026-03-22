@@ -122,7 +122,7 @@ Entry-point skill（主にオーケストレーター型）のステップとし
 **Agent が必要なケース**:
 - コードベース調査やファイル編集など、自律的な判断を伴う作業
 - 独立した視点を確保したい作業（レビューなど）
-- resume で反復サイクルを回す必要がある作業
+- SendMessage で反復サイクルを回す必要がある作業
 - コンテキスト消費が大きく、メインスレッドから隔離したい作業
 
 **Agent が不要なケース（Skill の手順をメインで直接実行すれば十分）**:
@@ -148,6 +148,8 @@ Entry-point skill（主にオーケストレーター型）のステップとし
 
 ### Skill Frontmatter フィールド一覧
 
+公式ドキュメント: https://code.claude.com/docs/en/skills#frontmatter-reference
+
 | フィールド | 必須 | 説明 |
 |-----------|------|------|
 | `name` | No | スキル名。省略時はディレクトリ名。小文字・数字・ハイフンのみ（最大64文字） |
@@ -159,6 +161,7 @@ Entry-point skill（主にオーケストレーター型）のステップとし
 | `context` | No | `fork`でサブエージェントとして隔離実行 |
 | `agent` | No | `context: fork`時のエージェントタイプ |
 | `model` | No | スキル実行時のモデル指定 |
+| `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`max`（`max`はOpus 4.6のみ） |
 | `hooks` | No | スキルライフサイクルにフックするシェルコマンド |
 
 ### allowed-tools の記法
@@ -267,6 +270,8 @@ Taskツールの `subagent_type` で指定して起動される。
 
 ### Agent Frontmatter フィールド一覧
 
+公式ドキュメント: https://code.claude.com/docs/en/sub-agents#supported-frontmatter-fields
+
 | フィールド | 必須 | 説明 |
 |-----------|------|------|
 | `name` | Yes | エージェント名。Taskツールの`subagent_type`で指定する値 |
@@ -276,8 +281,13 @@ Taskツールの `subagent_type` で指定して起動される。
 | `disallowedTools` | No | 拒否するツールのリスト。`tools`やデフォルトから除外される |
 | `skills` | No | プリロードするスキルのリスト。スキルの全文がシステムプロンプトに注入される |
 | `permissionMode` | No | 権限モード。`default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan` |
+| `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`max`（`max`はOpus 4.6のみ） |
+| `maxTurns` | No | エージェントの最大ターン数。無限ループ防止に有効 |
+| `mcpServers` | No | エージェントにスコープされたMCPサーバー。名前参照またはインライン定義 |
 | `hooks` | No | エージェントのライフサイクルにフックするコマンド |
 | `memory` | No | 永続メモリのスコープ。`user`, `project`, `local`。セッション跨ぎの学習を可能にする |
+| `background` | No | `true`で常にバックグラウンドタスクとして実行。デフォルト: `false` |
+| `isolation` | No | `worktree`で一時的なgit worktreeで隔離実行。変更がなければ自動クリーンアップ |
 
 ### tools 選定ガイド
 
@@ -398,9 +408,9 @@ skillの手順をagent本文に転記すると、変更時に2箇所修正が必
 
 レビュー系 agent は「経緯を知らない第三者」として振る舞う。実装者のバイアスを排除し、見落としの発見やコードの可読性の客観的評価を可能にする。
 
-#### resume による反復
+#### SendMessage による反復
 
-レビュー → 修正 → 再レビューのサイクルを `resume` で実現する。初回呼び出しで返される `agent_id` を使い、修正依頼時に `resume` パラメータで前回のコンテキストを保持したまま継続する。
+レビュー → 修正 → 再レビューのサイクルを `SendMessage` で実現する。初回呼び出しで返される `agent_id` を使い、修正依頼時に `SendMessage({to: agentId})` で前回のコンテキストを保持したまま継続する。
 
 ### セキュリティ注意事項
 
@@ -423,7 +433,7 @@ plugins/{plugin-name}/agents/
 
 ### Agent間の情報受け渡し（ワークフローファイル経由）
 
-ワークフロー内で他のスキル/エージェントと連携する場合、会話コンテキストではなくワークフローファイル（`~/.claude/workflows/{task-id}/`）を介して情報を受け渡す。これにより会話コンテキストの圧迫を防ぎ、後続ステップが必要な情報だけを選択的に読めるようにする。情報がファイルとして残るため再現性・デバッグ容易性も高まる。
+ワークフロー内で他のスキル/エージェントと連携する場合、会話コンテキストではなくワークフローファイル（`~/claude-code-data/workflows/{task-id}/`）を介して情報を受け渡す。これにより会話コンテキストの圧迫を防ぎ、後続ステップが必要な情報だけを選択的に読めるようにする。情報がファイルとして残るため再現性・デバッグ容易性も高まる。
 
 #### オーケストレーターによるファイルパス中継
 
@@ -442,7 +452,7 @@ NG（暗黙的な依存）:
 - チケットID                    ← IDだけ渡す
 
 # skill（読み込む側）
-~/.claude/workflows/{ID}/plan.md を読み込む  ← 自分でパスを構築している
+~/claude-code-data/workflows/{ID}/plan.md を読み込む  ← 自分でパスを構築している
 ```
 
 OK（明示的な中継）:
@@ -475,7 +485,7 @@ SKILL.mdの「入力」セクションに、オーケストレーターから渡
 2. SKILL.mdの手順の末尾に「結果の保存」と「結果返却」ステップを追加する:
 ```markdown
 ### N. 結果の保存
-結果を `~/.claude/workflows/{チケットID}/{skill名}-result.md` に [template-result.md](template-result.md) 形式で書き出す。
+結果を `~/claude-code-data/workflows/{チケットID}/{skill名}-result.md` に [template-result.md](template-result.md) 形式で書き出す。
 
 ### N+1. 結果返却
 結果の概要と保存先パスを返す。
@@ -485,117 +495,35 @@ SKILL.mdの「入力」セクションに、オーケストレーターから渡
 - `{skill名}-result.md`（例: `triage-result.md`, `split-result.md`, `implement-result.md`）
 - `plan.md` は既存の慣習をそのまま使う
 
-#### template-result.md の位置づけ
-
-後続ステップに渡す成果物のフォーマットを定義するファイル。スキルのサポートファイルとして `template-result.md` という名前で配置する。
-
-```
-plugins/{plugin-name}/skills/{skill-name}/
-├── SKILL.md              # メイン指示
-├── template.md           # スキル自身の出力フォーマット（任意）
-└── template-result.md    # ワークフロー成果物のフォーマット（任意）
-```
-
-- `template.md`（TEMPLATE）: スキル自身が出力するドキュメントのフォーマットを定義する。最終成果物の形式
-- `template-result.md`（OUTPUT_SCHEMA）: ワークフローの後続ステップが読む中間成果物のフォーマットを定義する。SkillSmith のデータモデルでは ComponentFileRole の `OUTPUT_SCHEMA` ロールとして管理される
-
-スキルの手順内では以下のように参照する:
-```markdown
-### N. 結果の保存
-結果を `~/.claude/workflows/{チケットID}/{skill名}-result.md` に [template-result.md](template-result.md) 形式で書き出す。
-```
-
 #### ファイル名の所有権
 - ファイル名を決めるのは書き出す側の skill のみ。1箇所で定義する
 - オーケストレーター・agent・読み込む側の skill はファイル名を知らない
 - これにより、ファイル名を変更しても書き出す側の skill だけ修正すれば済む
 
-### 並列連携パターン（Agent Teams）
+### スキル固有の永続データ（~/claude-code-data/state/）
 
-オーケストレーターの特定ステップで、複数の Agent が互いに通信しながら並列作業する必要がある場合、Agent Teams を使う。
-
-#### Sub-agents との使い分け
-
-| | Sub-agents | Agent Teams |
-|---|---|---|
-| 連携方式 | 全員がオーケストレーター経由 | Teammate 同士が直接 inbox 通信 |
-| 適したケース | 結果を返すだけでよい専門作業 | 互いの発見を反映しながら並列作業 |
-| コスト | 低 | 高（Teammate ごとに独立 context window） |
-
-**Agent Teams を選ぶ基準**: Teammate A の中間発見を Teammate B がリアルタイムに受け取り、作業に反映させる必要があるとき。それ以外は Sub-agents で十分。
-
-#### オーケストレーターとの関係
-
-Agent Teams はオーケストレーター Skill（メインスレッド）からのみ起動できる。Sub-agent（Task で起動されたコンテキスト）から Agent Teams を起動することはできない。
+スキルが実行間で保持する必要がある状態（前回実行日時、カーソル位置など）は `~/claude-code-data/state/` に保存する。
 
 ```
-OK
-Orchestrator Skill（メインスレッド = Team Lead）
-  └── Step N: Agent Teams を起動
-                ├── Teammate A
-                └── Teammate B
-
-NG
-Orchestrator Skill
-  └── Step N: Sub-agent
-                └── Agent Teams を起動  ← Sub-agent は Team messaging にアクセス不可
-```
-
-#### Team Lead のコンテキスト消費
-
-Teammate が並列稼働中、Team Lead は idle（待機）状態になる。Team Lead の context に積まれるのは Teammate からの inbox メッセージのみで、Teammate 内部の作業は積まれない。
-
-```
-Team Lead context に積まれるもの
-  - タスク分解・Teammate スポーンの指示
-  - Teammate → Lead への inbox 通知
-  - 最終的な結果統合
-
-積まれないもの
-  - Teammate 内部の作業（ファイル読み書き・推論過程）
-  - Teammate 同士の peer-to-peer メッセージ
-```
-
-#### ファイルバスとの組み合わせ
-
-ワークフローファイル経由の情報受け渡しパターンと Agent Teams は相性が良い。Teammate 同士の inbox は「このパスに書いた」という通知に使い、中身はファイル経由で受け渡すことで、Team Lead のコンテキストをさらに軽量に保てる。
-
-```
-Teammate A: 作業 → ~/.claude/workflows/{id}/a-result.md に保存
-            ↓ inbox で「a-result.md に書いたよ」と B に直接通知
-Teammate B: ファイルを読んで自分の作業に反映
-            （Team Lead を経由しない）
-
-Team Lead: 全 Teammate の idle 通知を受け取り → 結果統合
-```
-
-#### 設計上の注意
-
-- Teammate はスポーン時に Team Lead の会話履歴を引き継がない。必要なコンテキストはスポーンプロンプトに明示する
-- Teammate のネストは不可（Teammate は自分のチームや Teammate をスポーンできない）
-- 終了時のクリーンアップ（Teammate シャットダウン）は必ず Team Lead が行う
-- Agent Teams は `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` を有効化する必要がある（experimental 機能）
-
-### スキル固有の永続データ（~/.claude/state/）
-
-スキルが実行間で保持する必要がある状態（前回実行日時、カーソル位置など）は `~/.claude/state/` に保存する。
-
-```
-~/.claude/state/{skill-name}/
+~/claude-code-data/state/{skill-name}/
 ├── cursor.md          # 前回実行時点の情報
 └── ...
 ```
 
-**3層記憶（`~/.claude/memory/`）との使い分け**:
+**3層記憶（`~/claude-code-data/memory/`）との使い分け**:
 
 | 保存先 | 用途 | 管理者 |
 |--------|------|--------|
-| `~/.claude/memory/` | 作業コンテキスト（短期・中期・長期） | memory-manager skill |
-| `~/.claude/workflows/` | ワークフローのステップ間データ | 各スキル自身 |
-| `~/.claude/state/` | スキル固有の永続状態 | 各スキル自身 |
+| `~/claude-code-data/memory/` | 作業コンテキスト（短期・中期・長期） | memory-manager skill |
+| `~/claude-code-data/workflows/` | ワークフローのステップ間データ | 各スキル自身 |
+| `~/claude-code-data/state/` | スキル固有の永続状態 | 各スキル自身 |
 
 - `memory/` にワークフローデータやスキル固有の状態を保存しない
 - `workflows/` と `state/` のデータは memory-manager の管理対象外
+
+### プラグイン永続データ（${CLAUDE_PLUGIN_DATA}）
+
+v2.1.78 で `${CLAUDE_PLUGIN_DATA}` 変数が追加された。プラグインの更新後も生き残る永続データディレクトリを参照できる。スキル固有の `~/claude-code-data/state/` とは別に、プラグインレベルで永続化が必要なデータに使用する。
 
 ### 承認ポイントの設計
 
@@ -656,12 +584,6 @@ Team Lead: 全 Teammate の idle 通知を受け取り → 結果統合
 
 **対策**: worker skill は自分の責務に集中し、「なぜ」ではなく「何を」だけを記述。ワークフローの知識はオーケストレーターに集約
 
-### 並列連携が必要な箇所を Sub-agents の直列で代替する
-
-**問題**: Teammate A の中間結果を B が参照しながら進む必要があるのに、A 完了 → オーケストレーター経由 → B 開始という直列フローになっている。オーケストレーターがボトルネックになり、コンテキストも圧迫される。
-
-**対策**: Teammate 同士の直接通信が必要なら Agent Teams を使う。結果を返すだけなら Sub-agents で十分。「互いの発見を反映しながら並列作業するか」で判断する。
-
 ### Cross-cutting skillをEntry-point skillに埋め込む
 
 **問題**: 通知や記憶管理などの横断的関心事をEntry-point skillのステップとして明示的に呼び出す
@@ -678,5 +600,4 @@ Team Lead: 全 Teammate の idle 通知を受け取り → 結果統合
 - [ ] レビュー系 agent は「経緯を知らない視点」で設計
 - [ ] 反復サイクルの上限設定（3回など）
 - [ ] 承認ポイントの適切な配置
-- [ ] 並列ステップで Agent 同士の直接連携が必要か判断する（必要なら Agent Teams、結果を返すだけなら Sub-agents）
-- [ ] Agent Teams を使う場合、オーケストレーター Skill がメインスレッドで動くことを確認する（Sub-agent からは起動不可）
+- [ ] 横断的関心事（通知、記憶管理、振り返り等）はCross-cutting skillとしてCLAUDE.mdに委ねる
