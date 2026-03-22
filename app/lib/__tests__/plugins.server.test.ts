@@ -36,10 +36,6 @@ const {
   getComponent,
   updateComponent,
   deleteComponent,
-  createAgentTeam,
-  getAgentTeam,
-  updateAgentTeam,
-  deleteAgentTeam,
   addAgentTeamMember,
   removeAgentTeamMember,
   createComponentFile,
@@ -62,7 +58,6 @@ async function cleanDatabase() {
   await testPrisma.componentFile.deleteMany();
   await testPrisma.componentDependency.deleteMany();
   await testPrisma.agentTeamMember.deleteMany();
-  await testPrisma.agentTeam.deleteMany();
   await testPrisma.agentConfig.deleteMany();
   await testPrisma.skillConfig.deleteMany();
   await testPrisma.component.deleteMany();
@@ -119,7 +114,6 @@ describe("plugins.server", () => {
       expect(plugin).not.toBeNull();
       expect(plugin!.name).toBe("Detail Plugin");
       expect(plugin!.components).toBeDefined();
-      expect(plugin!.agentTeams).toBeDefined();
     });
 
     it("updatePlugin: updates name and description", async () => {
@@ -164,7 +158,7 @@ describe("plugins.server", () => {
       expect(component.skillConfig!.skillType).toBe("ENTRY_POINT");
     });
 
-    it("createComponent(WORKER): creates with skillConfig and agentConfig", async () => {
+    it("createComponent(WORKER): creates with skillConfig but no agentConfig", async () => {
       const plugin = await createPlugin({ name: "P" });
 
       const component = await createComponent(plugin.id, {
@@ -177,7 +171,34 @@ describe("plugins.server", () => {
       expect(component.type).toBe("SKILL");
       expect(component.skillConfig).not.toBeNull();
       expect(component.skillConfig!.name).toBe("my-worker");
+      // WORKERではagentConfigは自動作成されない
+      expect(component.skillConfig!.agentConfig).toBeNull();
+    });
+
+    it("createComponent(WORKER_WITH_SUB_AGENT): creates with agentConfig", async () => {
+      const plugin = await createPlugin({ name: "P" });
+
+      const component = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "my-agent-worker",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      });
+
+      expect(component.skillConfig!.skillType).toBe("WORKER_WITH_SUB_AGENT");
       expect(component.skillConfig!.agentConfig).not.toBeNull();
+    });
+
+    it("createComponent(WORKER_WITH_AGENT_TEAM): creates without agentConfig", async () => {
+      const plugin = await createPlugin({ name: "P" });
+
+      const component = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "my-team-worker",
+        skillType: "WORKER_WITH_AGENT_TEAM",
+      });
+
+      expect(component.skillConfig!.skillType).toBe("WORKER_WITH_AGENT_TEAM");
+      expect(component.skillConfig!.agentConfig).toBeNull();
     });
 
     it("getComponent: returns component with includes", async () => {
@@ -185,7 +206,7 @@ describe("plugins.server", () => {
       const created = await createComponent(plugin.id, {
         type: "SKILL",
         name: "s",
-        skillType: "WORKER",
+        skillType: "WORKER_WITH_SUB_AGENT",
       });
 
       const component = await getComponent(created.id);
@@ -215,6 +236,48 @@ describe("plugins.server", () => {
       expect(updated.skillConfig!.description).toBe("updated desc");
     });
 
+    it("updateComponent: skillType変更 WORKER -> WORKER_WITH_SUB_AGENT でagentConfigが自動作成される", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const created = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "w",
+        skillType: "WORKER",
+      });
+
+      // WORKERにはagentConfigがない
+      expect(created.skillConfig!.agentConfig).toBeNull();
+
+      const updated = await updateComponent(created.id, {
+        type: "SKILL",
+        name: "w",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      });
+
+      expect(updated.skillConfig!.skillType).toBe("WORKER_WITH_SUB_AGENT");
+      expect(updated.skillConfig!.agentConfig).not.toBeNull();
+    });
+
+    it("updateComponent: skillType変更 WORKER_WITH_SUB_AGENT -> WORKER でagentConfigが自動削除される", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const created = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "w",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      });
+
+      // WORKER_WITH_SUB_AGENTにはagentConfigがある
+      expect(created.skillConfig!.agentConfig).not.toBeNull();
+
+      const updated = await updateComponent(created.id, {
+        type: "SKILL",
+        name: "w",
+        skillType: "WORKER",
+      });
+
+      expect(updated.skillConfig!.skillType).toBe("WORKER");
+      expect(updated.skillConfig!.agentConfig).toBeNull();
+    });
+
     it("deleteComponent: successfully deletes", async () => {
       const plugin = await createPlugin({ name: "P" });
       const created = await createComponent(plugin.id, {
@@ -228,188 +291,93 @@ describe("plugins.server", () => {
       const result = await getComponent(created.id);
       expect(result).toBeNull();
     });
-
-    it("deleteComponent: throws HAS_DEPENDENT_TEAMS when used as orchestrator", async () => {
-      const plugin = await createPlugin({ name: "P" });
-      const orchestrator = await createComponent(plugin.id, {
-        type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
-      });
-      await createAgentTeam(plugin.id, {
-        orchestratorId: orchestrator.id,
-        name: "Team",
-      });
-
-      await expect(deleteComponent(orchestrator.id)).rejects.toThrow(
-        ValidationError,
-      );
-      try {
-        await deleteComponent(orchestrator.id);
-      } catch (error) {
-        expect(error).toBeInstanceOf(ValidationError);
-        expect((error as InstanceType<typeof ValidationError>).code).toBe(
-          "HAS_DEPENDENT_TEAMS",
-        );
-      }
-    });
   });
 
   // ============================
-  // AgentTeam CRUD
+  // AgentTeamMember CRUD
   // ============================
-  describe("AgentTeam CRUD", () => {
-    it("createAgentTeam: creates a team", async () => {
+  describe("AgentTeamMember CRUD", () => {
+    it("addAgentTeamMember: adds a WORKER_WITH_SUB_AGENT member", async () => {
       const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
+      const agentTeam = await createComponent(plugin.id, {
         type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
+        name: "team",
+        skillType: "WORKER_WITH_AGENT_TEAM",
       });
-
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Team A",
-        description: "desc",
-      });
-
-      expect(team.id).toBeDefined();
-      expect(team.name).toBe("Team A");
-      expect(team.orchestratorId).toBe(orch.id);
-    });
-
-    it("getAgentTeam: returns team with members", async () => {
-      const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
-        type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
-      });
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Team",
-      });
-
-      const result = await getAgentTeam(team.id);
-
-      expect(result).not.toBeNull();
-      expect(result!.orchestrator).not.toBeNull();
-      expect(result!.members).toBeDefined();
-    });
-
-    it("updateAgentTeam: updates name and description", async () => {
-      const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
-        type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
-      });
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Old",
-      });
-
-      const updated = await updateAgentTeam(team.id, {
-        name: "New",
-        description: "new desc",
-      });
-
-      expect(updated.name).toBe("New");
-      expect(updated.description).toBe("new desc");
-    });
-
-    it("deleteAgentTeam: deletes team", async () => {
-      const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
-        type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
-      });
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Team",
-      });
-
-      await deleteAgentTeam(team.id);
-
-      const result = await getAgentTeam(team.id);
-      expect(result).toBeNull();
-    });
-
-    it("addAgentTeamMember: adds a WORKER Skill member", async () => {
-      const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
-        type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
-      });
-      // WORKER Skill は自動的に agentConfig を持つ
       const worker = await createComponent(plugin.id, {
         type: "SKILL",
         name: "worker",
-        skillType: "WORKER",
-      });
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Team",
+        skillType: "WORKER_WITH_SUB_AGENT",
       });
 
-      const member = await addAgentTeamMember(team.id, {
-        componentId: worker.id,
+      const member = await addAgentTeamMember(agentTeam.id, {
+        memberComponentId: worker.id,
       });
 
-      expect(member.teamId).toBe(team.id);
+      expect(member.agentTeamComponentId).toBe(agentTeam.id);
       expect(member.componentId).toBe(worker.id);
     });
 
     it("addAgentTeamMember: throws DUPLICATE_MEMBER on duplicate", async () => {
       const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
+      const agentTeam = await createComponent(plugin.id, {
         type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
+        name: "team",
+        skillType: "WORKER_WITH_AGENT_TEAM",
+      });
+      const worker = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "worker",
+        skillType: "WORKER_WITH_SUB_AGENT",
+      });
+
+      await addAgentTeamMember(agentTeam.id, { memberComponentId: worker.id });
+
+      await expect(
+        addAgentTeamMember(agentTeam.id, { memberComponentId: worker.id }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("addAgentTeamMember: throws INVALID_COMPONENT_TYPE for WORKER skill", async () => {
+      const plugin = await createPlugin({ name: "P" });
+      const agentTeam = await createComponent(plugin.id, {
+        type: "SKILL",
+        name: "team",
+        skillType: "WORKER_WITH_AGENT_TEAM",
       });
       const worker = await createComponent(plugin.id, {
         type: "SKILL",
         name: "worker",
         skillType: "WORKER",
       });
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Team",
-      });
-
-      await addAgentTeamMember(team.id, { componentId: worker.id });
 
       await expect(
-        addAgentTeamMember(team.id, { componentId: worker.id }),
+        addAgentTeamMember(agentTeam.id, { memberComponentId: worker.id }),
       ).rejects.toThrow(ValidationError);
     });
 
     it("removeAgentTeamMember: removes a member", async () => {
       const plugin = await createPlugin({ name: "P" });
-      const orch = await createComponent(plugin.id, {
+      const agentTeam = await createComponent(plugin.id, {
         type: "SKILL",
-        name: "orch",
-        skillType: "ENTRY_POINT",
+        name: "team",
+        skillType: "WORKER_WITH_AGENT_TEAM",
       });
       const worker = await createComponent(plugin.id, {
         type: "SKILL",
         name: "worker",
-        skillType: "WORKER",
+        skillType: "WORKER_WITH_SUB_AGENT",
       });
-      const team = await createAgentTeam(plugin.id, {
-        orchestratorId: orch.id,
-        name: "Team",
-      });
-      const member = await addAgentTeamMember(team.id, {
-        componentId: worker.id,
+      const member = await addAgentTeamMember(agentTeam.id, {
+        memberComponentId: worker.id,
       });
 
       await removeAgentTeamMember(member.id);
 
-      const result = await getAgentTeam(team.id);
-      expect(result!.members.length).toBe(0);
+      const members = await testPrisma.agentTeamMember.findMany({
+        where: { agentTeamComponentId: agentTeam.id },
+      });
+      expect(members.length).toBe(0);
     });
   });
 
@@ -534,18 +502,18 @@ describe("plugins.server", () => {
       expect(updated.skillConfig!.output).toBe("- 実装結果のパス");
     });
 
-    it("updateComponent(WORKER SKILL): agentConfigの更新ができる", async () => {
+    it("updateComponent(WORKER_WITH_SUB_AGENT): agentConfigの更新ができる", async () => {
       const plugin = await createPlugin({ name: "P" });
       const created = await createComponent(plugin.id, {
         type: "SKILL",
         name: "w",
-        skillType: "WORKER",
+        skillType: "WORKER_WITH_SUB_AGENT",
       });
 
       const updated = await updateComponent(created.id, {
         type: "SKILL",
         name: "w",
-        skillType: "WORKER",
+        skillType: "WORKER_WITH_SUB_AGENT",
         agentConfig: {
           model: "sonnet",
           content: "# Agent body",
