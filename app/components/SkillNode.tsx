@@ -31,7 +31,9 @@ export default function SkillNode({
       >
         {description || "(no description)"}
       </div>
-      <Handle type="source" position={Position.Right} />
+      {skillType !== "WORKER" && (
+        <Handle type="source" position={Position.Right} />
+      )}
     </div>
   );
 }
