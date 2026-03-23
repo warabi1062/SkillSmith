@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
+import { registerPluginCommands } from "./commands/plugin";
 import { route } from "./router";
 
 // CLI エントリーポイント
 async function main(): Promise<void> {
   try {
+    // コマンド登録
+    registerPluginCommands();
+
     // process.argv の先頭 2 要素（node パスとスクリプトパス）を除外
     const exitCode = await route(process.argv.slice(2));
     process.exit(exitCode);
