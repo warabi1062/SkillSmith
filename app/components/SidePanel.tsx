@@ -1,5 +1,3 @@
-import { useState, useEffect, useRef } from "react";
-
 export interface AgentConfigFields {
   model: string;
   tools: string;
@@ -7,8 +5,6 @@ export interface AgentConfigFields {
 }
 
 export interface SidePanelProps {
-  nodeId: string;
-  nodeType: "component";
   componentType: "SKILL" | "ORCHESTRATOR";
   name: string;
   description: string | null;
@@ -20,33 +16,10 @@ export interface SidePanelProps {
   argumentHint: string | null;
   hasAgentConfig: boolean;
   agentConfig: AgentConfigFields | null;
-  orchestratorName: string | null;
-  onUpdateComponent: (
-    componentId: string,
-    fields: {
-      name: string;
-      description: string;
-      content: string;
-      input: string;
-      output: string;
-      skillType?: string;
-      allowedTools?: string;
-      argumentHint?: string;
-      agentConfig?: AgentConfigFields;
-    },
-  ) => void;
   onClose: () => void;
 }
 
-// skillTypeのチェックボックスオプション（排他的）
-const SKILL_TYPE_OPTIONS = [
-  { flag: "subAgent", skillType: "WORKER_WITH_SUB_AGENT", label: "Sub Agent" },
-  { flag: "agentTeam", skillType: "WORKER_WITH_AGENT_TEAM", label: "Agent Team" },
-] as const;
-
 export default function SidePanel({
-  nodeId,
-  nodeType,
   componentType,
   name,
   description,
@@ -58,129 +31,14 @@ export default function SidePanel({
   argumentHint,
   hasAgentConfig,
   agentConfig,
-  onUpdateComponent,
   onClose,
 }: SidePanelProps) {
-  const [editName, setEditName] = useState(name);
-  const [editDescription, setEditDescription] = useState(description ?? "");
-  const [editContent, setEditContent] = useState(content ?? "");
-  const [editInput, setEditInput] = useState(input ?? "");
-  const [editOutput, setEditOutput] = useState(output ?? "");
-  const [editSkillType, setEditSkillType] = useState(skillType ?? "");
-  const [editAllowedTools, setEditAllowedTools] = useState(allowedTools ?? "");
-  const [editArgumentHint, setEditArgumentHint] = useState(argumentHint ?? "");
-
-  // AgentConfig編集状態
-  const [editAgentModel, setEditAgentModel] = useState(agentConfig?.model ?? "");
-  const [editAgentTools, setEditAgentTools] = useState(agentConfig?.tools ?? "");
-  const [editAgentContent, setEditAgentContent] = useState(agentConfig?.agentContent ?? "");
-
-  // 前回のノードID・編集値・種別情報をrefで保持（ノード切り替え時の自動保存用）
-  const prevNodeIdRef = useRef(nodeId);
-  const prevEditNameRef = useRef(editName);
-  const prevEditDescriptionRef = useRef(editDescription);
-  const prevEditContentRef = useRef(editContent);
-  const prevEditInputRef = useRef(editInput);
-  const prevEditOutputRef = useRef(editOutput);
-  const prevSkillTypeRef = useRef(skillType);
-  const prevEditSkillTypeRef = useRef(editSkillType);
-  const prevEditAllowedToolsRef = useRef(editAllowedTools);
-  const prevEditArgumentHintRef = useRef(editArgumentHint);
-  const prevHasAgentConfigRef = useRef(hasAgentConfig);
-  const prevEditAgentModelRef = useRef(editAgentModel);
-  const prevEditAgentToolsRef = useRef(editAgentTools);
-  const prevEditAgentContentRef = useRef(editAgentContent);
-
-  // editName/editDescription/editContentの変更をrefに反映
-  useEffect(() => { prevEditNameRef.current = editName; }, [editName]);
-  useEffect(() => { prevEditDescriptionRef.current = editDescription; }, [editDescription]);
-  useEffect(() => { prevEditContentRef.current = editContent; }, [editContent]);
-  useEffect(() => { prevEditInputRef.current = editInput; }, [editInput]);
-  useEffect(() => { prevEditOutputRef.current = editOutput; }, [editOutput]);
-  useEffect(() => { prevEditSkillTypeRef.current = editSkillType; }, [editSkillType]);
-  useEffect(() => { prevEditAllowedToolsRef.current = editAllowedTools; }, [editAllowedTools]);
-  useEffect(() => { prevEditArgumentHintRef.current = editArgumentHint; }, [editArgumentHint]);
-  useEffect(() => { prevEditAgentModelRef.current = editAgentModel; }, [editAgentModel]);
-  useEffect(() => { prevEditAgentToolsRef.current = editAgentTools; }, [editAgentTools]);
-  useEffect(() => { prevEditAgentContentRef.current = editAgentContent; }, [editAgentContent]);
-
-  // propsが変わったら（別ノード選択時）フォーム値をリセット
-  // ノード切り替え時は前の編集値を自動保存してからリセット
-  useEffect(() => {
-    if (prevNodeIdRef.current !== nodeId) {
-      // 前のノードの編集値が変更されていれば自動保存
-      const prevName = prevEditNameRef.current;
-      const prevDesc = prevEditDescriptionRef.current;
-      if (prevName.trim() !== "") {
-        const updateFields: Parameters<typeof onUpdateComponent>[1] = {
-          name: prevName,
-          description: prevDesc,
-          content: prevEditContentRef.current,
-          input: prevEditInputRef.current,
-          output: prevEditOutputRef.current,
-          skillType: prevEditSkillTypeRef.current || (prevSkillTypeRef.current ?? undefined),
-          allowedTools: prevEditAllowedToolsRef.current,
-          argumentHint: prevEditArgumentHintRef.current,
-        };
-        if (prevHasAgentConfigRef.current) {
-          updateFields.agentConfig = {
-            model: prevEditAgentModelRef.current,
-            tools: prevEditAgentToolsRef.current,
-            agentContent: prevEditAgentContentRef.current,
-          };
-        }
-        onUpdateComponent(prevNodeIdRef.current, updateFields);
-      }
-      // refを新しいノードの情報に更新
-      prevNodeIdRef.current = nodeId;
-      prevSkillTypeRef.current = skillType;
-      prevHasAgentConfigRef.current = hasAgentConfig;
-    }
-    setEditName(name);
-    setEditDescription(description ?? "");
-    setEditContent(content ?? "");
-    setEditInput(input ?? "");
-    setEditOutput(output ?? "");
-    setEditSkillType(skillType ?? "");
-    setEditAllowedTools(allowedTools ?? "");
-    setEditArgumentHint(argumentHint ?? "");
-    setEditAgentModel(agentConfig?.model ?? "");
-    setEditAgentTools(agentConfig?.tools ?? "");
-    setEditAgentContent(agentConfig?.agentContent ?? "");
-  }, [nodeId, name, description, content, input, output, nodeType, skillType, allowedTools, argumentHint, hasAgentConfig, agentConfig, onUpdateComponent]);
-
-  const handleSave = () => {
-    // 空文字の名前は保存しない
-    if (editName.trim() === "") return;
-    const updateFields: Parameters<typeof onUpdateComponent>[1] = {
-      name: editName,
-      description: editDescription,
-      content: editContent,
-      input: editInput,
-      output: editOutput,
-      skillType: editSkillType || (skillType ?? undefined),
-      allowedTools: editAllowedTools,
-      argumentHint: editArgumentHint,
-    };
-    if (hasAgentConfig) {
-      updateFields.agentConfig = {
-        model: editAgentModel,
-        tools: editAgentTools,
-        agentContent: editAgentContent,
-      };
-    }
-    onUpdateComponent(nodeId, updateFields);
-  };
-
   // コンポーネント種別に応じたバッジラベル
   const badgeLabel = componentType === "ORCHESTRATOR" ? "ORCHESTRATOR" : "SKILL";
 
-  // AgentConfig編集セクションの表示条件: editSkillTypeで即時反映
+  // AgentConfigセクションの表示条件: WORKER_WITH_SUB_AGENT の場合のみ
   const showAgentConfigSection =
-    componentType === "SKILL" && editSkillType === "WORKER_WITH_SUB_AGENT";
-
-  // skillType変更UIの表示条件: ENTRY_POINTでない場合のみ
-  const showSkillTypeSelect = componentType !== "ORCHESTRATOR";
+    componentType === "SKILL" && skillType === "WORKER_WITH_SUB_AGENT" && hasAgentConfig;
 
   return (
     <div className="side-panel">
@@ -197,175 +55,89 @@ export default function SidePanel({
       </div>
 
       <div className="side-panel-body">
-        {/* 名前フィールド */}
+        {/* 名前 */}
         <div className="form-group">
-          <label htmlFor="side-panel-name">Name</label>
-          <input
-            id="side-panel-name"
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-          />
+          <label>Name</label>
+          <div className="side-panel-readonly">{name}</div>
         </div>
 
-        {/* 説明フィールド */}
+        {/* 説明 */}
         <div className="form-group">
-          <label htmlFor="side-panel-description">Description</label>
-          <textarea
-            id="side-panel-description"
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            rows={3}
-          />
+          <label>Description</label>
+          <div className="side-panel-readonly">{description || "(no description)"}</div>
         </div>
 
-        {/* Allowed Tools フィールド */}
-        <div className="form-group">
-          <label htmlFor="side-panel-allowed-tools">Allowed Tools</label>
-          <textarea
-            id="side-panel-allowed-tools"
-            value={editAllowedTools}
-            onChange={(e) => setEditAllowedTools(e.target.value)}
-            rows={2}
-            placeholder='["Read", "Write", "Grep"]'
-          />
-        </div>
-
-        {/* Argument Hint フィールド（ENTRY_POINTのみ表示） */}
-        {componentType === "ORCHESTRATOR" && (
-          <div className="form-group">
-            <label htmlFor="side-panel-argument-hint">Argument Hint</label>
-            <input
-              id="side-panel-argument-hint"
-              type="text"
-              value={editArgumentHint}
-              onChange={(e) => setEditArgumentHint(e.target.value)}
-              placeholder="e.g. <file-path>"
-            />
-          </div>
-        )}
-
-        {/* 本文フィールド */}
-        <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <label htmlFor="side-panel-content">Content</label>
-          <textarea
-            id="side-panel-content"
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            style={{ flex: 1 }}
-            placeholder="Write content in Markdown..."
-          />
-        </div>
-
-        {/* 入力フィールド */}
-        <div className="form-group">
-          <label htmlFor="side-panel-input">Input</label>
-          <textarea
-            id="side-panel-input"
-            value={editInput}
-            onChange={(e) => setEditInput(e.target.value)}
-            rows={3}
-            placeholder="Describe input..."
-          />
-        </div>
-
-        {/* 出力フィールド */}
-        <div className="form-group">
-          <label htmlFor="side-panel-output">Output</label>
-          <textarea
-            id="side-panel-output"
-            value={editOutput}
-            onChange={(e) => setEditOutput(e.target.value)}
-            rows={3}
-            placeholder="Describe output..."
-          />
-        </div>
-
-        {/* skillTypeオプション（ENTRY_POINTの場合は非表示） */}
-        {showSkillTypeSelect && (
-          <div className="form-group">
-            <label>Options</label>
-            <div className="side-panel-checkboxes">
-              {SKILL_TYPE_OPTIONS.map((opt) => (
-                <label key={opt.flag} className="side-panel-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={editSkillType === opt.skillType}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setEditSkillType(opt.skillType);
-                      } else {
-                        setEditSkillType("WORKER");
-                      }
-                    }}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ENTRY_POINTの場合はskillType読み取り専用表示 */}
-        {!showSkillTypeSelect && skillType && (
+        {/* Skill Type */}
+        {skillType && (
           <div className="form-group">
             <label>Skill Type</label>
             <div className="side-panel-readonly">{skillType}</div>
           </div>
         )}
 
-        {/* AgentConfig編集セクション（WORKER_WITH_SUB_AGENT + agentConfig有りのみ） */}
-        {showAgentConfigSection && (
+        {/* Allowed Tools */}
+        {allowedTools && (
+          <div className="form-group">
+            <label>Allowed Tools</label>
+            <div className="side-panel-readonly">{allowedTools}</div>
+          </div>
+        )}
+
+        {/* Argument Hint（ENTRY_POINTのみ表示） */}
+        {componentType === "ORCHESTRATOR" && argumentHint && (
+          <div className="form-group">
+            <label>Argument Hint</label>
+            <div className="side-panel-readonly">{argumentHint}</div>
+          </div>
+        )}
+
+        {/* 本文 */}
+        <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <label>Content</label>
+          <pre className="side-panel-readonly side-panel-pre">{content || "(no content)"}</pre>
+        </div>
+
+        {/* 入力 */}
+        {input && (
+          <div className="form-group">
+            <label>Input</label>
+            <div className="side-panel-readonly">{input}</div>
+          </div>
+        )}
+
+        {/* 出力 */}
+        {output && (
+          <div className="form-group">
+            <label>Output</label>
+            <div className="side-panel-readonly">{output}</div>
+          </div>
+        )}
+
+        {/* AgentConfig表示セクション（WORKER_WITH_SUB_AGENT + agentConfig有りのみ） */}
+        {showAgentConfigSection && agentConfig && (
           <div className="side-panel-agent-config-section">
             <div className="side-panel-agent-config-header">
               <h4>Agent Config</h4>
             </div>
 
             <div className="form-group">
-              <label htmlFor="side-panel-agent-model">Model</label>
-              <input
-                id="side-panel-agent-model"
-                type="text"
-                value={editAgentModel}
-                onChange={(e) => setEditAgentModel(e.target.value)}
-                placeholder="e.g. sonnet"
-              />
+              <label>Model</label>
+              <div className="side-panel-readonly">{agentConfig.model || "(not set)"}</div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="side-panel-agent-tools">Tools</label>
-              <textarea
-                id="side-panel-agent-tools"
-                value={editAgentTools}
-                onChange={(e) => setEditAgentTools(e.target.value)}
-                rows={2}
-                placeholder='e.g. ["Read", "Grep"]'
-              />
+              <label>Tools</label>
+              <div className="side-panel-readonly">{agentConfig.tools || "(not set)"}</div>
             </div>
 
             <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label htmlFor="side-panel-agent-content">Agent Content</label>
-              <textarea
-                id="side-panel-agent-content"
-                value={editAgentContent}
-                onChange={(e) => setEditAgentContent(e.target.value)}
-                style={{ flex: 1 }}
-                placeholder="Write agent content in Markdown..."
-              />
+              <label>Agent Content</label>
+              <pre className="side-panel-readonly side-panel-pre">
+                {agentConfig.agentContent || "(no content)"}
+              </pre>
             </div>
           </div>
         )}
-
-        {/* 保存ボタン */}
-        <div className="form-actions">
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={handleSave}
-          >
-            Save
-          </button>
-        </div>
       </div>
     </div>
   );
