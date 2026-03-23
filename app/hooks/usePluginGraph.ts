@@ -33,9 +33,9 @@ export function usePluginGraph({
   const rawGraphData = useMemo(
     () =>
       plugin.skills.length > 0
-        ? buildGraphData(plugin.skills, plugin.dependencies)
+        ? buildGraphData(plugin.skills)
         : { nodes: [], edges: [] },
-    [plugin.skills, plugin.dependencies],
+    [plugin.skills],
   );
 
   // ノードデータをそのまま返す（編集系の注入は不要）

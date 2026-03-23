@@ -1,5 +1,4 @@
 import type { GeneratedPlugin, GenerationValidationError } from "./types";
-import type { SkillDependency } from "../types/plugin";
 
 /**
  * バリデーション用のスキルデータ。
@@ -7,6 +6,7 @@ import type { SkillDependency } from "../types/plugin";
 export interface ValidatorSkillData {
   name: string;
   skillType: string;
+  dependencies?: string[];
 }
 
 /**
@@ -17,7 +17,6 @@ export interface ValidatorSkillData {
 export function validateGeneratedPlugin(
   plugin: GeneratedPlugin,
   skills?: ValidatorSkillData[],
-  dependencies?: SkillDependency[],
 ): GenerationValidationError[] {
   const errors: GenerationValidationError[] = [];
 
@@ -50,9 +49,9 @@ export function validateGeneratedPlugin(
   // Check file path uniqueness
   validateFilePathUniqueness(plugin, errors);
 
-  // Check dependency targets (requires skill and dependency data)
-  if (skills && dependencies) {
-    validateDependencyTargets(skills, dependencies, errors);
+  // Check dependency targets (requires skill data with dependencies)
+  if (skills) {
+    validateDependencyTargets(skills, errors);
   }
 
   return errors;
@@ -116,19 +115,22 @@ function validateFilePathUniqueness(
  */
 function validateDependencyTargets(
   skills: ValidatorSkillData[],
-  dependencies: SkillDependency[],
   errors: GenerationValidationError[],
 ): void {
   const skillNames = new Set(skills.map((s) => s.name));
 
-  for (const dep of dependencies) {
-    if (!skillNames.has(dep.target)) {
-      errors.push({
-        severity: "warning",
-        code: "MISSING_DEPENDENCY_TARGET",
-        message: `Skill "${dep.source}" depends on "${dep.target}" which is not in the same plugin`,
-        skillName: dep.source,
-      });
+  for (const skill of skills) {
+    if (skill.dependencies) {
+      for (const target of skill.dependencies) {
+        if (!skillNames.has(target)) {
+          errors.push({
+            severity: "warning",
+            code: "MISSING_DEPENDENCY_TARGET",
+            message: `Skill "${skill.name}" depends on "${target}" which is not in the same plugin`,
+            skillName: skill.name,
+          });
+        }
+      }
     }
   }
 }

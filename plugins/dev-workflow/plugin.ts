@@ -36,37 +36,6 @@ const plugin: PluginDefinition = {
     triageGithubPrCommentsSkill,
     sentryInvestigateSkill,
   ],
-  dependencies: [
-    // dev が呼び出す worker スキル（Linearモード）
-    { source: "dev", target: "linear-triage", order: 1 },
-    { source: "dev", target: "linear-triage-review", order: 2 },
-    { source: "dev", target: "linear-triage-execute", order: 3 },
-    // dev が呼び出す worker スキル（Sentryモード）
-    { source: "dev", target: "sentry-investigate", order: 1 },
-    // dev が呼び出す worker スキル（共通ステップ）
-    { source: "dev", target: "plan-implementation", order: 4 },
-    { source: "dev", target: "implement", order: 5 },
-    { source: "dev", target: "create-pr", order: 6 },
-
-    // dev-lite が呼び出す worker スキル
-    { source: "dev-lite", target: "implement", order: 1 },
-    { source: "dev-lite", target: "create-pr", order: 2 },
-
-    // dev-mentor が呼び出す worker スキル（Linearモード）
-    { source: "dev-mentor", target: "linear-triage", order: 1 },
-    { source: "dev-mentor", target: "linear-triage-review", order: 2 },
-    { source: "dev-mentor", target: "linear-triage-execute", order: 3 },
-    // dev-mentor が呼び出す worker スキル（共通ステップ）
-    { source: "dev-mentor", target: "plan-implementation", order: 4 },
-    { source: "dev-mentor", target: "guide-implementation", order: 5 },
-    { source: "dev-mentor", target: "mentor-session", order: 6 },
-    { source: "dev-mentor", target: "create-pr", order: 7 },
-
-    // linear-manage が呼び出す worker スキル
-    { source: "linear-manage", target: "linear-triage", order: 1 },
-    { source: "linear-manage", target: "linear-triage-review", order: 2 },
-    { source: "linear-manage", target: "linear-triage-execute", order: 3 },
-  ],
 };
 
 export default plugin;

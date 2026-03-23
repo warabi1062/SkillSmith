@@ -17,7 +17,7 @@ export type {
 } from "./skill";
 
 // Plugin 関連
-export type { PluginDefinition, SkillDependency } from "./plugin";
+export type { PluginDefinition } from "./plugin";
 
 // Loader 関連
 export { loadPluginDefinition, loadPluginMeta, loadAllPluginMeta } from "./loader.server";

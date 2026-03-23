@@ -18,6 +18,15 @@ const devMentorSkill = new EntryPointSkill({
     "AskUserQuestion",
     "ToolSearch",
   ],
+  dependencies: [
+    "linear-triage",
+    "linear-triage-review",
+    "linear-triage-execute",
+    "plan-implementation",
+    "guide-implementation",
+    "mentor-session",
+    "create-pr",
+  ],
   content: `# Dev Mentor
 
 \`$ARGUMENTS\` に対して、以下のワークフローを順番に実行する。

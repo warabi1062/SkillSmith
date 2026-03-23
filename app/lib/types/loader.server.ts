@@ -5,7 +5,6 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
 import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile } from "./skill";
-import type { SkillDependency } from "./plugin";
 
 // 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
 interface ImportedSkill {
@@ -18,6 +17,7 @@ interface ImportedSkill {
   allowedTools?: string[];
   argumentHint?: string;
   files?: SupportFile[];
+  dependencies?: string[];
   agentConfig?: AgentConfig;
   agentTeamMembers?: AgentTeamMember[];
 }
@@ -27,7 +27,6 @@ interface ImportedPluginDefinition {
   name: string;
   description?: string;
   skills: ImportedSkill[];
-  dependencies?: { source: string; target: string; order?: number }[];
 }
 
 // ローダーが返す型: SupportFile + 読み込んだ content
@@ -48,6 +47,7 @@ interface LoadedSkillBase {
   allowedTools?: string[];
   argumentHint?: string;
   files: LoadedSupportFile[];
+  dependencies?: string[];
 }
 
 // ENTRY_POINT / WORKER の場合
@@ -78,7 +78,6 @@ export interface LoadedPluginDefinition {
   name: string;
   description?: string;
   skills: LoadedSkillUnion[];
-  dependencies: SkillDependency[];
 }
 
 // プラグイン定義をディレクトリから読み込む
@@ -138,6 +137,7 @@ export async function loadPluginDefinition(
         allowedTools: skill.allowedTools,
         argumentHint: skill.argumentHint,
         files: loadedFiles,
+        dependencies: skill.dependencies,
       };
 
       // skillType に応じた拡張
@@ -168,7 +168,6 @@ export async function loadPluginDefinition(
     name: pluginDef.name,
     description: pluginDef.description,
     skills,
-    dependencies: pluginDef.dependencies ?? [],
   };
 }
 

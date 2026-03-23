@@ -33,7 +33,7 @@ export type SkillType =
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
-  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files"
+  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files" | "dependencies"
 >;
 
 // 基底クラス
@@ -48,6 +48,7 @@ export abstract class Skill {
   allowedTools?: string[];
   argumentHint?: string;
   files?: SupportFile[];
+  dependencies?: string[]; // このスキルが呼び出すスキル名のリスト
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(
@@ -59,6 +60,7 @@ export abstract class Skill {
     if (init.allowedTools !== undefined) this.allowedTools = init.allowedTools;
     if (init.argumentHint !== undefined) this.argumentHint = init.argumentHint;
     if (init.files !== undefined) this.files = init.files;
+    if (init.dependencies !== undefined) this.dependencies = init.dependencies;
   }
 }
 

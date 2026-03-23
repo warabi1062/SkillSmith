@@ -9,7 +9,6 @@ import type {
   GenerationValidationError,
 } from "./types";
 import type { ValidatorSkillData } from "./validator.server";
-import type { SkillDependency } from "../types/plugin";
 import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd, generateAgentTeamMd } from "./agent-generator.server";
@@ -18,7 +17,6 @@ import { generateSupportFiles } from "./file-generator.server";
 export interface GeneratePluginResult {
   plugin: GeneratedPlugin;
   skills: ValidatorSkillData[];
-  dependencies: SkillDependency[];
 }
 
 /**
@@ -49,6 +47,7 @@ export function generatePlugin(
   const validatorSkills: ValidatorSkillData[] = pluginDef.skills.map((s) => ({
     name: s.name,
     skillType: s.skillType,
+    dependencies: s.dependencies,
   }));
 
   return {
@@ -58,7 +57,6 @@ export function generatePlugin(
       validationErrors,
     },
     skills: validatorSkills,
-    dependencies: pluginDef.dependencies,
   };
 }
 

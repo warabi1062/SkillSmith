@@ -18,6 +18,15 @@ const devSkill = new EntryPointSkill({
     "AskUserQuestion",
     "ToolSearch",
   ],
+  dependencies: [
+    "linear-triage",
+    "linear-triage-review",
+    "linear-triage-execute",
+    "sentry-investigate",
+    "plan-implementation",
+    "implement",
+    "create-pr",
+  ],
   content: `# Dev
 
 \`$ARGUMENTS\` に対して、以下のワークフローを順番に実行する。

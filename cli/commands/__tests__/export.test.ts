@@ -69,7 +69,7 @@ describe("export コマンド", () => {
       name: "test-plugin",
       description: "A test plugin",
       skills: [],
-      dependencies: [],
+
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: true,
@@ -145,7 +145,7 @@ describe("export コマンド", () => {
     vi.mocked(loadPluginDefinition).mockResolvedValue({
       name: "test-plugin",
       skills: [],
-      dependencies: [],
+
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: true,
@@ -181,7 +181,7 @@ describe("export コマンド", () => {
     vi.mocked(loadPluginDefinition).mockResolvedValue({
       name: "test-plugin",
       skills: [],
-      dependencies: [],
+
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: true,
@@ -217,7 +217,7 @@ describe("export コマンド", () => {
     vi.mocked(loadPluginDefinition).mockResolvedValue({
       name: "test-plugin",
       skills: [],
-      dependencies: [],
+
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: false,

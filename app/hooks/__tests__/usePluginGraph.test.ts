@@ -6,7 +6,6 @@ import {
   type Plugin,
 } from "../usePluginGraph";
 import type { LoadedSkillUnion } from "../../lib/types/loader.server";
-import type { SkillDependency } from "../../lib/types/plugin";
 
 // --- Mocks ---
 
@@ -37,7 +36,6 @@ function createPlugin(overrides: Partial<Plugin> = {}): Plugin {
     name: "test-plugin",
     description: undefined,
     skills: [],
-    dependencies: [],
     ...overrides,
   };
 }
@@ -75,17 +73,15 @@ describe("usePluginGraph", () => {
   });
 
   describe("graphData construction", () => {
-    it("skills と dependencies で buildGraphData を呼ぶこと", () => {
+    it("skills で buildGraphData を呼ぶこと", () => {
       const skill = createSkill({ name: "my-skill", skillType: "WORKER" });
-      const deps: SkillDependency[] = [];
       const plugin = createPlugin({
         skills: [skill],
-        dependencies: deps,
       });
 
       renderHook(() => usePluginGraph(createDefaultParams({ plugin })));
 
-      expect(mockBuildGraphData).toHaveBeenCalledWith([skill], deps);
+      expect(mockBuildGraphData).toHaveBeenCalledWith([skill]);
     });
 
     it("スキルがない場合は空のnodes/edgesを返すこと", () => {

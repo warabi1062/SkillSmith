@@ -4,7 +4,6 @@ import {
   type ValidatorSkillData,
 } from "../validator.server";
 import type { GeneratedPlugin } from "../types";
-import type { SkillDependency } from "../../types/plugin";
 
 function makePlugin(
   files: { path: string; content: string; skillName?: string }[],
@@ -20,6 +19,7 @@ function makeSkillData(overrides: Partial<ValidatorSkillData> = {}): ValidatorSk
   return {
     name: overrides.name ?? "my-skill",
     skillType: overrides.skillType ?? "WORKER",
+    dependencies: overrides.dependencies,
   };
 }
 
@@ -83,16 +83,13 @@ describe("validateGeneratedPlugin", () => {
 
   it("依存ターゲットが同一プラグイン内にない場合にwarningを返すこと", () => {
     const skills: ValidatorSkillData[] = [
-      makeSkillData({ name: "my-skill" }),
-    ];
-    const dependencies: SkillDependency[] = [
-      { source: "my-skill", target: "external-skill" },
+      makeSkillData({ name: "my-skill", dependencies: ["external-skill"] }),
     ];
     const plugin = makePlugin([
       { path: ".claude-plugin/plugin.json", content: "{}" },
       { path: "skills/my-skill/SKILL.md", content: "# Skill" },
     ]);
-    const errors = validateGeneratedPlugin(plugin, skills, dependencies);
+    const errors = validateGeneratedPlugin(plugin, skills);
     expect(errors.some((e) => e.code === "MISSING_DEPENDENCY_TARGET")).toBe(
       true,
     );
@@ -100,18 +97,15 @@ describe("validateGeneratedPlugin", () => {
 
   it("依存ターゲットが同一プラグイン内にある場合にwarningが返らないこと", () => {
     const skills: ValidatorSkillData[] = [
-      makeSkillData({ name: "my-skill" }),
+      makeSkillData({ name: "my-skill", dependencies: ["other-skill"] }),
       makeSkillData({ name: "other-skill" }),
-    ];
-    const dependencies: SkillDependency[] = [
-      { source: "my-skill", target: "other-skill" },
     ];
     const plugin = makePlugin([
       { path: ".claude-plugin/plugin.json", content: "{}" },
       { path: "skills/my-skill/SKILL.md", content: "# Skill" },
       { path: "skills/other-skill/SKILL.md", content: "# Other" },
     ]);
-    const errors = validateGeneratedPlugin(plugin, skills, dependencies);
+    const errors = validateGeneratedPlugin(plugin, skills);
     expect(errors.some((e) => e.code === "MISSING_DEPENDENCY_TARGET")).toBe(
       false,
     );

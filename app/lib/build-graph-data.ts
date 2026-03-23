@@ -1,21 +1,41 @@
 import dagre from "@dagrejs/dagre";
 import type { Node, Edge } from "@xyflow/react";
 import type { LoadedSkillUnion } from "./types/loader.server";
-import type { SkillDependency } from "./types/plugin";
 import { applyStepOrderPostProcessing } from "./layout-utils";
 
 export const DEFAULT_NODE_WIDTH = 250;
 export const DEFAULT_NODE_HEIGHT = 60;
 
+// スキルの dependencies フィールドからエッジ情報を構築する
+interface SkillEdge {
+  source: string;
+  target: string;
+  order: number;
+}
+
+function buildSkillEdges(skills: LoadedSkillUnion[]): SkillEdge[] {
+  const edges: SkillEdge[] = [];
+  for (const skill of skills) {
+    if (skill.dependencies) {
+      skill.dependencies.forEach((target, index) => {
+        edges.push({ source: skill.name, target, order: index });
+      });
+    }
+  }
+  return edges;
+}
+
 export function buildGraphData(
   skills: LoadedSkillUnion[],
-  dependencies: SkillDependency[],
   nodeSizes?: Map<string, { width: number; height: number }>,
 ): {
   nodes: Node[];
   edges: Edge[];
 } {
   if (skills.length === 0) return { nodes: [], edges: [] };
+
+  // スキルの dependencies フィールドからエッジを構築
+  const skillEdges = buildSkillEdges(skills);
 
   // 循環検出用の隣接リストを構築
   const adjacency = new Map<string, string[]>();
@@ -28,17 +48,17 @@ export function buildGraphData(
 
   const edges: Edge[] = [];
 
-  // 依存関係からエッジを構築
-  for (const dep of dependencies) {
+  // スキルのdependenciesからエッジを構築
+  for (const dep of skillEdges) {
     const sourceSkill = skills.find((s) => s.name === dep.source);
     const isOrchestrator = sourceSkill?.skillType === "ENTRY_POINT";
     const edgeId = `${dep.source}-${dep.target}`;
     const edge: Edge = {
-      id: dep.order !== undefined ? `${edgeId}-${dep.order}` : edgeId,
+      id: `${edgeId}-${dep.order}`,
       source: dep.source,
       target: dep.target,
     };
-    if (isOrchestrator && dep.order !== undefined) {
+    if (isOrchestrator) {
       edge.sourceHandle = `step-${dep.order}`;
     }
     edges.push(edge);
@@ -152,20 +172,19 @@ export function buildGraphData(
       : dagrePositions!.get(skill.name)!;
 
     if (isOrchestrator) {
-      // ステップデータの構築: 依存関係をorder順にグループ化
-      const skillDeps = dependencies.filter((d) => d.source === skill.name);
+      // ステップデータの構築: dependencies 配列のインデックスがorder
+      const skillDeps = skillEdges.filter((d) => d.source === skill.name);
       const orderMap = new Map<
         number,
         Array<{ id: string; targetId: string }>
       >();
       for (const dep of skillDeps) {
-        const order = dep.order ?? 0;
-        if (!orderMap.has(order)) {
-          orderMap.set(order, []);
+        if (!orderMap.has(dep.order)) {
+          orderMap.set(dep.order, []);
         }
         const edgeId = `${dep.source}-${dep.target}`;
-        orderMap.get(order)!.push({
-          id: dep.order !== undefined ? `${edgeId}-${dep.order}` : edgeId,
+        orderMap.get(dep.order)!.push({
+          id: `${edgeId}-${dep.order}`,
           targetId: dep.target,
         });
       }

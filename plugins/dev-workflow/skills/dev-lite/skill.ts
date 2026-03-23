@@ -18,6 +18,7 @@ const devLiteSkill = new EntryPointSkill({
     "AskUserQuestion",
     "ToolSearch",
   ],
+  dependencies: ["implement", "create-pr"],
   content: `# Dev Lite
 
 \`$ARGUMENTS\` に対して、以下の簡易ワークフローを実行する。

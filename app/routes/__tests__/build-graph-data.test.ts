@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildGraphData, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from "../../lib/build-graph-data";
 import type { LoadedSkillUnion } from "../../lib/types/loader.server";
-import type { SkillDependency } from "../../lib/types/plugin";
 
 // LoadedSkillUnion ファクトリ
 function makeSkill(overrides: Partial<LoadedSkillUnion> & { name: string; skillType: string }): LoadedSkillUnion {
@@ -15,14 +14,11 @@ function makeSkill(overrides: Partial<LoadedSkillUnion> & { name: string; skillT
 describe("buildGraphData", () => {
   it("ENTRY_POINTノードにtype: 'orchestrator'が設定されること", () => {
     const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
+      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["implement"] }),
       makeSkill({ skillType: "WORKER", name: "implement" }),
     ];
-    const deps: SkillDependency[] = [
-      { source: "dev", target: "implement", order: 0 },
-    ];
 
-    const { nodes } = buildGraphData(skills, deps);
+    const { nodes } = buildGraphData(skills);
     const orchNode = nodes.find((n) => n.id === "dev");
 
     expect(orchNode).toBeDefined();
@@ -31,18 +27,13 @@ describe("buildGraphData", () => {
 
   it("stepsがorder順にソートされること", () => {
     const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
+      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w1", "w2", "w3"] }),
       makeSkill({ skillType: "WORKER", name: "w1" }),
       makeSkill({ skillType: "WORKER", name: "w2" }),
       makeSkill({ skillType: "WORKER", name: "w3" }),
     ];
-    const deps: SkillDependency[] = [
-      { source: "dev", target: "w1", order: 2 },
-      { source: "dev", target: "w2", order: 0 },
-      { source: "dev", target: "w3", order: 1 },
-    ];
 
-    const { nodes } = buildGraphData(skills, deps);
+    const { nodes } = buildGraphData(skills);
     const orchNode = nodes.find((n) => n.id === "dev");
     const steps = orchNode!.data.steps as Array<{ order: number }>;
 
@@ -52,42 +43,12 @@ describe("buildGraphData", () => {
     expect(steps[2].order).toBe(2);
   });
 
-  it("同一orderの複数依存関係が正しくグルーピングされること", () => {
-    const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
-      makeSkill({ skillType: "WORKER", name: "w1" }),
-      makeSkill({ skillType: "WORKER", name: "w2" }),
-      makeSkill({ skillType: "WORKER", name: "w3" }),
-    ];
-    const deps: SkillDependency[] = [
-      { source: "dev", target: "w1", order: 0 },
-      { source: "dev", target: "w2", order: 0 },
-      { source: "dev", target: "w3", order: 0 },
-    ];
-
-    const { nodes, edges } = buildGraphData(skills, deps);
-    const orchNode = nodes.find((n) => n.id === "dev");
-    const steps = orchNode!.data.steps as Array<{
-      order: number;
-      dependencies: Array<{ id: string; targetId: string }>;
-    }>;
-
-    expect(steps).toHaveLength(1);
-    expect(steps[0].order).toBe(0);
-    expect(steps[0].dependencies).toHaveLength(3);
-
-    const orchEdges = edges.filter((e) => e.source === "dev");
-    for (const edge of orchEdges) {
-      expect(edge.sourceHandle).toBe("step-0");
-    }
-  });
-
   it("SKILLノード(WORKER)にtype:'skill'が設定されること", () => {
     const skills: LoadedSkillUnion[] = [
       makeSkill({ skillType: "WORKER", name: "implement" }),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const workerNode = nodes.find((n) => n.id === "implement");
 
     expect(workerNode).toBeDefined();
@@ -103,7 +64,7 @@ describe("buildGraphData", () => {
       } as any),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const workerNode = nodes.find((n) => n.id === "implement");
 
     expect(workerNode).toBeDefined();
@@ -116,7 +77,7 @@ describe("buildGraphData", () => {
       makeSkill({ skillType: "WORKER", name: "implement" }),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const workerNode = nodes.find((n) => n.id === "implement");
 
     expect(workerNode!.data.hasAgentConfig).toBe(false);
@@ -127,59 +88,35 @@ describe("buildGraphData", () => {
       makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const orchNode = nodes.find((n) => n.id === "dev");
 
     expect(orchNode).toBeDefined();
     expect(orchNode!.style).toBeUndefined();
   });
 
-  it("order値にギャップがある場合でもstepsが正しい順序で生成されること", () => {
+  it("依存関係の順序でstepsが正しく生成されること", () => {
     const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
+      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w2", "w3", "w1"] }),
       makeSkill({ skillType: "WORKER", name: "w1" }),
       makeSkill({ skillType: "WORKER", name: "w2" }),
       makeSkill({ skillType: "WORKER", name: "w3" }),
     ];
-    const deps: SkillDependency[] = [
-      { source: "dev", target: "w1", order: 5 },
-      { source: "dev", target: "w2", order: 0 },
-      { source: "dev", target: "w3", order: 2 },
-    ];
 
-    const { nodes } = buildGraphData(skills, deps);
-    const orchNode = nodes.find((n) => n.id === "dev");
-    const steps = orchNode!.data.steps as Array<{ order: number }>;
-
-    expect(steps).toHaveLength(3);
-    expect(steps[0].order).toBe(0);
-    expect(steps[1].order).toBe(2);
-    expect(steps[2].order).toBe(5);
-  });
-
-  it("並び替え後のorder値(スワップ済み)でstepsが正しく生成されること", () => {
-    const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
-      makeSkill({ skillType: "WORKER", name: "w1" }),
-      makeSkill({ skillType: "WORKER", name: "w2" }),
-    ];
-    const deps: SkillDependency[] = [
-      { source: "dev", target: "w1", order: 1 },
-      { source: "dev", target: "w2", order: 0 },
-    ];
-
-    const { nodes } = buildGraphData(skills, deps);
+    const { nodes } = buildGraphData(skills);
     const orchNode = nodes.find((n) => n.id === "dev");
     const steps = orchNode!.data.steps as Array<{
       order: number;
       dependencies: Array<{ id: string; targetId: string }>;
     }>;
 
-    expect(steps).toHaveLength(2);
+    expect(steps).toHaveLength(3);
     expect(steps[0].order).toBe(0);
     expect(steps[0].dependencies[0].targetId).toBe("w2");
     expect(steps[1].order).toBe(1);
-    expect(steps[1].dependencies[0].targetId).toBe("w1");
+    expect(steps[1].dependencies[0].targetId).toBe("w3");
+    expect(steps[2].order).toBe(2);
+    expect(steps[2].dependencies[0].targetId).toBe("w1");
   });
 
   it("Skillノードにstyleが設定されないこと", () => {
@@ -187,7 +124,7 @@ describe("buildGraphData", () => {
       makeSkill({ skillType: "WORKER", name: "implement" }),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const workerNode = nodes.find((n) => n.id === "implement");
 
     expect(workerNode!.style).toBeUndefined();
@@ -198,7 +135,7 @@ describe("buildGraphData", () => {
       makeSkill({ skillType: "WORKER", name: "implement", description: "Implement code" }),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const workerNode = nodes.find((n) => n.id === "implement");
 
     expect(workerNode!.data).toMatchObject({
@@ -214,7 +151,7 @@ describe("buildGraphData", () => {
       makeSkill({ skillType: "WORKER", name: "implement" }),
     ];
 
-    const { nodes, edges } = buildGraphData(skills, []);
+    const { nodes, edges } = buildGraphData(skills);
     expect(nodes).toHaveLength(1);
     expect(edges).toHaveLength(0);
   });
@@ -224,7 +161,7 @@ describe("buildGraphData", () => {
       makeSkill({ skillType: "ENTRY_POINT", name: "dev", description: "Orchestrator desc" }),
     ];
 
-    const { nodes } = buildGraphData(skills, []);
+    const { nodes } = buildGraphData(skills);
     const orchNode = nodes.find((n) => n.id === "dev");
 
     expect(orchNode!.data.description).toBe("Orchestrator desc");
@@ -234,18 +171,15 @@ describe("buildGraphData", () => {
   describe("dagre layout", () => {
     it("nodeSizes引数を渡した場合にレイアウトが計算されること", () => {
       const skills: LoadedSkillUnion[] = [
-        makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
+        makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["implement"] }),
         makeSkill({ skillType: "WORKER", name: "implement" }),
-      ];
-      const deps: SkillDependency[] = [
-        { source: "dev", target: "implement", order: 0 },
       ];
 
       const nodeSizes = new Map<string, { width: number; height: number }>();
       nodeSizes.set("dev", { width: 300, height: 120 });
       nodeSizes.set("implement", { width: 200, height: 80 });
 
-      const { nodes } = buildGraphData(skills, deps, nodeSizes);
+      const { nodes } = buildGraphData(skills, nodeSizes);
       const orchNode = nodes.find((n) => n.id === "dev");
       const workerNode = nodes.find((n) => n.id === "implement");
 
@@ -260,7 +194,7 @@ describe("buildGraphData", () => {
         makeSkill({ skillType: "WORKER", name: "w2" }),
       ];
 
-      const { nodes } = buildGraphData(skills, []);
+      const { nodes } = buildGraphData(skills);
       expect(nodes).toHaveLength(2);
       expect(nodes[0].position).toBeDefined();
       expect(nodes[1].position).toBeDefined();
@@ -270,14 +204,11 @@ describe("buildGraphData", () => {
 
     it("エッジで接続されたノードのソースがターゲットより上に配置されること", () => {
       const skills: LoadedSkillUnion[] = [
-        makeSkill({ skillType: "ENTRY_POINT", name: "dev" }),
+        makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["worker"] }),
         makeSkill({ skillType: "WORKER", name: "worker" }),
       ];
-      const deps: SkillDependency[] = [
-        { source: "dev", target: "worker", order: 0 },
-      ];
 
-      const { nodes } = buildGraphData(skills, deps);
+      const { nodes } = buildGraphData(skills);
       const sourceNode = nodes.find((n) => n.id === "dev")!;
       const targetNode = nodes.find((n) => n.id === "worker")!;
 
@@ -286,17 +217,12 @@ describe("buildGraphData", () => {
 
     it("サイクルがある場合にグリッドフォールバックが維持されること", () => {
       const skills: LoadedSkillUnion[] = [
-        makeSkill({ skillType: "WORKER", name: "A" }),
-        makeSkill({ skillType: "WORKER", name: "B" }),
-        makeSkill({ skillType: "WORKER", name: "C" }),
-      ];
-      const deps: SkillDependency[] = [
-        { source: "A", target: "B" },
-        { source: "B", target: "C" },
-        { source: "C", target: "A" },
+        makeSkill({ skillType: "WORKER", name: "A", dependencies: ["B"] }),
+        makeSkill({ skillType: "WORKER", name: "B", dependencies: ["C"] }),
+        makeSkill({ skillType: "WORKER", name: "C", dependencies: ["A"] }),
       ];
 
-      const { nodes } = buildGraphData(skills, deps);
+      const { nodes } = buildGraphData(skills);
       expect(nodes).toHaveLength(3);
       expect(nodes[0].position).toEqual({ x: 0, y: 0 });
     });

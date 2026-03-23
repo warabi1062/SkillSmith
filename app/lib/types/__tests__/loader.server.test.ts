@@ -51,15 +51,13 @@ describe("loadPluginDefinition", () => {
               description: "挨拶スキル",
               input: "名前",
               output: "メッセージ",
+              dependencies: ["worker-a"],
             },
             {
               skillType: "WORKER",
               name: "worker-a",
               content: "# Worker A",
             },
-          ],
-          dependencies: [
-            { source: "greet", target: "worker-a", order: 0 },
           ],
         };
         export default plugin;
@@ -77,17 +75,11 @@ describe("loadPluginDefinition", () => {
     expect(greet!.skillType).toBe("ENTRY_POINT");
     expect(greet!.content).toBe("# Greet");
     expect(greet!.description).toBe("挨拶スキル");
+    expect(greet!.dependencies).toEqual(["worker-a"]);
 
     const worker = result.skills.find((s) => s.name === "worker-a");
     expect(worker).toBeDefined();
     expect(worker!.skillType).toBe("WORKER");
-
-    expect(result.dependencies).toHaveLength(1);
-    expect(result.dependencies[0]).toEqual({
-      source: "greet",
-      target: "worker-a",
-      order: 0,
-    });
   });
 
   it("SupportFile の content を読み込むこと", async () => {
@@ -105,7 +97,7 @@ describe("loadPluginDefinition", () => {
               ],
             },
           ],
-          dependencies: [],
+
         };
         export default plugin;
       `,
@@ -153,7 +145,7 @@ describe("loadPluginDefinition", () => {
               ],
             },
           ],
-          dependencies: [],
+
         };
         export default plugin;
       `,
@@ -181,7 +173,7 @@ describe("loadPluginDefinition", () => {
               },
             },
           ],
-          dependencies: [],
+
         };
         export default plugin;
       `,
@@ -215,7 +207,7 @@ describe("loadPluginDefinition", () => {
               ],
             },
           ],
-          dependencies: [],
+
         };
         export default plugin;
       `,

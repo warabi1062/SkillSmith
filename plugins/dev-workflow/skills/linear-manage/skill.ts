@@ -20,6 +20,7 @@ const linearManageSkill = new EntryPointSkill({
     "mcp__plugin_linear_linear__list_issue_labels",
     "mcp__plugin_linear_linear__list_projects",
   ],
+  dependencies: ["linear-triage", "linear-triage-review", "linear-triage-execute"],
   files: [
     { role: "TEMPLATE", filename: "templates/bug.md", sortOrder: 1 },
     { role: "TEMPLATE", filename: "templates/feature.md", sortOrder: 2 },

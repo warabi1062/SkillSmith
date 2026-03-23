@@ -8,6 +8,7 @@ const greetSkill = new EntryPointSkill({
   input: "ユーザー名（任意）",
   output: "挨拶メッセージ",
   argumentHint: "<name>",
+  dependencies: ["fetch-data"],
   files: [
     { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
   ],
