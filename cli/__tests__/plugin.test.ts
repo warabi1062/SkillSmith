@@ -109,6 +109,38 @@ describe("plugin コマンド", () => {
       expect(output).toContain("Plugin B");
     });
 
+    it("テーブル出力がカラム整列されている", async () => {
+      // Arrange
+      mockGetPlugins.mockResolvedValue([
+        {
+          id: "short",
+          name: "A",
+          updatedAt: new Date("2025-01-01T00:00:00Z"),
+          _count: { components: 3 },
+        },
+        {
+          id: "longer-id",
+          name: "Longer Name",
+          updatedAt: new Date("2025-01-02T00:00:00Z"),
+          _count: { components: 0 },
+        },
+      ]);
+      const ctx = createCtx({ action: "list" });
+
+      // Act
+      const exitCode = await handleList(ctx);
+
+      // Assert
+      expect(exitCode).toBe(0);
+      const output = streams.stdoutData.join("");
+      const lines = output.trim().split("\n");
+      // ヘッダーとデータ行のカラム位置が揃っている（タブ区切りではなくスペース区切り）
+      expect(lines[0]).not.toContain("\t");
+      // ID カラム幅が最長の "longer-id" に合わせて padEnd されている
+      expect(lines[1]).toMatch(/^short\s{4,}/);
+      expect(lines[2]).toMatch(/^longer-id\s{2}/);
+    });
+
     it("プラグインが存在しない場合メッセージを表示する", async () => {
       // Arrange
       mockGetPlugins.mockResolvedValue([]);
@@ -246,6 +278,26 @@ describe("plugin コマンド", () => {
       expect(exitCode).toBe(1);
       const output = streams.stderrData.join("");
       expect(output).toContain("Plugin not found: nonexistent");
+    });
+
+    it("未知オプションが混在しても positional から ID を取得する", async () => {
+      // Arrange
+      mockGetPlugin.mockResolvedValue({
+        id: "p1",
+        name: "Plugin A",
+        description: null,
+        createdAt: new Date("2025-01-01T00:00:00Z"),
+        updatedAt: new Date("2025-01-02T00:00:00Z"),
+        components: [],
+      });
+      const ctx = createCtx({ action: "show", args: ["p1", "--unknown", "val"] });
+
+      // Act
+      const exitCode = await handleShow(ctx);
+
+      // Assert
+      expect(exitCode).toBe(0);
+      expect(mockGetPlugin).toHaveBeenCalledWith("p1");
     });
 
     it("--json で JSON 出力する", async () => {
@@ -503,6 +555,25 @@ describe("plugin コマンド", () => {
       expect(mockDeletePlugin).toHaveBeenCalledWith("p1");
       const output = streams.stdoutData.join("");
       expect(output).toContain("Deleted plugin: Deleted Plugin (p1)");
+    });
+
+    it("未知オプションが混在しても positional から ID を取得する", async () => {
+      // Arrange
+      mockDeletePlugin.mockResolvedValue({
+        id: "p1",
+        name: "Deleted Plugin",
+      });
+      const ctx = createCtx({
+        action: "delete",
+        args: ["p1", "--unknown", "val"],
+      });
+
+      // Act
+      const exitCode = await handleDelete(ctx);
+
+      // Assert
+      expect(exitCode).toBe(0);
+      expect(mockDeletePlugin).toHaveBeenCalledWith("p1");
     });
 
     it("ID 未指定でエラーを返す", async () => {

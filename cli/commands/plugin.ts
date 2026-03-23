@@ -36,6 +36,15 @@ function parseCommandArgs(
   };
 }
 
+// Prisma P2025（レコード未発見）エラーかどうかを判定するヘルパー
+function isPrismaNotFoundError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error as { code: string }).code === "P2025"
+  );
+}
+
 // plugin list: プラグイン一覧を表示する
 export async function handleList(ctx: CommandContext): Promise<number> {
   const out = createOutput(ctx.options, outputStreams);
@@ -53,11 +62,14 @@ export async function handleList(ctx: CommandContext): Promise<number> {
       return 0;
     }
 
-    // テーブル形式で出力
-    const header = "ID\tName\tComponents\tUpdatedAt";
+    // テーブル形式で出力（padEnd で固定幅カラム整列）
+    const idWidth = Math.max("ID".length, ...plugins.map((p) => p.id.length));
+    const nameWidth = Math.max("Name".length, ...plugins.map((p) => p.name.length));
+    const compWidth = "Components".length;
+    const header = `${"ID".padEnd(idWidth)}  ${"Name".padEnd(nameWidth)}  ${"Components".padEnd(compWidth)}  UpdatedAt`;
     const rows = plugins.map(
       (p) =>
-        `${p.id}\t${p.name}\t${p._count.components}\t${p.updatedAt.toISOString()}`,
+        `${p.id.padEnd(idWidth)}  ${p.name.padEnd(nameWidth)}  ${String(p._count.components).padEnd(compWidth)}  ${p.updatedAt.toISOString()}`,
     );
     out.success([header, ...rows].join("\n"));
     return 0;
@@ -72,7 +84,8 @@ export async function handleList(ctx: CommandContext): Promise<number> {
 // plugin show: プラグイン詳細を表示する
 export async function handleShow(ctx: CommandContext): Promise<number> {
   const out = createOutput(ctx.options, outputStreams);
-  const id = ctx.args[0];
+  const { positionals } = parseCommandArgs(ctx.args, {});
+  const id = positionals[0];
 
   if (!id) {
     out.error("Plugin ID is required. Usage: skillsmith plugin show <id>");
@@ -197,12 +210,7 @@ export async function handleUpdate(ctx: CommandContext): Promise<number> {
     out.success(`Updated plugin: ${plugin.name} (${plugin.id})`);
     return 0;
   } catch (error) {
-    // Prisma P2025: レコードが見つからない
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      (error as { code: string }).code === "P2025"
-    ) {
+    if (isPrismaNotFoundError(error)) {
       out.error(`Plugin not found: ${id}`);
       return 1;
     }
@@ -216,7 +224,8 @@ export async function handleUpdate(ctx: CommandContext): Promise<number> {
 // plugin delete: プラグインを削除する
 export async function handleDelete(ctx: CommandContext): Promise<number> {
   const out = createOutput(ctx.options, outputStreams);
-  const id = ctx.args[0];
+  const { positionals } = parseCommandArgs(ctx.args, {});
+  const id = positionals[0];
 
   if (!id) {
     out.error("Plugin ID is required. Usage: skillsmith plugin delete <id>");
@@ -234,12 +243,7 @@ export async function handleDelete(ctx: CommandContext): Promise<number> {
     out.success(`Deleted plugin: ${plugin.name} (${plugin.id})`);
     return 0;
   } catch (error) {
-    // Prisma P2025: レコードが見つからない
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      (error as { code: string }).code === "P2025"
-    ) {
+    if (isPrismaNotFoundError(error)) {
       out.error(`Plugin not found: ${id}`);
       return 1;
     }
