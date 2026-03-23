@@ -20,9 +20,13 @@ export type {
 export type { PluginDefinition, SkillDependency } from "./plugin";
 
 // Loader 関連
-export { loadPluginDefinition } from "./loader.server";
+export { loadPluginDefinition, loadPluginMeta, loadAllPluginMeta } from "./loader.server";
 export type {
   LoadedSupportFile,
   LoadedSkill,
+  LoadedWorkerWithSubAgentSkill,
+  LoadedWorkerWithAgentTeamSkill,
+  LoadedSkillUnion,
   LoadedPluginDefinition,
+  PluginMeta,
 } from "./loader.server";
