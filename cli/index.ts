@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 import { registerComponentCommands } from "./commands/component";
+import { registerDependencyCommands } from "./commands/dependency";
+import { registerFileCommands } from "./commands/file";
 import { registerPluginCommands } from "./commands/plugin";
+import { registerTeamCommands } from "./commands/team";
 import { route } from "./router";
 
 // CLI エントリーポイント
@@ -10,6 +13,9 @@ async function main(): Promise<void> {
     // コマンド登録
     registerPluginCommands();
     registerComponentCommands();
+    registerFileCommands();
+    registerDependencyCommands();
+    registerTeamCommands();
 
     // process.argv の先頭 2 要素（node パスとスクリプトパス）を除外
     const exitCode = await route(process.argv.slice(2));
