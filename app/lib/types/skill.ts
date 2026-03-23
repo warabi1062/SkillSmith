@@ -48,7 +48,7 @@ export abstract class Skill {
   allowedTools?: string[];
   argumentHint?: string;
   files?: SupportFile[];
-  dependencies?: string[]; // このスキルが呼び出すスキル名のリスト
+  dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(
