@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   validateGeneratedPlugin,
-  type ValidatorComponentData,
+  type ValidatorSkillData,
 } from "../validator.server";
 import type { GeneratedPlugin } from "../types";
+import type { SkillDependency } from "../../types/plugin";
 
 function makePlugin(
-  files: { path: string; content: string; componentId?: string }[],
+  files: { path: string; content: string; skillName?: string }[],
 ): GeneratedPlugin {
   return {
     pluginName: "test-plugin",
@@ -15,12 +16,10 @@ function makePlugin(
   };
 }
 
-function makeComponent(overrides: Partial<ValidatorComponentData> = {}): ValidatorComponentData {
+function makeSkillData(overrides: Partial<ValidatorSkillData> = {}): ValidatorSkillData {
   return {
-    id: overrides.id ?? "comp-1",
-    type: "SKILL",
-    skillConfig: overrides.skillConfig ?? { name: "my-skill", skillType: "WORKER" },
-    dependenciesFrom: overrides.dependenciesFrom ?? [],
+    name: overrides.name ?? "my-skill",
+    skillType: overrides.skillType ?? "WORKER",
   };
 }
 
@@ -44,12 +43,12 @@ describe("validateGeneratedPlugin", () => {
     );
   });
 
-  it("コンポーネントがない場合にエラーを返すこと", () => {
+  it("スキルがない場合にエラーを返すこと", () => {
     const plugin = makePlugin([
       { path: ".claude-plugin/plugin.json", content: "{}" },
     ]);
-    const components: ValidatorComponentData[] = [];
-    const errors = validateGeneratedPlugin(plugin, components);
+    const skills: ValidatorSkillData[] = [];
+    const errors = validateGeneratedPlugin(plugin, skills);
     expect(errors.some((e) => e.code === "EMPTY_PLUGIN")).toBe(true);
   });
 
@@ -83,27 +82,38 @@ describe("validateGeneratedPlugin", () => {
   });
 
   it("依存ターゲットが同一プラグイン内にない場合にwarningを返すこと", () => {
-    const components: ValidatorComponentData[] = [
-      makeComponent({
-        id: "comp-1",
-        dependenciesFrom: [
-          {
-            target: {
-              id: "comp-external",
-              type: "SKILL",
-              skillConfig: { name: "ext", skillType: "WORKER" },
-            },
-          },
-        ],
-      }),
+    const skills: ValidatorSkillData[] = [
+      makeSkillData({ name: "my-skill" }),
+    ];
+    const dependencies: SkillDependency[] = [
+      { source: "my-skill", target: "external-skill" },
     ];
     const plugin = makePlugin([
       { path: ".claude-plugin/plugin.json", content: "{}" },
       { path: "skills/my-skill/SKILL.md", content: "# Skill" },
     ]);
-    const errors = validateGeneratedPlugin(plugin, components);
+    const errors = validateGeneratedPlugin(plugin, skills, dependencies);
     expect(errors.some((e) => e.code === "MISSING_DEPENDENCY_TARGET")).toBe(
       true,
+    );
+  });
+
+  it("依存ターゲットが同一プラグイン内にある場合にwarningが返らないこと", () => {
+    const skills: ValidatorSkillData[] = [
+      makeSkillData({ name: "my-skill" }),
+      makeSkillData({ name: "other-skill" }),
+    ];
+    const dependencies: SkillDependency[] = [
+      { source: "my-skill", target: "other-skill" },
+    ];
+    const plugin = makePlugin([
+      { path: ".claude-plugin/plugin.json", content: "{}" },
+      { path: "skills/my-skill/SKILL.md", content: "# Skill" },
+      { path: "skills/other-skill/SKILL.md", content: "# Other" },
+    ]);
+    const errors = validateGeneratedPlugin(plugin, skills, dependencies);
+    expect(errors.some((e) => e.code === "MISSING_DEPENDENCY_TARGET")).toBe(
+      false,
     );
   });
 });

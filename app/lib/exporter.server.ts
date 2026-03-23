@@ -8,6 +8,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
+import type { LoadedPluginDefinition } from "./types/loader.server";
 import { generatePlugin } from "./generator/index";
 import { isWithinDirectory } from "./path-validation.server";
 
@@ -25,7 +26,7 @@ export interface ExportResult {
 }
 
 export async function exportPlugin(
-  pluginId: string,
+  plugin: LoadedPluginDefinition,
   options: ExportOptions,
 ): Promise<ExportResult> {
   const result: ExportResult = {
@@ -36,13 +37,10 @@ export async function exportPlugin(
     errors: [],
   };
 
-  const generateResult = await generatePlugin(pluginId);
-  if (!generateResult) {
-    result.errors.push("Plugin not found");
-    return result;
-  }
+  // generatePlugin は同期関数
+  const generateResult = generatePlugin(plugin);
 
-  const { plugin } = generateResult;
+  const { plugin: generatedPlugin } = generateResult;
   const resolvedTargetDir = path.resolve(options.targetDir);
 
   // Create a temporary directory to stage all writes
@@ -50,7 +48,7 @@ export async function exportPlugin(
 
   try {
     // Phase 1: Write all files to the temporary directory
-    for (const file of plugin.files) {
+    for (const file of generatedPlugin.files) {
       const targetFilePath = path.resolve(resolvedTargetDir, file.path);
 
       // Path traversal check

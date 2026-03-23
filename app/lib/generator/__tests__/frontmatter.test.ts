@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  serializeFrontmatter,
-  parseJsonArrayField,
-} from "../frontmatter.server";
+import { serializeFrontmatter } from "../frontmatter.server";
 
 describe("serializeFrontmatter", () => {
   it("returns empty frontmatter when all values are null/undefined", () => {
@@ -109,52 +106,3 @@ describe("serializeFrontmatter", () => {
     expect(result).toBe("---\nname: my-skill-123\n---");
   });
 });
-
-describe("parseJsonArrayField", () => {
-  it("returns null for null input", () => {
-    const { parsed, error } = parseJsonArrayField(null, "tools");
-    expect(parsed).toBeNull();
-    expect(error).toBeNull();
-  });
-
-  it("returns null for undefined input", () => {
-    const { parsed, error } = parseJsonArrayField(undefined, "tools");
-    expect(parsed).toBeNull();
-    expect(error).toBeNull();
-  });
-
-  it("parses a valid JSON array", () => {
-    const { parsed, error } = parseJsonArrayField(
-      '["Read", "Write"]',
-      "tools",
-    );
-    expect(parsed).toEqual(["Read", "Write"]);
-    expect(error).toBeNull();
-  });
-
-  it("converts non-string array elements to strings", () => {
-    const { parsed, error } = parseJsonArrayField("[1, 2, 3]", "tools");
-    expect(parsed).toEqual(["1", "2", "3"]);
-    expect(error).toBeNull();
-  });
-
-  it("returns error for non-array JSON", () => {
-    const { parsed, error } = parseJsonArrayField('{"key": "value"}', "tools");
-    expect(parsed).toBeNull();
-    expect(error).not.toBeNull();
-    expect(error!.code).toBe("JSON_PARSE_FAILED");
-  });
-
-  it("returns error for invalid JSON", () => {
-    const { parsed, error } = parseJsonArrayField("not json", "tools");
-    expect(parsed).toBeNull();
-    expect(error).not.toBeNull();
-    expect(error!.code).toBe("JSON_PARSE_FAILED");
-  });
-
-  it("includes componentId in error when provided", () => {
-    const { error } = parseJsonArrayField("bad", "tools", "comp-1");
-    expect(error!.componentId).toBe("comp-1");
-  });
-});
-

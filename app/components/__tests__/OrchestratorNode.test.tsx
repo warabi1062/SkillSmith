@@ -34,10 +34,6 @@ function renderOrchestratorNode(
       order: number;
       dependencies: Array<{ id: string; targetId: string }>;
     }>;
-    onReorderStep: (dependencyId: string, direction: "up" | "down") => void;
-    onDeleteStep: (dependencyIds: string[]) => void;
-    componentId: string;
-    pluginId: string;
     skillType: string | null;
   }> = {},
 ) {
@@ -45,13 +41,11 @@ function renderOrchestratorNode(
     label: "test-orchestrator",
     description: "A test orchestrator",
     steps: [],
-    componentId: "comp-1",
-    pluginId: "plugin-1",
     skillType: "ENTRY_POINT",
     ...overrides,
   };
   const nodeProps = {
-    id: "comp-1",
+    id: "orch-1",
     data,
     type: "orchestrator",
     selected: false,
@@ -68,27 +62,27 @@ function renderOrchestratorNode(
 }
 
 describe("OrchestratorNode", () => {
-  it("labelをテキスト表示する", () => {
+  it("labelをテキスト表示すること", () => {
     renderOrchestratorNode({ label: "my-orchestrator" });
     expect(screen.getByText("my-orchestrator")).toBeTruthy();
   });
 
-  it("descriptionをテキスト表示する", () => {
+  it("descriptionをテキスト表示すること", () => {
     renderOrchestratorNode({ description: "Orchestrator description" });
     expect(screen.getByText("Orchestrator description")).toBeTruthy();
   });
 
-  it("descriptionがnullの場合はプレースホルダを表示する", () => {
+  it("descriptionがnullの場合はプレースホルダを表示すること", () => {
     renderOrchestratorNode({ description: null });
     expect(screen.getByText("(no description)")).toBeTruthy();
   });
 
-  it("InlineEditableFieldが存在しない（inputやtextareaがない）", () => {
+  it("input/textareaが存在しないこと（read-only）", () => {
     renderOrchestratorNode();
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 
-  it("stepsを表示する", () => {
+  it("stepsをread-onlyで表示すること", () => {
     renderOrchestratorNode({
       steps: [
         { order: 0, dependencies: [{ id: "dep-1", targetId: "comp-2" }] },
@@ -99,8 +93,35 @@ describe("OrchestratorNode", () => {
     expect(screen.getByText("Step 2")).toBeTruthy();
   });
 
-  it("+ Stepボタンが表示される", () => {
+  it("複数依存関係のあるステップにカウントが表示されること", () => {
+    renderOrchestratorNode({
+      steps: [
+        {
+          order: 0,
+          dependencies: [
+            { id: "dep-1", targetId: "comp-2" },
+            { id: "dep-2", targetId: "comp-3" },
+          ],
+        },
+      ],
+    });
+    expect(screen.getByText("Step 1 (x2)")).toBeTruthy();
+  });
+
+  it("+ Stepボタンが存在しないこと（read-only）", () => {
     renderOrchestratorNode();
-    expect(screen.getByText("+ Step")).toBeTruthy();
+    expect(screen.queryByText("+ Step")).toBeNull();
+  });
+
+  it("並べ替え・削除ボタンが存在しないこと（read-only）", () => {
+    renderOrchestratorNode({
+      steps: [
+        { order: 0, dependencies: [{ id: "dep-1", targetId: "comp-2" }] },
+      ],
+    });
+    // 上下移動ボタンや削除ボタンが存在しないことを確認
+    expect(screen.queryByTitle("Move up")).toBeNull();
+    expect(screen.queryByTitle("Move down")).toBeNull();
+    expect(screen.queryByTitle("Delete step")).toBeNull();
   });
 });

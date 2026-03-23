@@ -14,5 +14,5 @@
     "noEmit": true,
     "rootDirs": [".", "./.react-router/types"]
   },
-  "include": [".react-router/types/**/*", "app/**/*", "cli/**/*"]
+  "include": [".react-router/types/**/*", "app/**/*", "cli/**/*", "plugins/**/*"]
 }

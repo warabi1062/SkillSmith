@@ -7,8 +7,6 @@ interface SkillNodeData {
   componentType: "SKILL";
   skillType: string | null;
   hasAgentConfig: boolean;
-  componentId: string;
-  pluginId: string;
   [key: string]: unknown;
 }
 

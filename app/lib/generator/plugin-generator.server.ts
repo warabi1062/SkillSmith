@@ -1,148 +1,83 @@
-import { prisma } from "../db.server";
+import type {
+  LoadedPluginDefinition,
+  LoadedSkillUnion,
+  LoadedSupportFile,
+} from "../types/loader.server";
 import type {
   GeneratedPlugin,
   GeneratedFile,
   GenerationValidationError,
 } from "./types";
-import type { ValidatorComponentData } from "./validator.server";
+import type { ValidatorSkillData } from "./validator.server";
+import type { SkillDependency } from "../types/plugin";
 import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd, generateAgentTeamMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
 
-/**
- * Fetch all plugin data needed for generation in a single query.
- */
-async function fetchPluginData(pluginId: string) {
-  return prisma.plugin.findUnique({
-    where: { id: pluginId },
-    include: {
-      components: {
-        include: {
-          skillConfig: {
-            include: { agentConfig: true },
-          },
-          files: { orderBy: { sortOrder: "asc" } },
-          dependenciesFrom: {
-            include: {
-              target: {
-                include: { skillConfig: true },
-              },
-            },
-            orderBy: { order: "asc" },
-          },
-          agentTeamMembers: {
-            include: {
-              component: {
-                include: { skillConfig: true },
-              },
-            },
-            orderBy: { sortOrder: "asc" },
-          },
-        },
-      },
-    },
-  });
-}
-
-type PluginWithComponents = NonNullable<
-  Awaited<ReturnType<typeof fetchPluginData>>
->;
-type ComponentWithRelations = PluginWithComponents["components"][number];
-
 export interface GeneratePluginResult {
   plugin: GeneratedPlugin;
-  components: ValidatorComponentData[];
+  skills: ValidatorSkillData[];
+  dependencies: SkillDependency[];
 }
 
 /**
- * Generate all files for a plugin.
+ * LoadedPluginDefinition からすべてのファイルを生成する（同期関数）。
  */
-export async function generatePlugin(
-  pluginId: string,
-): Promise<GeneratePluginResult | null> {
-  const plugin = await fetchPluginData(pluginId);
-  if (!plugin) {
-    return null;
-  }
-
+export function generatePlugin(
+  pluginDef: LoadedPluginDefinition,
+): GeneratePluginResult {
   const files: GeneratedFile[] = [];
   const validationErrors: GenerationValidationError[] = [];
 
   // Generate plugin.json
-  const pluginJson = generatePluginJson(plugin);
+  const pluginJson = generatePluginJson({
+    name: pluginDef.name,
+    description: pluginDef.description,
+  });
   validationErrors.push(...pluginJson.errors);
   if (pluginJson.file) {
     files.push(pluginJson.file);
   }
 
-  // Generate component files (SKILL only - AGENT型は廃止)
-  for (const component of plugin.components) {
-    if (component.type === "SKILL" && component.skillConfig) {
-      generateSkillComponent(component, files, validationErrors);
-    }
+  // Generate skill files
+  for (const skill of pluginDef.skills) {
+    generateSkillComponent(skill, files, validationErrors);
   }
 
-  // Build component data for validator
-  const validatorComponents: ValidatorComponentData[] =
-    plugin.components.map(toValidatorComponentData);
+  // Build skill data for validator
+  const validatorSkills: ValidatorSkillData[] = pluginDef.skills.map((s) => ({
+    name: s.name,
+    skillType: s.skillType,
+  }));
 
   return {
     plugin: {
-      pluginName: plugin.name,
+      pluginName: pluginDef.name,
       files,
       validationErrors,
     },
-    components: validatorComponents,
-  };
-}
-
-function toValidatorComponentData(
-  component: ComponentWithRelations,
-): ValidatorComponentData {
-  return {
-    id: component.id,
-    type: "SKILL",
-    skillConfig: component.skillConfig
-      ? {
-          name: component.skillConfig.name,
-          skillType: component.skillConfig.skillType,
-        }
-      : null,
-    dependenciesFrom: component.dependenciesFrom.map((dep) => ({
-      target: {
-        id: dep.target.id,
-        type: "SKILL" as const,
-        skillConfig: dep.target.skillConfig
-          ? {
-              name: dep.target.skillConfig.name,
-              skillType: dep.target.skillConfig.skillType,
-            }
-          : null,
-      },
-    })),
+    skills: validatorSkills,
+    dependencies: pluginDef.dependencies,
   };
 }
 
 function generateSkillComponent(
-  component: ComponentWithRelations,
+  skill: LoadedSkillUnion,
   files: GeneratedFile[],
   errors: GenerationValidationError[],
 ): void {
-  const config = component.skillConfig!;
   const result = generateSkillMd({
-    id: component.id,
+    skillName: skill.name,
     skillConfig: {
-      id: config.id,
-      componentId: config.componentId,
-      name: config.name,
-      description: config.description,
-      skillType: config.skillType,
-      argumentHint: config.argumentHint,
-      allowedTools: config.allowedTools,
-      content: config.content,
-      input: config.input,
-      output: config.output,
+      name: skill.name,
+      description: skill.description,
+      skillType: skill.skillType,
+      argumentHint: skill.argumentHint,
+      allowedTools: skill.allowedTools,
+      content: skill.content,
+      input: skill.input,
+      output: skill.output,
     },
   });
 
@@ -151,31 +86,29 @@ function generateSkillComponent(
     files.push(result.file);
 
     // Generate support files for skill directory
-    const skillDir = `skills/${config.name}`;
+    const skillDir = `skills/${skill.name}`;
     const supportFiles = generateSupportFiles(
       skillDir,
-      component.files,
-      component.id,
+      skill.files,
+      skill.name,
     );
     files.push(...supportFiles);
   }
 
-  // WORKER_WITH_SUB_AGENT + agentConfig の場合はagent.mdも生成
-  if (config.skillType === "WORKER_WITH_SUB_AGENT" && config.agentConfig) {
+  // WORKER_WITH_SUB_AGENT の場合はagent.mdも生成
+  if (skill.skillType === "WORKER_WITH_SUB_AGENT") {
     const agentResult = generateAgentMd({
-      id: component.id,
+      skillName: skill.name,
       agentConfig: {
-        id: config.agentConfig.id,
-        skillConfigId: config.agentConfig.skillConfigId,
-        model: config.agentConfig.model,
-        tools: config.agentConfig.tools,
-        content: config.agentConfig.content,
+        model: skill.agentConfig.model,
+        tools: skill.agentConfig.tools,
+        content: skill.agentConfig.content,
       },
       skillConfig: {
-        name: config.name,
-        description: config.description,
-        input: config.input,
-        output: config.output,
+        name: skill.name,
+        description: skill.description,
+        input: skill.input,
+        output: skill.output,
       },
     });
 
@@ -186,18 +119,16 @@ function generateSkillComponent(
   }
 
   // WORKER_WITH_AGENT_TEAM の場合はagent-team用のagent.mdを生成
-  if (config.skillType === "WORKER_WITH_AGENT_TEAM") {
-    const memberSkillNames = (component.agentTeamMembers ?? [])
-      .map((m) => m.component.skillConfig?.name)
-      .filter((name): name is string => name != null);
+  if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
+    const memberSkillNames = skill.agentTeamMembers.map((m) => m.skillName);
 
     const agentTeamResult = generateAgentTeamMd({
-      id: component.id,
+      skillName: skill.name,
       skillConfig: {
-        name: config.name,
-        description: config.description,
-        input: config.input,
-        output: config.output,
+        name: skill.name,
+        description: skill.description,
+        input: skill.input,
+        output: skill.output,
       },
       memberSkillNames,
     });

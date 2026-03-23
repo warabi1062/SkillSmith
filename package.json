@@ -12,9 +12,6 @@
     "build": "react-router build",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "tsc --noEmit",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
     "lint": "oxlint",
     "format": "biome format --write .",
     "format:check": "biome check --formatter-enabled=true --linter-enabled=false .",
@@ -28,23 +25,18 @@
   "packageManager": "pnpm@10.6.4",
   "dependencies": {
     "@dagrejs/dagre": "^2.0.4",
-    "@prisma/adapter-better-sqlite3": "^7.5.0",
-    "@prisma/client": "^7.5.0",
     "@react-router/node": "^7.13.1",
     "@react-router/serve": "^7.13.1",
     "@xyflow/react": "^12.10.1",
     "isbot": "^5.1.0",
+    "jiti": "^2.6.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.13.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild",
-      "prisma",
-      "@prisma/client",
-      "@prisma/engines",
-      "better-sqlite3"
+      "esbuild"
     ]
   },
   "devDependencies": {
@@ -58,7 +50,6 @@
     "dotenv": "^17.3.1",
     "jsdom": "^29.0.1",
     "oxlint": "1.56.0",
-    "prisma": "^7.5.0",
     "tsx": "^4.21.0",
     "typescript": "^5.7.0",
     "vite": "^8.0.0",
