@@ -640,6 +640,27 @@ describe("component コマンド", () => {
       expect(parsed.data.id).toBe("c1");
     });
 
+    it("skillConfig が存在しない場合データ整合性エラーを返す", async () => {
+      // Arrange
+      mockGetComponent.mockResolvedValue({
+        id: "c1",
+        skillConfig: null,
+      });
+      const ctx = createCtx({
+        action: "update",
+        args: ["c1", "--name", "test"],
+      });
+
+      // Act
+      const exitCode = await handleUpdate(ctx);
+
+      // Assert
+      expect(exitCode).toBe(1);
+      const output = streams.stderrData.join("");
+      expect(output).toContain("has no skill configuration");
+      expect(output).toContain("Data integrity issue");
+    });
+
     it("getComponent で存在しない場合エラーを返す", async () => {
       // Arrange
       mockGetComponent.mockResolvedValue(null);
