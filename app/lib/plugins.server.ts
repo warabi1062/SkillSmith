@@ -335,6 +335,14 @@ export async function getComponentFile(id: string) {
   });
 }
 
+// コンポーネントに属するファイル一覧を取得する
+export async function getComponentFiles(componentId: string) {
+  return prisma.componentFile.findMany({
+    where: { componentId },
+    orderBy: { sortOrder: "asc" },
+  });
+}
+
 export async function createComponentFile(
   componentId: string,
   data: { role: string; filename: string; content: string },
