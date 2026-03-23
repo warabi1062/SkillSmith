@@ -78,4 +78,44 @@ describe("parseGlobalArgs", () => {
     expect(result.options.json).toBe(true);
     expect(result.options.help).toBe(true);
   });
+
+  it("未知オプション引数（--name value 形式）を rest に含める", () => {
+    // Arrange & Act
+    const result = parseGlobalArgs(["plugin", "create", "--name", "test"]);
+
+    // Assert
+    expect(result.positionals[0]).toBe("plugin");
+    expect(result.positionals[1]).toBe("create");
+    expect(result.rest).toEqual(["--name", "test"]);
+  });
+
+  it("未知オプション引数（--name=value 形式）を rest に含める", () => {
+    // Arrange & Act
+    const result = parseGlobalArgs([
+      "plugin",
+      "update",
+      "abc",
+      "--name=test",
+    ]);
+
+    // Assert
+    expect(result.positionals[0]).toBe("plugin");
+    expect(result.positionals[1]).toBe("update");
+    expect(result.rest).toEqual(["abc", "--name=test"]);
+  });
+
+  it("グローバルオプションは rest に含めない", () => {
+    // Arrange & Act
+    const result = parseGlobalArgs([
+      "--json",
+      "plugin",
+      "create",
+      "--name",
+      "test",
+    ]);
+
+    // Assert
+    expect(result.options.json).toBe(true);
+    expect(result.rest).toEqual(["--name", "test"]);
+  });
 });
