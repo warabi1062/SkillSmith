@@ -1,6 +1,13 @@
 // dev-mentor スキル: AIメンター型の学習型開発ワークフロー
 
 import { EntryPointSkill } from "../../../../app/lib/types";
+import linearTriageSkill from "../linear-triage/skill";
+import linearTriageReviewSkill from "../linear-triage-review/skill";
+import linearTriageExecuteSkill from "../linear-triage-execute/skill";
+import planImplementationSkill from "../plan-implementation/skill";
+import guideImplementationSkill from "../guide-implementation/skill";
+import mentorSessionSkill from "../mentor-session/skill";
+import createPrSkill from "../create-pr/skill";
 
 const devMentorSkill = new EntryPointSkill({
   name: "dev-mentor",
@@ -19,13 +26,13 @@ const devMentorSkill = new EntryPointSkill({
     "ToolSearch",
   ],
   dependencies: [
-    "linear-triage",
-    "linear-triage-review",
-    "linear-triage-execute",
-    "plan-implementation",
-    "guide-implementation",
-    "mentor-session",
-    "create-pr",
+    linearTriageSkill,
+    linearTriageReviewSkill,
+    linearTriageExecuteSkill,
+    planImplementationSkill,
+    guideImplementationSkill,
+    mentorSessionSkill,
+    createPrSkill,
   ],
   content: `# Dev Mentor
 

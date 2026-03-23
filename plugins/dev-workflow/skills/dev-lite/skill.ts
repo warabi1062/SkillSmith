@@ -1,6 +1,8 @@
 // dev-lite スキル: 軽量版devワークフロー
 
 import { EntryPointSkill } from "../../../../app/lib/types";
+import implementSkill from "../implement/skill";
+import createPrSkill from "../create-pr/skill";
 
 const devLiteSkill = new EntryPointSkill({
   name: "dev-lite",
@@ -18,7 +20,7 @@ const devLiteSkill = new EntryPointSkill({
     "AskUserQuestion",
     "ToolSearch",
   ],
-  dependencies: ["implement", "create-pr"],
+  dependencies: [implementSkill, createPrSkill],
   content: `# Dev Lite
 
 \`$ARGUMENTS\` に対して、以下の簡易ワークフローを実行する。

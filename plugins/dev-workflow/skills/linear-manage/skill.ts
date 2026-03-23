@@ -1,6 +1,9 @@
 // linear-manage スキル: Linearチケットの新規作成・修正・情報補完・スコープ分割
 
 import { EntryPointSkill } from "../../../../app/lib/types";
+import linearTriageSkill from "../linear-triage/skill";
+import linearTriageReviewSkill from "../linear-triage-review/skill";
+import linearTriageExecuteSkill from "../linear-triage-execute/skill";
 
 const linearManageSkill = new EntryPointSkill({
   name: "linear-manage",
@@ -20,7 +23,7 @@ const linearManageSkill = new EntryPointSkill({
     "mcp__plugin_linear_linear__list_issue_labels",
     "mcp__plugin_linear_linear__list_projects",
   ],
-  dependencies: ["linear-triage", "linear-triage-review", "linear-triage-execute"],
+  dependencies: [linearTriageSkill, linearTriageReviewSkill, linearTriageExecuteSkill],
   files: [
     { role: "TEMPLATE", filename: "templates/bug.md", sortOrder: 1 },
     { role: "TEMPLATE", filename: "templates/feature.md", sortOrder: 2 },
