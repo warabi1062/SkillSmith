@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { getPlugins } from "../lib/plugins.server";
+import { loadAllPluginMeta } from "../lib/types/loader.server";
 import type { Route } from "./+types/plugins";
 
 export function meta(_args: Route.MetaArgs) {
@@ -7,7 +7,7 @@ export function meta(_args: Route.MetaArgs) {
 }
 
 export async function loader(_args: Route.LoaderArgs) {
-  const plugins = await getPlugins();
+  const plugins = await loadAllPluginMeta();
   return { plugins };
 }
 
@@ -18,24 +18,18 @@ export default function Plugins({ loaderData }: Route.ComponentProps) {
     <div>
       <div className="detail-header">
         <h2>Plugins</h2>
-        <Link to="/plugins/new" className="btn btn-primary">
-          New Plugin
-        </Link>
       </div>
 
       {plugins.length === 0 ? (
         <div className="empty-state">
           <p>No plugins yet.</p>
-          <Link to="/plugins/new" className="btn btn-primary">
-            Create your first plugin
-          </Link>
         </div>
       ) : (
         <div>
           {plugins.map((plugin) => (
             <Link
-              key={plugin.id}
-              to={`/plugins/${plugin.id}`}
+              key={plugin.dirName}
+              to={`/plugins/${plugin.dirName}`}
               className="card"
               style={{ display: "block" }}
             >
@@ -47,8 +41,8 @@ export default function Plugins({ loaderData }: Route.ComponentProps) {
                 className="card-description"
                 style={{ marginTop: "0.5rem" }}
               >
-                {plugin._count.components} component
-                {plugin._count.components !== 1 ? "s" : ""}
+                {plugin.skillCount} skill
+                {plugin.skillCount !== 1 ? "s" : ""}
               </div>
             </Link>
           ))}
