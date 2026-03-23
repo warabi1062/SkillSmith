@@ -23,6 +23,9 @@ importers:
       isbot:
         specifier: ^5.1.0
         version: 5.1.36
+      jiti:
+        specifier: ^2.6.1
+        version: 2.6.1
       react:
         specifier: ^19.0.0
         version: 19.2.4
@@ -3579,8 +3582,7 @@ snapshots:
       html-escaper: 2.0.2
       istanbul-lib-report: 3.0.1
 
-  jiti@2.6.1:
-    optional: true
+  jiti@2.6.1: {}
 
   js-tokens@10.0.0: {}
 

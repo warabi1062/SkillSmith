@@ -3,6 +3,7 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { createJiti } from "jiti";
 import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile } from "./skill";
 import type { SkillDependency } from "./plugin";
 
@@ -93,8 +94,9 @@ export async function loadPluginDefinition(
     throw new Error(`plugin.ts が見つかりません: ${pluginTsPath}`);
   }
 
-  // plugin.ts を動的importで読み込む（tsx がトランスパイルを処理する）
-  const pluginModule = await import(/* @vite-ignore */ pluginTsPath);
+  // plugin.ts を動的importで読み込む（jiti で TypeScript をトランスパイル）
+  const jiti = createJiti(import.meta.url);
+  const pluginModule = await jiti.import(pluginTsPath) as Record<string, unknown>;
   const pluginDef = pluginModule.default as ImportedPluginDefinition | undefined;
 
   if (!pluginDef || !pluginDef.name || !Array.isArray(pluginDef.skills)) {
@@ -182,8 +184,9 @@ export async function loadPluginMeta(dirPath: string, dirName: string): Promise<
   const pluginTsPath = path.join(dirPath, "plugin.ts");
   try {
     await fs.access(pluginTsPath);
-    const mod = await import(/* @vite-ignore */ pluginTsPath);
-    const def = mod.default;
+    const jiti = createJiti(import.meta.url);
+    const mod = await jiti.import(pluginTsPath) as Record<string, unknown>;
+    const def = mod.default as ImportedPluginDefinition | undefined;
     if (def && def.name) {
       return {
         dirName,
