@@ -4,31 +4,11 @@ import { renderHook, act } from "@testing-library/react";
 import {
   usePluginGraph,
   type Plugin,
-  type ModalState,
-  type MembersModalState,
 } from "../usePluginGraph";
+import type { LoadedSkillUnion } from "../../lib/types/loader.server";
+import type { SkillDependency } from "../../lib/types/plugin";
 
 // --- Mocks ---
-
-const mockSubmit = vi.fn();
-const mockFetcherData: Record<string, unknown> = {};
-
-vi.mock("react-router", () => ({
-  useFetcher: () => ({
-    submit: mockSubmit,
-    state: mockFetcherData.state ?? "idle",
-    data: mockFetcherData.data ?? undefined,
-    formMethod: undefined,
-    formAction: undefined,
-    formEncType: undefined,
-    text: undefined,
-    formData: undefined,
-    json: undefined,
-    Form: () => null,
-    load: vi.fn(),
-    reset: vi.fn(),
-  }),
-}));
 
 const mockBuildGraphData = vi.fn().mockReturnValue({
   nodes: [],
@@ -43,12 +23,6 @@ const mockLoadGraphPositions = vi.fn().mockReturnValue(null);
 const mockSaveGraphPositions = vi.fn();
 const mockClearGraphPositions = vi.fn();
 
-const mockComputeAutoLayout = vi.fn().mockReturnValue([]);
-
-vi.mock("../../lib/auto-layout", () => ({
-  computeAutoLayout: (...args: unknown[]) => mockComputeAutoLayout(...args),
-}));
-
 vi.mock("../../lib/graph-positions", () => ({
   loadGraphPositions: (...args: unknown[]) => mockLoadGraphPositions(...args),
   saveGraphPositions: (...args: unknown[]) => mockSaveGraphPositions(...args),
@@ -60,68 +34,25 @@ vi.mock("../../lib/graph-positions", () => ({
 
 function createPlugin(overrides: Partial<Plugin> = {}): Plugin {
   return {
-    id: "plugin-1",
-    name: "Test Plugin",
-    description: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    components: [],
+    name: "test-plugin",
+    description: undefined,
+    skills: [],
+    dependencies: [],
     ...overrides,
-  } as Plugin;
+  };
 }
 
-const defaultSkillConfigFields = {
-  argumentHint: null,
-  allowedTools: null,
-  content: "",
-};
-
-function createSkillConfig(
-  overrides: Partial<Plugin["components"][number]["skillConfig"] & object> = {},
-): Plugin["components"][number]["skillConfig"] {
+function createSkill(overrides: Partial<LoadedSkillUnion> & { name: string; skillType: string }): LoadedSkillUnion {
   return {
-    id: "sc-1",
-    name: "My Skill",
-    description: "desc",
-    skillType: "WORKER",
-    componentId: "comp-1",
-    agentConfig: null,
-    ...defaultSkillConfigFields,
-    ...overrides,
-  } as Plugin["components"][number]["skillConfig"];
-}
-
-function createComponent(
-  overrides: Partial<Plugin["components"][number]> = {},
-): Plugin["components"][number] {
-  return {
-    id: "comp-1",
-    type: "SKILL",
-    pluginId: "plugin-1",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    skillConfig: createSkillConfig(),
-    dependenciesFrom: [],
+    content: "",
     files: [],
     ...overrides,
-  } as Plugin["components"][number];
+  } as LoadedSkillUnion;
 }
 
-interface DefaultParamsOptions {
-  plugin?: Plugin;
-  modalState?: ModalState;
-  onModalStateChange?: (state: ModalState) => void;
-  membersModalState?: MembersModalState;
-  onMembersModalStateChange?: (state: MembersModalState) => void;
-}
-
-function createDefaultParams(overrides: DefaultParamsOptions = {}) {
+function createDefaultParams(overrides: { plugin?: Plugin } = {}) {
   return {
     plugin: overrides.plugin ?? createPlugin(),
-    modalState: overrides.modalState ?? { isOpen: false, mode: "create" as const },
-    onModalStateChange: overrides.onModalStateChange ?? vi.fn(),
-    membersModalState: overrides.membersModalState ?? { isOpen: false },
-    onMembersModalStateChange: overrides.onMembersModalStateChange ?? vi.fn(),
   };
 }
 
@@ -130,49 +61,34 @@ function createDefaultParams(overrides: DefaultParamsOptions = {}) {
 describe("usePluginGraph", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetcherData.state = "idle";
-    mockFetcherData.data = undefined;
     mockBuildGraphData.mockReturnValue({ nodes: [], edges: [] });
     mockLoadGraphPositions.mockReturnValue(null);
-    mockComputeAutoLayout.mockReturnValue([]);
   });
 
   describe("initial state", () => {
-    it("sets isClient to true after mount", () => {
+    it("マウント後にisClientがtrueになること", () => {
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams()),
       );
       expect(result.current.isClient).toBe(true);
     });
-
-    it("initializes filesModalState as closed", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-      expect(result.current.filesModalState).toEqual({ isOpen: false });
-    });
-
-    it("initializes deleteError as null", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-      expect(result.current.deleteError).toBeNull();
-    });
   });
 
   describe("graphData construction", () => {
-    it("calls buildGraphData with components only", () => {
-      const comp = createComponent();
+    it("skills と dependencies で buildGraphData を呼ぶこと", () => {
+      const skill = createSkill({ name: "my-skill", skillType: "WORKER" });
+      const deps: SkillDependency[] = [];
       const plugin = createPlugin({
-        components: [comp],
+        skills: [skill],
+        dependencies: deps,
       });
 
       renderHook(() => usePluginGraph(createDefaultParams({ plugin })));
 
-      expect(mockBuildGraphData).toHaveBeenCalledWith([comp]);
+      expect(mockBuildGraphData).toHaveBeenCalledWith([skill], deps);
     });
 
-    it("returns empty nodes and edges when no components", () => {
+    it("スキルがない場合は空のnodes/edgesを返すこと", () => {
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams()),
       );
@@ -185,18 +101,18 @@ describe("usePluginGraph", () => {
   });
 
   describe("graphDataWithPositions", () => {
-    it("applies saved positions from localStorage to nodes", () => {
-      const comp = createComponent();
-      const plugin = createPlugin({ components: [comp] });
+    it("localStorageから保存済み位置をノードに適用すること", () => {
+      const skill = createSkill({ name: "my-skill", skillType: "WORKER" });
+      const plugin = createPlugin({ skills: [skill] });
 
       mockBuildGraphData.mockReturnValue({
         nodes: [
-          { id: "comp-1", position: { x: 0, y: 0 }, data: { label: "A" } },
+          { id: "my-skill", position: { x: 0, y: 0 }, data: { label: "A" } },
         ],
         edges: [],
       });
       mockLoadGraphPositions.mockReturnValue({
-        "comp-1": { x: 100, y: 200 },
+        "my-skill": { x: 100, y: 200 },
       });
 
       const { result } = renderHook(() =>
@@ -210,14 +126,21 @@ describe("usePluginGraph", () => {
     });
   });
 
-  describe("node data injection", () => {
-    it("injects componentId and pluginId into skill nodes", () => {
-      const comp = createComponent({ id: "comp-1", type: "SKILL" });
-      const plugin = createPlugin({ components: [comp] });
+  describe("selectedNodeData", () => {
+    it("ノード選択でスキルデータが取得できること", () => {
+      const skill = createSkill({
+        name: "my-skill",
+        skillType: "WORKER",
+        description: "テスト",
+        content: "# Content",
+        input: "input",
+        output: "output",
+      });
+      const plugin = createPlugin({ skills: [skill] });
 
       mockBuildGraphData.mockReturnValue({
         nodes: [
-          { id: "comp-1", type: "skill", position: { x: 0, y: 0 }, data: { label: "A" } },
+          { id: "my-skill", type: "skill", position: { x: 0, y: 0 }, data: { label: "my-skill" } },
         ],
         edges: [],
       });
@@ -226,18 +149,26 @@ describe("usePluginGraph", () => {
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
-      const node = result.current.graphDataWithPositions.nodes[0];
-      expect(node.data.componentId).toBe("comp-1");
-      expect(node.data.pluginId).toBe("plugin-1");
+      act(() => {
+        result.current.handleNodeClick("my-skill", "component");
+      });
+
+      expect(result.current.selectedNodeData).not.toBeNull();
+      expect(result.current.selectedNodeData!.name).toBe("my-skill");
+      expect(result.current.selectedNodeData!.componentType).toBe("SKILL");
+      expect(result.current.selectedNodeData!.description).toBe("テスト");
     });
 
-    it("injects componentId and pluginId into orchestrator nodes", () => {
-      const comp = createComponent({ id: "orch-1", type: "SKILL" });
-      const plugin = createPlugin({ components: [comp] });
+    it("ENTRY_POINTスキルの場合componentTypeがORCHESTRATORになること", () => {
+      const skill = createSkill({
+        name: "dev",
+        skillType: "ENTRY_POINT",
+      });
+      const plugin = createPlugin({ skills: [skill] });
 
       mockBuildGraphData.mockReturnValue({
         nodes: [
-          { id: "orch-1", type: "orchestrator", position: { x: 0, y: 0 }, data: { label: "C" } },
+          { id: "dev", type: "orchestrator", position: { x: 0, y: 0 }, data: { label: "dev" } },
         ],
         edges: [],
       });
@@ -246,150 +177,57 @@ describe("usePluginGraph", () => {
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
-      const node = result.current.graphDataWithPositions.nodes[0];
-      expect(node.data.componentId).toBe("orch-1");
-      expect(node.data.pluginId).toBe("plugin-1");
-    });
-  });
-
-  describe("handleCreateComponent", () => {
-    it("calls onModalStateChange with create mode", () => {
-      const onModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams({ onModalStateChange })),
-      );
-
       act(() => {
-        result.current.handleCreateComponent();
+        result.current.handleNodeClick("dev", "component");
       });
 
-      expect(onModalStateChange).toHaveBeenCalledWith({
-        isOpen: true,
-        mode: "create",
-      });
+      expect(result.current.selectedNodeData!.componentType).toBe("ORCHESTRATOR");
     });
-  });
 
-  describe("handleDeleteComponent", () => {
-    it("submits delete-component with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
+    it("サイドパネルを閉じるとselectedNodeDataがnullになること", () => {
+      const skill = createSkill({ name: "my-skill", skillType: "WORKER" });
+      const plugin = createPlugin({ skills: [skill] });
 
-      act(() => {
-        result.current.handleDeleteComponent("comp-1");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "delete-component", componentId: "comp-1" },
-        { method: "post", action: "/plugins/plugin-1" },
-      );
-    });
-  });
-
-  describe("handleConnect", () => {
-    it("submits add-dependency with correct args", () => {
-      const { result } = renderHook(() =>
-        usePluginGraph(createDefaultParams()),
-      );
-
-      act(() => {
-        result.current.handleConnect("source-1", "target-1");
-      });
-
-      expect(mockSubmit).toHaveBeenCalledWith(
-        { intent: "add-dependency", sourceId: "source-1", targetId: "target-1" },
-        { method: "post" },
-      );
-    });
-  });
-
-  describe("handleManageMembers", () => {
-    it("calls onMembersModalStateChange with agentTeamComponentId", () => {
-      const onMembersModalStateChange = vi.fn();
-
-      const { result } = renderHook(() =>
-        usePluginGraph(
-          createDefaultParams({ onMembersModalStateChange }),
-        ),
-      );
-
-      act(() => {
-        result.current.handleManageMembers("comp-team-1");
-      });
-
-      expect(onMembersModalStateChange).toHaveBeenCalledWith({
-        isOpen: true,
-        agentTeamComponentId: "comp-team-1",
-      });
-    });
-  });
-
-  describe("membersModalAgentComponents computation", () => {
-    it("filters WORKER_WITH_SUB_AGENT Skill components", () => {
-      const workerWithSubAgent = createComponent({
-        id: "w-1",
-        type: "SKILL",
-        skillConfig: createSkillConfig({
-          id: "sc-1",
-          name: "Worker With Agent",
-          skillType: "WORKER_WITH_SUB_AGENT",
-          componentId: "w-1",
-        }),
-      });
-      const workerPlain = createComponent({
-        id: "w-2",
-        type: "SKILL",
-        skillConfig: createSkillConfig({
-          id: "sc-2",
-          name: "Worker Plain",
-          skillType: "WORKER",
-          componentId: "w-2",
-        }),
-      });
-      const entryPoint = createComponent({
-        id: "ep-1",
-        type: "SKILL",
-        skillConfig: createSkillConfig({
-          id: "sc-3",
-          name: "Entry Point",
-          skillType: "ENTRY_POINT",
-          componentId: "ep-1",
-        }),
-      });
-      const plugin = createPlugin({
-        components: [workerWithSubAgent, workerPlain, entryPoint],
+      mockBuildGraphData.mockReturnValue({
+        nodes: [{ id: "my-skill", type: "skill", position: { x: 0, y: 0 }, data: {} }],
+        edges: [],
       });
 
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams({ plugin })),
       );
 
-      expect(result.current.membersModalAgentComponents).toEqual([
-        { id: "w-1", skillConfig: { name: "Worker With Agent" } },
-      ]);
+      act(() => {
+        result.current.handleNodeClick("my-skill", "component");
+      });
+      expect(result.current.selectedNodeData).not.toBeNull();
+
+      act(() => {
+        result.current.handleSidePanelClose();
+      });
+      expect(result.current.selectedNodeData).toBeNull();
     });
   });
 
-  describe("agentTeam related state/handler removed", () => {
-    it("does not expose agentTeamModalState", () => {
+  describe("編集系ハンドラが削除されていること", () => {
+    it("編集系のプロパティが存在しないこと", () => {
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams()),
       );
-      // agentTeamModalState, handleCreateAgentTeam, handleDeleteAgentTeamは廃止
-      expect((result.current as any).agentTeamModalState).toBeUndefined();
-      expect((result.current as any).handleCreateAgentTeam).toBeUndefined();
-      expect((result.current as any).handleDeleteAgentTeam).toBeUndefined();
-      expect((result.current as any).handleAgentTeamModalClose).toBeUndefined();
-      expect((result.current as any).agentTeamFetcher).toBeUndefined();
-      expect((result.current as any).handleAddAgentConfig).toBeUndefined();
-      expect((result.current as any).handleRemoveAgentConfig).toBeUndefined();
+      expect((result.current as any).handleConnect).toBeUndefined();
+      expect((result.current as any).handleEdgeClick).toBeUndefined();
+      expect((result.current as any).handleCreateComponent).toBeUndefined();
+      expect((result.current as any).handleDeleteComponent).toBeUndefined();
+      expect((result.current as any).handleManageFiles).toBeUndefined();
+      expect((result.current as any).handleManageMembers).toBeUndefined();
+      expect((result.current as any).handleUpdateComponent).toBeUndefined();
+      expect((result.current as any).filesModalState).toBeUndefined();
+      expect((result.current as any).deleteError).toBeUndefined();
     });
   });
 
   describe("handleResetLayout", () => {
-    it("calls clearGraphPositions and increments resetCounter", () => {
+    it("clearGraphPositionsを呼びresetCounterをインクリメントすること", () => {
       const { result } = renderHook(() =>
         usePluginGraph(createDefaultParams()),
       );
@@ -399,7 +237,7 @@ describe("usePluginGraph", () => {
         result.current.handleResetLayout();
       });
 
-      expect(mockClearGraphPositions).toHaveBeenCalledWith("plugin-1");
+      expect(mockClearGraphPositions).toHaveBeenCalledWith("test-plugin");
       expect(result.current.resetCounter).toBe(initialCounter + 1);
     });
   });
