@@ -99,6 +99,18 @@ export async function deletePlugin(id: string) {
 
 // Component CRUD
 
+export async function getComponents(pluginId: string) {
+  return prisma.component.findMany({
+    where: { pluginId },
+    orderBy: { createdAt: "asc" },
+    include: {
+      skillConfig: {
+        include: { agentConfig: true },
+      },
+    },
+  });
+}
+
 export async function getComponent(id: string) {
   return prisma.component.findUnique({
     where: { id },
