@@ -3,27 +3,25 @@ import { generateAgentMd, generateAgentTeamMd } from "../agent-generator.server"
 
 function makeAgentComponent(overrides: {
   skillName?: string;
-  skillDescription?: string | null;
+  skillDescription?: string;
   skillInput?: string;
   skillOutput?: string;
   content?: string;
-  model?: string | null;
-  tools?: string | null;
+  model?: string;
+  tools?: string[];
 }) {
   return {
-    id: "comp-1",
+    skillName: overrides.skillName ?? "my-skill",
     agentConfig: {
-      id: "ac-1",
-      skillConfigId: "sc-1",
-      model: overrides.model ?? null,
-      tools: overrides.tools ?? null,
+      model: overrides.model,
+      tools: overrides.tools,
       content: overrides.content ?? "# Agent body",
     },
     skillConfig: {
       name: overrides.skillName ?? "my-skill",
       description: overrides.skillDescription ?? "A skill description",
-      input: overrides.skillInput ?? "",
-      output: overrides.skillOutput ?? "",
+      input: overrides.skillInput,
+      output: overrides.skillOutput,
     },
   };
 }
@@ -69,7 +67,7 @@ describe("generateAgentMd", () => {
 
   it("toolsをYAMLリストで出力する", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ tools: '["Read", "Grep"]' }),
+      makeAgentComponent({ tools: ["Read", "Grep"] }),
     );
     expect(file!.content).toContain("tools:");
     expect(file!.content).toContain("  - Read");
@@ -90,9 +88,9 @@ describe("generateAgentMd", () => {
     expect(file!.content).toContain("output:");
   });
 
-  it("input/outputが空の場合はfrontmatterに含めない", () => {
+  it("input/outputがundefinedの場合はfrontmatterに含めない", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ skillInput: "", skillOutput: "" }),
+      makeAgentComponent({}),
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
@@ -109,7 +107,7 @@ describe("generateAgentMd", () => {
 describe("generateAgentTeamMd", () => {
   it("複数skill名をskills:に列挙したagentファイルを生成する", () => {
     const { file, errors } = generateAgentTeamMd({
-      id: "comp-team-1",
+      skillName: "review-team",
       skillConfig: {
         name: "review-team",
         description: "A review team",
@@ -134,12 +132,12 @@ describe("generateAgentTeamMd", () => {
 
   it("メンバーがいない場合にwarningを返す", () => {
     const { file, errors } = generateAgentTeamMd({
-      id: "comp-team-2",
+      skillName: "empty-team",
       skillConfig: {
         name: "empty-team",
-        description: null,
-        input: "",
-        output: "",
+        description: undefined,
+        input: undefined,
+        output: undefined,
       },
       memberSkillNames: [],
     });
@@ -150,12 +148,12 @@ describe("generateAgentTeamMd", () => {
 
   it("agent名は{name}-agent形式になる", () => {
     const { file } = generateAgentTeamMd({
-      id: "comp-team-3",
+      skillName: "deploy-team",
       skillConfig: {
         name: "deploy-team",
         description: "Deploy team",
-        input: "",
-        output: "",
+        input: undefined,
+        output: undefined,
       },
       memberSkillNames: ["deploy-worker"],
     });

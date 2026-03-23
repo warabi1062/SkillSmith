@@ -3,27 +3,25 @@ import { generateSkillMd } from "../skill-generator.server";
 
 function makeSkillComponent(overrides: {
   name?: string;
-  description?: string | null;
+  description?: string;
   content?: string;
   skillType?: string;
-  argumentHint?: string | null;
-  allowedTools?: string | null;
+  argumentHint?: string;
+  allowedTools?: string[];
   input?: string;
   output?: string;
 }) {
   return {
-    id: "comp-1",
+    skillName: overrides.name ?? "my-skill",
     skillConfig: {
-      id: "sc-1",
-      componentId: "comp-1",
       name: overrides.name ?? "my-skill",
-      description: overrides.description ?? null,
+      description: overrides.description,
       skillType: overrides.skillType ?? "ENTRY_POINT",
-      argumentHint: overrides.argumentHint ?? null,
-      allowedTools: overrides.allowedTools ?? null,
+      argumentHint: overrides.argumentHint,
+      allowedTools: overrides.allowedTools,
       content: overrides.content ?? "# Hello",
-      input: overrides.input ?? "",
-      output: overrides.output ?? "",
+      input: overrides.input,
+      output: overrides.output,
     },
   };
 }
@@ -75,7 +73,7 @@ describe("generateSkillMd", () => {
 
   it("includes allowed-tools as YAML list", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ allowedTools: '["Read", "Write"]' }),
+      makeSkillComponent({ allowedTools: ["Read", "Write"] }),
     );
     expect(file!.content).toContain("allowed-tools:");
     expect(file!.content).toContain("  - Read");
@@ -113,18 +111,11 @@ describe("generateSkillMd", () => {
     expect(file!.content).toContain("output:");
   });
 
-  it("omits input/output when empty", () => {
+  it("omits input/output when undefined", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ input: "", output: "" }),
+      makeSkillComponent({}),
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
-  });
-
-  it("returns error for invalid allowed-tools JSON", () => {
-    const { errors } = generateSkillMd(
-      makeSkillComponent({ allowedTools: "not-json" }),
-    );
-    expect(errors.some((e) => e.code === "JSON_PARSE_FAILED")).toBe(true);
   });
 });

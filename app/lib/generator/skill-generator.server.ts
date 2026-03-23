@@ -1,28 +1,24 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
-import {
-  serializeFrontmatter,
-  parseJsonArrayField,
-} from "./frontmatter.server";
+import { serializeFrontmatter } from "./frontmatter.server";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const SKILL_NAME_MAX_LENGTH = 64;
 
-interface SkillConfigData {
-  id: string;
-  componentId: string;
+// スキル生成の入力データ
+export interface SkillGeneratorInput {
   name: string;
-  description: string | null;
+  description?: string;
   skillType: string;
-  argumentHint: string | null;
-  allowedTools: string | null;
+  argumentHint?: string;
+  allowedTools?: string[];
   content: string;
-  input: string;
-  output: string;
+  input?: string;
+  output?: string;
 }
 
 interface SkillComponentData {
-  id: string;
-  skillConfig: SkillConfigData;
+  skillName: string;
+  skillConfig: SkillGeneratorInput;
 }
 
 export function generateSkillMd(component: SkillComponentData): {
@@ -41,7 +37,7 @@ export function generateSkillMd(component: SkillComponentData): {
       severity: "error",
       code: "INVALID_SKILL_NAME",
       message: `Skill name "${config.name}" must match pattern [a-z0-9][a-z0-9-]* and be at most ${SKILL_NAME_MAX_LENGTH} characters`,
-      componentId: component.id,
+      skillName: component.skillName,
       field: "name",
     });
     return { file: null, errors };
@@ -53,17 +49,13 @@ export function generateSkillMd(component: SkillComponentData): {
       severity: "error",
       code: "EMPTY_CONTENT",
       message: `Skill "${config.name}" has no content`,
-      componentId: component.id,
+      skillName: component.skillName,
     });
     return { file: null, errors };
   }
 
-  // Parse JSON array fields
-  const { parsed: allowedTools, error: allowedToolsError } =
-    parseJsonArrayField(config.allowedTools, "allowed-tools", component.id);
-  if (allowedToolsError) {
-    errors.push(allowedToolsError);
-  }
+  // allowedTools はすでに string[] で渡されるため、JSON パース不要
+  const allowedTools = config.allowedTools;
 
   // Build frontmatter
   const frontmatterFields: Record<
@@ -83,7 +75,7 @@ export function generateSkillMd(component: SkillComponentData): {
   if (config.skillType !== "ENTRY_POINT") {
     frontmatterFields["user-invocable"] = false;
   }
-  if (allowedTools) {
+  if (allowedTools && allowedTools.length > 0) {
     frontmatterFields["allowed-tools"] = allowedTools;
   }
   if (config.input) {
@@ -100,7 +92,7 @@ export function generateSkillMd(component: SkillComponentData): {
     file: {
       path: `skills/${config.name}/SKILL.md`,
       content,
-      componentId: component.id,
+      skillName: component.skillName,
     },
     errors,
   };

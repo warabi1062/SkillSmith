@@ -16,12 +16,3 @@ export function parseCommandArgs(
     positionals: result.positionals,
   };
 }
-
-// Prisma P2025（レコード未発見）エラーかどうかを判定するヘルパー
-export function isPrismaNotFoundError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    (error as { code: string }).code === "P2025"
-  );
-}

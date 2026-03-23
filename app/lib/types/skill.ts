@@ -1,4 +1,4 @@
-// スキル型定義: Prisma の SkillConfig モデルに対応する abstract class とサブクラス
+// スキル型定義: abstract class とサブクラス
 
 // サポートファイルの役割
 export type SupportFileRole = "TEMPLATE" | "REFERENCE" | "EXAMPLE";
@@ -23,7 +23,7 @@ export interface AgentTeamMember {
   sortOrder?: number;
 }
 
-// SkillType の文字列リテラル型（Prisma enum に対応）
+// SkillType の文字列リテラル型
 export type SkillType =
   | "ENTRY_POINT"
   | "WORKER"

@@ -3,8 +3,31 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember } from "./skill";
+import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile } from "./skill";
 import type { SkillDependency } from "./plugin";
+
+// 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
+interface ImportedSkill {
+  skillType: SkillType;
+  name: string;
+  content: string;
+  description?: string;
+  input?: string;
+  output?: string;
+  allowedTools?: string[];
+  argumentHint?: string;
+  files?: SupportFile[];
+  agentConfig?: AgentConfig;
+  agentTeamMembers?: AgentTeamMember[];
+}
+
+// 動的importで読み込まれるプラグイン定義の型
+interface ImportedPluginDefinition {
+  name: string;
+  description?: string;
+  skills: ImportedSkill[];
+  dependencies?: { source: string; target: string; order?: number }[];
+}
 
 // ローダーが返す型: SupportFile + 読み込んだ content
 export interface LoadedSupportFile {
@@ -72,7 +95,7 @@ export async function loadPluginDefinition(
 
   // plugin.ts を動的importで読み込む（tsx がトランスパイルを処理する）
   const pluginModule = await import(/* @vite-ignore */ pluginTsPath);
-  const pluginDef = pluginModule.default;
+  const pluginDef = pluginModule.default as ImportedPluginDefinition | undefined;
 
   if (!pluginDef || !pluginDef.name || !Array.isArray(pluginDef.skills)) {
     throw new Error(`plugin.ts が有効な PluginDefinition を export していません: ${pluginTsPath}`);
@@ -80,7 +103,7 @@ export async function loadPluginDefinition(
 
   // 各スキルを LoadedSkillUnion に変換
   const skills: LoadedSkillUnion[] = await Promise.all(
-    pluginDef.skills.map(async (skill: any) => {
+    pluginDef.skills.map(async (skill: ImportedSkill) => {
       // サポートファイルの読み込み
       const loadedFiles: LoadedSupportFile[] = [];
       if (skill.files && Array.isArray(skill.files)) {
@@ -103,7 +126,7 @@ export async function loadPluginDefinition(
       }
 
       // 基本フィールド
-      const base: LoadedSkill = {
+      const base = {
         skillType: skill.skillType,
         name: skill.name,
         content: skill.content,
@@ -132,7 +155,10 @@ export async function loadPluginDefinition(
         } satisfies LoadedWorkerWithAgentTeamSkill;
       }
 
-      return base;
+      return {
+        ...base,
+        skillType: skill.skillType as "ENTRY_POINT" | "WORKER",
+      } satisfies LoadedSkill;
     }),
   );
 

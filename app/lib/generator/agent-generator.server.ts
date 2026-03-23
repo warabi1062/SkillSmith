@@ -1,18 +1,15 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
-import {
-  serializeFrontmatter,
-  parseJsonArrayField,
-} from "./frontmatter.server";
+import { serializeFrontmatter } from "./frontmatter.server";
 
 // --- Agent Team MD生成 ---
 
 interface AgentTeamComponentData {
-  id: string;
+  skillName: string;
   skillConfig: {
     name: string;
-    description: string | null;
-    input: string;
-    output: string;
+    description?: string;
+    input?: string;
+    output?: string;
   };
   memberSkillNames: string[];
 }
@@ -34,7 +31,7 @@ export function generateAgentTeamMd(component: AgentTeamComponentData): {
       severity: "warning",
       code: "NO_TEAM_MEMBERS",
       message: `Agent Team "${skillConfig.name}" has no members`,
-      componentId: component.id,
+      skillName: component.skillName,
     });
   }
 
@@ -67,29 +64,29 @@ export function generateAgentTeamMd(component: AgentTeamComponentData): {
     file: {
       path: `agents/${agentName}.md`,
       content,
-      componentId: component.id,
+      skillName: component.skillName,
     },
     errors,
   };
 }
 
+// Agent設定データ
 interface AgentConfigData {
-  id: string;
-  skillConfigId: string;
-  model: string | null;
-  tools: string | null;
+  model?: string;
+  tools?: string[];
   content: string;
 }
 
+// スキル設定の情報
 interface SkillConfigInfo {
   name: string;
-  description: string | null;
-  input: string;
-  output: string;
+  description?: string;
+  input?: string;
+  output?: string;
 }
 
 interface AgentComponentData {
-  id: string;
+  skillName: string;
   agentConfig: AgentConfigData;
   skillConfig: SkillConfigInfo;
 }
@@ -111,20 +108,13 @@ export function generateAgentMd(component: AgentComponentData): {
       severity: "error",
       code: "EMPTY_CONTENT",
       message: `Agent "${agentName}" has no content`,
-      componentId: component.id,
+      skillName: component.skillName,
     });
     return { file: null, errors };
   }
 
-  // Parse JSON array fields
-  const { parsed: tools, error: toolsError } = parseJsonArrayField(
-    config.tools,
-    "tools",
-    component.id,
-  );
-  if (toolsError) {
-    errors.push(toolsError);
-  }
+  // tools はすでに string[] で渡されるため、JSON パース不要
+  const tools = config.tools;
 
   // Build frontmatter
   const frontmatterFields: Record<
@@ -138,7 +128,7 @@ export function generateAgentMd(component: AgentComponentData): {
   if (config.model) {
     frontmatterFields.model = config.model;
   }
-  if (tools) {
+  if (tools && tools.length > 0) {
     frontmatterFields.tools = tools;
   }
   // skills: SkillConfigのnameを使用
@@ -157,7 +147,7 @@ export function generateAgentMd(component: AgentComponentData): {
     file: {
       path: `agents/${agentName}.md`,
       content,
-      componentId: component.id,
+      skillName: component.skillName,
     },
     errors,
   };

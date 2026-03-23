@@ -1,23 +1,12 @@
 import type { GeneratedPlugin, GenerationValidationError } from "./types";
+import type { SkillDependency } from "../types/plugin";
 
 /**
- * Component data needed for dependency validation.
- * This is a subset of the data fetched by plugin-generator.
+ * バリデーション用のスキルデータ。
  */
-export interface ValidatorComponentData {
-  id: string;
-  type: "SKILL";
-  skillConfig: {
-    name: string;
-    skillType: string;
-  } | null;
-  dependenciesFrom: {
-    target: {
-      id: string;
-      type: "SKILL";
-      skillConfig: { name: string; skillType: string } | null;
-    };
-  }[];
+export interface ValidatorSkillData {
+  name: string;
+  skillType: string;
 }
 
 /**
@@ -27,12 +16,13 @@ export interface ValidatorComponentData {
  */
 export function validateGeneratedPlugin(
   plugin: GeneratedPlugin,
-  components?: ValidatorComponentData[],
+  skills?: ValidatorSkillData[],
+  dependencies?: SkillDependency[],
 ): GenerationValidationError[] {
   const errors: GenerationValidationError[] = [];
 
-  // Check for empty plugin (no components or no generated content files)
-  if (components && components.length === 0) {
+  // Check for empty plugin (no skills or no generated content files)
+  if (skills && skills.length === 0) {
     errors.push({
       severity: "error",
       code: "EMPTY_PLUGIN",
@@ -40,7 +30,7 @@ export function validateGeneratedPlugin(
         "Plugin must have at least one component (skill or agent)",
     });
   } else {
-    // Only check file-level emptiness when component-level check didn't fire
+    // Only check file-level emptiness when skill-level check didn't fire
     const contentFiles = plugin.files.filter(
       (f) => f.path !== ".claude-plugin/plugin.json",
     );
@@ -60,9 +50,9 @@ export function validateGeneratedPlugin(
   // Check file path uniqueness
   validateFilePathUniqueness(plugin, errors);
 
-  // Check dependency targets (requires component data)
-  if (components) {
-    validateDependencyTargets(components, errors);
+  // Check dependency targets (requires skill and dependency data)
+  if (skills && dependencies) {
+    validateDependencyTargets(skills, dependencies, errors);
   }
 
   return errors;
@@ -90,7 +80,7 @@ function validateDirectoryStructure(
         severity: "warning",
         code: "DIRECTORY_STRUCTURE_MISMATCH",
         message: `SKILL.md file at unexpected path: ${file.path}`,
-        componentId: file.componentId,
+        skillName: file.skillName,
       });
     }
   }
@@ -121,27 +111,24 @@ function validateFilePathUniqueness(
 
 /**
  * Validate that all dependency targets exist within the same plugin.
- * Reports a warning for each dependency whose target component is not
- * found in the plugin's component list.
+ * Reports a warning for each dependency whose target skill is not
+ * found in the plugin's skill list.
  */
 function validateDependencyTargets(
-  components: ValidatorComponentData[],
+  skills: ValidatorSkillData[],
+  dependencies: SkillDependency[],
   errors: GenerationValidationError[],
 ): void {
-  const componentIds = new Set(components.map((c) => c.id));
+  const skillNames = new Set(skills.map((s) => s.name));
 
-  for (const component of components) {
-    for (const dep of component.dependenciesFrom) {
-      if (!componentIds.has(dep.target.id)) {
-        const sourceName = component.skillConfig?.name ?? component.id;
-        const targetName = dep.target.skillConfig?.name ?? dep.target.id;
-        errors.push({
-          severity: "warning",
-          code: "MISSING_DEPENDENCY_TARGET",
-          message: `Component "${sourceName}" depends on "${targetName}" which is not in the same plugin`,
-          componentId: component.id,
-        });
-      }
+  for (const dep of dependencies) {
+    if (!skillNames.has(dep.target)) {
+      errors.push({
+        severity: "warning",
+        code: "MISSING_DEPENDENCY_TARGET",
+        message: `Skill "${dep.source}" depends on "${dep.target}" which is not in the same plugin`,
+        skillName: dep.source,
+      });
     }
   }
 }

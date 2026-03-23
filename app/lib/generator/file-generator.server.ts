@@ -1,8 +1,8 @@
 import { isSafeFilename } from "../path-validation.server";
 import type { GeneratedFile } from "./types";
 
-interface ComponentFileData {
-  id: string;
+// サポートファイルの入力データ
+interface SupportFileInput {
   role: string;
   filename: string;
   content: string;
@@ -12,19 +12,19 @@ interface ComponentFileData {
  * コンポーネントのサポートファイル（template.md, reference.md等）を生成する。
  *
  * @param componentDir - コンポーネントのディレクトリパス（例: "skills/my-skill"）
- * @param files - コンポーネントの全ComponentFileレコード
- * @param componentId - トレーサビリティ用コンポーネントID
+ * @param files - サポートファイルデータ
+ * @param skillName - トレーサビリティ用スキル名
  */
 export function generateSupportFiles(
   componentDir: string,
-  files: ComponentFileData[],
-  componentId: string,
+  files: SupportFileInput[],
+  skillName: string,
 ): GeneratedFile[] {
   return files
     .filter((f) => isSafeFilename(f.filename))
     .map((f) => ({
       path: `${componentDir}/${f.filename}`,
       content: f.content.endsWith("\n") ? f.content : f.content + "\n",
-      componentId,
+      skillName,
     }));
 }

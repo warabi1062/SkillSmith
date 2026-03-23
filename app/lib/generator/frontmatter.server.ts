@@ -1,5 +1,3 @@
-import type { GenerationValidationError } from "./types";
-
 type FrontmatterValue =
   | string
   | number
@@ -7,51 +5,6 @@ type FrontmatterValue =
   | string[]
   | null
   | undefined;
-
-/**
- * Parse a JSON string field into a string array.
- * Returns the parsed array on success, or null with a validation error on failure.
- */
-export function parseJsonArrayField(
-  value: string | null | undefined,
-  fieldName: string,
-  componentId?: string,
-): {
-  parsed: string[] | null;
-  error: GenerationValidationError | null;
-} {
-  if (value == null) {
-    return { parsed: null, error: null };
-  }
-
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) {
-      return {
-        parsed: null,
-        error: {
-          severity: "error",
-          code: "JSON_PARSE_FAILED",
-          message: `Field "${fieldName}" is not a JSON array`,
-          componentId,
-          field: fieldName,
-        },
-      };
-    }
-    return { parsed: parsed.map(String), error: null };
-  } catch {
-    return {
-      parsed: null,
-      error: {
-        severity: "error",
-        code: "JSON_PARSE_FAILED",
-        message: `Failed to parse JSON for field "${fieldName}"`,
-        componentId,
-        field: fieldName,
-      },
-    };
-  }
-}
 
 function serializeYamlValue(value: FrontmatterValue): string | null {
   if (value == null) {

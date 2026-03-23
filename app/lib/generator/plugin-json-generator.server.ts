@@ -1,9 +1,8 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 
 interface PluginData {
-  id: string;
   name: string;
-  description: string | null;
+  description?: string;
 }
 
 export function generatePluginJson(plugin: PluginData): {
