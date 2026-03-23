@@ -1,4 +1,3 @@
-import { parseArgs } from "node:util";
 import {
   getPlugins,
   getPlugin,
@@ -6,6 +5,7 @@ import {
   updatePlugin,
   deletePlugin,
 } from "../../app/lib/plugins.server";
+import { parseCommandArgs, isPrismaNotFoundError } from "../command-utils";
 import { createOutput } from "../output";
 import type { OutputStreams } from "../output";
 import { registerCommand } from "../router";
@@ -17,32 +17,6 @@ let outputStreams: OutputStreams | undefined;
 // 出力先を設定する（テスト用）
 export function setOutputStreams(streams: OutputStreams | undefined): void {
   outputStreams = streams;
-}
-
-// コマンド固有オプションをパースするヘルパー
-function parseCommandArgs(
-  args: string[],
-  options: Record<string, { type: "string" | "boolean" }>,
-): { values: Record<string, string | boolean | undefined>; positionals: string[] } {
-  const result = parseArgs({
-    args,
-    options,
-    allowPositionals: true,
-    strict: false,
-  });
-  return {
-    values: result.values as Record<string, string | boolean | undefined>,
-    positionals: result.positionals,
-  };
-}
-
-// Prisma P2025（レコード未発見）エラーかどうかを判定するヘルパー
-function isPrismaNotFoundError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    (error as { code: string }).code === "P2025"
-  );
 }
 
 // plugin list: プラグイン一覧を表示する
