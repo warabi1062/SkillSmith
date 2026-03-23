@@ -1,6 +1,7 @@
 // サンプル EntryPointSkill 定義（型検証用）
 
 import { EntryPointSkill } from "../../../../app/lib/types";
+import fetchDataSkill from "../fetch-data/skill";
 
 const greetSkill = new EntryPointSkill({
   name: "greet",
@@ -8,7 +9,7 @@ const greetSkill = new EntryPointSkill({
   input: "ユーザー名（任意）",
   output: "挨拶メッセージ",
   argumentHint: "<name>",
-  dependencies: ["fetch-data"],
+  dependencies: [fetchDataSkill],
   files: [
     { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
   ],
