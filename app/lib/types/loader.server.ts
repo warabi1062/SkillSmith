@@ -5,7 +5,6 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
 import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile } from "./skill";
-import { Skill } from "./skill";
 
 // 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
 interface ImportedSkill {
@@ -18,7 +17,7 @@ interface ImportedSkill {
   allowedTools?: string[];
   argumentHint?: string;
   files?: SupportFile[];
-  dependencies?: Skill[];
+  dependencies?: { name: string }[];
   agentConfig?: AgentConfig;
   agentTeamMembers?: AgentTeamMember[];
 }
