@@ -9,8 +9,6 @@ import implementTeamSkill from "./skills/implement-team/skill";
 import createPrSkill from "./skills/create-pr/skill";
 import linearTriageTeamSkill from "./skills/linear-triage-team/skill";
 import linearTriageExecuteSkill from "./skills/linear-triage-execute/skill";
-import sentryInvestigateSkill from "./skills/sentry-investigate/skill";
-
 const plugin: PluginDefinition = {
   name: "dev",
   description:
@@ -24,7 +22,6 @@ const plugin: PluginDefinition = {
     createPrSkill,
     linearTriageTeamSkill,
     linearTriageExecuteSkill,
-    sentryInvestigateSkill,
   ],
 };
 
