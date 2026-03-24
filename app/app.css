@@ -525,7 +525,6 @@ h3 {
 .orchestrator-node-step {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 4px 12px;
   border-bottom: 1px solid #bfdbfe;
   color: #1e40af;
@@ -535,6 +534,20 @@ h3 {
 
 .orchestrator-node-step:last-child {
   border-bottom: none;
+}
+
+.orchestrator-node-step-num {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+/* ステップ名をflex-growで広げ、Handleを右端に配置する */
+.orchestrator-node-step > span:not(.orchestrator-node-step-num),
+.orchestrator-node-inline-step > span:not(.orchestrator-node-step-num) {
+  flex-grow: 1;
 }
 
 /* Orchestrator Node - インラインステップ（スキル委譲なし） */

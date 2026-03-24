@@ -20,7 +20,13 @@ const devLiteSkill = new EntryPointSkill({
     "AskUserQuestion",
     "ToolSearch",
   ],
-  dependencies: [implementTeamSkill, createPrSkill],
+  steps: [
+    { inline: "タスクID生成" },
+    { inline: "ブランチ作成" },
+    { inline: "簡易Plan生成" },
+    implementTeamSkill,
+    createPrSkill,
+  ],
   content: `# Dev Lite
 
 \`$ARGUMENTS\` に対して、以下の簡易ワークフローを実行する。

@@ -26,7 +26,7 @@ const linearManageSkill = new EntryPointSkill({
     {
       decisionPoint: "入力判定",
       cases: {
-        "新規作成": [],
+        "新規作成": [{ inline: "チケット種類確認" }, { inline: "テンプレート適用・チケット作成" }],
         "既存チケット": [],
       },
     },
