@@ -6,6 +6,19 @@ import * as path from "node:path";
 import { createJiti } from "jiti";
 import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile } from "./skill";
 
+// import 用の分岐ステップ型
+interface ImportedBranch {
+  decisionPoint: string;
+  cases: Record<string, ImportedStep[]>;
+}
+
+type ImportedStep = { name: string } | ImportedBranch;
+
+// ImportedBranch かどうかを判定する型ガード
+function isImportedBranch(step: ImportedStep): step is ImportedBranch {
+  return "decisionPoint" in step && "cases" in step;
+}
+
 // 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
 interface ImportedSkill {
   skillType: SkillType;
@@ -18,6 +31,7 @@ interface ImportedSkill {
   argumentHint?: string;
   files?: SupportFile[];
   dependencies?: { name: string }[];
+  steps?: ImportedStep[];
   agentConfig?: AgentConfig;
   agentTeamMembers?: AgentTeamMember[];
 }
@@ -37,6 +51,19 @@ export interface LoadedSupportFile {
   sortOrder?: number;
 }
 
+// ローダー用の分岐ステップ型（スキル名は文字列参照）
+export interface LoadedBranch {
+  decisionPoint: string;
+  cases: Record<string, LoadedStep[]>;
+}
+
+export type LoadedStep = string | LoadedBranch;
+
+// LoadedBranch かどうかを判定する型ガード
+export function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
+  return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+}
+
 // ローダーが返すスキルの共通フィールド
 interface LoadedSkillBase {
   name: string;
@@ -48,6 +75,7 @@ interface LoadedSkillBase {
   argumentHint?: string;
   files: LoadedSupportFile[];
   dependencies?: string[];
+  steps?: LoadedStep[];
 }
 
 // ENTRY_POINT / WORKER の場合
@@ -126,6 +154,13 @@ export async function loadPluginDefinition(
         }
       }
 
+      // ImportedStep[] → LoadedStep[] への再帰的変換
+      const loadedSteps = skill.steps ? convertImportedSteps(skill.steps) : undefined;
+
+      // dependencies の解決: 明示的指定があればそれを使い、なければ steps から自動導出
+      const dependencies = skill.dependencies?.map(d => d.name)
+        ?? (loadedSteps ? collectSkillNamesFromLoadedSteps(loadedSteps) : undefined);
+
       // 基本フィールド
       const base = {
         skillType: skill.skillType,
@@ -137,7 +172,8 @@ export async function loadPluginDefinition(
         allowedTools: skill.allowedTools,
         argumentHint: skill.argumentHint,
         files: loadedFiles,
-        dependencies: skill.dependencies?.map(d => d.name),
+        dependencies,
+        steps: loadedSteps,
       };
 
       // skillType に応じた拡張
@@ -215,4 +251,42 @@ export async function loadAllPluginMeta(): Promise<PluginMeta[]> {
     dirEntries.map((dirName) => loadPluginMeta(path.join(pluginsDir, dirName), dirName)),
   );
   return results.filter((r): r is PluginMeta => r !== null);
+}
+
+// ImportedStep[] → LoadedStep[] への再帰的変換
+function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
+  return steps.map((step): LoadedStep => {
+    if (isImportedBranch(step)) {
+      const cases: Record<string, LoadedStep[]> = {};
+      for (const [caseName, caseSteps] of Object.entries(step.cases)) {
+        cases[caseName] = convertImportedSteps(caseSteps);
+      }
+      return { decisionPoint: step.decisionPoint, cases };
+    }
+    return step.name;
+  });
+}
+
+// LoadedStep[] から全スキル名を再帰的にフラット収集する（重複除去）
+function collectSkillNamesFromLoadedSteps(steps: LoadedStep[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const step of steps) {
+    if (isLoadedBranch(step)) {
+      for (const caseSteps of Object.values(step.cases)) {
+        for (const name of collectSkillNamesFromLoadedSteps(caseSteps)) {
+          if (!seen.has(name)) {
+            seen.add(name);
+            result.push(name);
+          }
+        }
+      }
+    } else {
+      if (!seen.has(step)) {
+        seen.add(step);
+        result.push(step);
+      }
+    }
+  }
+  return result;
 }

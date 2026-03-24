@@ -1,5 +1,16 @@
 import { Handle, Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
+// LoadedStep 型をインラインで定義（loader.server.ts はサーバー専用のためクライアントからインポート不可）
+interface LoadedBranch {
+  decisionPoint: string;
+  cases: Record<string, LoadedStep[]>;
+}
+
+type LoadedStep = string | LoadedBranch;
+
+function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
+  return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+}
 
 interface Step {
   order: number;
@@ -10,8 +21,61 @@ interface OrchestratorNodeData {
   label: string;
   description?: string | null;
   steps: Step[];
+  stepsData?: LoadedStep[];
   skillType?: string | null;
   [key: string]: unknown;
+}
+
+// LoadedStep[] を再帰的にレンダリングし、各リーフスキルに Handle を配置する。
+// flatIndex はフラット化順序を追跡するカウンター（参照渡し）。
+function renderStepsData(
+  stepsData: LoadedStep[],
+  counter: { value: number },
+  depth: number,
+): React.ReactNode[] {
+  const elements: React.ReactNode[] = [];
+
+  for (const step of stepsData) {
+    if (isLoadedBranch(step)) {
+      // 分岐ノードのレンダリング
+      elements.push(
+        <div key={`branch-${counter.value}-${step.decisionPoint}`} className="orchestrator-node-branch" style={{ marginLeft: depth * 8 }}>
+          <div className="orchestrator-node-branch-header">
+            {step.decisionPoint}
+          </div>
+          {Object.entries(step.cases).map(([caseName, caseSteps]) => (
+            <div key={caseName} className="orchestrator-node-case">
+              <div className="orchestrator-node-case-name">{caseName}</div>
+              {caseSteps.length > 0 ? (
+                <div className="orchestrator-node-case-steps">
+                  {renderStepsData(caseSteps, counter, depth + 1)}
+                </div>
+              ) : (
+                <div className="orchestrator-node-case-empty">(なし)</div>
+              )}
+            </div>
+          ))}
+        </div>,
+      );
+    } else {
+      // リーフスキル（通常ステップ）のレンダリング
+      const index = counter.value;
+      counter.value++;
+      elements.push(
+        <div key={`step-${index}`} className="orchestrator-node-step" style={{ marginLeft: depth * 8 }}>
+          <span>{step}</span>
+          <Handle
+            type="source"
+            position={Position.Right}
+            id={`step-${index}`}
+            style={{ top: "auto", position: "relative" }}
+          />
+        </div>,
+      );
+    }
+  }
+
+  return elements;
 }
 
 export default function OrchestratorNode({
@@ -21,6 +85,7 @@ export default function OrchestratorNode({
     label,
     description,
     steps = [],
+    stepsData,
   } = data as OrchestratorNodeData;
 
   return (
@@ -33,22 +98,28 @@ export default function OrchestratorNode({
         {description || "(no description)"}
       </div>
       <div className="orchestrator-node-steps">
-        {steps.map((step) => (
-          <div
-            key={step.order}
-            className="orchestrator-node-step"
-          >
-            <span>
-              {`Step ${step.order + 1}${step.dependencies.length > 1 ? ` (x${step.dependencies.length})` : ""}`}
-            </span>
-            <Handle
-              type="source"
-              position={Position.Right}
-              id={`step-${step.order}`}
-              style={{ top: "auto", position: "relative" }}
-            />
-          </div>
-        ))}
+        {stepsData ? (
+          // steps フィールドがある場合: 分岐構造をレンダリング
+          renderStepsData(stepsData, { value: 0 }, 0)
+        ) : (
+          // 従来の線形ステップ表示
+          steps.map((step) => (
+            <div
+              key={step.order}
+              className="orchestrator-node-step"
+            >
+              <span>
+                {`Step ${step.order + 1}${step.dependencies.length > 1 ? ` (x${step.dependencies.length})` : ""}`}
+              </span>
+              <Handle
+                type="source"
+                position={Position.Right}
+                id={`step-${step.order}`}
+                style={{ top: "auto", position: "relative" }}
+              />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

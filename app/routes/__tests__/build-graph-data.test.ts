@@ -168,6 +168,49 @@ describe("buildGraphData", () => {
     expect(orchNode!.data.skillType).toBe("ENTRY_POINT");
   });
 
+  it("steps がある ENTRY_POINT で stepsData がノードデータに含まれること", () => {
+    const skills: LoadedSkillUnion[] = [
+      makeSkill({
+        skillType: "ENTRY_POINT",
+        name: "dev",
+        dependencies: ["w1", "w2", "w3"],
+        steps: [
+          {
+            decisionPoint: "入力判定",
+            cases: {
+              "モードA": ["w1"],
+              "モードB": [],
+            },
+          },
+          "w2",
+          "w3",
+        ],
+      } as any),
+      makeSkill({ skillType: "WORKER", name: "w1" }),
+      makeSkill({ skillType: "WORKER", name: "w2" }),
+      makeSkill({ skillType: "WORKER", name: "w3" }),
+    ];
+
+    const { nodes } = buildGraphData(skills);
+    const orchNode = nodes.find((n) => n.id === "dev");
+
+    expect(orchNode).toBeDefined();
+    expect(orchNode!.data.stepsData).toBeDefined();
+    expect(orchNode!.data.stepsData).toHaveLength(3);
+  });
+
+  it("steps がない ENTRY_POINT で stepsData が undefined であること", () => {
+    const skills: LoadedSkillUnion[] = [
+      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w1"] }),
+      makeSkill({ skillType: "WORKER", name: "w1" }),
+    ];
+
+    const { nodes } = buildGraphData(skills);
+    const orchNode = nodes.find((n) => n.id === "dev");
+
+    expect(orchNode!.data.stepsData).toBeUndefined();
+  });
+
   describe("dagre layout", () => {
     it("nodeSizes引数を渡した場合にレイアウトが計算されること", () => {
       const skills: LoadedSkillUnion[] = [

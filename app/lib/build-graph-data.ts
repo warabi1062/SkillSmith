@@ -1,6 +1,6 @@
 import dagre from "@dagrejs/dagre";
 import type { Node, Edge } from "@xyflow/react";
-import type { LoadedSkillUnion } from "./types/loader.server";
+import type { LoadedSkillUnion, LoadedStep } from "./types/loader.server";
 import { applyStepOrderPostProcessing } from "./layout-utils";
 
 export const DEFAULT_NODE_WIDTH = 260;
@@ -199,6 +199,8 @@ export function buildGraphData(
         data: {
           label,
           steps,
+          // steps フィールドがある場合、分岐表示用データとして渡す
+          stepsData: skill.steps as LoadedStep[] | undefined,
           description: skill.description ?? null,
           skillType: skill.skillType ?? null,
         },

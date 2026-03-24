@@ -1,5 +1,43 @@
 // スキル型定義: abstract class とサブクラス
 
+// 分岐ステップ（再帰的にネスト可能）
+export interface Branch {
+  decisionPoint: string;           // 分岐判定名（例: "入力判定"）
+  cases: Record<string, Step[]>;   // case名 → ステップ列
+}
+
+// ステップ型（Skill または Branch の union）
+export type Step = Skill | Branch;
+
+// Branch かどうかを判定する型ガード
+export function isBranch(step: Step): step is Branch {
+  return "decisionPoint" in step && "cases" in step;
+}
+
+// Step[] から全 Skill を再帰的にフラット収集するヘルパー（重複除去）
+export function collectSkillsFromSteps(steps: Step[]): Skill[] {
+  const seen = new Set<string>();
+  const result: Skill[] = [];
+  for (const step of steps) {
+    if (isBranch(step)) {
+      for (const caseSteps of Object.values(step.cases)) {
+        for (const skill of collectSkillsFromSteps(caseSteps)) {
+          if (!seen.has(skill.name)) {
+            seen.add(skill.name);
+            result.push(skill);
+          }
+        }
+      }
+    } else {
+      if (!seen.has(step.name)) {
+        seen.add(step.name);
+        result.push(step);
+      }
+    }
+  }
+  return result;
+}
+
 // サポートファイルの役割
 export type SupportFileRole = "TEMPLATE" | "REFERENCE" | "EXAMPLE";
 
@@ -33,7 +71,7 @@ export type SkillType =
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
-  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files" | "dependencies"
+  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files" | "dependencies" | "steps"
 >;
 
 // 基底クラス
@@ -49,6 +87,7 @@ export abstract class Skill {
   argumentHint?: string;
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
+  steps?: Step[];         // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(
@@ -61,6 +100,7 @@ export abstract class Skill {
     if (init.argumentHint !== undefined) this.argumentHint = init.argumentHint;
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
+    if (init.steps !== undefined) this.steps = init.steps;
   }
 }
 
@@ -76,6 +116,10 @@ export class EntryPointSkill extends Skill {
     super();
     this.name = init.name;
     this.content = init.content;
+    // steps が指定され dependencies が未指定の場合、steps から自動導出
+    if (init.steps && !init.dependencies) {
+      init.dependencies = collectSkillsFromSteps(init.steps);
+    }
     this.assignOptionalFields(init);
   }
 }

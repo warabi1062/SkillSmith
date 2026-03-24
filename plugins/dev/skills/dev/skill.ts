@@ -23,9 +23,14 @@ const devSkill = new EntryPointSkill({
     "AskUserQuestion",
     "ToolSearch",
   ],
-  dependencies: [
-    linearTriageTeamSkill,
-    linearTriageExecuteSkill,
+  steps: [
+    {
+      decisionPoint: "入力判定",
+      cases: {
+        "Linearモード": [linearTriageTeamSkill, linearTriageExecuteSkill],
+        "Quickモード": [],
+      },
+    },
     planTeamSkill,
     implementTeamSkill,
     createPrSkill,

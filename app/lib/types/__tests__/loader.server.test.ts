@@ -194,6 +194,68 @@ describe("loadPluginDefinition", () => {
     }
   });
 
+  it("steps を LoadedStep[] に変換し dependencies を自動導出すること", async () => {
+    await createPluginStructure({
+      pluginTs: `
+        const workerA = {
+          skillType: "WORKER",
+          name: "worker-a",
+          content: "# Worker A",
+        };
+        const workerB = {
+          skillType: "WORKER",
+          name: "worker-b",
+          content: "# Worker B",
+        };
+        const workerC = {
+          skillType: "WORKER",
+          name: "worker-c",
+          content: "# Worker C",
+        };
+        const plugin = {
+          name: "test-plugin",
+          skills: [
+            {
+              skillType: "ENTRY_POINT",
+              name: "orchestrator",
+              content: "# Orch",
+              steps: [
+                {
+                  decisionPoint: "入力判定",
+                  cases: {
+                    "モードA": [workerA],
+                    "モードB": [],
+                  },
+                },
+                workerB,
+                workerC,
+              ],
+            },
+            workerA,
+            workerB,
+            workerC,
+          ],
+        };
+        export default plugin;
+      `,
+    });
+
+    const result = await loadPluginDefinition(tmpDir);
+    const orch = result.skills.find((s) => s.name === "orchestrator");
+    expect(orch).toBeDefined();
+
+    // steps が LoadedStep[] に変換されていること
+    expect(orch!.steps).toBeDefined();
+    expect(orch!.steps).toHaveLength(3);
+    // 最初の要素は LoadedBranch
+    const branch = orch!.steps![0];
+    expect(typeof branch).toBe("object");
+    expect("decisionPoint" in (branch as object)).toBe(true);
+
+    // dependencies が steps から自動導出されていること
+    expect(orch!.dependencies).toEqual(["worker-a", "worker-b", "worker-c"]);
+  });
+
   it("WORKER_WITH_AGENT_TEAM スキルの agentTeamMembers を正しく読み込むこと", async () => {
     await createPluginStructure({
       pluginTs: `
