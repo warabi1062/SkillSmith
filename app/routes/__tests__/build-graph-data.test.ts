@@ -198,7 +198,7 @@ describe("buildGraphData", () => {
       expect(nodes).toHaveLength(2);
       expect(nodes[0].position).toBeDefined();
       expect(nodes[1].position).toBeDefined();
-      expect(DEFAULT_NODE_WIDTH).toBe(250);
+      expect(DEFAULT_NODE_WIDTH).toBe(260);
       expect(DEFAULT_NODE_HEIGHT).toBe(60);
     });
 

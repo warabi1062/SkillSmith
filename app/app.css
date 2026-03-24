@@ -498,6 +498,7 @@ h3 {
   border-radius: 0.375rem;
   padding: 0;
   min-width: 140px;
+  max-width: 260px;
   font-size: 0.8rem;
 }
 
@@ -506,6 +507,9 @@ h3 {
   font-weight: 600;
   color: #1e3a5f;
   border-bottom: 1px solid #93c5fd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .orchestrator-node-steps {
@@ -575,14 +579,68 @@ h3 {
   color: #374151;
 }
 
-/* Skill Node */
+/* Skill Node（共通） */
 .skill-node {
-  background: #dbeafe;
   border: 1px solid #93c5fd;
   border-radius: 0.375rem;
   padding: 0;
   min-width: 140px;
+  max-width: 260px;
   font-size: 0.8rem;
+}
+
+/* Worker（単独）: アンバー/オレンジ */
+.skill-node--worker {
+  background: #fef3c7;
+  border-color: #fbbf24;
+}
+.skill-node--worker .skill-node-badge {
+  background-color: #b45309;
+}
+.skill-node--worker .skill-node-skill-type {
+  color: #d97706;
+}
+.skill-node--worker .skill-node-title {
+  color: #78350f;
+}
+.skill-node--worker .skill-node-description {
+  color: #92400e;
+}
+
+/* Worker + SubAgent: 紫 */
+.skill-node--sub-agent {
+  background: #ede9fe;
+  border-color: #a78bfa;
+}
+.skill-node--sub-agent .skill-node-badge {
+  background-color: #5b21b6;
+}
+.skill-node--sub-agent .skill-node-skill-type {
+  color: #7c3aed;
+}
+.skill-node--sub-agent .skill-node-title {
+  color: #3b0764;
+}
+.skill-node--sub-agent .skill-node-description {
+  color: #5b21b6;
+}
+
+/* Worker + AgentTeam: 緑 */
+.skill-node--agent-team {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+.skill-node--agent-team .skill-node-badge {
+  background-color: #166534;
+}
+.skill-node--agent-team .skill-node-skill-type {
+  color: #16a34a;
+}
+.skill-node--agent-team .skill-node-title {
+  color: #14532d;
+}
+.skill-node--agent-team .skill-node-description {
+  color: #166534;
 }
 
 .skill-node-header {
@@ -613,6 +671,9 @@ h3 {
   padding: 0 10px 2px;
   font-weight: 600;
   color: #1e3a5f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .skill-node-description {

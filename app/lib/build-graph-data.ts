@@ -3,7 +3,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type { LoadedSkillUnion } from "./types/loader.server";
 import { applyStepOrderPostProcessing } from "./layout-utils";
 
-export const DEFAULT_NODE_WIDTH = 250;
+export const DEFAULT_NODE_WIDTH = 260;
 export const DEFAULT_NODE_HEIGHT = 60;
 
 // スキルの dependencies フィールドからエッジ情報を構築する
@@ -89,7 +89,7 @@ export function buildGraphData(
   const hasCycle = processed < skills.length;
 
   // ノードの位置を決定
-  const HORIZONTAL_SPACING = 300;
+  const HORIZONTAL_SPACING = 340;
   const VERTICAL_SPACING = 150;
 
   function getNodeSize(skillName: string): {
@@ -105,7 +105,7 @@ export function buildGraphData(
 
   function getPositionWithDagre(): Map<string, { x: number; y: number }> {
     const g = new dagre.graphlib.Graph();
-    g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 2 });
+    g.setGraph({ rankdir: "LR", ranksep: 100, nodesep: 2 });
     g.setDefaultEdgeLabel(() => ({}));
 
     for (const skill of skills) {

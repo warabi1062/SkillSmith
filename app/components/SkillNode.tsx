@@ -31,8 +31,15 @@ export default function SkillNode({
 
   const badgeLabel = getSkillTypeBadge(skillType);
 
+  // skillTypeに応じたCSS修飾クラスを返す
+  const typeClass = skillType === "WORKER_WITH_SUB_AGENT"
+    ? "skill-node--sub-agent"
+    : skillType === "WORKER_WITH_AGENT_TEAM"
+      ? "skill-node--agent-team"
+      : "skill-node--worker";
+
   return (
-    <div className="skill-node">
+    <div className={`skill-node ${typeClass}`}>
       <Handle type="target" position={Position.Left} />
       <div className="skill-node-header">
         <span className="skill-node-badge">SKILL</span>

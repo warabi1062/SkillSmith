@@ -3,7 +3,7 @@ import type { Node, Edge } from "@xyflow/react";
 import { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT } from "./build-graph-data";
 import { applyStepOrderPostProcessing } from "./layout-utils";
 
-const HORIZONTAL_SPACING = 300;
+const HORIZONTAL_SPACING = 340;
 const VERTICAL_SPACING = 150;
 
 /**
@@ -64,7 +64,7 @@ export function computeAutoLayout(
   }
 
   const g = new dagre.graphlib.Graph();
-  g.setGraph({ rankdir: "LR", ranksep: 80, nodesep: 2 });
+  g.setGraph({ rankdir: "LR", ranksep: 100, nodesep: 2 });
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const node of componentNodes) {
