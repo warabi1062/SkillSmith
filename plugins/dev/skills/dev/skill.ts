@@ -28,9 +28,10 @@ const devSkill = new EntryPointSkill({
       decisionPoint: "入力判定",
       cases: {
         "Linearモード": [linearTriageTeamSkill, linearTriageExecuteSkill],
-        "Quickモード": [],
+        "Quickモード": [{ inline: "タスクID生成" }],
       },
     },
+    { inline: "ブランチ作成" },
     planTeamSkill,
     implementTeamSkill,
     createPrSkill,

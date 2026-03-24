@@ -371,6 +371,12 @@ h3 {
   flex-direction: column;
 }
 
+/* エッジのSVGコンテナをノードより前面に描画する（選択時のノード z-index: 1000 より大きくする） */
+.react-flow__edges {
+  position: relative;
+  z-index: 1001 !important;
+}
+
 .react-flow__edge:hover .react-flow__edge-path {
   stroke: #dc2626;
   stroke-width: 2;
@@ -528,6 +534,22 @@ h3 {
 }
 
 .orchestrator-node-step:last-child {
+  border-bottom: none;
+}
+
+/* Orchestrator Node - インラインステップ（スキル委譲なし） */
+.orchestrator-node-inline-step {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-bottom: 1px dashed #bfdbfe;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-style: italic;
+  position: relative;
+}
+
+.orchestrator-node-inline-step:last-child {
   border-bottom: none;
 }
 
@@ -724,6 +746,38 @@ h3 {
 .skill-node-description-empty {
   color: #9ca3af;
   font-style: italic;
+}
+
+/* Inline Step Node: グレー系 */
+.inline-step-node {
+  border: 1px dashed #9ca3af;
+  border-radius: 0.375rem;
+  padding: 0;
+  min-width: 140px;
+  max-width: 260px;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+}
+
+.inline-step-node-badge {
+  display: inline-block;
+  padding: 0 0.375rem;
+  margin: 4px 10px 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #6b7280;
+  color: #fff;
+  line-height: 1.5;
+}
+
+.inline-step-node-title {
+  padding: 2px 10px 6px;
+  font-weight: 600;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Agent Node */

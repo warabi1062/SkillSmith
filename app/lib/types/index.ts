@@ -15,9 +15,10 @@ export type {
   AgentTeamMember,
   SkillType,
   Branch,
+  InlineStep,
   Step,
 } from "./skill";
-export { isBranch, collectSkillsFromSteps } from "./skill";
+export { isBranch, isInlineStep, collectSkillsFromSteps } from "./skill";
 
 // Plugin 関連
 export type { PluginDefinition } from "./plugin";
@@ -33,6 +34,7 @@ export type {
   LoadedPluginDefinition,
   PluginMeta,
   LoadedBranch,
+  LoadedInlineStep,
   LoadedStep,
 } from "./loader.server";
-export { isLoadedBranch } from "./loader.server";
+export { isLoadedBranch, isLoadedInlineStep } from "./loader.server";

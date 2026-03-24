@@ -1,6 +1,6 @@
 import dagre from "@dagrejs/dagre";
 import type { Node, Edge } from "@xyflow/react";
-import type { LoadedSkillUnion, LoadedStep } from "./types/loader.server";
+import type { LoadedSkillUnion, LoadedStep, LoadedBranch, LoadedInlineStep } from "./types/loader.server";
 import { applyStepOrderPostProcessing } from "./layout-utils";
 
 export const DEFAULT_NODE_WIDTH = 260;
@@ -25,6 +25,48 @@ function buildSkillEdges(skills: LoadedSkillUnion[]): SkillEdge[] {
   return edges;
 }
 
+// LoadedStep の型ガード（loader.server.ts はサーバー専用のためランタイムインポート不可）
+function isStepsDataBranch(step: LoadedStep): step is LoadedBranch {
+  return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+}
+
+function isStepsDataInline(step: LoadedStep): step is LoadedInlineStep {
+  return typeof step === "object" && "inline" in step && !("decisionPoint" in step);
+}
+
+// stepsData からリーフターゲットをフラット順に収集する
+interface FlatTarget {
+  type: "skill" | "inline";
+  id: string;
+  label: string;
+}
+
+function flattenStepsData(stepsData: LoadedStep[], orchName: string): FlatTarget[] {
+  const result: FlatTarget[] = [];
+  let inlineCounter = 0;
+
+  function walk(steps: LoadedStep[]) {
+    for (const step of steps) {
+      if (isStepsDataBranch(step)) {
+        for (const caseSteps of Object.values(step.cases)) {
+          walk(caseSteps);
+        }
+      } else if (isStepsDataInline(step)) {
+        result.push({
+          type: "inline",
+          id: `${orchName}:inline:${inlineCounter++}`,
+          label: step.inline,
+        });
+      } else {
+        result.push({ type: "skill", id: step, label: step });
+      }
+    }
+  }
+
+  walk(stepsData);
+  return result;
+}
+
 export function buildGraphData(
   skills: LoadedSkillUnion[],
   nodeSizes?: Map<string, { width: number; height: number }>,
@@ -34,21 +76,49 @@ export function buildGraphData(
 } {
   if (skills.length === 0) return { nodes: [], edges: [] };
 
-  // スキルの dependencies フィールドからエッジを構築
-  const skillEdges = buildSkillEdges(skills);
+  // dependencies ベースのエッジを構築
+  const baseSkillEdges = buildSkillEdges(skills);
+
+  // stepsData を持つオーケストレーターからインラインステップ情報を抽出し、エッジを置き換え
+  interface InlineNodeInfo { id: string; label: string }
+  const inlineNodeInfos: InlineNodeInfo[] = [];
+  const orchsWithStepsData = new Set<string>();
+  const stepsDataEdges: SkillEdge[] = [];
+
+  for (const skill of skills) {
+    if (skill.skillType === "ENTRY_POINT" && skill.steps) {
+      const targets = flattenStepsData(skill.steps as LoadedStep[], skill.name);
+      orchsWithStepsData.add(skill.name);
+      for (let i = 0; i < targets.length; i++) {
+        stepsDataEdges.push({ source: skill.name, target: targets[i].id, order: i });
+        if (targets[i].type === "inline") {
+          inlineNodeInfos.push({ id: targets[i].id, label: targets[i].label });
+        }
+      }
+    }
+  }
+
+  // stepsData があるオーケストレーターは stepsData ベースのエッジに置き換え
+  const skillEdges = [
+    ...baseSkillEdges.filter((e) => !orchsWithStepsData.has(e.source)),
+    ...stepsDataEdges,
+  ];
+
+  // 全ノードID（スキル + インラインステップ）
+  const allNodeIds = [...skills.map((s) => s.name), ...inlineNodeInfos.map((n) => n.id)];
 
   // 循環検出用の隣接リストを構築
   const adjacency = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
 
-  for (const skill of skills) {
-    adjacency.set(skill.name, []);
-    inDegree.set(skill.name, 0);
+  for (const id of allNodeIds) {
+    adjacency.set(id, []);
+    inDegree.set(id, 0);
   }
 
   const edges: Edge[] = [];
 
-  // スキルのdependenciesからエッジを構築
+  // エッジを構築
   for (const dep of skillEdges) {
     const sourceSkill = skills.find((s) => s.name === dep.source);
     const isOrchestrator = sourceSkill?.skillType === "ENTRY_POINT";
@@ -70,9 +140,9 @@ export function buildGraphData(
   let processed = 0;
   const tempInDegree = new Map(inDegree);
   const tempQueue: string[] = [];
-  for (const skill of skills) {
-    if ((tempInDegree.get(skill.name) ?? 0) === 0) {
-      tempQueue.push(skill.name);
+  for (const id of allNodeIds) {
+    if ((tempInDegree.get(id) ?? 0) === 0) {
+      tempQueue.push(id);
     }
   }
   while (tempQueue.length > 0) {
@@ -86,17 +156,17 @@ export function buildGraphData(
     }
   }
 
-  const hasCycle = processed < skills.length;
+  const hasCycle = processed < allNodeIds.length;
 
   // ノードの位置を決定
   const HORIZONTAL_SPACING = 340;
   const VERTICAL_SPACING = 150;
 
-  function getNodeSize(skillName: string): {
+  function getNodeSize(nodeId: string): {
     width: number;
     height: number;
   } {
-    const size = nodeSizes?.get(skillName);
+    const size = nodeSizes?.get(nodeId);
     return {
       width: size?.width ?? DEFAULT_NODE_WIDTH,
       height: size?.height ?? DEFAULT_NODE_HEIGHT,
@@ -108,9 +178,9 @@ export function buildGraphData(
     g.setGraph({ rankdir: "LR", ranksep: 100, nodesep: 2 });
     g.setDefaultEdgeLabel(() => ({}));
 
-    for (const skill of skills) {
-      const size = getNodeSize(skill.name);
-      g.setNode(skill.name, { width: size.width, height: size.height });
+    for (const id of allNodeIds) {
+      const size = getNodeSize(id);
+      g.setNode(id, { width: size.width, height: size.height });
     }
 
     for (const edge of edges) {
@@ -120,11 +190,11 @@ export function buildGraphData(
     dagre.layout(g);
 
     const positions = new Map<string, { x: number; y: number }>();
-    for (const skill of skills) {
-      const nodeData = g.node(skill.name);
-      const size = getNodeSize(skill.name);
+    for (const id of allNodeIds) {
+      const nodeData = g.node(id);
+      const size = getNodeSize(id);
       // dagreは中心座標を返すため、左上座標に変換
-      positions.set(skill.name, {
+      positions.set(id, {
         x: nodeData.x - size.width / 2,
         y: nodeData.y - size.height / 2,
       });
@@ -153,10 +223,10 @@ export function buildGraphData(
   }
 
   function getPositionGrid(
-    _skillName: string,
+    _nodeId: string,
     index: number,
   ): { x: number; y: number } {
-    const cols = Math.ceil(Math.sqrt(skills.length));
+    const cols = Math.ceil(Math.sqrt(allNodeIds.length));
     const row = Math.floor(index / cols);
     const col = index % cols;
     return { x: col * HORIZONTAL_SPACING, y: row * VERTICAL_SPACING };
@@ -172,13 +242,13 @@ export function buildGraphData(
       : dagrePositions!.get(skill.name)!;
 
     if (isOrchestrator) {
-      // ステップデータの構築: dependencies 配列のインデックスがorder
-      const skillDeps = skillEdges.filter((d) => d.source === skill.name);
+      // ステップデータの構築: エッジのインデックスが order
+      const orchEdges = skillEdges.filter((d) => d.source === skill.name);
       const orderMap = new Map<
         number,
         Array<{ id: string; targetId: string }>
       >();
-      for (const dep of skillDeps) {
+      for (const dep of orchEdges) {
         if (!orderMap.has(dep.order)) {
           orderMap.set(dep.order, []);
         }
@@ -223,6 +293,22 @@ export function buildGraphData(
       },
     };
   });
+
+  // インラインステップのノードを追加
+  for (let idx = 0; idx < inlineNodeInfos.length; idx++) {
+    const inlineNode = inlineNodeInfos[idx];
+    const position = hasCycle
+      ? getPositionGrid(inlineNode.id, skills.length + idx)
+      : dagrePositions!.get(inlineNode.id)!;
+    nodes.push({
+      id: inlineNode.id,
+      position,
+      type: "inlineStep",
+      data: {
+        label: inlineNode.label,
+      },
+    });
+  }
 
   return { nodes, edges };
 }

@@ -6,10 +6,18 @@ interface LoadedBranch {
   cases: Record<string, LoadedStep[]>;
 }
 
-type LoadedStep = string | LoadedBranch;
+interface LoadedInlineStep {
+  inline: string;
+}
+
+type LoadedStep = string | LoadedBranch | LoadedInlineStep;
 
 function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
   return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+}
+
+function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
+  return typeof step === "object" && "inline" in step && !("decisionPoint" in step);
 }
 
 interface Step {
@@ -55,6 +63,25 @@ function renderStepsData(
               )}
             </div>
           ))}
+        </div>,
+      );
+    } else if (isLoadedInlineStep(step)) {
+      // インラインステップ: スキルと同様にHandle付きでレンダリング
+      const index = counter.value;
+      counter.value++;
+      elements.push(
+        <div
+          key={`inline-${index}`}
+          className="orchestrator-node-inline-step"
+          style={{ marginLeft: depth * 8 }}
+        >
+          <span>{step.inline}</span>
+          <Handle
+            type="source"
+            position={Position.Right}
+            id={`step-${index}`}
+            style={{ top: "auto", position: "relative" }}
+          />
         </div>,
       );
     } else {

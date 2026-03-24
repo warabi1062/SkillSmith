@@ -199,6 +199,49 @@ describe("buildGraphData", () => {
     expect(orchNode!.data.stepsData).toHaveLength(3);
   });
 
+  it("InlineStep を含む stepsData がノードとエッジに正しく反映されること", () => {
+    const skills: LoadedSkillUnion[] = [
+      makeSkill({
+        skillType: "ENTRY_POINT",
+        name: "dev",
+        dependencies: ["w1"],
+        steps: [
+          { inline: "ブランチ作成" },
+          "w1",
+          { inline: "後処理" },
+        ],
+      } as any),
+      makeSkill({ skillType: "WORKER", name: "w1" }),
+    ];
+
+    const { nodes, edges } = buildGraphData(skills);
+    const orchNode = nodes.find((n) => n.id === "dev");
+
+    // stepsData がそのまま含まれる
+    expect(orchNode!.data.stepsData).toHaveLength(3);
+    expect(orchNode!.data.stepsData![0]).toEqual({ inline: "ブランチ作成" });
+    expect(orchNode!.data.stepsData![1]).toBe("w1");
+    expect(orchNode!.data.stepsData![2]).toEqual({ inline: "後処理" });
+
+    // InlineStep もエッジとノードを生成する（計3本のエッジ）
+    expect(edges).toHaveLength(3);
+    expect(edges[0].target).toBe("dev:inline:0");
+    expect(edges[0].sourceHandle).toBe("step-0");
+    expect(edges[1].target).toBe("w1");
+    expect(edges[1].sourceHandle).toBe("step-1");
+    expect(edges[2].target).toBe("dev:inline:1");
+    expect(edges[2].sourceHandle).toBe("step-2");
+
+    // InlineStep ノードが生成される
+    const inlineNode0 = nodes.find((n) => n.id === "dev:inline:0");
+    const inlineNode1 = nodes.find((n) => n.id === "dev:inline:1");
+    expect(inlineNode0).toBeDefined();
+    expect(inlineNode0!.type).toBe("inlineStep");
+    expect(inlineNode0!.data.label).toBe("ブランチ作成");
+    expect(inlineNode1).toBeDefined();
+    expect(inlineNode1!.data.label).toBe("後処理");
+  });
+
   it("steps がない ENTRY_POINT で stepsData が undefined であること", () => {
     const skills: LoadedSkillUnion[] = [
       makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w1"] }),

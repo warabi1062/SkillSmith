@@ -6,12 +6,22 @@ export interface Branch {
   cases: Record<string, Step[]>;   // case名 → ステップ列
 }
 
-// ステップ型（Skill または Branch の union）
-export type Step = Skill | Branch;
+// インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
+export interface InlineStep {
+  inline: string;                  // 表示名（例: "ブランチ作成"）
+}
+
+// ステップ型（Skill / Branch / InlineStep の union）
+export type Step = Skill | Branch | InlineStep;
 
 // Branch かどうかを判定する型ガード
 export function isBranch(step: Step): step is Branch {
   return "decisionPoint" in step && "cases" in step;
+}
+
+// InlineStep かどうかを判定する型ガード
+export function isInlineStep(step: Step): step is InlineStep {
+  return "inline" in step && !("decisionPoint" in step);
 }
 
 // Step[] から全 Skill を再帰的にフラット収集するヘルパー（重複除去）
@@ -28,6 +38,9 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
           }
         }
       }
+    } else if (isInlineStep(step)) {
+      // インラインステップはスキル参照ではないのでスキップ
+      continue;
     } else {
       if (!seen.has(step.name)) {
         seen.add(step.name);

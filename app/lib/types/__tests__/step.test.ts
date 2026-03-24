@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   isBranch,
+  isInlineStep,
   collectSkillsFromSteps,
   WorkerSkill,
 } from "../skill";
-import type { Branch, Step } from "../skill";
+import type { Branch, InlineStep, Step } from "../skill";
 
 // テスト用ヘルパー: 最小の WorkerSkill を作成
 function worker(name: string): WorkerSkill {
@@ -23,6 +24,27 @@ describe("isBranch", () => {
   it("Skill インスタンスに対して false を返す", () => {
     const skill = worker("test");
     expect(isBranch(skill)).toBe(false);
+  });
+
+  it("InlineStep に対して false を返す", () => {
+    const inline: InlineStep = { inline: "ブランチ作成" };
+    expect(isBranch(inline)).toBe(false);
+  });
+});
+
+describe("isInlineStep", () => {
+  it("InlineStep オブジェクトに対して true を返す", () => {
+    const inline: InlineStep = { inline: "ブランチ作成" };
+    expect(isInlineStep(inline)).toBe(true);
+  });
+
+  it("Skill インスタンスに対して false を返す", () => {
+    expect(isInlineStep(worker("test"))).toBe(false);
+  });
+
+  it("Branch オブジェクトに対して false を返す", () => {
+    const branch: Branch = { decisionPoint: "判定", cases: {} };
+    expect(isInlineStep(branch)).toBe(false);
   });
 });
 
@@ -111,6 +133,32 @@ describe("collectSkillsFromSteps", () => {
     ];
     const result = collectSkillsFromSteps(steps);
     expect(result.map((s) => s.name)).toEqual(["s1", "s2", "s3"]);
+  });
+
+  it("InlineStep をスキップして Skill のみ収集する", () => {
+    const s1 = worker("s1");
+    const steps: Step[] = [
+      { inline: "ブランチ作成" },
+      s1,
+      { inline: "タスクID生成" },
+    ];
+    const result = collectSkillsFromSteps(steps);
+    expect(result.map((s) => s.name)).toEqual(["s1"]);
+  });
+
+  it("Branch 内の InlineStep もスキップする", () => {
+    const s1 = worker("s1");
+    const steps: Step[] = [
+      {
+        decisionPoint: "分岐",
+        cases: {
+          "A": [{ inline: "準備" }, s1],
+          "B": [{ inline: "クリーンアップ" }],
+        },
+      },
+    ];
+    const result = collectSkillsFromSteps(steps);
+    expect(result.map((s) => s.name)).toEqual(["s1"]);
   });
 
   it("空の steps で空配列を返す", () => {

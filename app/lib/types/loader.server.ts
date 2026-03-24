@@ -12,11 +12,21 @@ interface ImportedBranch {
   cases: Record<string, ImportedStep[]>;
 }
 
-type ImportedStep = { name: string } | ImportedBranch;
+// import 用のインラインステップ型
+interface ImportedInlineStep {
+  inline: string;
+}
+
+type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
 
 // ImportedBranch かどうかを判定する型ガード
 function isImportedBranch(step: ImportedStep): step is ImportedBranch {
   return "decisionPoint" in step && "cases" in step;
+}
+
+// ImportedInlineStep かどうかを判定する型ガード
+function isImportedInlineStep(step: ImportedStep): step is ImportedInlineStep {
+  return "inline" in step && !("decisionPoint" in step);
 }
 
 // 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
@@ -57,11 +67,21 @@ export interface LoadedBranch {
   cases: Record<string, LoadedStep[]>;
 }
 
-export type LoadedStep = string | LoadedBranch;
+// ローダー用のインラインステップ型
+export interface LoadedInlineStep {
+  inline: string;
+}
+
+export type LoadedStep = string | LoadedBranch | LoadedInlineStep;
 
 // LoadedBranch かどうかを判定する型ガード
 export function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
   return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+}
+
+// LoadedInlineStep かどうかを判定する型ガード
+export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
+  return typeof step === "object" && "inline" in step && !("decisionPoint" in step);
 }
 
 // ローダーが返すスキルの共通フィールド
@@ -263,6 +283,9 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
       }
       return { decisionPoint: step.decisionPoint, cases };
     }
+    if (isImportedInlineStep(step)) {
+      return { inline: step.inline };
+    }
     return step.name;
   });
 }
@@ -281,6 +304,9 @@ function collectSkillNamesFromLoadedSteps(steps: LoadedStep[]): string[] {
           }
         }
       }
+    } else if (isLoadedInlineStep(step)) {
+      // インラインステップはスキル参照ではないのでスキップ
+      continue;
     } else {
       if (!seen.has(step)) {
         seen.add(step);

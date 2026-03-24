@@ -12,11 +12,13 @@ import {
 import "@xyflow/react/dist/style.css";
 import OrchestratorNode from "./OrchestratorNode";
 import SkillNode from "./SkillNode";
+import InlineStepNode from "./InlineStepNode";
 import { computeAutoLayout } from "../lib/auto-layout";
 
 const nodeTypes = {
   orchestrator: OrchestratorNode,
   skill: SkillNode,
+  inlineStep: InlineStepNode,
 };
 
 interface DependencyGraphProps {
