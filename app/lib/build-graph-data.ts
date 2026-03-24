@@ -242,35 +242,13 @@ export function buildGraphData(
       : dagrePositions!.get(skill.name)!;
 
     if (isOrchestrator) {
-      // ステップデータの構築: エッジのインデックスが order
-      const orchEdges = skillEdges.filter((d) => d.source === skill.name);
-      const orderMap = new Map<
-        number,
-        Array<{ id: string; targetId: string }>
-      >();
-      for (const dep of orchEdges) {
-        if (!orderMap.has(dep.order)) {
-          orderMap.set(dep.order, []);
-        }
-        const edgeId = `${dep.source}-${dep.target}`;
-        orderMap.get(dep.order)!.push({
-          id: `${edgeId}-${dep.order}`,
-          targetId: dep.target,
-        });
-      }
-      const steps = Array.from(orderMap.entries())
-        .sort((a, b) => a[0] - b[0])
-        .map(([order, stepDependencies]) => ({ order, dependencies: stepDependencies }));
-
       return {
         id: skill.name,
         position,
         type: "orchestrator",
         data: {
           label,
-          steps,
-          // steps フィールドがある場合、分岐表示用データとして渡す
-          stepsData: skill.steps as LoadedStep[] | undefined,
+          stepsData: (skill.steps as LoadedStep[]) ?? [],
           description: skill.description ?? null,
           skillType: skill.skillType ?? null,
         },

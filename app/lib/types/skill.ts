@@ -124,13 +124,13 @@ export class EntryPointSkill extends Skill {
   readonly content: string;
 
   constructor(
-    init: { name: string; content: string } & Partial<SkillOptionalFields>,
+    init: { name: string; content: string; steps: Step[] } & Partial<Omit<SkillOptionalFields, "steps">>,
   ) {
     super();
     this.name = init.name;
     this.content = init.content;
-    // steps が指定され dependencies が未指定の場合、steps から自動導出
-    if (init.steps && !init.dependencies) {
+    // dependencies は steps から自動導出（明示指定があればそちらを優先）
+    if (!init.dependencies) {
       init.dependencies = collectSkillsFromSteps(init.steps);
     }
     this.assignOptionalFields(init);

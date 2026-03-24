@@ -20,16 +20,10 @@ function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
   return typeof step === "object" && "inline" in step && !("decisionPoint" in step);
 }
 
-interface Step {
-  order: number;
-  dependencies: Array<{ id: string; targetId: string }>;
-}
-
 interface OrchestratorNodeData {
   label: string;
   description?: string | null;
-  steps: Step[];
-  stepsData?: LoadedStep[];
+  stepsData: LoadedStep[];
   skillType?: string | null;
   [key: string]: unknown;
 }
@@ -131,7 +125,6 @@ export default function OrchestratorNode({
   const {
     label,
     description,
-    steps = [],
     stepsData,
   } = data as OrchestratorNodeData;
 
@@ -145,28 +138,7 @@ export default function OrchestratorNode({
         {description || "(no description)"}
       </div>
       <div className="orchestrator-node-steps">
-        {stepsData ? (
-          // steps フィールドがある場合: 分岐構造をレンダリング
-          renderStepsData(stepsData, { value: 0 }, "", { value: 1 }, 0)
-        ) : (
-          // 従来の線形ステップ表示
-          steps.map((step) => (
-            <div
-              key={step.order}
-              className="orchestrator-node-step"
-            >
-              <span>
-                {`Step ${step.order + 1}${step.dependencies.length > 1 ? ` (x${step.dependencies.length})` : ""}`}
-              </span>
-              <Handle
-                type="source"
-                position={Position.Right}
-                id={`step-${step.order}`}
-                style={{ top: "auto", position: "relative" }}
-              />
-            </div>
-          ))
-        )}
+        {renderStepsData(stepsData, { value: 0 }, "", { value: 1 }, 0)}
       </div>
     </div>
   );

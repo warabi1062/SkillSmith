@@ -25,22 +25,21 @@ describe("buildGraphData", () => {
     expect(orchNode!.type).toBe("orchestrator");
   });
 
-  it("stepsがorder順にソートされること", () => {
+  it("stepsData のスキル順にエッジが生成されること", () => {
     const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w1", "w2", "w3"] }),
+      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w1", "w2", "w3"], steps: ["w1", "w2", "w3"] } as any),
       makeSkill({ skillType: "WORKER", name: "w1" }),
       makeSkill({ skillType: "WORKER", name: "w2" }),
       makeSkill({ skillType: "WORKER", name: "w3" }),
     ];
 
-    const { nodes } = buildGraphData(skills);
-    const orchNode = nodes.find((n) => n.id === "dev");
-    const steps = orchNode!.data.steps as Array<{ order: number }>;
+    const { edges } = buildGraphData(skills);
+    const devEdges = edges.filter((e) => e.source === "dev");
 
-    expect(steps).toHaveLength(3);
-    expect(steps[0].order).toBe(0);
-    expect(steps[1].order).toBe(1);
-    expect(steps[2].order).toBe(2);
+    expect(devEdges).toHaveLength(3);
+    expect(devEdges[0].sourceHandle).toBe("step-0");
+    expect(devEdges[1].sourceHandle).toBe("step-1");
+    expect(devEdges[2].sourceHandle).toBe("step-2");
   });
 
   it("SKILLノード(WORKER)にtype:'skill'が設定されること", () => {
@@ -95,28 +94,21 @@ describe("buildGraphData", () => {
     expect(orchNode!.style).toBeUndefined();
   });
 
-  it("依存関係の順序でstepsが正しく生成されること", () => {
+  it("stepsData の順序でエッジターゲットが正しく設定されること", () => {
     const skills: LoadedSkillUnion[] = [
-      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w2", "w3", "w1"] }),
+      makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w2", "w3", "w1"], steps: ["w2", "w3", "w1"] } as any),
       makeSkill({ skillType: "WORKER", name: "w1" }),
       makeSkill({ skillType: "WORKER", name: "w2" }),
       makeSkill({ skillType: "WORKER", name: "w3" }),
     ];
 
-    const { nodes } = buildGraphData(skills);
-    const orchNode = nodes.find((n) => n.id === "dev");
-    const steps = orchNode!.data.steps as Array<{
-      order: number;
-      dependencies: Array<{ id: string; targetId: string }>;
-    }>;
+    const { edges } = buildGraphData(skills);
+    const devEdges = edges.filter((e) => e.source === "dev");
 
-    expect(steps).toHaveLength(3);
-    expect(steps[0].order).toBe(0);
-    expect(steps[0].dependencies[0].targetId).toBe("w2");
-    expect(steps[1].order).toBe(1);
-    expect(steps[1].dependencies[0].targetId).toBe("w3");
-    expect(steps[2].order).toBe(2);
-    expect(steps[2].dependencies[0].targetId).toBe("w1");
+    expect(devEdges).toHaveLength(3);
+    expect(devEdges[0].target).toBe("w2");
+    expect(devEdges[1].target).toBe("w3");
+    expect(devEdges[2].target).toBe("w1");
   });
 
   it("Skillノードにstyleが設定されないこと", () => {
@@ -242,7 +234,7 @@ describe("buildGraphData", () => {
     expect(inlineNode1!.data.label).toBe("後処理");
   });
 
-  it("steps がない ENTRY_POINT で stepsData が undefined であること", () => {
+  it("steps が空の ENTRY_POINT で stepsData が空配列であること", () => {
     const skills: LoadedSkillUnion[] = [
       makeSkill({ skillType: "ENTRY_POINT", name: "dev", dependencies: ["w1"] }),
       makeSkill({ skillType: "WORKER", name: "w1" }),
@@ -251,7 +243,7 @@ describe("buildGraphData", () => {
     const { nodes } = buildGraphData(skills);
     const orchNode = nodes.find((n) => n.id === "dev");
 
-    expect(orchNode!.data.stepsData).toBeUndefined();
+    expect(orchNode!.data.stepsData).toEqual([]);
   });
 
   describe("dagre layout", () => {

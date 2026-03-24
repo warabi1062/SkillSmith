@@ -30,17 +30,14 @@ function renderOrchestratorNode(
   overrides: Partial<{
     label: string;
     description: string | null;
-    steps: Array<{
-      order: number;
-      dependencies: Array<{ id: string; targetId: string }>;
-    }>;
+    stepsData: Array<string | { inline: string } | { decisionPoint: string; cases: Record<string, Array<string | { inline: string }>> }>;
     skillType: string | null;
   }> = {},
 ) {
   const data = {
     label: "test-orchestrator",
     description: "A test orchestrator",
-    steps: [],
+    stepsData: [],
     skillType: "ENTRY_POINT",
     ...overrides,
   };
@@ -82,30 +79,44 @@ describe("OrchestratorNode", () => {
     expect(screen.queryByRole("textbox")).toBeNull();
   });
 
-  it("stepsをread-onlyで表示すること", () => {
+  it("stepsDataのスキル名を番号付きで表示すること", () => {
     renderOrchestratorNode({
-      steps: [
-        { order: 0, dependencies: [{ id: "dep-1", targetId: "comp-2" }] },
-        { order: 1, dependencies: [{ id: "dep-2", targetId: "comp-3" }] },
-      ],
+      stepsData: ["plan-team", "implement-team"],
     });
-    expect(screen.getByText("Step 1")).toBeTruthy();
-    expect(screen.getByText("Step 2")).toBeTruthy();
+    expect(screen.getByText("plan-team")).toBeTruthy();
+    expect(screen.getByText("implement-team")).toBeTruthy();
+    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.getByText("2")).toBeTruthy();
   });
 
-  it("複数依存関係のあるステップにカウントが表示されること", () => {
+  it("インラインステップを番号付きで表示すること", () => {
     renderOrchestratorNode({
-      steps: [
+      stepsData: [{ inline: "ブランチ作成" }, "plan-team"],
+    });
+    expect(screen.getByText("ブランチ作成")).toBeTruthy();
+    expect(screen.getByText("1")).toBeTruthy();
+    expect(screen.getByText("2")).toBeTruthy();
+  });
+
+  it("分岐を階層番号付きで表示すること", () => {
+    renderOrchestratorNode({
+      stepsData: [
         {
-          order: 0,
-          dependencies: [
-            { id: "dep-1", targetId: "comp-2" },
-            { id: "dep-2", targetId: "comp-3" },
-          ],
+          decisionPoint: "入力判定",
+          cases: {
+            "Linearモード": ["triage"],
+            "Quickモード": [{ inline: "タスクID生成" }],
+          },
         },
+        "plan-team",
       ],
     });
-    expect(screen.getByText("Step 1 (x2)")).toBeTruthy();
+    expect(screen.getByText("入力判定")).toBeTruthy();
+    expect(screen.getByText("A: Linearモード")).toBeTruthy();
+    expect(screen.getByText("B: Quickモード")).toBeTruthy();
+    expect(screen.getByText("triage")).toBeTruthy();
+    expect(screen.getByText("タスクID生成")).toBeTruthy();
+    expect(screen.getByText("plan-team")).toBeTruthy();
   });
 
   it("+ Stepボタンが存在しないこと（read-only）", () => {
@@ -115,11 +126,8 @@ describe("OrchestratorNode", () => {
 
   it("並べ替え・削除ボタンが存在しないこと（read-only）", () => {
     renderOrchestratorNode({
-      steps: [
-        { order: 0, dependencies: [{ id: "dep-1", targetId: "comp-2" }] },
-      ],
+      stepsData: ["plan-team"],
     });
-    // 上下移動ボタンや削除ボタンが存在しないことを確認
     expect(screen.queryByTitle("Move up")).toBeNull();
     expect(screen.queryByTitle("Move down")).toBeNull();
     expect(screen.queryByTitle("Delete step")).toBeNull();
