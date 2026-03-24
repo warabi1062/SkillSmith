@@ -1,6 +1,13 @@
 // dev スキル: Linearチケットまたはユーザー指示から実装計画・実装・PR作成を自動で行う
 
 import { EntryPointSkill } from "../../../../app/lib/types";
+import linearTriageSkill from "../linear-triage/skill";
+import linearTriageReviewSkill from "../linear-triage-review/skill";
+import linearTriageExecuteSkill from "../linear-triage-execute/skill";
+import sentryInvestigateSkill from "../sentry-investigate/skill";
+import planImplementationSkill from "../plan-implementation/skill";
+import implementSkill from "../implement/skill";
+import createPrSkill from "../create-pr/skill";
 
 const devSkill = new EntryPointSkill({
   name: "dev",
@@ -19,13 +26,13 @@ const devSkill = new EntryPointSkill({
     "ToolSearch",
   ],
   dependencies: [
-    "linear-triage",
-    "linear-triage-review",
-    "linear-triage-execute",
-    "sentry-investigate",
-    "plan-implementation",
-    "implement",
-    "create-pr",
+    linearTriageSkill,
+    linearTriageReviewSkill,
+    linearTriageExecuteSkill,
+    sentryInvestigateSkill,
+    planImplementationSkill,
+    implementSkill,
+    createPrSkill,
   ],
   content: `# Dev
 

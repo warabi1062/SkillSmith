@@ -40,6 +40,12 @@ describe("loadPluginDefinition", () => {
   it("plugin.ts + skills を正しく読み込むこと", async () => {
     await createPluginStructure({
       pluginTs: `
+        // Skill インスタンスとして dependencies に渡す（ローダーが name を取り出して string[] に変換する）
+        const workerA = {
+          skillType: "WORKER",
+          name: "worker-a",
+          content: "# Worker A",
+        };
         const plugin = {
           name: "test-plugin",
           description: "テストプラグイン",
@@ -51,13 +57,9 @@ describe("loadPluginDefinition", () => {
               description: "挨拶スキル",
               input: "名前",
               output: "メッセージ",
-              dependencies: ["worker-a"],
+              dependencies: [workerA],
             },
-            {
-              skillType: "WORKER",
-              name: "worker-a",
-              content: "# Worker A",
-            },
+            workerA,
           ],
         };
         export default plugin;
@@ -75,6 +77,7 @@ describe("loadPluginDefinition", () => {
     expect(greet!.skillType).toBe("ENTRY_POINT");
     expect(greet!.content).toBe("# Greet");
     expect(greet!.description).toBe("挨拶スキル");
+    // ローダーが Skill[] から string[] に変換していることを検証
     expect(greet!.dependencies).toEqual(["worker-a"]);
 
     const worker = result.skills.find((s) => s.name === "worker-a");

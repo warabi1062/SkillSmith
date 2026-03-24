@@ -17,7 +17,7 @@ interface ImportedSkill {
   allowedTools?: string[];
   argumentHint?: string;
   files?: SupportFile[];
-  dependencies?: string[];
+  dependencies?: { name: string }[];
   agentConfig?: AgentConfig;
   agentTeamMembers?: AgentTeamMember[];
 }
@@ -137,7 +137,7 @@ export async function loadPluginDefinition(
         allowedTools: skill.allowedTools,
         argumentHint: skill.argumentHint,
         files: loadedFiles,
-        dependencies: skill.dependencies,
+        dependencies: skill.dependencies?.map(d => d.name),
       };
 
       // skillType に応じた拡張
