@@ -138,23 +138,23 @@ OUTPUT_SCHEMA はこれらすべてを満たす。TEMPLATE との違いは「誰
 
 **パス乖離について**:
 
-reference.md では `~/.claude/workflows/{task-id}/` をワークフローファイルの保存先としているが、実際の dev-workflow プラグインでは `~/claude-code-data/workflows/{task-id}/` を使用している。この乖離は WAR-20 の対応範囲外であり、別チケットで統一を検討する。SkillSmith のデータモデルとしてはパスの規約に依存せず、ComponentFile のコンテンツとして出力テンプレートを管理するため、パスの統一はデータモデルに影響しない。
+reference.md では `~/.claude/workflows/{task-id}/` をワークフローファイルの保存先としているが、実際の dev プラグインでは `~/claude-code-data/workflows/{task-id}/` を使用している。この乖離は WAR-20 の対応範囲外であり、別チケットで統一を検討する。SkillSmith のデータモデルとしてはパスの規約に依存せず、ComponentFile のコンテンツとして出力テンプレートを管理するため、パスの統一はデータモデルに影響しない。
 
-**dev-workflow プラグインのデータフロー対応例**:
+**dev プラグインのデータフロー対応例**:
 
 ```
-implement skill
+implement-team skill
   ├── ComponentFile(role: MAIN)           -> SKILL.md
   ├── ComponentFile(role: OUTPUT_SCHEMA)  -> template-result.md
   └── 実行時: template-result.md の形式で ~/.claude/workflows/{id}/implement-result.md に書き出す
 
-plan-implementation skill
+plan-team skill
   ├── ComponentFile(role: MAIN)           -> SKILL.md
   ├── ComponentFile(role: TEMPLATE)       -> template.md (計画書の出力フォーマット)
   └── 実行時: template.md の形式で ~/.claude/workflows/{id}/plan.md に書き出す
 ```
 
-この例では、plan-implementation の `template.md` は TEMPLATE ロール（スキル自身の出力フォーマット）、implement の `template-result.md` は OUTPUT_SCHEMA ロール（後続ステップへの成果物フォーマット）として区別される。ただし、plan-implementation の `template.md` も後続ステップ（implement）に渡される中間成果物であるため、OUTPUT_SCHEMA として扱うべきかは議論の余地がある。初期運用では「明確にワークフロー受け渡し専用のテンプレート（`*-result.md` パターン）」を OUTPUT_SCHEMA とし、それ以外は TEMPLATE とする。
+この例では、plan-team の `template.md` は TEMPLATE ロール（スキル自身の出力フォーマット）、implement-team の `template-result.md` は OUTPUT_SCHEMA ロール（後続ステップへの成果物フォーマット）として区別される。ただし、plan-team の `template.md` も後続ステップ（implement-team）に渡される中間成果物であるため、OUTPUT_SCHEMA として扱うべきかは議論の余地がある。初期運用では「明確にワークフロー受け渡し専用のテンプレート（`*-result.md` パターン）」を OUTPUT_SCHEMA とし、それ以外は TEMPLATE とする。
 
 ### 10. 出力スキーマフィールドの構造化管理
 

@@ -35,7 +35,7 @@ const createPrSkill = new WorkerWithSubAgent({
 
 - チケットID
 - 実装計画のパス（orchestrator から渡される）
-- 実装結果のパス（orchestrator から渡される、dev-mentor では渡されない場合がある）
+- 実装結果のパス（orchestrator から渡される、渡されない場合がある）
 - ベースブランチ情報のパス（orchestrator から渡される）
 
 ## 実行
@@ -56,7 +56,7 @@ create-pr skill の手順に従って実行する。
 
 - チケットID（例: \`LIN-123\`）。実装が完了済みであること
 - plan.md のパス（orchestrator から渡される）
-- implement-result.md のパス（orchestrator から渡される、dev-mentor では渡されない場合がある）
+- implement-result.md のパス（orchestrator から渡される、渡されない場合がある）
 - base-branch.txt のパス（orchestrator から渡される）
 
 ## 手順
