@@ -85,6 +85,31 @@ export interface AgentTeamMember {
   sortOrder?: number;
 }
 
+// チームメンバーの手順ステップ
+export interface TeammateStep {
+  id: string;        // ステップID（例: "I1", "V1"）
+  title: string;     // ステップ名（例: "実装計画の読み込み"）
+  body: string;      // ステップの説明本文
+}
+
+// チームメンバーの構造化定義
+export interface Teammate {
+  name: string;                    // メンバー名（例: "implementer"）
+  role: string;                    // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
+  steps: TeammateStep[];           // 手順ステップの配列
+  sortOrder?: number;
+  pollingTarget?: string;          // ポーリング対象のteammate名（reviewer用）
+  statusCheckResponder?: boolean;  // status_check応答側か（worker用）
+}
+
+// Teammate → AgentTeamMember への変換
+export function toAgentTeamMember(teammate: Teammate): AgentTeamMember {
+  return {
+    skillName: teammate.name,
+    sortOrder: teammate.sortOrder,
+  };
+}
+
 // SkillType の文字列リテラル型
 export type SkillType =
   | "ENTRY_POINT"

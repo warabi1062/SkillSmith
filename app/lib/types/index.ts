@@ -13,13 +13,15 @@ export type {
   SupportFile,
   AgentConfig,
   AgentTeamMember,
+  TeammateStep,
+  Teammate,
   SkillType,
   Branch,
   InlineStep,
   Step,
   OrchestratorSection,
 } from "./skill";
-export { isBranch, isInlineStep, collectSkillsFromSteps } from "./skill";
+export { isBranch, isInlineStep, collectSkillsFromSteps, toAgentTeamMember } from "./skill";
 
 // Plugin 関連
 export type { PluginDefinition } from "./plugin";
