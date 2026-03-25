@@ -13,6 +13,7 @@ import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd, generateAgentTeamMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
+import { generateOrchestratorContent } from "./orchestrator-content-generator";
 
 export interface GeneratePluginResult {
   plugin: GeneratedPlugin;
@@ -38,9 +39,17 @@ export function generatePlugin(
     files.push(pluginJson.file);
   }
 
+  // skillDescriptions マップを構築（Worker skill の description を参照するため）
+  const skillDescriptions = new Map<string, string>();
+  for (const skill of pluginDef.skills) {
+    if (skill.description) {
+      skillDescriptions.set(skill.name, skill.description);
+    }
+  }
+
   // Generate skill files
   for (const skill of pluginDef.skills) {
-    generateSkillComponent(skill, files, validationErrors);
+    generateSkillComponent(skill, files, validationErrors, skillDescriptions);
   }
 
   // Build skill data for validator
@@ -64,7 +73,20 @@ function generateSkillComponent(
   skill: LoadedSkillUnion,
   files: GeneratedFile[],
   errors: GenerationValidationError[],
+  skillDescriptions: Map<string, string>,
 ): void {
+  // EntryPoint スキルの場合は steps + sections + メタデータから content を自動生成する
+  let content = skill.content;
+  if (skill.skillType === "ENTRY_POINT" && skill.steps) {
+    content = generateOrchestratorContent({
+      name: skill.name,
+      description: skill.description,
+      steps: skill.steps,
+      sections: skill.sections,
+      skillDescriptions,
+    });
+  }
+
   const result = generateSkillMd({
     skillName: skill.name,
     skillConfig: {
@@ -73,7 +95,7 @@ function generateSkillComponent(
       skillType: skill.skillType,
       argumentHint: skill.argumentHint,
       allowedTools: skill.allowedTools,
-      content: skill.content,
+      content,
       input: skill.input,
       output: skill.output,
     },

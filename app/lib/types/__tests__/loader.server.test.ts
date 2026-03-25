@@ -256,6 +256,29 @@ describe("loadPluginDefinition", () => {
     expect(orch!.dependencies).toEqual(["worker-a", "worker-b", "worker-c"]);
   });
 
+  it("ENTRY_POINT スキルの content 未指定時に空文字に補完されること", async () => {
+    await createPluginStructure({
+      pluginTs: `
+        const plugin = {
+          name: "test-plugin",
+          skills: [
+            {
+              skillType: "ENTRY_POINT",
+              name: "no-content",
+              steps: [],
+            },
+          ],
+        };
+        export default plugin;
+      `,
+    });
+
+    const result = await loadPluginDefinition(tmpDir);
+    const skill = result.skills.find((s) => s.name === "no-content");
+    expect(skill).toBeDefined();
+    expect(skill!.content).toBe("");
+  });
+
   it("WORKER_WITH_AGENT_TEAM スキルの agentTeamMembers を正しく読み込むこと", async () => {
     await createPluginStructure({
       pluginTs: `

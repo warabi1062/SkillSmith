@@ -9,12 +9,16 @@ import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportF
 // import 用の分岐ステップ型
 interface ImportedBranch {
   decisionPoint: string;
+  description?: string;
   cases: Record<string, ImportedStep[]>;
 }
 
 // import 用のインラインステップ型
 interface ImportedInlineStep {
   inline: string;
+  description?: string;
+  input?: string;
+  output?: string;
 }
 
 type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
@@ -33,7 +37,7 @@ function isImportedInlineStep(step: ImportedStep): step is ImportedInlineStep {
 interface ImportedSkill {
   skillType: SkillType;
   name: string;
-  content: string;
+  content?: string;
   description?: string;
   input?: string;
   output?: string;
@@ -42,6 +46,7 @@ interface ImportedSkill {
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
+  sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
   agentConfig?: AgentConfig;
   agentTeamMembers?: AgentTeamMember[];
 }
@@ -64,12 +69,23 @@ export interface LoadedSupportFile {
 // ローダー用の分岐ステップ型（スキル名は文字列参照）
 export interface LoadedBranch {
   decisionPoint: string;
+  description?: string;
   cases: Record<string, LoadedStep[]>;
 }
 
 // ローダー用のインラインステップ型
 export interface LoadedInlineStep {
   inline: string;
+  description?: string;
+  input?: string;
+  output?: string;
+}
+
+// ローダー用のオーケストレーターセクション型
+export interface LoadedOrchestratorSection {
+  heading: string;
+  body: string;
+  position: "before-steps" | "after-steps";
 }
 
 export type LoadedStep = string | LoadedBranch | LoadedInlineStep;
@@ -96,6 +112,7 @@ interface LoadedSkillBase {
   files: LoadedSupportFile[];
   dependencies?: string[];
   steps?: LoadedStep[];
+  sections?: LoadedOrchestratorSection[];
 }
 
 // ENTRY_POINT / WORKER の場合
@@ -185,7 +202,7 @@ export async function loadPluginDefinition(
       const base = {
         skillType: skill.skillType,
         name: skill.name,
-        content: skill.content,
+        content: skill.content ?? "",
         description: skill.description,
         input: skill.input,
         output: skill.output,
@@ -194,6 +211,7 @@ export async function loadPluginDefinition(
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,
+        sections: skill.sections,
       };
 
       // skillType に応じた拡張
@@ -281,10 +299,16 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
       for (const [caseName, caseSteps] of Object.entries(step.cases)) {
         cases[caseName] = convertImportedSteps(caseSteps);
       }
-      return { decisionPoint: step.decisionPoint, cases };
+      const loaded: LoadedBranch = { decisionPoint: step.decisionPoint, cases };
+      if (step.description) loaded.description = step.description;
+      return loaded;
     }
     if (isImportedInlineStep(step)) {
-      return { inline: step.inline };
+      const loaded: LoadedInlineStep = { inline: step.inline };
+      if (step.description) loaded.description = step.description;
+      if (step.input) loaded.input = step.input;
+      if (step.output) loaded.output = step.output;
+      return loaded;
     }
     return step.name;
   });
