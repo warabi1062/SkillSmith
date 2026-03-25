@@ -214,23 +214,40 @@ export class WorkerWithSubAgent extends Skill {
 }
 
 // WorkerWithAgentTeam スキル: Agent Team を管理する Worker スキル
+// teammates がある場合は content を自動生成するため、content は不要
 export class WorkerWithAgentTeam extends Skill {
   readonly skillType = "WORKER_WITH_AGENT_TEAM" as const;
   readonly name: string;
   readonly content: string;
-  readonly agentTeamMembers: AgentTeamMember[];
+  readonly teammates?: Teammate[];
+  readonly teamPrefix?: string;               // チーム名のプレフィックス（例: "impl", "plan", "triage"）
+  readonly requiresUserApproval?: boolean;     // レビューPASS後にユーザー承認を得るか
+
+  // 後方互換: teammates から AgentTeamMember[] を導出、なければ直接指定
+  get agentTeamMembers(): AgentTeamMember[] {
+    if (this.teammates) {
+      return this.teammates.map(toAgentTeamMember);
+    }
+    return this._agentTeamMembers ?? [];
+  }
+  private readonly _agentTeamMembers?: AgentTeamMember[];
 
   constructor(
-    init: {
-      name: string;
-      content: string;
-      agentTeamMembers: AgentTeamMember[];
-    } & Partial<SkillOptionalFields>,
+    init: (
+      | { name: string; teammates: Teammate[]; teamPrefix: string; requiresUserApproval?: boolean; content?: string; agentTeamMembers?: never }
+      | { name: string; content: string; agentTeamMembers: AgentTeamMember[]; teammates?: never; teamPrefix?: never; requiresUserApproval?: never }
+    ) & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
-    this.content = init.content;
-    this.agentTeamMembers = init.agentTeamMembers;
+    this.content = init.content ?? "";
+    if ("teammates" in init && init.teammates) {
+      this.teammates = init.teammates;
+      this.teamPrefix = init.teamPrefix;
+      this.requiresUserApproval = init.requiresUserApproval;
+    } else if ("agentTeamMembers" in init && init.agentTeamMembers) {
+      this._agentTeamMembers = init.agentTeamMembers;
+    }
     this.assignOptionalFields(init);
   }
 }
