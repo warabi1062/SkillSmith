@@ -14,6 +14,7 @@ import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd, generateAgentTeamMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
 import { generateOrchestratorContent } from "./orchestrator-content-generator";
+import { generateTeamContent } from "./team-content-generator";
 
 export interface GeneratePluginResult {
   plugin: GeneratedPlugin;
@@ -84,6 +85,19 @@ function generateSkillComponent(
       steps: skill.steps,
       sections: skill.sections,
       skillDescriptions,
+    });
+  }
+
+  // WorkerWithAgentTeam の場合は teammates から content を自動生成する
+  if (skill.skillType === "WORKER_WITH_AGENT_TEAM" && skill.teammates && skill.teamPrefix) {
+    content = generateTeamContent({
+      name: skill.name,
+      description: skill.description,
+      input: skill.input,
+      output: skill.output,
+      teammates: skill.teammates,
+      teamPrefix: skill.teamPrefix,
+      requiresUserApproval: skill.requiresUserApproval,
     });
   }
 
