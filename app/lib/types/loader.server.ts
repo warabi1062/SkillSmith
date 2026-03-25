@@ -4,7 +4,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile } from "./skill";
+import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile, TeammateStep } from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -49,6 +49,19 @@ interface ImportedSkill {
   sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
   agentConfig?: AgentConfig;
   agentTeamMembers?: AgentTeamMember[];
+  teammates?: ImportedTeammate[];
+  teamPrefix?: string;
+  requiresUserApproval?: boolean;
+}
+
+// import 用のチームメンバー型
+interface ImportedTeammate {
+  name: string;
+  role: string;
+  steps: TeammateStep[];
+  sortOrder?: number;
+  pollingTarget?: string;
+  statusCheckResponder?: boolean;
 }
 
 // 動的importで読み込まれるプラグイン定義の型
@@ -126,10 +139,30 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
   agentConfig: AgentConfig;
 }
 
+// ローダー用のチームメンバーステップ型
+export interface LoadedTeammateStep {
+  id: string;
+  title: string;
+  body: string;
+}
+
+// ローダー用のチームメンバー型
+export interface LoadedTeammate {
+  name: string;
+  role: string;
+  steps: LoadedTeammateStep[];
+  sortOrder?: number;
+  pollingTarget?: string;
+  statusCheckResponder?: boolean;
+}
+
 // WORKER_WITH_AGENT_TEAM の場合は agentTeamMembers を保持
 export interface LoadedWorkerWithAgentTeamSkill extends LoadedSkillBase {
   skillType: "WORKER_WITH_AGENT_TEAM";
   agentTeamMembers: AgentTeamMember[];
+  teammates?: LoadedTeammate[];
+  teamPrefix?: string;
+  requiresUserApproval?: boolean;
 }
 
 // discriminated union: skillType で型が絞り込まれる
@@ -223,12 +256,38 @@ export async function loadPluginDefinition(
         } satisfies LoadedWorkerWithSubAgentSkill;
       }
 
-      if (skill.skillType === "WORKER_WITH_AGENT_TEAM" && skill.agentTeamMembers) {
-        return {
-          ...base,
-          skillType: "WORKER_WITH_AGENT_TEAM" as const,
-          agentTeamMembers: skill.agentTeamMembers,
-        } satisfies LoadedWorkerWithAgentTeamSkill;
+      if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
+        // teammates がある場合は teammates から agentTeamMembers を導出
+        if (skill.teammates) {
+          const loadedTeammates: LoadedTeammate[] = skill.teammates.map(t => ({
+            name: t.name,
+            role: t.role,
+            steps: t.steps,
+            sortOrder: t.sortOrder,
+            pollingTarget: t.pollingTarget,
+            statusCheckResponder: t.statusCheckResponder,
+          }));
+          const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(t => ({
+            skillName: t.name,
+            sortOrder: t.sortOrder,
+          }));
+          return {
+            ...base,
+            skillType: "WORKER_WITH_AGENT_TEAM" as const,
+            agentTeamMembers,
+            teammates: loadedTeammates,
+            teamPrefix: skill.teamPrefix,
+            requiresUserApproval: skill.requiresUserApproval,
+          } satisfies LoadedWorkerWithAgentTeamSkill;
+        }
+        // 後方互換: agentTeamMembers を直接使用
+        if (skill.agentTeamMembers) {
+          return {
+            ...base,
+            skillType: "WORKER_WITH_AGENT_TEAM" as const,
+            agentTeamMembers: skill.agentTeamMembers,
+          } satisfies LoadedWorkerWithAgentTeamSkill;
+        }
       }
 
       return {

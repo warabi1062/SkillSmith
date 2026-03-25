@@ -40,5 +40,7 @@ export type {
   LoadedInlineStep,
   LoadedStep,
   LoadedOrchestratorSection,
+  LoadedTeammate,
+  LoadedTeammateStep,
 } from "./loader.server";
 export { isLoadedBranch, isLoadedInlineStep } from "./loader.server";
