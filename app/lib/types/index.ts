@@ -17,6 +17,7 @@ export type {
   Branch,
   InlineStep,
   Step,
+  OrchestratorSection,
 } from "./skill";
 export { isBranch, isInlineStep, collectSkillsFromSteps } from "./skill";
 
@@ -36,5 +37,6 @@ export type {
   LoadedBranch,
   LoadedInlineStep,
   LoadedStep,
+  LoadedOrchestratorSection,
 } from "./loader.server";
 export { isLoadedBranch, isLoadedInlineStep } from "./loader.server";

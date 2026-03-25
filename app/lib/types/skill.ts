@@ -3,12 +3,16 @@
 // 分岐ステップ（再帰的にネスト可能）
 export interface Branch {
   decisionPoint: string;           // 分岐判定名（例: "入力判定"）
+  description?: string;            // 判定条件の詳細説明
   cases: Record<string, Step[]>;   // case名 → ステップ列
 }
 
 // インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
 export interface InlineStep {
   inline: string;                  // 表示名（例: "ブランチ作成"）
+  description?: string;            // 手順の詳細説明
+  input?: string;                  // 入力の説明
+  output?: string;                 // 出力の説明
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）
@@ -51,6 +55,13 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
   return result;
 }
 
+// オーケストレーターのセクション（steps前後に配置する追加コンテンツ）
+export interface OrchestratorSection {
+  heading: string;
+  body: string;
+  position: "before-steps" | "after-steps";
+}
+
 // サポートファイルの役割
 export type SupportFileRole = "TEMPLATE" | "REFERENCE" | "EXAMPLE";
 
@@ -84,7 +95,7 @@ export type SkillType =
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
-  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files" | "dependencies" | "steps"
+  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files" | "dependencies" | "steps" | "sections"
 >;
 
 // 基底クラス
@@ -101,6 +112,7 @@ export abstract class Skill {
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
   steps?: Step[];         // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
+  sections?: OrchestratorSection[]; // オーケストレーター用: steps前後の追加セクション
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(
@@ -114,21 +126,22 @@ export abstract class Skill {
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
     if (init.steps !== undefined) this.steps = init.steps;
+    if (init.sections !== undefined) this.sections = init.sections;
   }
 }
 
 // EntryPoint スキル: ユーザーが /skill-name で直接呼び出すスキル
+// content は plugin-generator が steps + sections + メタデータから自動生成する
 export class EntryPointSkill extends Skill {
   readonly skillType = "ENTRY_POINT" as const;
   readonly name: string;
-  readonly content: string;
+  readonly content: string = "";
 
   constructor(
-    init: { name: string; content: string; steps: Step[] } & Partial<Omit<SkillOptionalFields, "steps">>,
+    init: { name: string; steps: Step[] } & Partial<Omit<SkillOptionalFields, "steps">>,
   ) {
     super();
     this.name = init.name;
-    this.content = init.content;
     // dependencies は steps から自動導出（明示指定があればそちらを優先）
     if (!init.dependencies) {
       init.dependencies = collectSkillsFromSteps(init.steps);

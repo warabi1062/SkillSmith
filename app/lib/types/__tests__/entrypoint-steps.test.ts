@@ -14,7 +14,6 @@ describe("EntryPointSkill の steps → dependencies 自動導出", () => {
 
     const skill = new EntryPointSkill({
       name: "test",
-      content: "# Test",
       steps: [
         {
           decisionPoint: "判定",
@@ -38,7 +37,6 @@ describe("EntryPointSkill の steps → dependencies 自動導出", () => {
 
     const skill = new EntryPointSkill({
       name: "test",
-      content: "# Test",
       steps: [s1, s2],
       dependencies: [s1], // 明示的に s1 のみ
     });
@@ -46,16 +44,14 @@ describe("EntryPointSkill の steps → dependencies 自動導出", () => {
     expect(skill.dependencies?.map((d) => d.name)).toEqual(["s1"]);
   });
 
-  it("steps なしの場合は従来通り dependencies のみ", () => {
+  it("content はデフォルトで空文字になる", () => {
     const s1 = worker("s1");
 
     const skill = new EntryPointSkill({
       name: "test",
-      content: "# Test",
-      dependencies: [s1],
+      steps: [s1],
     });
 
-    expect(skill.dependencies?.map((d) => d.name)).toEqual(["s1"]);
-    expect(skill.steps).toBeUndefined();
+    expect(skill.content).toBe("");
   });
 });
