@@ -1,6 +1,6 @@
 export interface AgentConfigFields {
   model: string;
-  tools: string;
+  tools: string[];
   agentContent: string;
 }
 
@@ -226,12 +226,20 @@ export default function SidePanel({
 
             <div className="form-group">
               <label>Model</label>
-              <div className="side-panel-readonly">{agentConfig.model || "(not set)"}</div>
+              <div className="side-panel-agent-model">
+                <span className="side-panel-agent-model-badge">
+                  {agentConfig.model || "(not set)"}
+                </span>
+              </div>
             </div>
 
             <div className="form-group">
               <label>Tools</label>
-              <div className="side-panel-readonly">{agentConfig.tools || "(not set)"}</div>
+              <div className="side-panel-agent-tools">
+                {agentConfig.tools.length > 0 ? agentConfig.tools.map((tool) => (
+                  <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+                )) : "(not set)"}
+              </div>
             </div>
 
             <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>

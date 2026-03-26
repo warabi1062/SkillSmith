@@ -190,9 +190,7 @@ export function usePluginGraph({
       agentConfig: agentConfigData
         ? {
             model: agentConfigData.model ?? "",
-            tools: agentConfigData.tools
-              ? JSON.stringify(agentConfigData.tools)
-              : "",
+            tools: agentConfigData.tools ?? [],
             agentContent: agentConfigData.content ?? "",
           }
         : null,
