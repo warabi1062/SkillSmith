@@ -21,6 +21,9 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     argumentHint: null,
     hasAgentConfig: false,
     agentConfig: null,
+    teammates: null,
+    steps: null,
+    sections: null,
     onClose: vi.fn(),
     ...overrides,
   };
@@ -94,13 +97,13 @@ describe("SidePanel", () => {
         hasAgentConfig: true,
         agentConfig: {
           model: "sonnet",
-          tools: '["Read"]',
+          tools: ["Read"],
           agentContent: "# Agent body",
         },
       });
       expect(screen.getByText("Agent Config")).toBeTruthy();
       expect(screen.getByText("sonnet")).toBeTruthy();
-      expect(screen.getByText('["Read"]')).toBeTruthy();
+      expect(screen.getByText("Read")).toBeTruthy();
       expect(screen.getByText("# Agent body")).toBeTruthy();
     });
 

@@ -992,6 +992,33 @@ h3 {
   margin: 0;
 }
 
+.side-panel-agent-model-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #7c3aed;
+  color: #fff;
+}
+
+.side-panel-agent-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.side-panel-agent-tool-tag {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  background-color: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #c4b5fd;
+}
+
 .side-panel-checkboxes {
   display: flex;
   flex-direction: column;
