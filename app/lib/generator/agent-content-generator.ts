@@ -20,7 +20,7 @@ export function generateAgentContent(input: AgentContentInput): string {
 
   // 入力セクション
   if (input.input) {
-    lines.push("");
+    if (lines.length > 0) lines.push("");
     lines.push("## 入力");
     lines.push("");
     lines.push(input.input);
@@ -28,14 +28,14 @@ export function generateAgentContent(input: AgentContentInput): string {
 
   // 出力セクション
   if (input.output) {
-    lines.push("");
+    if (lines.length > 0) lines.push("");
     lines.push("## 出力");
     lines.push("");
     lines.push(input.output);
   }
 
   // 実行セクション（対応するスキルへの委譲）
-  lines.push("");
+  if (lines.length > 0) lines.push("");
   lines.push("## 実行");
   lines.push("");
   lines.push(`${input.skillName} skill の手順に従って実行する。`);
