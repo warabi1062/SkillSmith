@@ -155,4 +155,79 @@ describe("generateOrchestratorContent", () => {
     const nextNonEmpty = lines.slice(stepLine + 1).find(l => l.trim() !== "");
     expect(nextNonEmpty).toBeUndefined();
   });
+
+  it("before-step:N セクションが対象ステップの直前に出力される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "注意事項", body: "worker-bの前に注意", position: "before-step:1" },
+      ],
+    });
+
+    const noteIdx = result.indexOf("## 注意事項");
+    const workerBIdx = result.indexOf("### Step 2: worker-b");
+
+    expect(noteIdx).toBeGreaterThan(-1);
+    expect(workerBIdx).toBeGreaterThan(-1);
+    expect(noteIdx).toBeLessThan(workerBIdx);
+  });
+
+  it("after-step:N セクションが対象ステップの直後に出力される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "補足", body: "worker-aの後に補足", position: "after-step:0" },
+      ],
+    });
+
+    const workerAIdx = result.indexOf("### Step 1: worker-a");
+    const noteIdx = result.indexOf("## 補足");
+    const workerBIdx = result.indexOf("### Step 2: worker-b");
+
+    expect(workerAIdx).toBeLessThan(noteIdx);
+    expect(noteIdx).toBeLessThan(workerBIdx);
+  });
+
+  it("範囲外の step index はafter-stepsにフォールバックされる", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a"],
+      sections: [
+        { heading: "フォールバック", body: "範囲外", position: "after-step:99" },
+        { heading: "通常", body: "通常のafter", position: "after-steps" },
+      ],
+    });
+
+    const workerAIdx = result.indexOf("### Step 1: worker-a");
+    const normalIdx = result.indexOf("## 通常");
+    const fallbackIdx = result.indexOf("## フォールバック");
+
+    expect(normalIdx).toBeGreaterThan(workerAIdx);
+    expect(fallbackIdx).toBeGreaterThan(workerAIdx);
+  });
+
+  it("before-steps / after-steps と step間セクションが混在する場合、正しい順序で出力される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "事前確認", body: "全体の前", position: "before-steps" },
+        { heading: "中間メモ", body: "worker-aとworker-bの間", position: "after-step:0" },
+        { heading: "注意事項", body: "全体の後", position: "after-steps" },
+      ],
+    });
+
+    const beforeIdx = result.indexOf("## 事前確認");
+    const workerAIdx = result.indexOf("### Step 1: worker-a");
+    const midIdx = result.indexOf("## 中間メモ");
+    const workerBIdx = result.indexOf("### Step 2: worker-b");
+    const afterIdx = result.indexOf("## 注意事項");
+
+    expect(beforeIdx).toBeLessThan(workerAIdx);
+    expect(workerAIdx).toBeLessThan(midIdx);
+    expect(midIdx).toBeLessThan(workerBIdx);
+    expect(workerBIdx).toBeLessThan(afterIdx);
+  });
 });

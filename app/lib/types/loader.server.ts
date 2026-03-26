@@ -4,7 +4,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection } from "./skill";
+import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition } from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -19,6 +19,8 @@ interface ImportedInlineStep {
   description?: string;
   input?: string;
   output?: string;
+  steps?: string[];
+  tools?: string[];
 }
 
 type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
@@ -46,7 +48,7 @@ interface ImportedSkill {
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
-  sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
+  sections?: { heading: string; body: string; position: SectionPosition }[];
   agentConfig?: AgentConfig;
   workerSteps?: TeammateStep[];
   workerSections?: OrchestratorSection[];
@@ -94,13 +96,15 @@ export interface LoadedInlineStep {
   description?: string;
   input?: string;
   output?: string;
+  steps?: string[];
+  tools?: string[];
 }
 
 // ローダー用のオーケストレーターセクション型
 export interface LoadedOrchestratorSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 export type LoadedStep = string | LoadedBranch | LoadedInlineStep;
@@ -139,7 +143,7 @@ export interface LoadedSkill extends LoadedSkillBase {
 export interface LoadedAgentConfigSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 // ローダー用のWorkerステップ型（TeammateStepと同じ構造）
@@ -396,6 +400,8 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
       if (step.description) loaded.description = step.description;
       if (step.input) loaded.input = step.input;
       if (step.output) loaded.output = step.output;
+      if (step.steps) loaded.steps = step.steps;
+      if (step.tools) loaded.tools = step.tools;
       return loaded;
     }
     return step.name;

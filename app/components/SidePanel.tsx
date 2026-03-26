@@ -2,7 +2,7 @@
 export interface AgentConfigSectionFields {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: string; // SectionPosition と同等（クライアント側ではstring扱い）
 }
 
 export interface AgentConfigFields {
@@ -34,13 +34,15 @@ export interface StepFields {
   label: string;
   description?: string;
   cases?: { name: string; steps: StepFields[] }[];
+  steps?: string[];    // InlineStep: 手順リスト
+  tools?: string[];    // InlineStep: 使用ツールリスト
 }
 
 // オーケストレーターのセクション
 export interface SectionFields {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: string; // SectionPosition と同等（クライアント側ではstring扱い）
 }
 
 export interface SidePanelProps {
@@ -99,6 +101,25 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
       </summary>
       {step.description && (
         <pre className="side-panel-orch-step-desc">{step.description}</pre>
+      )}
+      {step.type === "inline" && step.steps && step.steps.length > 0 && (
+        <div className="side-panel-orch-step-content">
+          <ol className="side-panel-inline-steps">
+            {step.steps.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {step.type === "inline" && step.tools && step.tools.length > 0 && (
+        <div className="side-panel-orch-step-content">
+          <div className="side-panel-inline-tools">
+            <span className="side-panel-inline-tools-label">使用ツール: </span>
+            {step.tools.map((tool) => (
+              <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+            ))}
+          </div>
+        </div>
       )}
     </details>
   );
@@ -205,7 +226,23 @@ export default function SidePanel({
             <label>Steps</label>
             <div className="side-panel-orch-steps">
               {steps.map((step, i) => (
-                <StepItem key={`${step.label}-${i}`} step={step} index={i + 1} />
+                <div key={`step-group-${i}`}>
+                  {/* before-step:i セクション */}
+                  {sections?.filter(s => s.position === `before-step:${i}`).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                  <StepItem step={step} index={i + 1} />
+                  {/* after-step:i セクション */}
+                  {sections?.filter(s => s.position === `after-step:${i}`).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                </div>
               ))}
             </div>
 
@@ -230,13 +267,29 @@ export default function SidePanel({
 
             <label>Worker Steps</label>
             <div className="side-panel-orch-steps">
-              {workerSteps.map((step) => (
-                <details key={step.id} className="side-panel-teammate-step" open>
-                  <summary className="side-panel-teammate-step-summary">
-                    {step.id}. {step.title}
-                  </summary>
-                  <pre className="side-panel-teammate-step-body">{step.body}</pre>
-                </details>
+              {workerSteps.map((step, i) => (
+                <div key={`worker-step-group-${i}`}>
+                  {/* before-step:i セクション */}
+                  {workerSections?.filter(s => s.position === `before-step:${i}`).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                  <details className="side-panel-teammate-step" open>
+                    <summary className="side-panel-teammate-step-summary">
+                      {step.id}. {step.title}
+                    </summary>
+                    <pre className="side-panel-teammate-step-body">{step.body}</pre>
+                  </details>
+                  {/* after-step:i セクション */}
+                  {workerSections?.filter(s => s.position === `after-step:${i}`).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                </div>
               ))}
             </div>
 

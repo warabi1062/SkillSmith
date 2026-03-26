@@ -13,6 +13,8 @@ export interface InlineStep {
   description?: string;            // 手順の詳細説明
   input?: string;                  // 入力の説明
   output?: string;                 // 出力の説明
+  steps?: string[];                // 手順リスト（番号付きリストとして出力）
+  tools?: string[];                // 使用ツールリスト
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）
