@@ -13,7 +13,7 @@ export interface TeammateFields {
 }
 
 export interface SidePanelProps {
-  componentType: "SKILL" | "ORCHESTRATOR";
+  componentType: "SKILL" | "ORCHESTRATOR" | "INLINE";
   name: string;
   description: string | null;
   content: string;
@@ -44,7 +44,9 @@ export default function SidePanel({
   onClose,
 }: SidePanelProps) {
   // コンポーネント種別に応じたバッジラベル
-  const badgeLabel = componentType === "ORCHESTRATOR" ? "ORCHESTRATOR" : "SKILL";
+  const badgeLabel = componentType === "ORCHESTRATOR" ? "ORCHESTRATOR"
+    : componentType === "INLINE" ? "INLINE STEP"
+    : "SKILL";
 
   // AgentConfigセクションの表示条件: WORKER_WITH_SUB_AGENT の場合のみ
   const showAgentConfigSection =

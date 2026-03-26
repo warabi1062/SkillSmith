@@ -104,6 +104,28 @@ export function usePluginGraph({
   const selectedNodeData = useMemo(() => {
     if (!selectedNodeId || !selectedNodeType) return null;
 
+    // インラインステップノードの場合: グラフノードのdataから取得
+    if (selectedNodeId.startsWith("inline:")) {
+      const graphNode = graphDataWithPositions.nodes.find((n) => n.id === selectedNodeId);
+      if (!graphNode) return null;
+      const nodeData = graphNode.data as { label: string; description: string | null; output: string | null };
+      return {
+        nodeType: "component" as const,
+        componentType: "INLINE" as const,
+        name: nodeData.label,
+        description: nodeData.description ?? null,
+        skillType: null,
+        hasAgentConfig: false,
+        agentConfig: null,
+        teammates: null,
+        allowedTools: null,
+        argumentHint: null,
+        content: "",
+        input: "",
+        output: nodeData.output ?? "",
+      };
+    }
+
     const skill = plugin.skills.find((s) => s.name === selectedNodeId);
     if (!skill) return null;
 

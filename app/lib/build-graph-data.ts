@@ -40,6 +40,8 @@ interface FlatTarget {
   id: string;
   label: string;
   isNew?: boolean; // インラインステップが初出かどうか（重複排除用）
+  description?: string;
+  output?: string;
 }
 
 function flattenStepsData(stepsData: LoadedStep[], orchName: string, seenInlineIds?: Set<string>): FlatTarget[] {
@@ -62,6 +64,8 @@ function flattenStepsData(stepsData: LoadedStep[], orchName: string, seenInlineI
           id,
           label: step.inline,
           isNew,
+          description: step.description,
+          output: step.output,
         });
         seenInlineIds?.add(id);
       } else {
@@ -87,7 +91,7 @@ export function buildGraphData(
   const baseSkillEdges = buildSkillEdges(skills);
 
   // stepsData を持つオーケストレーターからインラインステップ情報を抽出し、エッジを置き換え
-  interface InlineNodeInfo { id: string; label: string }
+  interface InlineNodeInfo { id: string; label: string; description?: string; output?: string }
   const inlineNodeInfos: InlineNodeInfo[] = [];
   const orchsWithStepsData = new Set<string>();
   const stepsDataEdges: SkillEdge[] = [];
@@ -102,7 +106,12 @@ export function buildGraphData(
         stepsDataEdges.push({ source: skill.name, target: targets[i].id, order: i });
         // インラインノード情報は初出のもののみ追加（重複排除）
         if (targets[i].type === "inline" && targets[i].isNew) {
-          inlineNodeInfos.push({ id: targets[i].id, label: targets[i].label });
+          inlineNodeInfos.push({
+            id: targets[i].id,
+            label: targets[i].label,
+            description: targets[i].description,
+            output: targets[i].output,
+          });
         }
       }
     }
@@ -300,6 +309,8 @@ export function buildGraphData(
       type: "inlineStep",
       data: {
         label: inlineNode.label,
+        description: inlineNode.description ?? null,
+        output: inlineNode.output ?? null,
       },
     });
   }
