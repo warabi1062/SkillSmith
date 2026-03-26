@@ -100,6 +100,13 @@ function renderInlineStep(step: LoadedInlineStep, stepNumber: string): string {
     lines.push("");
     lines.push(step.description);
   }
+
+  // 使用ツール
+  if (step.tools && step.tools.length > 0) {
+    lines.push("");
+    lines.push(`**使用ツール**: ${step.tools.join(", ")}`);
+  }
+
   if (step.input) {
     lines.push("");
     lines.push(`**入力**: ${step.input}`);
@@ -107,6 +114,18 @@ function renderInlineStep(step: LoadedInlineStep, stepNumber: string): string {
   if (step.output) {
     lines.push("");
     lines.push(`**出力**: ${step.output}`);
+  }
+
+  // 構造化された手順ステップ
+  if (step.steps && step.steps.length > 0) {
+    lines.push("");
+    lines.push("#### 手順");
+    for (const subStep of step.steps) {
+      lines.push("");
+      lines.push(`**${subStep.id}. ${subStep.title}**`);
+      lines.push("");
+      lines.push(subStep.body);
+    }
   }
 
   return lines.join("\n");

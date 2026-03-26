@@ -30,7 +30,13 @@ function convertStep(step: LoadedStep): StepFields {
     };
   }
   const inline = step as LoadedInlineStep;
-  return { type: "inline", label: inline.inline, description: inline.description };
+  return {
+    type: "inline",
+    label: inline.inline,
+    description: inline.description,
+    inlineSteps: inline.steps?.map(s => ({ id: s.id, title: s.title, body: s.body })),
+    inlineTools: inline.tools,
+  };
 }
 
 function convertSections(sections: LoadedOrchestratorSection[]): SectionFields[] {

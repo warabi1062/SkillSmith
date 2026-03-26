@@ -13,12 +13,21 @@ interface ImportedBranch {
   cases: Record<string, ImportedStep[]>;
 }
 
+// import 用のインラインサブステップ型
+interface ImportedInlineSubStep {
+  id: string;
+  title: string;
+  body: string;
+}
+
 // import 用のインラインステップ型
 interface ImportedInlineStep {
   inline: string;
   description?: string;
   input?: string;
   output?: string;
+  steps?: ImportedInlineSubStep[];
+  tools?: string[];
 }
 
 type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
@@ -88,12 +97,21 @@ export interface LoadedBranch {
   cases: Record<string, LoadedStep[]>;
 }
 
+// ローダー用のインラインサブステップ型
+export interface LoadedInlineSubStep {
+  id: string;
+  title: string;
+  body: string;
+}
+
 // ローダー用のインラインステップ型
 export interface LoadedInlineStep {
   inline: string;
   description?: string;
   input?: string;
   output?: string;
+  steps?: LoadedInlineSubStep[];
+  tools?: string[];
 }
 
 // ローダー用のオーケストレーターセクション型
@@ -396,6 +414,8 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
       if (step.description) loaded.description = step.description;
       if (step.input) loaded.input = step.input;
       if (step.output) loaded.output = step.output;
+      if (step.steps) loaded.steps = step.steps.map(s => ({ id: s.id, title: s.title, body: s.body }));
+      if (step.tools) loaded.tools = [...step.tools];
       return loaded;
     }
     return step.name;

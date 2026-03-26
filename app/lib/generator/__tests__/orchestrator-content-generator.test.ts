@@ -135,6 +135,73 @@ describe("generateOrchestratorContent", () => {
     expect(result).toContain("Worker Aの説明文");
   });
 
+  it("InlineStep に steps がある場合、構造化された手順が出力される", () => {
+    const steps: LoadedStep[] = [
+      {
+        inline: "ブランチ作成",
+        description: "ベースブランチから新ブランチを作成する",
+        steps: [
+          { id: "1", title: "ベースブランチ判定", body: "git branch -a で develop の存在を確認する" },
+          { id: "2", title: "ブランチ切り替え", body: "feature/{タスクID} ブランチを作成して切り替える" },
+        ],
+      },
+    ];
+
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps,
+    });
+
+    expect(result).toContain("### Step 1: ブランチ作成");
+    expect(result).toContain("ベースブランチから新ブランチを作成する");
+    expect(result).toContain("#### 手順");
+    expect(result).toContain("**1. ベースブランチ判定**");
+    expect(result).toContain("git branch -a で develop の存在を確認する");
+    expect(result).toContain("**2. ブランチ切り替え**");
+    expect(result).toContain("feature/{タスクID} ブランチを作成して切り替える");
+  });
+
+  it("InlineStep に tools がある場合、使用ツールが出力される", () => {
+    const steps: LoadedStep[] = [
+      {
+        inline: "コード検索",
+        tools: ["Grep", "Glob", "Read"],
+      },
+    ];
+
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps,
+    });
+
+    expect(result).toContain("### Step 1: コード検索");
+    expect(result).toContain("**使用ツール**: Grep, Glob, Read");
+  });
+
+  it("InlineStep に description のみ（後方互換）で動作する", () => {
+    const steps: LoadedStep[] = [
+      {
+        inline: "手動処理",
+        description: "手動で処理を実行する",
+        input: "入力データ",
+        output: "出力結果",
+      },
+    ];
+
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps,
+    });
+
+    expect(result).toContain("### Step 1: 手動処理");
+    expect(result).toContain("手動で処理を実行する");
+    expect(result).toContain("**入力**: 入力データ");
+    expect(result).toContain("**出力**: 出力結果");
+    // steps/tools が無い場合は手順セクション・ツールセクションが出力されない
+    expect(result).not.toContain("#### 手順");
+    expect(result).not.toContain("**使用ツール**");
+  });
+
   it("skillDescriptions に該当スキルが無い場合、スキル名のみがフォールバック出力される", () => {
     const skillDescriptions = new Map<string, string>();
     skillDescriptions.set("other-skill", "別スキルの説明");

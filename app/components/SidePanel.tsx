@@ -28,12 +28,21 @@ export interface TeammateFields {
   statusCheckResponder?: boolean;
 }
 
+// インラインステップのサブステップ（構造化表示用）
+export interface InlineSubStepFields {
+  id: string;
+  title: string;
+  body: string;
+}
+
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
 export interface StepFields {
   type: "skill" | "inline" | "branch";
   label: string;
   description?: string;
   cases?: { name: string; steps: StepFields[] }[];
+  inlineSteps?: InlineSubStepFields[];
+  inlineTools?: string[];
 }
 
 // オーケストレーターのセクション
@@ -97,9 +106,31 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
         <span className="side-panel-orch-step-type">{step.type === "inline" ? "INLINE" : "SKILL"}</span>
         {index}. {step.label}
       </summary>
-      {step.description && (
-        <pre className="side-panel-orch-step-desc">{step.description}</pre>
-      )}
+      <div className="side-panel-orch-step-content">
+        {step.description && (
+          <pre className="side-panel-orch-step-desc">{step.description}</pre>
+        )}
+        {step.type === "inline" && step.inlineTools && step.inlineTools.length > 0 && (
+          <div className="side-panel-inline-tools">
+            <span className="side-panel-inline-tools-label">Tools:</span>
+            {step.inlineTools.map((tool) => (
+              <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+            ))}
+          </div>
+        )}
+        {step.type === "inline" && step.inlineSteps && step.inlineSteps.length > 0 && (
+          <div className="side-panel-inline-substeps">
+            {step.inlineSteps.map((subStep) => (
+              <details key={subStep.id} className="side-panel-teammate-step">
+                <summary className="side-panel-teammate-step-summary">
+                  {subStep.id}. {subStep.title}
+                </summary>
+                <pre className="side-panel-teammate-step-body">{subStep.body}</pre>
+              </details>
+            ))}
+          </div>
+        )}
+      </div>
     </details>
   );
 }
