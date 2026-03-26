@@ -7,7 +7,7 @@ const planner: Teammate = {
   name: "planner",
   role: "チケットの要件に基づいてコードベースを調査し、実装計画を作成する。",
   sortOrder: 1,
-  statusCheckResponder: true,
+  communicationPattern: { type: "responder" },
   steps: [
     {
       id: "P1",
@@ -74,7 +74,7 @@ const reviewer: Teammate = {
   name: "reviewer",
   role: "実装計画を第三者の視点でレビューし、漏れや設計上の問題を指摘する。",
   sortOrder: 2,
-  pollingTarget: "planner",
+  communicationPattern: { type: "poller", target: "planner" },
   steps: [
     {
       id: "R1",

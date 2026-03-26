@@ -1,4 +1,4 @@
-import type { SectionPosition } from "../lib/types/skill";
+import type { SectionPosition, CommunicationPattern } from "../lib/types/skill";
 
 // AgentConfigのセクション（構造化表示用）
 export interface AgentConfigSectionFields {
@@ -26,8 +26,7 @@ export interface TeammateFields {
   name: string;
   role: string;
   steps: { id: string; title: string; body: string }[];
-  pollingTarget?: string;
-  statusCheckResponder?: boolean;
+  communicationPattern?: CommunicationPattern;
 }
 
 // インラインステップのサブステップ（構造化表示用）
@@ -435,12 +434,12 @@ export default function SidePanel({
                   <span className="side-panel-teammate-role">{mate.role}</span>
                 </summary>
                 <div className="side-panel-teammate-details">
-                  {mate.pollingTarget && (
+                  {mate.communicationPattern?.type === "poller" && (
                     <div className="side-panel-teammate-meta">
-                      polling → {mate.pollingTarget}
+                      polling → {mate.communicationPattern.target}
                     </div>
                   )}
-                  {mate.statusCheckResponder && (
+                  {mate.communicationPattern?.type === "responder" && (
                     <div className="side-panel-teammate-meta">
                       status_check responder
                     </div>

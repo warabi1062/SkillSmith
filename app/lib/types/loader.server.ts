@@ -4,7 +4,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition } from "./skill";
+import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition, CommunicationPattern } from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -70,8 +70,7 @@ interface ImportedTeammate {
   role: string;
   steps: TeammateStep[];
   sortOrder?: number;
-  pollingTarget?: string;
-  statusCheckResponder?: boolean;
+  communicationPattern?: CommunicationPattern;
 }
 
 // 動的importで読み込まれるプラグイン定義の型
@@ -186,8 +185,7 @@ export interface LoadedTeammate {
   role: string;
   steps: LoadedTeammateStep[];
   sortOrder?: number;
-  pollingTarget?: string;
-  statusCheckResponder?: boolean;
+  communicationPattern?: CommunicationPattern;
 }
 
 // WORKER_WITH_AGENT_TEAM の場合は agentTeamMembers を保持
@@ -309,8 +307,7 @@ export async function loadPluginDefinition(
             role: t.role,
             steps: t.steps,
             sortOrder: t.sortOrder,
-            pollingTarget: t.pollingTarget,
-            statusCheckResponder: t.statusCheckResponder,
+            communicationPattern: t.communicationPattern,
           }));
           const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(t => ({
             skillName: t.name,

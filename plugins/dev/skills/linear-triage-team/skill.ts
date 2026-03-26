@@ -7,7 +7,7 @@ const triager: Teammate = {
   name: "triager",
   role: "Linearチケットの内容を調査・分析し、更新・分割の計画を作成する。チケットの更新や分割は実行しない。",
   sortOrder: 1,
-  statusCheckResponder: true,
+  communicationPattern: { type: "responder" },
   steps: [
     {
       id: "T1",
@@ -104,7 +104,7 @@ const reviewer: Teammate = {
   name: "reviewer",
   role: "triage計画を第三者の視点でレビューし、問題を指摘する。",
   sortOrder: 2,
-  pollingTarget: "triager",
+  communicationPattern: { type: "poller", target: "triager" },
   steps: [
     {
       id: "R1",

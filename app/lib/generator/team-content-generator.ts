@@ -71,10 +71,11 @@ export function generateTeamContent(input: TeamContentInput): string {
   }
 
   // ポーリング関係の説明を追加
-  const pollers = input.teammates.filter(t => t.pollingTarget);
+  const pollers = input.teammates.filter(t => t.communicationPattern?.type === "poller");
   for (const poller of pollers) {
+    const pattern = poller.communicationPattern as { type: "poller"; target: string };
     lines.push("");
-    lines.push(`${poller.name} は起動後、${poller.pollingTarget} に定期的に status_check を送信して進捗を確認する。`);
+    lines.push(`${poller.name} は起動後、${pattern.target} に定期的に status_check を送信して進捗を確認する。`);
   }
 
   // 3. リーダーの役割
@@ -88,8 +89,8 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("- 3回で解決しない場合はユーザーに報告して判断を仰ぐ");
 
   if (input.requiresUserApproval) {
-    // worker（statusCheckResponder）の名前を特定
-    const worker = input.teammates.find(t => t.statusCheckResponder);
+    // worker（responder）の名前を特定
+    const worker = input.teammates.find(t => t.communicationPattern?.type === "responder");
     const workerName = worker?.name ?? memberNames[0];
     lines.push("- レビューPASS後、成果物をユーザーに提示して承認を得る");
     lines.push(`- フィードバックがあれば ${workerName} に SendMessage で修正を依頼する`);
@@ -130,12 +131,15 @@ export function generateTeamContent(input: TeamContentInput): string {
       lines.push(step.body);
     }
 
-    // status_check 応答ルール（statusCheckResponder の場合）
-    if (teammate.statusCheckResponder) {
+    // status_check 応答ルール（responder の場合）
+    if (teammate.communicationPattern?.type === "responder") {
       lines.push("");
       lines.push("### status_check への応答ルール");
       // ポーリング元の名前を特定
-      const poller = input.teammates.find(t => t.pollingTarget === teammate.name);
+      const poller = input.teammates.find(t =>
+        t.communicationPattern?.type === "poller" &&
+        (t.communicationPattern as { type: "poller"; target: string }).target === teammate.name
+      );
       const pollerName = poller?.name ?? "reviewer";
       lines.push(`作業中のどの時点でも、${pollerName} から \`{type: "status_check"}\` を受信する場合がある。受信したら現在の状況を即座に返信する:`);
       lines.push("");

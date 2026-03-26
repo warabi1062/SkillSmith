@@ -7,7 +7,7 @@ const implementer: Teammate = {
   name: "implementer",
   role: "実装計画に従ってコードを実装し、テストを書く。",
   sortOrder: 1,
-  statusCheckResponder: true,
+  communicationPattern: { type: "responder" },
   steps: [
     {
       id: "I1",
@@ -80,7 +80,7 @@ const reviewer: Teammate = {
   name: "reviewer",
   role: "実装の経緯を知らない第三者の視点で、コードレビューを行う。",
   sortOrder: 2,
-  pollingTarget: "implementer",
+  communicationPattern: { type: "poller", target: "implementer" },
   steps: [
     {
       id: "V1",

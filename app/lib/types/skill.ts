@@ -117,14 +117,18 @@ export interface TeammateStep {
   body: string;      // ステップの説明本文
 }
 
+// チームメンバーのコミュニケーションパターン（discriminated union）
+export type CommunicationPattern =
+  | { type: "poller"; target: string }   // このメンバーが target をポーリング
+  | { type: "responder" };               // status_check に応答する側
+
 // チームメンバーの構造化定義
 export interface Teammate {
-  name: string;                    // メンバー名（例: "implementer"）
-  role: string;                    // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
-  steps: TeammateStep[];           // 手順ステップの配列
+  name: string;                              // メンバー名（例: "implementer"）
+  role: string;                              // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
+  steps: TeammateStep[];                     // 手順ステップの配列
   sortOrder?: number;
-  pollingTarget?: string;          // ポーリング対象のteammate名（reviewer用）
-  statusCheckResponder?: boolean;  // status_check応答側か（worker用）
+  communicationPattern?: CommunicationPattern;  // コミュニケーションパターン
 }
 
 // Teammate → AgentTeamMember への変換

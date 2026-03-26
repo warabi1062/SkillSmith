@@ -20,6 +20,7 @@ export type {
   InlineStep,
   Step,
   OrchestratorSection,
+  CommunicationPattern,
 } from "./skill";
 export { isBranch, isInlineStep, collectSkillsFromSteps, toAgentTeamMember } from "./skill";
 
