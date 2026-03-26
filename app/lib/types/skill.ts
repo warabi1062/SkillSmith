@@ -63,11 +63,18 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
   return result;
 }
 
-// オーケストレーターのセクション（steps前後に配置する追加コンテンツ）
+// セクションの配置位置（before-steps/after-stepsに加え、特定ステップの前後に配置可能）
+export type SectionPosition =
+  | "before-steps"
+  | "after-steps"
+  | `before-step:${number}`
+  | `after-step:${number}`;
+
+// オーケストレーターのセクション（steps前後またはstep間に配置する追加コンテンツ）
 export interface OrchestratorSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 // サポートファイルの役割
@@ -84,7 +91,7 @@ export interface SupportFile {
 export interface AgentConfigSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 // Agent設定（WorkerWithSubAgent用）

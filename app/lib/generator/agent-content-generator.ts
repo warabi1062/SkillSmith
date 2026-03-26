@@ -40,8 +40,10 @@ export function generateAgentContent(input: AgentContentInput): string {
   lines.push("");
   lines.push(`${input.skillName} skill の手順に従って実行する。`);
 
-  // before-steps セクション
-  const beforeSections = input.sections?.filter(s => s.position === "before-steps") ?? [];
+  // before-steps セクション（before-step:* もbefore-stepsと同じ位置に配置）
+  const beforeSections = input.sections?.filter(s =>
+    s.position === "before-steps" || s.position.startsWith("before-step:")
+  ) ?? [];
   for (const section of beforeSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);
@@ -49,8 +51,10 @@ export function generateAgentContent(input: AgentContentInput): string {
     lines.push(section.body);
   }
 
-  // after-steps セクション
-  const afterSections = input.sections?.filter(s => s.position === "after-steps") ?? [];
+  // after-steps セクション（after-step:* もafter-stepsと同じ位置に配置）
+  const afterSections = input.sections?.filter(s =>
+    s.position === "after-steps" || s.position.startsWith("after-step:")
+  ) ?? [];
   for (const section of afterSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);

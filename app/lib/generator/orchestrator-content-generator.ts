@@ -13,6 +13,76 @@ export interface OrchestratorContentInput {
   skillDescriptions?: Map<string, string>;
 }
 
+// セクションのpositionを解析するヘルパー
+function parseStepPosition(position: string): { type: "before-step" | "after-step"; index: number } | null {
+  const match = position.match(/^(before-step|after-step):(\d+)$/);
+  if (!match) return null;
+  return { type: match[1] as "before-step" | "after-step", index: Number(match[2]) };
+}
+
+// 指定positionのセクションをレンダリングするヘルパー
+function renderSections(sections: LoadedOrchestratorSection[]): string[] {
+  const lines: string[] = [];
+  for (const section of sections) {
+    lines.push("");
+    lines.push(`## ${section.heading}`);
+    lines.push("");
+    lines.push(section.body);
+  }
+  return lines;
+}
+
+// step間セクションを含むステップ列をレンダリングする
+function renderStepsWithSections(
+  steps: LoadedStep[],
+  sections: LoadedOrchestratorSection[],
+  skillDescriptions?: Map<string, string>,
+): string {
+  const lines: string[] = [];
+  const stepCount = steps.length;
+
+  for (let i = 0; i < stepCount; i++) {
+    const step = steps[i];
+    const stepNumber = `${i + 1}`;
+
+    // before-step:{i} セクション
+    const beforeStepSections = sections.filter(s => {
+      const parsed = parseStepPosition(s.position);
+      return parsed?.type === "before-step" && parsed.index === i;
+    });
+    lines.push(...renderSections(beforeStepSections));
+
+    // ステップ本体
+    if (i > 0) lines.push("");
+    if (isLoadedBranch(step)) {
+      lines.push(renderBranch(step, stepNumber, skillDescriptions));
+    } else if (isLoadedInlineStep(step)) {
+      lines.push(renderInlineStep(step, stepNumber));
+    } else {
+      lines.push(renderSkillRef(step, stepNumber, skillDescriptions));
+    }
+
+    // after-step:{i} セクション
+    const afterStepSections = sections.filter(s => {
+      const parsed = parseStepPosition(s.position);
+      return parsed?.type === "after-step" && parsed.index === i;
+    });
+    lines.push(...renderSections(afterStepSections));
+  }
+
+  // 範囲外indexのセクションはafter-stepsにフォールバック（呼び出し元で処理）
+  return lines.join("\n");
+}
+
+// 範囲外indexのstep間セクションを収集するヘルパー
+function getOutOfRangeStepSections(sections: LoadedOrchestratorSection[], stepCount: number): LoadedOrchestratorSection[] {
+  return sections.filter(s => {
+    const parsed = parseStepPosition(s.position);
+    if (!parsed) return false;
+    return parsed.index < 0 || parsed.index >= stepCount;
+  });
+}
+
 export function generateOrchestratorContent(input: OrchestratorContentInput): string {
   const lines: string[] = [];
 
@@ -32,18 +102,26 @@ export function generateOrchestratorContent(input: OrchestratorContentInput): st
     lines.push(section.body);
   }
 
-  // ステップ
+  // ステップ（step間セクション含む）
   if (input.steps.length > 0) {
     lines.push("");
     lines.push("## ステップ");
     lines.push("");
-    const stepLines = renderSteps(input.steps, "", input.skillDescriptions);
+
+    // step間セクションを抽出
+    const stepSections = input.sections?.filter(s => {
+      const parsed = parseStepPosition(s.position);
+      return parsed !== null;
+    }) ?? [];
+
+    const stepLines = renderStepsWithSections(input.steps, stepSections, input.skillDescriptions);
     lines.push(stepLines);
   }
 
-  // after-steps セクション
+  // after-steps セクション + 範囲外indexのフォールバック
   const afterSections = input.sections?.filter(s => s.position === "after-steps") ?? [];
-  for (const section of afterSections) {
+  const outOfRange = getOutOfRangeStepSections(input.sections ?? [], input.steps.length);
+  for (const section of [...afterSections, ...outOfRange]) {
     lines.push("");
     lines.push(`## ${section.heading}`);
     lines.push("");

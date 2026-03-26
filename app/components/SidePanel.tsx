@@ -1,8 +1,10 @@
+import type { SectionPosition } from "../lib/types/skill";
+
 // AgentConfigのセクション（構造化表示用）
 export interface AgentConfigSectionFields {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 export interface AgentConfigFields {
@@ -49,7 +51,45 @@ export interface StepFields {
 export interface SectionFields {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
+}
+
+// セクションのpositionを解析するヘルパー
+function parseStepPosition(position: string): { type: "before-step" | "after-step"; index: number } | null {
+  const match = position.match(/^(before-step|after-step):(\d+)$/);
+  if (!match) return null;
+  return { type: match[1] as "before-step" | "after-step", index: Number(match[2]) };
+}
+
+// 指定位置のセクションを表示するヘルパー
+function SectionItems({ sections }: { sections: SectionFields[] }) {
+  return (
+    <>
+      {sections.map(s => (
+        <details key={s.heading} className="side-panel-orch-section" open>
+          <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+          <pre className="side-panel-orch-section-body">{s.body}</pre>
+        </details>
+      ))}
+    </>
+  );
+}
+
+// 指定indexのbefore-step/after-stepセクションを取得するヘルパー
+function getStepSections(sections: SectionFields[] | null | undefined, type: "before-step" | "after-step", index: number): SectionFields[] {
+  return sections?.filter(s => {
+    const parsed = parseStepPosition(s.position);
+    return parsed?.type === type && parsed.index === index;
+  }) ?? [];
+}
+
+// 範囲外indexのstep間セクションを取得するヘルパー
+function getOutOfRangeSections(sections: SectionFields[] | null | undefined, stepCount: number): SectionFields[] {
+  return sections?.filter(s => {
+    const parsed = parseStepPosition(s.position);
+    if (!parsed) return false;
+    return parsed.index < 0 || parsed.index >= stepCount;
+  }) ?? [];
 }
 
 export interface SidePanelProps {
@@ -237,27 +277,24 @@ export default function SidePanel({
         {componentType === "ORCHESTRATOR" && steps && steps.length > 0 ? (
           <div className="side-panel-orch-structure">
             {/* before-steps セクション */}
-            {sections?.filter(s => s.position === "before-steps").map(s => (
-              <details key={s.heading} className="side-panel-orch-section" open>
-                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
-                <pre className="side-panel-orch-section-body">{s.body}</pre>
-              </details>
-            ))}
+            <SectionItems sections={sections?.filter(s => s.position === "before-steps") ?? []} />
 
             <label>Steps</label>
             <div className="side-panel-orch-steps">
               {steps.map((step, i) => (
-                <StepItem key={`${step.label}-${i}`} step={step} index={i + 1} />
+                <div key={`${step.label}-${i}`}>
+                  <SectionItems sections={getStepSections(sections, "before-step", i)} />
+                  <StepItem step={step} index={i + 1} />
+                  <SectionItems sections={getStepSections(sections, "after-step", i)} />
+                </div>
               ))}
             </div>
 
-            {/* after-steps セクション */}
-            {sections?.filter(s => s.position === "after-steps").map(s => (
-              <details key={s.heading} className="side-panel-orch-section" open>
-                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
-                <pre className="side-panel-orch-section-body">{s.body}</pre>
-              </details>
-            ))}
+            {/* after-steps セクション + 範囲外フォールバック */}
+            <SectionItems sections={[
+              ...(sections?.filter(s => s.position === "after-steps") ?? []),
+              ...getOutOfRangeSections(sections, steps.length),
+            ]} />
           </div>
         ) : componentType === "INLINE" && inlineSteps && inlineSteps.length > 0 ? (
           /* インラインステップの構造化表示 */
@@ -286,32 +323,29 @@ export default function SidePanel({
           /* WorkerWithSubAgent の構造化表示 */
           <div className="side-panel-orch-structure">
             {/* before-steps セクション */}
-            {workerSections?.filter(s => s.position === "before-steps").map(s => (
-              <details key={s.heading} className="side-panel-orch-section" open>
-                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
-                <pre className="side-panel-orch-section-body">{s.body}</pre>
-              </details>
-            ))}
+            <SectionItems sections={workerSections?.filter(s => s.position === "before-steps") ?? []} />
 
             <label>Worker Steps</label>
             <div className="side-panel-orch-steps">
-              {workerSteps.map((step) => (
-                <details key={step.id} className="side-panel-teammate-step" open>
-                  <summary className="side-panel-teammate-step-summary">
-                    {step.id}. {step.title}
-                  </summary>
-                  <pre className="side-panel-teammate-step-body">{step.body}</pre>
-                </details>
+              {workerSteps.map((step, i) => (
+                <div key={step.id}>
+                  <SectionItems sections={getStepSections(workerSections, "before-step", i)} />
+                  <details className="side-panel-teammate-step" open>
+                    <summary className="side-panel-teammate-step-summary">
+                      {step.id}. {step.title}
+                    </summary>
+                    <pre className="side-panel-teammate-step-body">{step.body}</pre>
+                  </details>
+                  <SectionItems sections={getStepSections(workerSections, "after-step", i)} />
+                </div>
               ))}
             </div>
 
-            {/* after-steps セクション */}
-            {workerSections?.filter(s => s.position === "after-steps").map(s => (
-              <details key={s.heading} className="side-panel-orch-section" open>
-                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
-                <pre className="side-panel-orch-section-body">{s.body}</pre>
-              </details>
-            ))}
+            {/* after-steps セクション + 範囲外フォールバック */}
+            <SectionItems sections={[
+              ...(workerSections?.filter(s => s.position === "after-steps") ?? []),
+              ...getOutOfRangeSections(workerSections, workerSteps.length),
+            ]} />
           </div>
         ) : (
           /* 本文（非オーケストレーター or steps がない場合） */
@@ -370,18 +404,12 @@ export default function SidePanel({
                     <div className="side-panel-readonly">{agentConfig.description}</div>
                   </div>
                 )}
-                {agentConfig.sections?.filter(s => s.position === "before-steps").map(s => (
-                  <details key={s.heading} className="side-panel-orch-section" open>
-                    <summary className="side-panel-orch-section-summary">{s.heading}</summary>
-                    <pre className="side-panel-orch-section-body">{s.body}</pre>
-                  </details>
-                ))}
-                {agentConfig.sections?.filter(s => s.position === "after-steps").map(s => (
-                  <details key={s.heading} className="side-panel-orch-section" open>
-                    <summary className="side-panel-orch-section-summary">{s.heading}</summary>
-                    <pre className="side-panel-orch-section-body">{s.body}</pre>
-                  </details>
-                ))}
+                <SectionItems sections={agentConfig.sections?.filter(s =>
+                  s.position === "before-steps" || s.position.startsWith("before-step:")
+                ) ?? []} />
+                <SectionItems sections={agentConfig.sections?.filter(s =>
+                  s.position === "after-steps" || s.position.startsWith("after-step:")
+                ) ?? []} />
               </div>
             ) : (
               <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
