@@ -100,4 +100,53 @@ describe("generateWorkerContent", () => {
 
     expect(result).not.toContain("## 手順");
   });
+
+  it("before-step position のセクションが指定Workerステップの前に挿入される", () => {
+    const result = generateWorkerContent(makeInput({
+      workerSections: [
+        { heading: "中間確認", body: "step-1の前に確認する。", position: "before-step:1" },
+      ],
+    }));
+
+    const step1Idx = result.indexOf("### 1. 計画の読み込み");
+    const sectionIdx = result.indexOf("## 中間確認");
+    const step2Idx = result.indexOf("### 2. 実行");
+
+    expect(sectionIdx).toBeGreaterThan(step1Idx);
+    expect(sectionIdx).toBeLessThan(step2Idx);
+    expect(result).toContain("step-1の前に確認する。");
+  });
+
+  it("after-step position のセクションが指定Workerステップの後に挿入される", () => {
+    const result = generateWorkerContent(makeInput({
+      workerSections: [
+        { heading: "step後処理", body: "step-0の後の処理。", position: "after-step:0" },
+      ],
+    }));
+
+    const step1Idx = result.indexOf("### 1. 計画の読み込み");
+    const sectionIdx = result.indexOf("## step後処理");
+    const step2Idx = result.indexOf("### 2. 実行");
+
+    expect(sectionIdx).toBeGreaterThan(step1Idx);
+    expect(sectionIdx).toBeLessThan(step2Idx);
+    expect(result).toContain("step-0の後の処理。");
+  });
+
+  it("範囲外のstep indexを持つセクションはafter-stepsにフォールバックされる", () => {
+    const result = generateWorkerContent(makeInput({
+      workerSections: [
+        { heading: "範囲外", body: "存在しないstepのセクション。", position: "after-step:99" },
+      ],
+    }));
+
+    const stepsIdx = result.indexOf("## 手順");
+    const step2Idx = result.indexOf("### 2. 実行");
+    const sectionIdx = result.indexOf("## 範囲外");
+
+    // 手順セクション全体の後に出力されること
+    expect(sectionIdx).toBeGreaterThan(stepsIdx);
+    expect(sectionIdx).toBeGreaterThan(step2Idx);
+    expect(result).toContain("存在しないstepのセクション。");
+  });
 });

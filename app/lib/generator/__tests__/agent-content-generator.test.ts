@@ -100,4 +100,18 @@ describe("generateAgentContent", () => {
     const headings = result.match(/^## /gm) ?? [];
     expect(headings.length).toBe(1);
   });
+  it("before-step position が before-steps にフォールバックされて実行セクションの後に配置される", () => {
+    const result = generateAgentContent(makeInput({
+      sections: [
+        { heading: "step指定セクション", body: "step間セクションのフォールバック。", position: "before-step:1" },
+      ],
+    }));
+
+    const execIdx = result.indexOf("## 実行");
+    const sectionIdx = result.indexOf("## step指定セクション");
+    expect(execIdx).toBeGreaterThan(-1);
+    expect(sectionIdx).toBeGreaterThan(execIdx);
+    expect(result).toContain("step間セクションのフォールバック。");
+  });
+
 });

@@ -55,11 +55,20 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
   return result;
 }
 
+// セクションの配置位置
+// - "before-steps" / "after-steps": ステップ群の前後
+// - "before-step:N" / "after-step:N": 特定ステップの前後（N は 0-based トップレベルインデックス）
+export type SectionPosition =
+  | "before-steps"
+  | "after-steps"
+  | `before-step:${number}`
+  | `after-step:${number}`;
+
 // オーケストレーターのセクション（steps前後に配置する追加コンテンツ）
 export interface OrchestratorSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 // サポートファイルの役割
@@ -72,11 +81,11 @@ export interface SupportFile {
   sortOrder?: number;
 }
 
-// Agent設定のセクション（OrchestratorSectionと同じ構造）
+// Agent設定のセクション（OrchestratorSectionと同じ position 型を使用）
 export interface AgentConfigSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 // Agent設定（WorkerWithSubAgent用）
@@ -102,14 +111,18 @@ export interface TeammateStep {
   body: string;      // ステップの説明本文
 }
 
+// チームメンバーのコミュニケーションパターン
+export type CommunicationPattern =
+  | { type: "poller"; target: string }  // このメンバーが target をポーリングする（reviewer側）
+  | { type: "responder" };              // status_check に応答する側（worker側）
+
 // チームメンバーの構造化定義
 export interface Teammate {
   name: string;                    // メンバー名（例: "implementer"）
   role: string;                    // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
   steps: TeammateStep[];           // 手順ステップの配列
   sortOrder?: number;
-  pollingTarget?: string;          // ポーリング対象のteammate名（reviewer用）
-  statusCheckResponder?: boolean;  // status_check応答側か（worker用）
+  communicationPattern?: CommunicationPattern; // コミュニケーションパターン
 }
 
 // Teammate → AgentTeamMember への変換

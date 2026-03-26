@@ -11,6 +11,13 @@ export interface WorkerContentInput {
   workerSections?: LoadedOrchestratorSection[];  // steps前後の追加セクション
 }
 
+// step間セクションの position をパースする
+function parseStepPosition(position: string): { type: "before-step" | "after-step"; index: number } | null {
+  const match = position.match(/^(before-step|after-step):(\d+)$/);
+  if (!match) return null;
+  return { type: match[1] as "before-step" | "after-step", index: Number(match[2]) };
+}
+
 export function generateWorkerContent(input: WorkerContentInput): string {
   const lines: string[] = [];
 
@@ -38,22 +45,52 @@ export function generateWorkerContent(input: WorkerContentInput): string {
     lines.push(section.body);
   }
 
-  // 手順セクション
+  // 手順セクション（step間セクションを含む）
   if (input.workerSteps.length > 0) {
     lines.push("");
     lines.push("## 手順");
 
-    for (const step of input.workerSteps) {
+    for (let i = 0; i < input.workerSteps.length; i++) {
+      // before-step:i セクション
+      const beforeStepSections = input.workerSections?.filter(s => {
+        const parsed = parseStepPosition(s.position);
+        return parsed?.type === "before-step" && parsed.index === i;
+      }) ?? [];
+      for (const section of beforeStepSections) {
+        lines.push("");
+        lines.push(`## ${section.heading}`);
+        lines.push("");
+        lines.push(section.body);
+      }
+
+      const step = input.workerSteps[i];
       lines.push("");
       lines.push(`### ${step.id}. ${step.title}`);
       lines.push("");
       lines.push(step.body);
+
+      // after-step:i セクション
+      const afterStepSections = input.workerSections?.filter(s => {
+        const parsed = parseStepPosition(s.position);
+        return parsed?.type === "after-step" && parsed.index === i;
+      }) ?? [];
+      for (const section of afterStepSections) {
+        lines.push("");
+        lines.push(`## ${section.heading}`);
+        lines.push("");
+        lines.push(section.body);
+      }
     }
   }
 
   // after-steps セクション
   const afterSections = input.workerSections?.filter(s => s.position === "after-steps") ?? [];
-  for (const section of afterSections) {
+  // 範囲外の step index を持つセクションも after-steps にフォールバック
+  const fallbackSections = input.workerSections?.filter(s => {
+    const parsed = parseStepPosition(s.position);
+    return parsed !== null && parsed.index >= input.workerSteps.length;
+  }) ?? [];
+  for (const section of [...afterSections, ...fallbackSections]) {
     lines.push("");
     lines.push(`## ${section.heading}`);
     lines.push("");

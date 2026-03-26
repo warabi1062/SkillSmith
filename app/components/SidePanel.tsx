@@ -2,7 +2,7 @@
 export interface AgentConfigSectionFields {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: string;
 }
 
 export interface AgentConfigFields {
@@ -24,8 +24,7 @@ export interface TeammateFields {
   name: string;
   role: string;
   steps: { id: string; title: string; body: string }[];
-  pollingTarget?: string;
-  statusCheckResponder?: boolean;
+  communicationPattern?: { type: string; target?: string };
 }
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
@@ -40,7 +39,7 @@ export interface StepFields {
 export interface SectionFields {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: string;
 }
 
 export interface SidePanelProps {
@@ -61,6 +60,13 @@ export interface SidePanelProps {
   steps: StepFields[] | null;
   sections: SectionFields[] | null;
   onClose: () => void;
+}
+
+// step間セクションのpositionをパースする
+function parseStepPositionInPanel(position: string): { type: "before-step" | "after-step"; index: number } | null {
+  const match = position.match(/^(before-step|after-step):(\d+)$/);
+  if (!match) return null;
+  return { type: match[1] as "before-step" | "after-step", index: Number(match[2]) };
 }
 
 // ステップの再帰的表示コンポーネント
@@ -205,7 +211,29 @@ export default function SidePanel({
             <label>Steps</label>
             <div className="side-panel-orch-steps">
               {steps.map((step, i) => (
-                <StepItem key={`${step.label}-${i}`} step={step} index={i + 1} />
+                <div key={`${step.label}-${i}`}>
+                  {/* before-step:i セクション */}
+                  {sections?.filter(s => {
+                    const p = parseStepPositionInPanel(s.position);
+                    return p?.type === "before-step" && p.index === i;
+                  }).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                  <StepItem step={step} index={i + 1} />
+                  {/* after-step:i セクション */}
+                  {sections?.filter(s => {
+                    const p = parseStepPositionInPanel(s.position);
+                    return p?.type === "after-step" && p.index === i;
+                  }).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                </div>
               ))}
             </div>
 
@@ -230,13 +258,35 @@ export default function SidePanel({
 
             <label>Worker Steps</label>
             <div className="side-panel-orch-steps">
-              {workerSteps.map((step) => (
-                <details key={step.id} className="side-panel-teammate-step" open>
-                  <summary className="side-panel-teammate-step-summary">
-                    {step.id}. {step.title}
-                  </summary>
-                  <pre className="side-panel-teammate-step-body">{step.body}</pre>
-                </details>
+              {workerSteps.map((step, i) => (
+                <div key={step.id}>
+                  {/* before-step:i セクション */}
+                  {workerSections?.filter(s => {
+                    const p = parseStepPositionInPanel(s.position);
+                    return p?.type === "before-step" && p.index === i;
+                  }).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                  <details className="side-panel-teammate-step" open>
+                    <summary className="side-panel-teammate-step-summary">
+                      {step.id}. {step.title}
+                    </summary>
+                    <pre className="side-panel-teammate-step-body">{step.body}</pre>
+                  </details>
+                  {/* after-step:i セクション */}
+                  {workerSections?.filter(s => {
+                    const p = parseStepPositionInPanel(s.position);
+                    return p?.type === "after-step" && p.index === i;
+                  }).map(s => (
+                    <details key={s.heading} className="side-panel-orch-section" open>
+                      <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                      <pre className="side-panel-orch-section-body">{s.body}</pre>
+                    </details>
+                  ))}
+                </div>
               ))}
             </div>
 
@@ -342,12 +392,12 @@ export default function SidePanel({
                   <span className="side-panel-teammate-role">{mate.role}</span>
                 </summary>
                 <div className="side-panel-teammate-details">
-                  {mate.pollingTarget && (
+                  {mate.communicationPattern?.type === "poller" && mate.communicationPattern.target && (
                     <div className="side-panel-teammate-meta">
-                      polling → {mate.pollingTarget}
+                      polling → {mate.communicationPattern.target}
                     </div>
                   )}
-                  {mate.statusCheckResponder && (
+                  {mate.communicationPattern?.type === "responder" && (
                     <div className="side-panel-teammate-meta">
                       status_check responder
                     </div>

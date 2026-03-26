@@ -155,4 +155,64 @@ describe("generateOrchestratorContent", () => {
     const nextNonEmpty = lines.slice(stepLine + 1).find(l => l.trim() !== "");
     expect(nextNonEmpty).toBeUndefined();
   });
+  it("before-step position のセクションが指定ステップの前に挿入される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b", "worker-c"],
+      sections: [
+        { heading: "中間メモ", body: "step-1の前のメモ", position: "before-step:1" },
+      ],
+    });
+
+    const stepAIdx = result.indexOf("### Step 1: worker-a");
+    const sectionIdx = result.indexOf("## 中間メモ");
+    const stepBIdx = result.indexOf("### Step 2: worker-b");
+
+    expect(sectionIdx).toBeGreaterThan(stepAIdx);
+    expect(sectionIdx).toBeLessThan(stepBIdx);
+    expect(result).toContain("step-1の前のメモ");
+  });
+
+  it("after-step position のセクションが指定ステップの後に挿入される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "ステップ後注記", body: "step-0の後の注記", position: "after-step:0" },
+      ],
+    });
+
+    const stepAIdx = result.indexOf("### Step 1: worker-a");
+    const sectionIdx = result.indexOf("## ステップ後注記");
+    const stepBIdx = result.indexOf("### Step 2: worker-b");
+
+    expect(sectionIdx).toBeGreaterThan(stepAIdx);
+    expect(sectionIdx).toBeLessThan(stepBIdx);
+    expect(result).toContain("step-0の後の注記");
+  });
+
+  it("before-steps / after-steps / before-step / after-step が混在しても正しい順序になる", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "全体前", body: "全体前の内容", position: "before-steps" },
+        { heading: "全体後", body: "全体後の内容", position: "after-steps" },
+        { heading: "step間", body: "step間の内容", position: "after-step:0" },
+      ],
+    });
+
+    const beforeAllIdx = result.indexOf("## 全体前");
+    const stepsIdx = result.indexOf("## ステップ");
+    const stepAIdx = result.indexOf("### Step 1: worker-a");
+    const midIdx = result.indexOf("## step間");
+    const stepBIdx = result.indexOf("### Step 2: worker-b");
+    const afterAllIdx = result.indexOf("## 全体後");
+
+    expect(beforeAllIdx).toBeLessThan(stepsIdx);
+    expect(stepAIdx).toBeLessThan(midIdx);
+    expect(midIdx).toBeLessThan(stepBIdx);
+    expect(stepBIdx).toBeLessThan(afterAllIdx);
+  });
+
 });

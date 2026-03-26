@@ -15,11 +15,13 @@ export type {
   AgentTeamMember,
   TeammateStep,
   Teammate,
+  CommunicationPattern,
   SkillType,
   Branch,
   InlineStep,
   Step,
   OrchestratorSection,
+  SectionPosition,
 } from "./skill";
 export { isBranch, isInlineStep, collectSkillsFromSteps, toAgentTeamMember } from "./skill";
 
