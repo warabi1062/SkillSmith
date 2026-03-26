@@ -204,6 +204,92 @@ describe("generateOrchestratorContent", () => {
     expect(result).not.toContain("#### 手順");
   });
 
+  it("before-step:0 を指定したセクションが Step 1 の直前に表示される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "Step1の前", body: "Step1前のコンテンツ", position: "before-step:0" },
+      ],
+    });
+
+    const sectionIdx = result.indexOf("## Step1の前");
+    const step1Idx = result.indexOf("### Step 1: worker-a");
+    expect(sectionIdx).toBeGreaterThan(-1);
+    expect(step1Idx).toBeGreaterThan(-1);
+    expect(sectionIdx).toBeLessThan(step1Idx);
+  });
+
+  it("after-step:0 を指定したセクションが Step 1 の直後に表示される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "Step1の後", body: "Step1後のコンテンツ", position: "after-step:0" },
+      ],
+    });
+
+    const step1Idx = result.indexOf("### Step 1: worker-a");
+    const sectionIdx = result.indexOf("## Step1の後");
+    const step2Idx = result.indexOf("### Step 2: worker-b");
+    expect(step1Idx).toBeLessThan(sectionIdx);
+    expect(sectionIdx).toBeLessThan(step2Idx);
+  });
+
+  it("after-step:1 を指定したセクションが Step 2 の直後に表示される", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b", "worker-c"],
+      sections: [
+        { heading: "Step2の後", body: "Step2後のコンテンツ", position: "after-step:1" },
+      ],
+    });
+
+    const step2Idx = result.indexOf("### Step 2: worker-b");
+    const sectionIdx = result.indexOf("## Step2の後");
+    const step3Idx = result.indexOf("### Step 3: worker-c");
+    expect(step2Idx).toBeLessThan(sectionIdx);
+    expect(sectionIdx).toBeLessThan(step3Idx);
+  });
+
+  it("範囲外の index を指定した場合 after-steps にフォールバックする", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a"],
+      sections: [
+        { heading: "範囲外", body: "フォールバックコンテンツ", position: "before-step:99" },
+      ],
+    });
+
+    const stepIdx = result.indexOf("### Step 1: worker-a");
+    const sectionIdx = result.indexOf("## 範囲外");
+    expect(stepIdx).toBeLessThan(sectionIdx);
+  });
+
+  it("before-steps / after-steps と step間セクションが混在する場合", () => {
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps: ["worker-a", "worker-b"],
+      sections: [
+        { heading: "事前確認", body: "確認事項", position: "before-steps" },
+        { heading: "Step間メモ", body: "メモ内容", position: "after-step:0" },
+        { heading: "注意事項", body: "注意内容", position: "after-steps" },
+      ],
+    });
+
+    const beforeIdx = result.indexOf("## 事前確認");
+    const stepsIdx = result.indexOf("## ステップ");
+    const step1Idx = result.indexOf("### Step 1: worker-a");
+    const betweenIdx = result.indexOf("## Step間メモ");
+    const step2Idx = result.indexOf("### Step 2: worker-b");
+    const afterIdx = result.indexOf("## 注意事項");
+
+    expect(beforeIdx).toBeLessThan(stepsIdx);
+    expect(step1Idx).toBeLessThan(betweenIdx);
+    expect(betweenIdx).toBeLessThan(step2Idx);
+    expect(step2Idx).toBeLessThan(afterIdx);
+  });
+
   it("skillDescriptions に該当スキルが無い場合、スキル名のみがフォールバック出力される", () => {
     const skillDescriptions = new Map<string, string>();
     skillDescriptions.set("other-skill", "別スキルの説明");

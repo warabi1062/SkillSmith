@@ -87,6 +87,33 @@ describe("generateAgentContent", () => {
     expect(afterIdx).toBeGreaterThan(beforeIdx);
   });
 
+  it("before-step:*セクションがbefore-stepsと同じ位置に配置される", () => {
+    const result = generateAgentContent(makeInput({
+      sections: [
+        { heading: "ステップ間メモ", body: "メモ内容", position: "before-step:0" },
+      ],
+    }));
+
+    const execIdx = result.indexOf("## 実行");
+    const sectionIdx = result.indexOf("## ステップ間メモ");
+    expect(execIdx).toBeGreaterThan(-1);
+    expect(sectionIdx).toBeGreaterThan(-1);
+    expect(sectionIdx).toBeGreaterThan(execIdx);
+  });
+
+  it("after-step:*セクションがafter-stepsと同じ位置に配置される", () => {
+    const result = generateAgentContent(makeInput({
+      sections: [
+        { heading: "前提", body: "前提内容", position: "before-steps" },
+        { heading: "ステップ後メモ", body: "メモ内容", position: "after-step:0" },
+      ],
+    }));
+
+    const beforeIdx = result.indexOf("## 前提");
+    const afterStepIdx = result.indexOf("## ステップ後メモ");
+    expect(beforeIdx).toBeLessThan(afterStepIdx);
+  });
+
   it("sectionsがない場合はdescription+実行のみ生成される", () => {
     const result = generateAgentContent(makeInput({
       input: undefined,

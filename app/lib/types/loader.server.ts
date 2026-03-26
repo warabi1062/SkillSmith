@@ -4,7 +4,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection } from "./skill";
+import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition } from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -54,7 +54,7 @@ interface ImportedSkill {
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
-  sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
+  sections?: { heading: string; body: string; position: SectionPosition }[];
   agentConfig?: AgentConfig;
   workerSteps?: TeammateStep[];
   workerSections?: OrchestratorSection[];
@@ -116,7 +116,7 @@ export interface LoadedInlineStep {
 export interface LoadedOrchestratorSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 export type LoadedStep = string | LoadedBranch | LoadedInlineStep;
@@ -155,7 +155,7 @@ export interface LoadedSkill extends LoadedSkillBase {
 export interface LoadedAgentConfigSection {
   heading: string;
   body: string;
-  position: "before-steps" | "after-steps";
+  position: SectionPosition;
 }
 
 // ローダー用のWorkerステップ型（TeammateStepと同じ構造）
