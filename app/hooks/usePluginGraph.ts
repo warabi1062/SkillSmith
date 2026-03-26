@@ -143,7 +143,7 @@ export function usePluginGraph({
         label: string;
         output: string | null;
         tools: string[] | null;
-        steps: { id: string; title: string }[] | null;
+        steps: { id: string; title: string; body: string }[] | null;
       };
       return {
         nodeType: "component" as const,
@@ -158,8 +158,10 @@ export function usePluginGraph({
         workerSections: null,
         steps: null,
         sections: null,
-        allowedTools: nodeData.tools ? nodeData.tools.join(", ") : null,
+        allowedTools: null,
         argumentHint: null,
+        inlineSteps: nodeData.steps,
+        inlineTools: nodeData.tools,
         content: "",
         input: "",
         output: nodeData.output ?? "",
@@ -231,6 +233,8 @@ export function usePluginGraph({
         ? JSON.stringify(skill.allowedTools)
         : null,
       argumentHint: skill.argumentHint ?? null,
+      inlineSteps: null,
+      inlineTools: null,
       content: skill.content ?? "",
       input: skill.input ?? "",
       output: skill.output ?? "",

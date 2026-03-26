@@ -63,6 +63,8 @@ export interface SidePanelProps {
   allowedTools: string | null;
   argumentHint: string | null;
   hasAgentConfig: boolean;
+  inlineSteps: InlineSubStepFields[] | null;
+  inlineTools: string[] | null;
   agentConfig: AgentConfigFields | null;
   teammates: TeammateFields[] | null;
   workerSteps: WorkerStepFields[] | null;
@@ -153,6 +155,8 @@ export default function SidePanel({
   allowedTools,
   argumentHint,
   hasAgentConfig,
+  inlineSteps,
+  inlineTools,
   agentConfig,
   teammates,
   workerSteps,
@@ -254,6 +258,29 @@ export default function SidePanel({
                 <pre className="side-panel-orch-section-body">{s.body}</pre>
               </details>
             ))}
+          </div>
+        ) : componentType === "INLINE" && inlineSteps && inlineSteps.length > 0 ? (
+          /* インラインステップの構造化表示 */
+          <div className="side-panel-orch-structure">
+            {inlineTools && inlineTools.length > 0 && (
+              <div className="side-panel-inline-tools">
+                <span className="side-panel-inline-tools-label">Tools:</span>
+                {inlineTools.map((tool) => (
+                  <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+                ))}
+              </div>
+            )}
+            <label>Steps</label>
+            <div className="side-panel-orch-steps">
+              {inlineSteps.map((subStep) => (
+                <details key={subStep.id} className="side-panel-teammate-step" open>
+                  <summary className="side-panel-teammate-step-summary">
+                    {subStep.id}. {subStep.title}
+                  </summary>
+                  <pre className="side-panel-teammate-step-body">{subStep.body}</pre>
+                </details>
+              ))}
+            </div>
           </div>
         ) : showWorkerStepsSection && workerSteps ? (
           /* WorkerWithSubAgent の構造化表示 */
