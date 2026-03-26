@@ -1,7 +1,23 @@
+// AgentConfigのセクション（構造化表示用）
+export interface AgentConfigSectionFields {
+  heading: string;
+  body: string;
+  position: "before-steps" | "after-steps";
+}
+
 export interface AgentConfigFields {
   model: string;
   tools: string[];
   agentContent: string;
+  description?: string;
+  sections?: AgentConfigSectionFields[];
+}
+
+// Workerのステップ（構造化表示用）
+export interface WorkerStepFields {
+  id: string;
+  title: string;
+  body: string;
 }
 
 export interface TeammateFields {
@@ -40,6 +56,8 @@ export interface SidePanelProps {
   hasAgentConfig: boolean;
   agentConfig: AgentConfigFields | null;
   teammates: TeammateFields[] | null;
+  workerSteps: WorkerStepFields[] | null;
+  workerSections: SectionFields[] | null;
   steps: StepFields[] | null;
   sections: SectionFields[] | null;
   onClose: () => void;
@@ -99,6 +117,8 @@ export default function SidePanel({
   hasAgentConfig,
   agentConfig,
   teammates,
+  workerSteps,
+  workerSections,
   steps,
   sections,
   onClose,
@@ -111,6 +131,10 @@ export default function SidePanel({
   // AgentConfigセクションの表示条件: WORKER_WITH_SUB_AGENT の場合のみ
   const showAgentConfigSection =
     componentType === "SKILL" && skillType === "WORKER_WITH_SUB_AGENT" && hasAgentConfig;
+
+  // WorkerStepsセクションの表示条件: WORKER_WITH_SUB_AGENT + workerSteps有りのみ
+  const showWorkerStepsSection =
+    componentType === "SKILL" && skillType === "WORKER_WITH_SUB_AGENT" && workerSteps && workerSteps.length > 0;
 
   // Teammatesセクションの表示条件: WORKER_WITH_AGENT_TEAM の場合のみ
   const showTeammatesSection =
@@ -193,6 +217,37 @@ export default function SidePanel({
               </details>
             ))}
           </div>
+        ) : showWorkerStepsSection && workerSteps ? (
+          /* WorkerWithSubAgent の構造化表示 */
+          <div className="side-panel-orch-structure">
+            {/* before-steps セクション */}
+            {workerSections?.filter(s => s.position === "before-steps").map(s => (
+              <details key={s.heading} className="side-panel-orch-section" open>
+                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                <pre className="side-panel-orch-section-body">{s.body}</pre>
+              </details>
+            ))}
+
+            <label>Worker Steps</label>
+            <div className="side-panel-orch-steps">
+              {workerSteps.map((step) => (
+                <details key={step.id} className="side-panel-teammate-step" open>
+                  <summary className="side-panel-teammate-step-summary">
+                    {step.id}. {step.title}
+                  </summary>
+                  <pre className="side-panel-teammate-step-body">{step.body}</pre>
+                </details>
+              ))}
+            </div>
+
+            {/* after-steps セクション */}
+            {workerSections?.filter(s => s.position === "after-steps").map(s => (
+              <details key={s.heading} className="side-panel-orch-section" open>
+                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                <pre className="side-panel-orch-section-body">{s.body}</pre>
+              </details>
+            ))}
+          </div>
         ) : (
           /* 本文（非オーケストレーター or steps がない場合） */
           <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
@@ -242,12 +297,35 @@ export default function SidePanel({
               </div>
             </div>
 
-            <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label>Agent Content</label>
-              <pre className="side-panel-readonly side-panel-pre">
-                {agentConfig.agentContent || "(no content)"}
-              </pre>
-            </div>
+            {agentConfig.description || (agentConfig.sections && agentConfig.sections.length > 0) ? (
+              <div className="side-panel-orch-structure">
+                {agentConfig.description && (
+                  <div className="form-group">
+                    <label>Agent Description</label>
+                    <div className="side-panel-readonly">{agentConfig.description}</div>
+                  </div>
+                )}
+                {agentConfig.sections?.filter(s => s.position === "before-steps").map(s => (
+                  <details key={s.heading} className="side-panel-orch-section" open>
+                    <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                    <pre className="side-panel-orch-section-body">{s.body}</pre>
+                  </details>
+                ))}
+                {agentConfig.sections?.filter(s => s.position === "after-steps").map(s => (
+                  <details key={s.heading} className="side-panel-orch-section" open>
+                    <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                    <pre className="side-panel-orch-section-body">{s.body}</pre>
+                  </details>
+                ))}
+              </div>
+            ) : (
+              <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                <label>Agent Content</label>
+                <pre className="side-panel-readonly side-panel-pre">
+                  {agentConfig.agentContent || "(no content)"}
+                </pre>
+              </div>
+            )}
           </div>
         )}
 

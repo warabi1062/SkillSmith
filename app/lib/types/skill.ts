@@ -72,11 +72,21 @@ export interface SupportFile {
   sortOrder?: number;
 }
 
+// Agent設定のセクション（OrchestratorSectionと同じ構造）
+export interface AgentConfigSection {
+  heading: string;
+  body: string;
+  position: "before-steps" | "after-steps";
+}
+
 // Agent設定（WorkerWithSubAgent用）
+// content 直書きまたは description + sections から自動生成
 export interface AgentConfig {
   model?: string;
   tools?: string[];
-  content: string; // agent.md 本文
+  content: string; // agent.md 本文（後方互換）
+  description?: string;                // 構造化時: agentの説明
+  sections?: AgentConfigSection[];     // 構造化時: 追加セクション
 }
 
 // Agent Teamメンバー（WorkerWithAgentTeam用）
@@ -192,23 +202,31 @@ export class WorkerSkill extends Skill {
 }
 
 // WorkerWithSubAgent スキル: Sub Agent を伴う Worker スキル
+// content 直書きまたは workerSteps + workerSections から自動生成
 export class WorkerWithSubAgent extends Skill {
   readonly skillType = "WORKER_WITH_SUB_AGENT" as const;
   readonly name: string;
   readonly content: string;
   readonly agentConfig: AgentConfig;
+  readonly workerSteps?: TeammateStep[];                // 構造化時: Workerの手順ステップ
+  readonly workerSections?: OrchestratorSection[];      // 構造化時: steps前後の追加セクション
 
   constructor(
-    init: {
-      name: string;
-      content: string;
+    init: (
+      | { name: string; content: string; workerSteps?: never; workerSections?: never }
+      | { name: string; workerSteps: TeammateStep[]; workerSections?: OrchestratorSection[]; content?: string }
+    ) & {
       agentConfig: AgentConfig;
     } & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
-    this.content = init.content;
+    this.content = init.content ?? "";
     this.agentConfig = init.agentConfig;
+    if ("workerSteps" in init && init.workerSteps) {
+      this.workerSteps = init.workerSteps;
+      this.workerSections = init.workerSections;
+    }
     this.assignOptionalFields(init);
   }
 }

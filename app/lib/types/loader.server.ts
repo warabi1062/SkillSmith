@@ -4,7 +4,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { SupportFileRole, SkillType, AgentConfig, AgentTeamMember, SupportFile, TeammateStep } from "./skill";
+import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection } from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -48,6 +48,8 @@ interface ImportedSkill {
   steps?: ImportedStep[];
   sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
   agentConfig?: AgentConfig;
+  workerSteps?: TeammateStep[];
+  workerSections?: OrchestratorSection[];
   agentTeamMembers?: AgentTeamMember[];
   teammates?: ImportedTeammate[];
   teamPrefix?: string;
@@ -133,10 +135,26 @@ export interface LoadedSkill extends LoadedSkillBase {
   skillType: "ENTRY_POINT" | "WORKER";
 }
 
+// ローダー用のAgentConfigセクション型
+export interface LoadedAgentConfigSection {
+  heading: string;
+  body: string;
+  position: "before-steps" | "after-steps";
+}
+
+// ローダー用のWorkerステップ型（TeammateStepと同じ構造）
+export interface LoadedWorkerStep {
+  id: string;
+  title: string;
+  body: string;
+}
+
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
 export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
   skillType: "WORKER_WITH_SUB_AGENT";
   agentConfig: AgentConfig;
+  workerSteps?: LoadedWorkerStep[];
+  workerSections?: LoadedOrchestratorSection[];
 }
 
 // ローダー用のチームメンバーステップ型
@@ -249,11 +267,22 @@ export async function loadPluginDefinition(
 
       // skillType に応じた拡張
       if (skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.agentConfig) {
-        return {
+        const loaded: LoadedWorkerWithSubAgentSkill = {
           ...base,
           skillType: "WORKER_WITH_SUB_AGENT" as const,
           agentConfig: skill.agentConfig,
-        } satisfies LoadedWorkerWithSubAgentSkill;
+        };
+        if (skill.workerSteps) {
+          loaded.workerSteps = skill.workerSteps;
+        }
+        if (skill.workerSections) {
+          loaded.workerSections = skill.workerSections.map(s => ({
+            heading: s.heading,
+            body: s.body,
+            position: s.position,
+          }));
+        }
+        return loaded;
       }
 
       if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {

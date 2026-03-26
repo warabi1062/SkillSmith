@@ -22,6 +22,8 @@ function renderPanel(overrides: Partial<SidePanelProps> = {}) {
     hasAgentConfig: false,
     agentConfig: null,
     teammates: null,
+    workerSteps: null,
+    workerSections: null,
     steps: null,
     sections: null,
     onClose: vi.fn(),
