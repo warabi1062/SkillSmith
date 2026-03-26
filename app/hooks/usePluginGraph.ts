@@ -118,6 +118,18 @@ export function usePluginGraph({
         ? skill.agentConfig
         : null;
 
+    // teammates情報（discriminated unionにより型安全にアクセス）
+    const teammatesData =
+      skill.skillType === "WORKER_WITH_AGENT_TEAM" && skill.teammates
+        ? skill.teammates.map(t => ({
+            name: t.name,
+            role: t.role,
+            steps: t.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
+            pollingTarget: t.pollingTarget,
+            statusCheckResponder: t.statusCheckResponder,
+          }))
+        : null;
+
     return {
       nodeType: "component" as const,
       componentType,
@@ -134,6 +146,7 @@ export function usePluginGraph({
             agentContent: agentConfigData.content ?? "",
           }
         : null,
+      teammates: teammatesData,
       allowedTools: skill.allowedTools
         ? JSON.stringify(skill.allowedTools)
         : null,

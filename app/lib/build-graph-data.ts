@@ -258,6 +258,11 @@ export function buildGraphData(
     // WORKER_WITH_SUB_AGENT に agentConfig が紐付いているかどうか
     const hasAgentConfig = skill.skillType === "WORKER_WITH_SUB_AGENT" && "agentConfig" in skill;
 
+    // WORKER_WITH_AGENT_TEAM に teammates が紐付いているかどうか
+    const teammateNames = skill.skillType === "WORKER_WITH_AGENT_TEAM" && "teammates" in skill && skill.teammates
+      ? skill.teammates.map(t => t.name)
+      : null;
+
     return {
       id: skill.name,
       position,
@@ -268,6 +273,7 @@ export function buildGraphData(
         componentType: "SKILL",
         skillType: skill.skillType ?? null,
         hasAgentConfig,
+        teammateNames,
       },
     };
   });

@@ -4,6 +4,14 @@ export interface AgentConfigFields {
   agentContent: string;
 }
 
+export interface TeammateFields {
+  name: string;
+  role: string;
+  steps: { id: string; title: string; body: string }[];
+  pollingTarget?: string;
+  statusCheckResponder?: boolean;
+}
+
 export interface SidePanelProps {
   componentType: "SKILL" | "ORCHESTRATOR";
   name: string;
@@ -16,6 +24,7 @@ export interface SidePanelProps {
   argumentHint: string | null;
   hasAgentConfig: boolean;
   agentConfig: AgentConfigFields | null;
+  teammates: TeammateFields[] | null;
   onClose: () => void;
 }
 
@@ -31,6 +40,7 @@ export default function SidePanel({
   argumentHint,
   hasAgentConfig,
   agentConfig,
+  teammates,
   onClose,
 }: SidePanelProps) {
   // コンポーネント種別に応じたバッジラベル
@@ -39,6 +49,10 @@ export default function SidePanel({
   // AgentConfigセクションの表示条件: WORKER_WITH_SUB_AGENT の場合のみ
   const showAgentConfigSection =
     componentType === "SKILL" && skillType === "WORKER_WITH_SUB_AGENT" && hasAgentConfig;
+
+  // Teammatesセクションの表示条件: WORKER_WITH_AGENT_TEAM の場合のみ
+  const showTeammatesSection =
+    componentType === "SKILL" && skillType === "WORKER_WITH_AGENT_TEAM" && teammates && teammates.length > 0;
 
   return (
     <div className="side-panel">
@@ -136,6 +150,45 @@ export default function SidePanel({
                 {agentConfig.agentContent || "(no content)"}
               </pre>
             </div>
+          </div>
+        )}
+
+        {/* Teammates表示セクション（WORKER_WITH_AGENT_TEAM + teammates有りのみ） */}
+        {showTeammatesSection && teammates && (
+          <div className="side-panel-teammates-section">
+            <div className="side-panel-teammates-header">
+              <h4>Teammates</h4>
+            </div>
+            {teammates.map((mate) => (
+              <details key={mate.name} className="side-panel-teammate">
+                <summary className="side-panel-teammate-summary">
+                  <span className="side-panel-teammate-name">{mate.name}</span>
+                  <span className="side-panel-teammate-role">{mate.role}</span>
+                </summary>
+                <div className="side-panel-teammate-details">
+                  {mate.pollingTarget && (
+                    <div className="side-panel-teammate-meta">
+                      polling → {mate.pollingTarget}
+                    </div>
+                  )}
+                  {mate.statusCheckResponder && (
+                    <div className="side-panel-teammate-meta">
+                      status_check responder
+                    </div>
+                  )}
+                  <div className="side-panel-teammate-steps">
+                    {mate.steps.map((step) => (
+                      <details key={step.id} className="side-panel-teammate-step">
+                        <summary className="side-panel-teammate-step-summary">
+                          {step.id}. {step.title}
+                        </summary>
+                        <pre className="side-panel-teammate-step-body">{step.body}</pre>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              </details>
+            ))}
           </div>
         )}
       </div>
