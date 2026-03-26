@@ -74,7 +74,7 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
 
   const typeClass = step.type === "inline" ? "side-panel-orch-step--inline" : "side-panel-orch-step--skill";
   return (
-    <details className="side-panel-orch-step">
+    <details className="side-panel-orch-step" open>
       <summary className={`side-panel-orch-step-summary ${typeClass}`}>
         <span className="side-panel-orch-step-type">{step.type === "inline" ? "INLINE" : "SKILL"}</span>
         {index}. {step.label}
@@ -172,7 +172,7 @@ export default function SidePanel({
           <div className="side-panel-orch-structure">
             {/* before-steps セクション */}
             {sections?.filter(s => s.position === "before-steps").map(s => (
-              <details key={s.heading} className="side-panel-orch-section">
+              <details key={s.heading} className="side-panel-orch-section" open>
                 <summary className="side-panel-orch-section-summary">{s.heading}</summary>
                 <pre className="side-panel-orch-section-body">{s.body}</pre>
               </details>
@@ -187,7 +187,7 @@ export default function SidePanel({
 
             {/* after-steps セクション */}
             {sections?.filter(s => s.position === "after-steps").map(s => (
-              <details key={s.heading} className="side-panel-orch-section">
+              <details key={s.heading} className="side-panel-orch-section" open>
                 <summary className="side-panel-orch-section-summary">{s.heading}</summary>
                 <pre className="side-panel-orch-section-body">{s.body}</pre>
               </details>
