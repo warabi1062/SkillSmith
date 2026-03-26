@@ -8,7 +8,7 @@ import {
   clearGraphPositions,
 } from "../lib/graph-positions";
 import type { LoadedPluginDefinition, LoadedSkillUnion, LoadedStep, LoadedBranch, LoadedInlineStep, LoadedOrchestratorSection } from "../lib/types/loader.server";
-import type { StepFields, SectionFields, WorkerStepFields, AgentConfigSectionFields } from "../components/SidePanel";
+import type { StepFields, SectionFields, WorkerStepFields, AgentConfigSectionFields } from "../components/side-panel/types";
 
 export type Plugin = LoadedPluginDefinition;
 

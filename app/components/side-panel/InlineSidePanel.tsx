@@ -1,5 +1,5 @@
 // INLINE ステップ用サイドパネル
-import type { InlineSubStepFields } from "../SidePanel";
+import type { InlineSubStepFields } from "./types";
 import SidePanelLayout from "./parts/SidePanelLayout";
 import ReadonlyField from "./parts/ReadonlyField";
 import ContentBlock from "./parts/ContentBlock";

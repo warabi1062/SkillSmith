@@ -3,7 +3,9 @@ import {
   usePluginGraph,
   type Plugin,
 } from "../hooks/usePluginGraph";
-import SidePanel from "./SidePanel";
+import OrchestratorSidePanel from "./side-panel/OrchestratorSidePanel";
+import SkillSidePanel from "./side-panel/SkillSidePanel";
+import InlineSidePanel from "./side-panel/InlineSidePanel";
 
 const DependencyGraph = React.lazy(
   () => import("../components/DependencyGraph"),
@@ -34,6 +36,62 @@ export default function PluginGraphSection({
 
   if (!isClient) return null;
 
+  // componentType に応じたサイドパネルを描画
+  const renderSidePanel = () => {
+    if (!selectedNodeData) return null;
+    const d = selectedNodeData;
+
+    switch (d.componentType) {
+      case "ORCHESTRATOR":
+        return (
+          <OrchestratorSidePanel
+            name={d.name}
+            description={d.description}
+            content={d.content}
+            input={d.input}
+            output={d.output}
+            skillType={d.skillType}
+            allowedTools={d.allowedTools}
+            argumentHint={d.argumentHint}
+            steps={d.steps}
+            sections={d.sections}
+            onClose={handleSidePanelClose}
+          />
+        );
+      case "INLINE":
+        return (
+          <InlineSidePanel
+            name={d.name}
+            description={d.description}
+            content={d.content}
+            input={d.input}
+            output={d.output}
+            inlineSteps={d.inlineSteps}
+            inlineTools={d.inlineTools}
+            onClose={handleSidePanelClose}
+          />
+        );
+      case "SKILL":
+        return (
+          <SkillSidePanel
+            name={d.name}
+            description={d.description}
+            content={d.content}
+            input={d.input}
+            output={d.output}
+            skillType={d.skillType}
+            allowedTools={d.allowedTools}
+            hasAgentConfig={d.hasAgentConfig}
+            agentConfig={d.agentConfig}
+            teammates={d.teammates}
+            workerSteps={d.workerSteps}
+            workerSections={d.workerSections}
+            onClose={handleSidePanelClose}
+          />
+        );
+    }
+  };
+
   return (
     <>
       <div className="dependency-graph-section">
@@ -58,29 +116,7 @@ export default function PluginGraphSection({
         </div>
       </div>
 
-      {selectedNodeData && (
-        <SidePanel
-          componentType={selectedNodeData.componentType}
-          name={selectedNodeData.name}
-          description={selectedNodeData.description}
-          content={selectedNodeData.content}
-          input={selectedNodeData.input}
-          output={selectedNodeData.output}
-          skillType={selectedNodeData.skillType}
-          allowedTools={selectedNodeData.allowedTools}
-          argumentHint={selectedNodeData.argumentHint}
-          hasAgentConfig={selectedNodeData.hasAgentConfig}
-          inlineSteps={selectedNodeData.inlineSteps}
-          inlineTools={selectedNodeData.inlineTools}
-          agentConfig={selectedNodeData.agentConfig}
-          teammates={selectedNodeData.teammates}
-          workerSteps={selectedNodeData.workerSteps}
-          workerSections={selectedNodeData.workerSections}
-          steps={selectedNodeData.steps}
-          sections={selectedNodeData.sections}
-          onClose={handleSidePanelClose}
-        />
-      )}
+      {renderSidePanel()}
     </>
   );
 }

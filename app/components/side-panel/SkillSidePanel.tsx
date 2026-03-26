@@ -1,5 +1,5 @@
 // SKILL (WORKER / WORKER_WITH_SUB_AGENT / WORKER_WITH_AGENT_TEAM) 用サイドパネル
-import type { AgentConfigFields, TeammateFields, WorkerStepFields, SectionFields } from "../SidePanel";
+import type { AgentConfigFields, TeammateFields, WorkerStepFields, SectionFields } from "./types";
 import SidePanelLayout from "./parts/SidePanelLayout";
 import ReadonlyField from "./parts/ReadonlyField";
 import ContentBlock from "./parts/ContentBlock";

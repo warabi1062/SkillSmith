@@ -1,5 +1,5 @@
 // ORCHESTRATOR (ENTRY_POINT) 用サイドパネル
-import type { StepFields, SectionFields } from "../SidePanel";
+import type { StepFields, SectionFields } from "./types";
 import SidePanelLayout from "./parts/SidePanelLayout";
 import ReadonlyField from "./parts/ReadonlyField";
 import ContentBlock from "./parts/ContentBlock";
