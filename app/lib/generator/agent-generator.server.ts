@@ -1,5 +1,6 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "./frontmatter.server";
+import { generateAgentContent } from "./agent-content-generator";
 
 // --- Agent Team MD生成 ---
 
@@ -75,6 +76,8 @@ interface AgentConfigData {
   model?: string;
   tools?: string[];
   content: string;
+  description?: string;
+  sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
 }
 
 // スキル設定の情報
@@ -102,8 +105,20 @@ export function generateAgentMd(component: AgentComponentData): {
   // Agent名はskillConfig.nameから導出: "{name}-agent"
   const agentName = `${skillConfig.name}-agent`;
 
+  // AgentConfig に description または sections がある場合は content を自動生成
+  let agentContent = config.content;
+  if (config.description || config.sections) {
+    agentContent = generateAgentContent({
+      skillName: skillConfig.name,
+      description: config.description,
+      input: skillConfig.input,
+      output: skillConfig.output,
+      sections: config.sections,
+    });
+  }
+
   // contentが空の場合はエラー
-  if (!config.content) {
+  if (!agentContent) {
     errors.push({
       severity: "error",
       code: "EMPTY_CONTENT",
@@ -141,7 +156,7 @@ export function generateAgentMd(component: AgentComponentData): {
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
-  const content = `${frontmatter}\n\n${config.content}\n`;
+  const content = `${frontmatter}\n\n${agentContent}\n`;
 
   return {
     file: {
