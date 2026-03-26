@@ -217,16 +217,16 @@ describe("buildGraphData", () => {
 
     // InlineStep もエッジとノードを生成する（計3本のエッジ）
     expect(edges).toHaveLength(3);
-    expect(edges[0].target).toBe("dev:inline:0");
+    expect(edges[0].target).toBe("inline:ブランチ作成");
     expect(edges[0].sourceHandle).toBe("step-0");
     expect(edges[1].target).toBe("w1");
     expect(edges[1].sourceHandle).toBe("step-1");
-    expect(edges[2].target).toBe("dev:inline:1");
+    expect(edges[2].target).toBe("inline:後処理");
     expect(edges[2].sourceHandle).toBe("step-2");
 
     // InlineStep ノードが生成される
-    const inlineNode0 = nodes.find((n) => n.id === "dev:inline:0");
-    const inlineNode1 = nodes.find((n) => n.id === "dev:inline:1");
+    const inlineNode0 = nodes.find((n) => n.id === "inline:ブランチ作成");
+    const inlineNode1 = nodes.find((n) => n.id === "inline:後処理");
     expect(inlineNode0).toBeDefined();
     expect(inlineNode0!.type).toBe("inlineStep");
     expect(inlineNode0!.data.label).toBe("ブランチ作成");
