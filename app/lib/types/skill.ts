@@ -7,12 +7,20 @@ export interface Branch {
   cases: Record<string, Step[]>;   // case名 → ステップ列
 }
 
+// インラインステップのサブステップ（構造化された手順記述）
+export interface InlineSubStep {
+  id: string;                      // ステップID（例: "1", "2a"）
+  title: string;                   // ステップ名（例: "ベースブランチ判定"）
+  body: string;                    // ステップの説明本文
+}
+
 // インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
 export interface InlineStep {
   inline: string;                  // 表示名（例: "ブランチ作成"）
-  description?: string;            // 手順の詳細説明
+  steps: InlineSubStep[];          // 構造化された手順ステップ
   input?: string;                  // 入力の説明
   output?: string;                 // 出力の説明
+  tools?: string[];                // 使用するツール
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）

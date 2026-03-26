@@ -24,11 +24,13 @@ describe("generateOrchestratorContent", () => {
     expect(result).toContain("### Step 2: worker-b");
   });
 
-  it("InlineStep（description/input/output あり）の場合", () => {
+  it("InlineStep（steps/input/output あり）の場合", () => {
     const steps: LoadedStep[] = [
       {
         inline: "タスクID生成",
-        description: "指示内容から短いslugを生成する",
+        steps: [
+          { id: "1", title: "slug生成", body: "指示内容から短いslugを生成する" },
+        ],
         input: "ユーザー指示",
         output: "タスクID: quick-{slug}",
       },
@@ -40,6 +42,8 @@ describe("generateOrchestratorContent", () => {
     });
 
     expect(result).toContain("### Step 1: タスクID生成");
+    expect(result).toContain("#### 手順");
+    expect(result).toContain("**1. slug生成**");
     expect(result).toContain("指示内容から短いslugを生成する");
     expect(result).toContain("**入力**: ユーザー指示");
     expect(result).toContain("**出力**: タスクID: quick-{slug}");
@@ -52,7 +56,7 @@ describe("generateOrchestratorContent", () => {
         description: "入力パターンに応じて分岐する",
         cases: {
           "モードA": ["worker-a"],
-          "モードB": [{ inline: "手動処理" }],
+          "モードB": [{ inline: "手動処理", steps: [{ id: "1", title: "処理実行", body: "手動で処理する" }] }],
         },
       },
     ];
@@ -133,6 +137,71 @@ describe("generateOrchestratorContent", () => {
 
     expect(result).toContain("### Step 1: worker-a");
     expect(result).toContain("Worker Aの説明文");
+  });
+
+  it("InlineStep に複数の steps がある場合、構造化された手順が出力される", () => {
+    const steps: LoadedStep[] = [
+      {
+        inline: "ブランチ作成",
+        steps: [
+          { id: "1", title: "ベースブランチ判定", body: "git branch -a で develop の存在を確認する" },
+          { id: "2", title: "ブランチ切り替え", body: "feature/{タスクID} ブランチを作成して切り替える" },
+        ],
+      },
+    ];
+
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps,
+    });
+
+    expect(result).toContain("### Step 1: ブランチ作成");
+    expect(result).toContain("#### 手順");
+    expect(result).toContain("**1. ベースブランチ判定**");
+    expect(result).toContain("git branch -a で develop の存在を確認する");
+    expect(result).toContain("**2. ブランチ切り替え**");
+    expect(result).toContain("feature/{タスクID} ブランチを作成して切り替える");
+  });
+
+  it("InlineStep に tools がある場合、使用ツールが出力される", () => {
+    const steps: LoadedStep[] = [
+      {
+        inline: "コード検索",
+        steps: [
+          { id: "1", title: "検索実行", body: "関連ファイルを検索する" },
+        ],
+        tools: ["Grep", "Glob", "Read"],
+      },
+    ];
+
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps,
+    });
+
+    expect(result).toContain("### Step 1: コード検索");
+    expect(result).toContain("**使用ツール**: Grep, Glob, Read");
+  });
+
+  it("InlineStep に steps が空配列の場合、手順セクションが出力されない", () => {
+    const steps: LoadedStep[] = [
+      {
+        inline: "シンプル処理",
+        steps: [],
+        input: "入力データ",
+        output: "出力結果",
+      },
+    ];
+
+    const result = generateOrchestratorContent({
+      name: "test",
+      steps,
+    });
+
+    expect(result).toContain("### Step 1: シンプル処理");
+    expect(result).toContain("**入力**: 入力データ");
+    expect(result).toContain("**出力**: 出力結果");
+    expect(result).not.toContain("#### 手順");
   });
 
   it("skillDescriptions に該当スキルが無い場合、スキル名のみがフォールバック出力される", () => {

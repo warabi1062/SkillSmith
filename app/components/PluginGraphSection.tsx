@@ -70,6 +70,8 @@ export default function PluginGraphSection({
           allowedTools={selectedNodeData.allowedTools}
           argumentHint={selectedNodeData.argumentHint}
           hasAgentConfig={selectedNodeData.hasAgentConfig}
+          inlineSteps={selectedNodeData.inlineSteps}
+          inlineTools={selectedNodeData.inlineTools}
           agentConfig={selectedNodeData.agentConfig}
           teammates={selectedNodeData.teammates}
           workerSteps={selectedNodeData.workerSteps}

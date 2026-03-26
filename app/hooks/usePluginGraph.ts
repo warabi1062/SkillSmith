@@ -30,7 +30,12 @@ function convertStep(step: LoadedStep): StepFields {
     };
   }
   const inline = step as LoadedInlineStep;
-  return { type: "inline", label: inline.inline, description: inline.description };
+  return {
+    type: "inline",
+    label: inline.inline,
+    inlineSteps: inline.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
+    inlineTools: inline.tools,
+  };
 }
 
 function convertSections(sections: LoadedOrchestratorSection[]): SectionFields[] {
@@ -134,12 +139,17 @@ export function usePluginGraph({
     if (selectedNodeId.startsWith("inline:")) {
       const graphNode = graphDataWithPositions.nodes.find((n) => n.id === selectedNodeId);
       if (!graphNode) return null;
-      const nodeData = graphNode.data as { label: string; description: string | null; output: string | null };
+      const nodeData = graphNode.data as {
+        label: string;
+        output: string | null;
+        tools: string[] | null;
+        steps: { id: string; title: string; body: string }[] | null;
+      };
       return {
         nodeType: "component" as const,
         componentType: "INLINE" as const,
         name: nodeData.label,
-        description: nodeData.description ?? null,
+        description: null,
         skillType: null,
         hasAgentConfig: false,
         agentConfig: null,
@@ -150,6 +160,8 @@ export function usePluginGraph({
         sections: null,
         allowedTools: null,
         argumentHint: null,
+        inlineSteps: nodeData.steps,
+        inlineTools: nodeData.tools,
         content: "",
         input: "",
         output: nodeData.output ?? "",
@@ -221,6 +233,8 @@ export function usePluginGraph({
         ? JSON.stringify(skill.allowedTools)
         : null,
       argumentHint: skill.argumentHint ?? null,
+      inlineSteps: null,
+      inlineTools: null,
       content: skill.content ?? "",
       input: skill.input ?? "",
       output: skill.output ?? "",

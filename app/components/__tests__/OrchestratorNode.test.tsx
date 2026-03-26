@@ -30,7 +30,7 @@ function renderOrchestratorNode(
   overrides: Partial<{
     label: string;
     description: string | null;
-    stepsData: Array<string | { inline: string } | { decisionPoint: string; cases: Record<string, Array<string | { inline: string }>> }>;
+    stepsData: Array<string | { inline: string; steps: { id: string; title: string; body: string }[] } | { decisionPoint: string; cases: Record<string, Array<string | { inline: string; steps: { id: string; title: string; body: string }[] }>> }>;
     skillType: string | null;
   }> = {},
 ) {
@@ -91,7 +91,7 @@ describe("OrchestratorNode", () => {
 
   it("インラインステップを番号付きで表示すること", () => {
     renderOrchestratorNode({
-      stepsData: [{ inline: "ブランチ作成" }, "plan-team"],
+      stepsData: [{ inline: "ブランチ作成", steps: [] }, "plan-team"],
     });
     expect(screen.getByText("ブランチ作成")).toBeTruthy();
     expect(screen.getByText("1")).toBeTruthy();
@@ -105,7 +105,7 @@ describe("OrchestratorNode", () => {
           decisionPoint: "入力判定",
           cases: {
             "Linearモード": ["triage"],
-            "Quickモード": [{ inline: "タスクID生成" }],
+            "Quickモード": [{ inline: "タスクID生成", steps: [] }],
           },
         },
         "plan-team",

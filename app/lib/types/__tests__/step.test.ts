@@ -27,14 +27,14 @@ describe("isBranch", () => {
   });
 
   it("InlineStep に対して false を返す", () => {
-    const inline: InlineStep = { inline: "ブランチ作成" };
+    const inline: InlineStep = { inline: "ブランチ作成", steps: [] };
     expect(isBranch(inline)).toBe(false);
   });
 });
 
 describe("isInlineStep", () => {
   it("InlineStep オブジェクトに対して true を返す", () => {
-    const inline: InlineStep = { inline: "ブランチ作成" };
+    const inline: InlineStep = { inline: "ブランチ作成", steps: [] };
     expect(isInlineStep(inline)).toBe(true);
   });
 
@@ -138,9 +138,9 @@ describe("collectSkillsFromSteps", () => {
   it("InlineStep をスキップして Skill のみ収集する", () => {
     const s1 = worker("s1");
     const steps: Step[] = [
-      { inline: "ブランチ作成" },
+      { inline: "ブランチ作成", steps: [] },
       s1,
-      { inline: "タスクID生成" },
+      { inline: "タスクID生成", steps: [] },
     ];
     const result = collectSkillsFromSteps(steps);
     expect(result.map((s) => s.name)).toEqual(["s1"]);
@@ -152,8 +152,8 @@ describe("collectSkillsFromSteps", () => {
       {
         decisionPoint: "分岐",
         cases: {
-          "A": [{ inline: "準備" }, s1],
-          "B": [{ inline: "クリーンアップ" }],
+          "A": [{ inline: "準備", steps: [] }, s1],
+          "B": [{ inline: "クリーンアップ", steps: [] }],
         },
       },
     ];

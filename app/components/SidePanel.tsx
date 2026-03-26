@@ -28,12 +28,21 @@ export interface TeammateFields {
   statusCheckResponder?: boolean;
 }
 
+// インラインステップのサブステップ（構造化表示用）
+export interface InlineSubStepFields {
+  id: string;
+  title: string;
+  body: string;
+}
+
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
 export interface StepFields {
   type: "skill" | "inline" | "branch";
   label: string;
-  description?: string;
+  description?: string;           // branch の判定条件説明用
   cases?: { name: string; steps: StepFields[] }[];
+  inlineSteps?: InlineSubStepFields[];
+  inlineTools?: string[];
 }
 
 // オーケストレーターのセクション
@@ -54,6 +63,8 @@ export interface SidePanelProps {
   allowedTools: string | null;
   argumentHint: string | null;
   hasAgentConfig: boolean;
+  inlineSteps: InlineSubStepFields[] | null;
+  inlineTools: string[] | null;
   agentConfig: AgentConfigFields | null;
   teammates: TeammateFields[] | null;
   workerSteps: WorkerStepFields[] | null;
@@ -90,16 +101,45 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
     );
   }
 
-  const typeClass = step.type === "inline" ? "side-panel-orch-step--inline" : "side-panel-orch-step--skill";
+  if (step.type === "inline") {
+    return (
+      <details className="side-panel-orch-step" open>
+        <summary className="side-panel-orch-step-summary side-panel-orch-step--inline">
+          <span className="side-panel-orch-step-type">INLINE</span>
+          {index}. {step.label}
+        </summary>
+        <div className="side-panel-orch-step-content">
+          {step.inlineTools && step.inlineTools.length > 0 && (
+            <div className="side-panel-inline-tools">
+              <span className="side-panel-inline-tools-label">Tools:</span>
+              {step.inlineTools.map((tool) => (
+                <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+              ))}
+            </div>
+          )}
+          {step.inlineSteps && step.inlineSteps.length > 0 && (
+            <div className="side-panel-inline-substeps">
+              {step.inlineSteps.map((subStep) => (
+                <details key={subStep.id} className="side-panel-teammate-step">
+                  <summary className="side-panel-teammate-step-summary">
+                    {subStep.id}. {subStep.title}
+                  </summary>
+                  <pre className="side-panel-teammate-step-body">{subStep.body}</pre>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
+      </details>
+    );
+  }
+
   return (
     <details className="side-panel-orch-step" open>
-      <summary className={`side-panel-orch-step-summary ${typeClass}`}>
-        <span className="side-panel-orch-step-type">{step.type === "inline" ? "INLINE" : "SKILL"}</span>
+      <summary className="side-panel-orch-step-summary side-panel-orch-step--skill">
+        <span className="side-panel-orch-step-type">SKILL</span>
         {index}. {step.label}
       </summary>
-      {step.description && (
-        <pre className="side-panel-orch-step-desc">{step.description}</pre>
-      )}
     </details>
   );
 }
@@ -115,6 +155,8 @@ export default function SidePanel({
   allowedTools,
   argumentHint,
   hasAgentConfig,
+  inlineSteps,
+  inlineTools,
   agentConfig,
   teammates,
   workerSteps,
@@ -216,6 +258,29 @@ export default function SidePanel({
                 <pre className="side-panel-orch-section-body">{s.body}</pre>
               </details>
             ))}
+          </div>
+        ) : componentType === "INLINE" && inlineSteps && inlineSteps.length > 0 ? (
+          /* インラインステップの構造化表示 */
+          <div className="side-panel-orch-structure">
+            {inlineTools && inlineTools.length > 0 && (
+              <div className="side-panel-inline-tools">
+                <span className="side-panel-inline-tools-label">Tools:</span>
+                {inlineTools.map((tool) => (
+                  <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+                ))}
+              </div>
+            )}
+            <label>Steps</label>
+            <div className="side-panel-orch-steps">
+              {inlineSteps.map((subStep) => (
+                <details key={subStep.id} className="side-panel-teammate-step" open>
+                  <summary className="side-panel-teammate-step-summary">
+                    {subStep.id}. {subStep.title}
+                  </summary>
+                  <pre className="side-panel-teammate-step-body">{subStep.body}</pre>
+                </details>
+              ))}
+            </div>
           </div>
         ) : showWorkerStepsSection && workerSteps ? (
           /* WorkerWithSubAgent の構造化表示 */
