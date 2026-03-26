@@ -12,6 +12,21 @@ export interface TeammateFields {
   statusCheckResponder?: boolean;
 }
 
+// オーケストレーターのステップ（再帰構造をフラットに展開済み）
+export interface StepFields {
+  type: "skill" | "inline" | "branch";
+  label: string;
+  description?: string;
+  cases?: { name: string; steps: StepFields[] }[];
+}
+
+// オーケストレーターのセクション
+export interface SectionFields {
+  heading: string;
+  body: string;
+  position: "before-steps" | "after-steps";
+}
+
 export interface SidePanelProps {
   componentType: "SKILL" | "ORCHESTRATOR" | "INLINE";
   name: string;
@@ -25,7 +40,50 @@ export interface SidePanelProps {
   hasAgentConfig: boolean;
   agentConfig: AgentConfigFields | null;
   teammates: TeammateFields[] | null;
+  steps: StepFields[] | null;
+  sections: SectionFields[] | null;
   onClose: () => void;
+}
+
+// ステップの再帰的表示コンポーネント
+function StepItem({ step, index }: { step: StepFields; index: number }) {
+  if (step.type === "branch") {
+    return (
+      <details className="side-panel-orch-step" open>
+        <summary className="side-panel-orch-step-summary side-panel-orch-step--branch">
+          {index}. {step.label}
+        </summary>
+        <div className="side-panel-orch-step-content">
+          {step.description && (
+            <pre className="side-panel-orch-step-desc">{step.description}</pre>
+          )}
+          {step.cases?.map((c) => (
+            <div key={c.name} className="side-panel-orch-case">
+              <div className="side-panel-orch-case-label">{c.name}</div>
+              <div className="side-panel-orch-case-steps">
+                {c.steps.map((s, i) => (
+                  <StepItem key={`${s.label}-${i}`} step={s} index={i + 1} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </details>
+    );
+  }
+
+  const typeClass = step.type === "inline" ? "side-panel-orch-step--inline" : "side-panel-orch-step--skill";
+  return (
+    <details className="side-panel-orch-step">
+      <summary className={`side-panel-orch-step-summary ${typeClass}`}>
+        <span className="side-panel-orch-step-type">{step.type === "inline" ? "INLINE" : "SKILL"}</span>
+        {index}. {step.label}
+      </summary>
+      {step.description && (
+        <pre className="side-panel-orch-step-desc">{step.description}</pre>
+      )}
+    </details>
+  );
 }
 
 export default function SidePanel({
@@ -41,6 +99,8 @@ export default function SidePanel({
   hasAgentConfig,
   agentConfig,
   teammates,
+  steps,
+  sections,
   onClose,
 }: SidePanelProps) {
   // コンポーネント種別に応じたバッジラベル
@@ -107,11 +167,39 @@ export default function SidePanel({
           </div>
         )}
 
-        {/* 本文 */}
-        <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-          <label>Content</label>
-          <pre className="side-panel-readonly side-panel-pre">{content || "(no content)"}</pre>
-        </div>
+        {/* オーケストレーターの構造表示 */}
+        {componentType === "ORCHESTRATOR" && steps && steps.length > 0 ? (
+          <div className="side-panel-orch-structure">
+            {/* before-steps セクション */}
+            {sections?.filter(s => s.position === "before-steps").map(s => (
+              <details key={s.heading} className="side-panel-orch-section">
+                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                <pre className="side-panel-orch-section-body">{s.body}</pre>
+              </details>
+            ))}
+
+            <label>Steps</label>
+            <div className="side-panel-orch-steps">
+              {steps.map((step, i) => (
+                <StepItem key={`${step.label}-${i}`} step={step} index={i + 1} />
+              ))}
+            </div>
+
+            {/* after-steps セクション */}
+            {sections?.filter(s => s.position === "after-steps").map(s => (
+              <details key={s.heading} className="side-panel-orch-section">
+                <summary className="side-panel-orch-section-summary">{s.heading}</summary>
+                <pre className="side-panel-orch-section-body">{s.body}</pre>
+              </details>
+            ))}
+          </div>
+        ) : (
+          /* 本文（非オーケストレーター or steps がない場合） */
+          <div className="form-group" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <label>Content</label>
+            <pre className="side-panel-readonly side-panel-pre">{content || "(no content)"}</pre>
+          </div>
+        )}
 
         {/* 入力 */}
         {input && (

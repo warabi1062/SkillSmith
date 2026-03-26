@@ -7,9 +7,35 @@ import {
   saveGraphPositions,
   clearGraphPositions,
 } from "../lib/graph-positions";
-import type { LoadedPluginDefinition, LoadedSkillUnion } from "../lib/types/loader.server";
+import type { LoadedPluginDefinition, LoadedSkillUnion, LoadedStep, LoadedBranch, LoadedInlineStep, LoadedOrchestratorSection } from "../lib/types/loader.server";
+import type { StepFields, SectionFields } from "../components/SidePanel";
 
 export type Plugin = LoadedPluginDefinition;
+
+// LoadedStep → StepFields 変換（型ガードはランタイム判定）
+function convertStep(step: LoadedStep): StepFields {
+  if (typeof step === "string") {
+    return { type: "skill", label: step };
+  }
+  if ("decisionPoint" in step && "cases" in step) {
+    const branch = step as LoadedBranch;
+    return {
+      type: "branch",
+      label: branch.decisionPoint,
+      description: branch.description,
+      cases: Object.entries(branch.cases).map(([name, steps]) => ({
+        name,
+        steps: steps.map(convertStep),
+      })),
+    };
+  }
+  const inline = step as LoadedInlineStep;
+  return { type: "inline", label: inline.inline, description: inline.description };
+}
+
+function convertSections(sections: LoadedOrchestratorSection[]): SectionFields[] {
+  return sections.map(s => ({ heading: s.heading, body: s.body, position: s.position }));
+}
 
 export interface UsePluginGraphParams {
   plugin: Plugin;
@@ -118,6 +144,8 @@ export function usePluginGraph({
         hasAgentConfig: false,
         agentConfig: null,
         teammates: null,
+        steps: null,
+        sections: null,
         allowedTools: null,
         argumentHint: null,
         content: "",
@@ -169,6 +197,8 @@ export function usePluginGraph({
           }
         : null,
       teammates: teammatesData,
+      steps: skill.steps ? skill.steps.map(convertStep) : null,
+      sections: skill.sections ? convertSections(skill.sections as LoadedOrchestratorSection[]) : null,
       allowedTools: skill.allowedTools
         ? JSON.stringify(skill.allowedTools)
         : null,
