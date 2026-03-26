@@ -72,6 +72,8 @@ export default function PluginGraphSection({
           hasAgentConfig={selectedNodeData.hasAgentConfig}
           agentConfig={selectedNodeData.agentConfig}
           teammates={selectedNodeData.teammates}
+          workerSteps={selectedNodeData.workerSteps}
+          workerSections={selectedNodeData.workerSections}
           steps={selectedNodeData.steps}
           sections={selectedNodeData.sections}
           onClose={handleSidePanelClose}

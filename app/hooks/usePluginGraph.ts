@@ -8,7 +8,7 @@ import {
   clearGraphPositions,
 } from "../lib/graph-positions";
 import type { LoadedPluginDefinition, LoadedSkillUnion, LoadedStep, LoadedBranch, LoadedInlineStep, LoadedOrchestratorSection } from "../lib/types/loader.server";
-import type { StepFields, SectionFields } from "../components/SidePanel";
+import type { StepFields, SectionFields, WorkerStepFields, AgentConfigSectionFields } from "../components/SidePanel";
 
 export type Plugin = LoadedPluginDefinition;
 
@@ -144,6 +144,8 @@ export function usePluginGraph({
         hasAgentConfig: false,
         agentConfig: null,
         teammates: null,
+        workerSteps: null,
+        workerSections: null,
         steps: null,
         sections: null,
         allowedTools: null,
@@ -166,6 +168,16 @@ export function usePluginGraph({
     const agentConfigData =
       skill.skillType === "WORKER_WITH_SUB_AGENT"
         ? skill.agentConfig
+        : null;
+
+    // workerSteps/workerSections情報
+    const workerStepsData: WorkerStepFields[] | null =
+      skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSteps
+        ? skill.workerSteps.map(s => ({ id: s.id, title: s.title, body: s.body }))
+        : null;
+    const workerSectionsData: SectionFields[] | null =
+      skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSections
+        ? skill.workerSections.map(s => ({ heading: s.heading, body: s.body, position: s.position }))
         : null;
 
     // teammates情報（discriminated unionにより型安全にアクセス）
@@ -192,9 +204,17 @@ export function usePluginGraph({
             model: agentConfigData.model ?? "",
             tools: agentConfigData.tools ?? [],
             agentContent: agentConfigData.content ?? "",
+            description: agentConfigData.description,
+            sections: agentConfigData.sections?.map(s => ({
+              heading: s.heading,
+              body: s.body,
+              position: s.position,
+            })),
           }
         : null,
       teammates: teammatesData,
+      workerSteps: workerStepsData,
+      workerSections: workerSectionsData,
       steps: skill.steps ? skill.steps.map(convertStep) : null,
       sections: skill.sections ? convertSections(skill.sections as LoadedOrchestratorSection[]) : null,
       allowedTools: skill.allowedTools
