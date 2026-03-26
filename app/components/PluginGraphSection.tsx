@@ -71,6 +71,7 @@ export default function PluginGraphSection({
           argumentHint={selectedNodeData.argumentHint}
           hasAgentConfig={selectedNodeData.hasAgentConfig}
           agentConfig={selectedNodeData.agentConfig}
+          teammates={selectedNodeData.teammates}
           onClose={handleSidePanelClose}
         />
       )}

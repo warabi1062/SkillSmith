@@ -7,6 +7,7 @@ interface SkillNodeData {
   componentType: "SKILL";
   skillType: string | null;
   hasAgentConfig: boolean;
+  teammateNames: string[] | null;
   [key: string]: unknown;
 }
 
@@ -27,7 +28,7 @@ function getSkillTypeBadge(skillType: string | null): string | null {
 export default function SkillNode({
   data,
 }: NodeProps & { data: SkillNodeData }) {
-  const { label, description, skillType } = data as SkillNodeData;
+  const { label, description, skillType, teammateNames } = data as SkillNodeData;
 
   const badgeLabel = getSkillTypeBadge(skillType);
 
@@ -53,6 +54,13 @@ export default function SkillNode({
       >
         {description || "(no description)"}
       </div>
+      {teammateNames && teammateNames.length > 0 && (
+        <div className="skill-node-teammates">
+          {teammateNames.map((name) => (
+            <span key={name} className="skill-node-teammate-tag">{name}</span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
