@@ -23,10 +23,9 @@ interface ImportedInlineSubStep {
 // import 用のインラインステップ型
 interface ImportedInlineStep {
   inline: string;
-  description?: string;
+  steps: ImportedInlineSubStep[];
   input?: string;
   output?: string;
-  steps?: ImportedInlineSubStep[];
   tools?: string[];
 }
 
@@ -107,10 +106,9 @@ export interface LoadedInlineSubStep {
 // ローダー用のインラインステップ型
 export interface LoadedInlineStep {
   inline: string;
-  description?: string;
+  steps: LoadedInlineSubStep[];
   input?: string;
   output?: string;
-  steps?: LoadedInlineSubStep[];
   tools?: string[];
 }
 
@@ -410,11 +408,12 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
       return loaded;
     }
     if (isImportedInlineStep(step)) {
-      const loaded: LoadedInlineStep = { inline: step.inline };
-      if (step.description) loaded.description = step.description;
+      const loaded: LoadedInlineStep = {
+        inline: step.inline,
+        steps: step.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
+      };
       if (step.input) loaded.input = step.input;
       if (step.output) loaded.output = step.output;
-      if (step.steps) loaded.steps = step.steps.map(s => ({ id: s.id, title: s.title, body: s.body }));
       if (step.tools) loaded.tools = [...step.tools];
       return loaded;
     }

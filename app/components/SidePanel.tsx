@@ -39,7 +39,7 @@ export interface InlineSubStepFields {
 export interface StepFields {
   type: "skill" | "inline" | "branch";
   label: string;
-  description?: string;
+  description?: string;           // branch の判定条件説明用
   cases?: { name: string; steps: StepFields[] }[];
   inlineSteps?: InlineSubStepFields[];
   inlineTools?: string[];
@@ -99,38 +99,45 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
     );
   }
 
-  const typeClass = step.type === "inline" ? "side-panel-orch-step--inline" : "side-panel-orch-step--skill";
+  if (step.type === "inline") {
+    return (
+      <details className="side-panel-orch-step" open>
+        <summary className="side-panel-orch-step-summary side-panel-orch-step--inline">
+          <span className="side-panel-orch-step-type">INLINE</span>
+          {index}. {step.label}
+        </summary>
+        <div className="side-panel-orch-step-content">
+          {step.inlineTools && step.inlineTools.length > 0 && (
+            <div className="side-panel-inline-tools">
+              <span className="side-panel-inline-tools-label">Tools:</span>
+              {step.inlineTools.map((tool) => (
+                <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
+              ))}
+            </div>
+          )}
+          {step.inlineSteps && step.inlineSteps.length > 0 && (
+            <div className="side-panel-inline-substeps">
+              {step.inlineSteps.map((subStep) => (
+                <details key={subStep.id} className="side-panel-teammate-step">
+                  <summary className="side-panel-teammate-step-summary">
+                    {subStep.id}. {subStep.title}
+                  </summary>
+                  <pre className="side-panel-teammate-step-body">{subStep.body}</pre>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
+      </details>
+    );
+  }
+
   return (
     <details className="side-panel-orch-step" open>
-      <summary className={`side-panel-orch-step-summary ${typeClass}`}>
-        <span className="side-panel-orch-step-type">{step.type === "inline" ? "INLINE" : "SKILL"}</span>
+      <summary className="side-panel-orch-step-summary side-panel-orch-step--skill">
+        <span className="side-panel-orch-step-type">SKILL</span>
         {index}. {step.label}
       </summary>
-      <div className="side-panel-orch-step-content">
-        {step.description && (
-          <pre className="side-panel-orch-step-desc">{step.description}</pre>
-        )}
-        {step.type === "inline" && step.inlineTools && step.inlineTools.length > 0 && (
-          <div className="side-panel-inline-tools">
-            <span className="side-panel-inline-tools-label">Tools:</span>
-            {step.inlineTools.map((tool) => (
-              <span key={tool} className="side-panel-agent-tool-tag">{tool}</span>
-            ))}
-          </div>
-        )}
-        {step.type === "inline" && step.inlineSteps && step.inlineSteps.length > 0 && (
-          <div className="side-panel-inline-substeps">
-            {step.inlineSteps.map((subStep) => (
-              <details key={subStep.id} className="side-panel-teammate-step">
-                <summary className="side-panel-teammate-step-summary">
-                  {subStep.id}. {subStep.title}
-                </summary>
-                <pre className="side-panel-teammate-step-body">{subStep.body}</pre>
-              </details>
-            ))}
-          </div>
-        )}
-      </div>
     </details>
   );
 }

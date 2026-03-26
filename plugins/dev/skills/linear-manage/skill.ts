@@ -30,24 +30,41 @@ const linearManageSkill = new EntryPointSkill({
         "新規作成": [
           {
             inline: "チケット種類確認",
-            description: "AskUserQuestionで以下を確認する:\n- チケット種類: Bug / Feature / Task",
+            steps: [
+              {
+                id: "1",
+                title: "種類ヒアリング",
+                body: "AskUserQuestionでチケット種類（Bug / Feature / Task）を確認する。",
+              },
+            ],
+            tools: ["AskUserQuestion"],
           },
           {
             inline: "テンプレート適用・チケット作成",
-            description: `1. \`templates/\` 配下の該当テンプレートファイルを読み込む
-   - Bug: \`templates/bug.md\`
-   - Feature: \`templates/feature.md\`
-   - Task: \`templates/task.md\`
-2. \`list_teams\` でチーム一覧を取得し、対象チームを選択
-3. \`list_issue_labels\` でラベル一覧を取得し、適切なラベルを付与
-4. \`list_projects\` でプロジェクト一覧を取得し、関連プロジェクトを選択（任意）
-5. \`create_issue\` でチケットを作成
-
-必須項目:
-- title: チケットタイトル（Bugの場合は \`[💣]\` プレフィックス推奨）
-- teamId: チームID
-- description: テンプレートに基づいた説明文
-- labelIds: ラベルID（Bug, Frontend, Backend等）`,
+            steps: [
+              {
+                id: "1",
+                title: "テンプレート読み込み",
+                body: "`templates/` 配下の該当テンプレートファイル（Bug: `bug.md`, Feature: `feature.md`, Task: `task.md`）を読み込む。",
+              },
+              {
+                id: "2",
+                title: "メタデータ取得",
+                body: "`list_teams` でチーム一覧、`list_issue_labels` でラベル一覧、`list_projects` でプロジェクト一覧を取得する。",
+              },
+              {
+                id: "3",
+                title: "チケット作成",
+                body: "`create_issue` でチケットを作成する。必須項目: title, teamId, description（テンプレートベース）, labelIds。",
+              },
+            ],
+            tools: [
+              "Read",
+              "mcp__plugin_linear_linear__list_teams",
+              "mcp__plugin_linear_linear__list_issue_labels",
+              "mcp__plugin_linear_linear__list_projects",
+              "mcp__plugin_linear_linear__save_issue",
+            ],
           },
         ],
         "既存チケット": [],

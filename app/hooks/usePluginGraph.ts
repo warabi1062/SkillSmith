@@ -33,8 +33,7 @@ function convertStep(step: LoadedStep): StepFields {
   return {
     type: "inline",
     label: inline.inline,
-    description: inline.description,
-    inlineSteps: inline.steps?.map(s => ({ id: s.id, title: s.title, body: s.body })),
+    inlineSteps: inline.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
     inlineTools: inline.tools,
   };
 }
@@ -140,12 +139,17 @@ export function usePluginGraph({
     if (selectedNodeId.startsWith("inline:")) {
       const graphNode = graphDataWithPositions.nodes.find((n) => n.id === selectedNodeId);
       if (!graphNode) return null;
-      const nodeData = graphNode.data as { label: string; description: string | null; output: string | null };
+      const nodeData = graphNode.data as {
+        label: string;
+        output: string | null;
+        tools: string[] | null;
+        steps: { id: string; title: string }[] | null;
+      };
       return {
         nodeType: "component" as const,
         componentType: "INLINE" as const,
         name: nodeData.label,
-        description: nodeData.description ?? null,
+        description: null,
         skillType: null,
         hasAgentConfig: false,
         agentConfig: null,
@@ -154,7 +158,7 @@ export function usePluginGraph({
         workerSections: null,
         steps: null,
         sections: null,
-        allowedTools: null,
+        allowedTools: nodeData.tools ? nodeData.tools.join(", ") : null,
         argumentHint: null,
         content: "",
         input: "",

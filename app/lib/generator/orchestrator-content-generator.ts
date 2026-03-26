@@ -96,11 +96,6 @@ function renderInlineStep(step: LoadedInlineStep, stepNumber: string): string {
   const lines: string[] = [];
   lines.push(`### Step ${stepNumber}: ${step.inline}`);
 
-  if (step.description) {
-    lines.push("");
-    lines.push(step.description);
-  }
-
   // 使用ツール
   if (step.tools && step.tools.length > 0) {
     lines.push("");
@@ -117,7 +112,7 @@ function renderInlineStep(step: LoadedInlineStep, stepNumber: string): string {
   }
 
   // 構造化された手順ステップ
-  if (step.steps && step.steps.length > 0) {
+  if (step.steps.length > 0) {
     lines.push("");
     lines.push("#### 手順");
     for (const subStep of step.steps) {

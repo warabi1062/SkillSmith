@@ -4,13 +4,14 @@ import type { NodeProps } from "@xyflow/react";
 interface InlineStepNodeData {
   label: string;
   tools?: string[];
+  steps?: { id: string; title: string }[];
   [key: string]: unknown;
 }
 
 export default function InlineStepNode({
   data,
 }: NodeProps & { data: InlineStepNodeData }) {
-  const { label, tools } = data as InlineStepNodeData;
+  const { label, tools, steps } = data as InlineStepNodeData;
 
   return (
     <div className="inline-step-node">
@@ -21,6 +22,16 @@ export default function InlineStepNode({
         <div className="inline-step-node-tools">
           {tools.map((tool) => (
             <span key={tool} className="inline-step-node-tool-tag">{tool}</span>
+          ))}
+        </div>
+      )}
+      {steps && steps.length > 0 && (
+        <div className="inline-step-node-steps">
+          {steps.map((step) => (
+            <div key={step.id} className="inline-step-node-step">
+              <span className="inline-step-node-step-id">{step.id}.</span>
+              <span className="inline-step-node-step-title">{step.title}</span>
+            </div>
           ))}
         </div>
       )}

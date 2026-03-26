@@ -198,9 +198,9 @@ describe("buildGraphData", () => {
         name: "dev",
         dependencies: ["w1"],
         steps: [
-          { inline: "ブランチ作成" },
+          { inline: "ブランチ作成", steps: [{ id: "1", title: "判定", body: "ブランチ判定" }] },
           "w1",
-          { inline: "後処理" },
+          { inline: "後処理", steps: [{ id: "1", title: "クリーンアップ", body: "後処理実行" }] },
         ],
       } as any),
       makeSkill({ skillType: "WORKER", name: "w1" }),
@@ -211,9 +211,9 @@ describe("buildGraphData", () => {
 
     // stepsData がそのまま含まれる
     expect(orchNode!.data.stepsData).toHaveLength(3);
-    expect(orchNode!.data.stepsData![0]).toEqual({ inline: "ブランチ作成" });
+    expect(orchNode!.data.stepsData![0]).toEqual({ inline: "ブランチ作成", steps: [{ id: "1", title: "判定", body: "ブランチ判定" }] });
     expect(orchNode!.data.stepsData![1]).toBe("w1");
-    expect(orchNode!.data.stepsData![2]).toEqual({ inline: "後処理" });
+    expect(orchNode!.data.stepsData![2]).toEqual({ inline: "後処理", steps: [{ id: "1", title: "クリーンアップ", body: "後処理実行" }] });
 
     // InlineStep もエッジとノードを生成する（計3本のエッジ）
     expect(edges).toHaveLength(3);
