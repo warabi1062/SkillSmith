@@ -39,10 +39,12 @@ interface FlatTarget {
   type: "skill" | "inline";
   id: string;
   label: string;
+  isNew?: boolean; // インラインステップが初出かどうか（重複排除用）
 }
 
-function flattenStepsData(stepsData: LoadedStep[], orchName: string): FlatTarget[] {
+function flattenStepsData(stepsData: LoadedStep[], orchName: string, seenInlineIds?: Set<string>): FlatTarget[] {
   const result: FlatTarget[] = [];
+  // オーケストレーター固有のインラインカウンター（同名でないもの用のフォールバック）
   let inlineCounter = 0;
 
   function walk(steps: LoadedStep[]) {
@@ -52,11 +54,16 @@ function flattenStepsData(stepsData: LoadedStep[], orchName: string): FlatTarget
           walk(caseSteps);
         }
       } else if (isStepsDataInline(step)) {
+        // 同じラベルのインラインステップは同一ノードとして扱う
+        const id = `inline:${step.inline}`;
+        const isNew = !seenInlineIds || !seenInlineIds.has(id);
         result.push({
           type: "inline",
-          id: `${orchName}:inline:${inlineCounter++}`,
+          id,
           label: step.inline,
+          isNew,
         });
+        seenInlineIds?.add(id);
       } else {
         result.push({ type: "skill", id: step, label: step });
       }
@@ -84,14 +91,17 @@ export function buildGraphData(
   const inlineNodeInfos: InlineNodeInfo[] = [];
   const orchsWithStepsData = new Set<string>();
   const stepsDataEdges: SkillEdge[] = [];
+  // 同じラベルのインラインステップを単一ノードに統合するための追跡セット
+  const seenInlineIds = new Set<string>();
 
   for (const skill of skills) {
     if (skill.skillType === "ENTRY_POINT" && skill.steps) {
-      const targets = flattenStepsData(skill.steps as LoadedStep[], skill.name);
+      const targets = flattenStepsData(skill.steps as LoadedStep[], skill.name, seenInlineIds);
       orchsWithStepsData.add(skill.name);
       for (let i = 0; i < targets.length; i++) {
         stepsDataEdges.push({ source: skill.name, target: targets[i].id, order: i });
-        if (targets[i].type === "inline") {
+        // インラインノード情報は初出のもののみ追加（重複排除）
+        if (targets[i].type === "inline" && targets[i].isNew) {
           inlineNodeInfos.push({ id: targets[i].id, label: targets[i].label });
         }
       }
