@@ -199,8 +199,7 @@ export function usePluginGraph({
             name: t.name,
             role: t.role,
             steps: t.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
-            pollingTarget: t.pollingTarget,
-            statusCheckResponder: t.statusCheckResponder,
+            communicationPattern: t.communicationPattern,
           }))
         : null;
 

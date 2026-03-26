@@ -12,7 +12,7 @@ function makeWorker(name: string): LoadedTeammate {
       { id: "W1", title: "作業開始", body: "作業を開始する。" },
     ],
     sortOrder: 1,
-    statusCheckResponder: true,
+    communicationPattern: { type: "responder" },
   };
 }
 
@@ -25,7 +25,7 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
       { id: "R2", title: "レビュー実行", body: "レビューを行う。" },
     ],
     sortOrder: 2,
-    pollingTarget,
+    communicationPattern: { type: "poller", target: pollingTarget },
   };
 }
 
@@ -146,6 +146,18 @@ describe("generateTeamContent", () => {
     // reviewer セクション以降に status_check ルールが2回出ないことを確認
     const sections = result.split("## reviewer の作業内容");
     expect(sections[1]).not.toContain("### status_check への応答ルール");
+  });
+
+  it("communicationPatternがないteammateにはstatus_checkルールが生成されない", () => {
+    const noPattern: LoadedTeammate = {
+      name: "plain-worker",
+      role: "パターンなし",
+      steps: [{ id: "1", title: "作業", body: "作業する" }],
+      sortOrder: 1,
+    };
+    const result = generateTeamContent(makeInput({ teammates: [noPattern, makeReviewer("plain-worker")] }));
+    const plainSection = result.split("## plain-worker の作業内容")[1]?.split("## reviewer の作業内容")[0];
+    expect(plainSection).not.toContain("### status_check への応答ルール");
   });
 
   it("teammateがsortOrder順にソートされる", () => {
