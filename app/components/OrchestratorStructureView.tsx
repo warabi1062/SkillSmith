@@ -201,10 +201,10 @@ function SectionItems({ sections }: { sections: SectionFields[] }) {
   return (
     <>
       {sections.map(s => (
-        <details key={s.heading} className="ov-section" open>
-          <summary className="ov-section-summary">{s.heading}</summary>
+        <div key={s.heading} className="ov-section">
+          <div className="ov-section-heading">{s.heading}</div>
           <pre className="ov-section-body">{s.body}</pre>
-        </details>
+        </div>
       ))}
     </>
   );
@@ -214,10 +214,10 @@ function SectionItems({ sections }: { sections: SectionFields[] }) {
 function StepItem({ step, index }: { step: StepFields; index: number }) {
   if (step.type === "branch") {
     return (
-      <details className="ov-step" open>
-        <summary className="ov-step-summary ov-step--branch">
+      <div className="ov-step">
+        <div className="ov-step-header ov-step--branch">
           {index}. {step.label}
-        </summary>
+        </div>
         <div className="ov-step-content">
           {step.description && (
             <pre className="ov-step-desc">{step.description}</pre>
@@ -233,17 +233,17 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
             </div>
           ))}
         </div>
-      </details>
+      </div>
     );
   }
 
   if (step.type === "inline") {
     return (
-      <details className="ov-step" open>
-        <summary className="ov-step-summary ov-step--inline">
+      <div className="ov-step">
+        <div className="ov-step-header ov-step--inline">
           <span className="ov-step-type">INLINE</span>
           {index}. {step.label}
-        </summary>
+        </div>
         <div className="ov-step-content">
           {step.inlineTools && step.inlineTools.length > 0 && (
             <div className="ov-inline-tools">
@@ -256,27 +256,27 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
           {step.inlineSteps && step.inlineSteps.length > 0 && (
             <div className="ov-inline-substeps">
               {step.inlineSteps.map((subStep) => (
-                <details key={subStep.id} className="ov-substep">
-                  <summary className="ov-substep-summary">
+                <div key={subStep.id} className="ov-substep">
+                  <div className="ov-substep-heading">
                     {subStep.id}. {subStep.title}
-                  </summary>
+                  </div>
                   <pre className="ov-substep-body">{subStep.body}</pre>
-                </details>
+                </div>
               ))}
             </div>
           )}
         </div>
-      </details>
+      </div>
     );
   }
 
   return (
-    <details className="ov-step" open>
-      <summary className="ov-step-summary ov-step--skill">
+    <div className="ov-step">
+      <div className="ov-step-header ov-step--skill">
         <span className="ov-step-type">SKILL</span>
         {index}. {step.label}
-      </summary>
-    </details>
+      </div>
+    </div>
   );
 }
 
@@ -313,12 +313,12 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
             {data.workerSteps.map((step, i) => (
               <div key={step.id}>
                 <SectionItems sections={getStepSections(data.workerSections, "before-step", i)} />
-                <details className="ov-substep" open>
-                  <summary className="ov-substep-summary">
+                <div className="ov-substep">
+                  <div className="ov-substep-heading">
                     {step.id}. {step.title}
-                  </summary>
+                  </div>
                   <pre className="ov-substep-body">{step.body}</pre>
-                </details>
+                </div>
                 <SectionItems sections={getStepSections(data.workerSections, "after-step", i)} />
               </div>
             ))}
@@ -401,11 +401,11 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
         <div className="ov-teammates">
           <h5>Teammates</h5>
           {data.teammates.map((mate) => (
-            <details key={mate.name} className="ov-teammate">
-              <summary className="ov-teammate-summary">
+            <div key={mate.name} className="ov-teammate">
+              <div className="ov-teammate-header">
                 <span className="ov-teammate-name">{mate.name}</span>
                 <span className="ov-teammate-role">{mate.role}</span>
-              </summary>
+              </div>
               <div className="ov-teammate-details">
                 {mate.communicationPattern?.type === "poller" && (
                   <div className="ov-teammate-meta">
@@ -419,16 +419,16 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
                 )}
                 <div className="ov-teammate-steps">
                   {mate.steps.map((step) => (
-                    <details key={step.id} className="ov-substep">
-                      <summary className="ov-substep-summary">
+                    <div key={step.id} className="ov-substep">
+                      <div className="ov-substep-heading">
                         {step.id}. {step.title}
-                      </summary>
+                      </div>
                       <pre className="ov-substep-body">{step.body}</pre>
-                    </details>
+                    </div>
                   ))}
                 </div>
               </div>
-            </details>
+            </div>
           ))}
         </div>
       )}
