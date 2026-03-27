@@ -18,7 +18,8 @@ interface ImportedBranch {
 interface ImportedInlineSubStep {
   id: string;
   title: string;
-  body: string;
+  body?: string;
+  bodyFile?: string;
 }
 
 // import 用のインラインステップ型
@@ -55,7 +56,7 @@ interface ImportedSkill {
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
-  sections?: { heading: string; body: string; position: SectionPosition }[];
+  sections?: { heading: string; body?: string; bodyFile?: string; position: SectionPosition }[];
   agentConfig?: AgentConfig;
   workerSteps?: TeammateStep[];
   workerSections?: OrchestratorSection[];
@@ -65,11 +66,19 @@ interface ImportedSkill {
   requiresUserApproval?: boolean;
 }
 
+// import 用のチームメンバーステップ型
+interface ImportedTeammateStep {
+  id: string;
+  title: string;
+  body?: string;
+  bodyFile?: string;
+}
+
 // import 用のチームメンバー型
 interface ImportedTeammate {
   name: string;
   role: string;
-  steps: TeammateStep[];
+  steps: ImportedTeammateStep[];
   sortOrder?: number;
   communicationPattern?: CommunicationPattern;
 }
@@ -101,6 +110,7 @@ export interface LoadedInlineSubStep {
   id: string;
   title: string;
   body: string;
+  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // ローダー用のインラインステップ型
@@ -116,6 +126,7 @@ export interface LoadedInlineStep {
 export interface LoadedOrchestratorSection {
   heading: string;
   body: string;
+  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
   position: SectionPosition;
 }
 
@@ -155,6 +166,7 @@ export interface LoadedSkill extends LoadedSkillBase {
 export interface LoadedAgentConfigSection {
   heading: string;
   body: string;
+  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
   position: SectionPosition;
 }
 
@@ -163,6 +175,7 @@ export interface LoadedWorkerStep {
   id: string;
   title: string;
   body: string;
+  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
@@ -178,6 +191,7 @@ export interface LoadedTeammateStep {
   id: string;
   title: string;
   body: string;
+  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // ローダー用のチームメンバー型
@@ -209,6 +223,50 @@ export interface LoadedPluginDefinition {
   name: string;
   description?: string;
   skills: LoadedSkillUnion[];
+}
+
+// bodyFile を解決してbodyに設定するヘルパー
+// bodyFile が指定されている場合、スキルディレクトリから相対パスでファイルを読み込む
+async function resolveBodyFile(
+  skillDir: string,
+  item: { body?: string; bodyFile?: string },
+): Promise<{ body: string; bodyFile?: string }> {
+  if (item.bodyFile) {
+    const filePath = path.join(skillDir, item.bodyFile);
+    try {
+      const content = await fs.readFile(filePath, "utf-8");
+      return { body: content, bodyFile: item.bodyFile };
+    } catch {
+      throw new Error(`bodyFile が見つかりません: ${filePath}`);
+    }
+  }
+  return { body: item.body ?? "" };
+}
+
+// TeammateStep / InlineSubStep 配列の bodyFile を一括解決
+async function resolveStepBodyFiles(
+  skillDir: string,
+  steps: { id: string; title: string; body?: string; bodyFile?: string }[],
+): Promise<{ id: string; title: string; body: string; bodyFile?: string }[]> {
+  return Promise.all(
+    steps.map(async (s) => {
+      const resolved = await resolveBodyFile(skillDir, s);
+      return { id: s.id, title: s.title, ...resolved };
+    }),
+  );
+}
+
+// OrchestratorSection 配列の bodyFile を一括解決
+async function resolveSectionBodyFiles(
+  skillDir: string,
+  sections: { heading: string; body?: string; bodyFile?: string; position: SectionPosition }[],
+): Promise<LoadedOrchestratorSection[]> {
+  return Promise.all(
+    sections.map(async (s) => {
+      const resolved = await resolveBodyFile(skillDir, s);
+      return { heading: s.heading, ...resolved, position: s.position };
+    }),
+  );
 }
 
 // プラグイン定義をディレクトリから読み込む
@@ -257,8 +315,11 @@ export async function loadPluginDefinition(
         }
       }
 
-      // ImportedStep[] → LoadedStep[] への再帰的変換
-      const loadedSteps = skill.steps ? convertImportedSteps(skill.steps) : undefined;
+      // スキルディレクトリのパス（bodyFile 解決に使用）
+      const skillDir = path.join(dirPath, "skills", skill.name);
+
+      // ImportedStep[] → LoadedStep[] への再帰的変換（bodyFile 解決を含む）
+      const loadedSteps = skill.steps ? await convertImportedStepsAsync(skill.steps, skillDir) : undefined;
 
       // dependencies の解決: 明示的指定があればそれを使い、なければ steps から自動導出
       const dependencies = skill.dependencies?.map(d => d.name)
@@ -277,7 +338,9 @@ export async function loadPluginDefinition(
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,
-        sections: skill.sections,
+        sections: skill.sections
+          ? await resolveSectionBodyFiles(skillDir, skill.sections)
+          : undefined,
       };
 
       // skillType に応じた拡張
@@ -288,14 +351,10 @@ export async function loadPluginDefinition(
           agentConfig: skill.agentConfig,
         };
         if (skill.workerSteps) {
-          loaded.workerSteps = skill.workerSteps;
+          loaded.workerSteps = await resolveStepBodyFiles(skillDir, skill.workerSteps);
         }
         if (skill.workerSections) {
-          loaded.workerSections = skill.workerSections.map(s => ({
-            heading: s.heading,
-            body: s.body,
-            position: s.position,
-          }));
+          loaded.workerSections = await resolveSectionBodyFiles(skillDir, skill.workerSections);
         }
         return loaded;
       }
@@ -303,13 +362,15 @@ export async function loadPluginDefinition(
       if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
         // teammates がある場合は teammates から agentTeamMembers を導出
         if (skill.teammates) {
-          const loadedTeammates: LoadedTeammate[] = skill.teammates.map(t => ({
-            name: t.name,
-            role: t.role,
-            steps: t.steps,
-            sortOrder: t.sortOrder,
-            communicationPattern: t.communicationPattern,
-          }));
+          const loadedTeammates: LoadedTeammate[] = await Promise.all(
+            skill.teammates.map(async (t) => ({
+              name: t.name,
+              role: t.role,
+              steps: await resolveStepBodyFiles(skillDir, t.steps),
+              sortOrder: t.sortOrder,
+              communicationPattern: t.communicationPattern,
+            })),
+          );
           const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(t => ({
             skillName: t.name,
             sortOrder: t.sortOrder,
@@ -393,30 +454,32 @@ export async function loadAllPluginMeta(): Promise<PluginMeta[]> {
   return results.filter((r): r is PluginMeta => r !== null);
 }
 
-// ImportedStep[] → LoadedStep[] への再帰的変換
-function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
-  return steps.map((step): LoadedStep => {
-    if (isImportedBranch(step)) {
-      const cases: Record<string, LoadedStep[]> = {};
-      for (const [caseName, caseSteps] of Object.entries(step.cases)) {
-        cases[caseName] = convertImportedSteps(caseSteps);
+// ImportedStep[] → LoadedStep[] への再帰的変換（bodyFile 解決を含む非同期版）
+async function convertImportedStepsAsync(steps: ImportedStep[], skillDir: string): Promise<LoadedStep[]> {
+  return Promise.all(
+    steps.map(async (step): Promise<LoadedStep> => {
+      if (isImportedBranch(step)) {
+        const cases: Record<string, LoadedStep[]> = {};
+        for (const [caseName, caseSteps] of Object.entries(step.cases)) {
+          cases[caseName] = await convertImportedStepsAsync(caseSteps, skillDir);
+        }
+        const loaded: LoadedBranch = { decisionPoint: step.decisionPoint, cases };
+        if (step.description) loaded.description = step.description;
+        return loaded;
       }
-      const loaded: LoadedBranch = { decisionPoint: step.decisionPoint, cases };
-      if (step.description) loaded.description = step.description;
-      return loaded;
-    }
-    if (isImportedInlineStep(step)) {
-      const loaded: LoadedInlineStep = {
-        inline: step.inline,
-        steps: step.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
-      };
-      if (step.input) loaded.input = step.input;
-      if (step.output) loaded.output = step.output;
-      if (step.tools) loaded.tools = [...step.tools];
-      return loaded;
-    }
-    return step.name;
-  });
+      if (isImportedInlineStep(step)) {
+        const loaded: LoadedInlineStep = {
+          inline: step.inline,
+          steps: await resolveStepBodyFiles(skillDir, step.steps),
+        };
+        if (step.input) loaded.input = step.input;
+        if (step.output) loaded.output = step.output;
+        if (step.tools) loaded.tools = [...step.tools];
+        return loaded;
+      }
+      return step.name;
+    }),
+  );
 }
 
 // LoadedStep[] から全スキル名を再帰的にフラット収集する（重複除去）

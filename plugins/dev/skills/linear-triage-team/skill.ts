@@ -1,7 +1,11 @@
 // linear-triage-team スキル: Agent Teamでtriager/reviewerを編成し、Linearチケットの調査・計画作成とレビューを行う
 
 import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
-import type { Teammate } from "../../../../app/lib/types";
+import type { Teammate, SupportFile } from "../../../../app/lib/types";
+
+const templateResult: SupportFile = { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 };
+const descriptionStructure: SupportFile = { role: "REFERENCE", filename: "description-structure.md", sortOrder: 2 };
+const triageReviewFormat: SupportFile = { role: "REFERENCE", filename: "triage-review-format.md", sortOrder: 3 };
 
 const triager: Teammate = {
   name: "triager",
@@ -58,19 +62,14 @@ Notion:
     {
       id: "T5",
       title: "計画の作成と保存",
-      body: `\`~/claude-code-data/workflows/{チケットID}/triage-plan.md\` に [template-result.md](template-result.md) 形式で計画を書き出す。
+      body: `\`~/claude-code-data/workflows/{チケットID}/triage-plan.md\` に [${templateResult.filename}](${templateResult.filename}) 形式で計画を書き出す。
 
 内容:
 - チケット更新内容（提案するdescription全文）
 - 分割計画（分割する場合: 各サブチケットのtitle, description, 依存関係）
 - 判断根拠
 
-descriptionの構造ルール:
-チケットのdescriptionは \`---\`（divider）で「全員向け」と「開発者向け」に区分けする。
-- dividerより上: 目的・背景、要件、受入条件、再現手順など、チームの誰もが理解すべき情報
-- dividerより下: 技術メモ（対象コンポーネント・ファイル・API・実装方針など）、影響範囲
-
-コードに関する記述やファイルパス、技術的な実装詳細はdividerより下に配置する。既存のdescriptionにdividerがない場合は適切な位置にdividerを挿入して整理する。分割で作成するサブチケットのdescriptionにも同じルールを適用する。`,
+descriptionの構造ルール: [${descriptionStructure.filename}](${descriptionStructure.filename})`,
     },
     {
       id: "T6",
@@ -150,23 +149,7 @@ const reviewer: Teammate = {
       title: "レビュー結果の保存と通知",
       body: `レビュー結果を \`~/claude-code-data/workflows/{チケットID}/triage-review.md\` に保存する。
 
-ファイルのフォーマット:
-\`\`\`markdown
-## Triage Plan レビュー結果
-
-### 判定: {PASS / NEEDS_REVISION}
-
-### 指摘事項
-（NEEDS_REVISIONの場合のみ）
-
-#### [{種別: must/imo/question}][{重要度: critical/major/minor}] {指摘の概要}
-- must: 変えないと問題がある指摘
-- imo: 問題はないが自分ならこうする、という提案
-- question: 意図や背景の確認（回答によっては指摘に変わる可能性がある）
-- 対象: {計画のどの部分か}
-- 問題: {何が問題か}
-- 方向性: {どういう方向で見直すべきか。答えが明確な場合のみ具体的な修正を書いてよい}
-\`\`\`
+ファイルのフォーマット: [${triageReviewFormat.filename}](${triageReviewFormat.filename})
 
 保存後、triager と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
 
@@ -207,9 +190,7 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
     tool("AskUserQuestion"),
     tool("ToolSearch"),
   ],
-  files: [
-    { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
-  ],
+  files: [templateResult, descriptionStructure, triageReviewFormat],
   teammates: [triager, reviewer],
   teamPrefix: "triage",
   requiresUserApproval: true,

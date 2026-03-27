@@ -1,6 +1,10 @@
 // create-pr スキル: 実装済みコードのGitHub PR作成
 
 import { WorkerWithSubAgent, tool, bash, mcp } from "../../../../app/lib/types";
+import type { SupportFile } from "../../../../app/lib/types";
+
+const templateFile: SupportFile = { role: "TEMPLATE", filename: "template.md", sortOrder: 1 };
+const prBodyGuide: SupportFile = { role: "REFERENCE", filename: "pr-body-guide.md", sortOrder: 2 };
 
 const createPrSkill = new WorkerWithSubAgent({
   name: "create-pr",
@@ -20,9 +24,7 @@ const createPrSkill = new WorkerWithSubAgent({
     tool("ToolSearch"),
     mcp("plugin_linear_linear", "get_issue"),
   ],
-  files: [
-    { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
-  ],
+  files: [templateFile, prBodyGuide],
   agentConfig: {
     model: "sonnet",
     tools: [
@@ -74,23 +76,9 @@ const createPrSkill = new WorkerWithSubAgent({
 
 PRタイトル: \`{チケットID}: {チケットタイトル}\`（タイトルにチケットIDを含めることでLinearと自動紐づけされる。descriptionにLinearリンクは不要）
 
-PR本文は [template.md](template.md) のフォーマットに従う。
+PR本文は [${templateFile.filename}](${templateFile.filename}) のフォーマットに従う。
 
-#### PR本文の書き方
-
-PR本文の読み手はレビュアーである。コードの差分は読めば分かるので、PR本文には差分からは読み取れない情報だけを書く。
-
-- Why: チケットの背景課題を簡潔に説明する
-- What: 実装アプローチの要約を3〜5行で書く。コードの具体的な変更内容（ファイル名、メソッド名、フィールド追加など）は書かない。差分を見れば分かることを繰り返さない。以下の観点に絞る:
-  - 採用したアプローチとその理由（「既存の〇〇と同じパターンで実装した」など）
-  - 代替案を選ばなかった理由（あれば）
-  - レビュアーが差分を読む前に知っておくべき前提知識
-- レビュー時の確認ポイント: レビュアーが手動で確認すべき項目をチェックリスト形式で書く。単体テスト通過・typecheck通過などCI/CDで自動検証される項目は書かない。以下のような人間の判断が必要な項目に絞る:
-  - 特定の画面・操作での動作確認（「〇〇画面で△△を実行し、□□が表示されること」）
-  - エッジケースの確認（「〇〇が空の場合の挙動」）
-  - 既存機能へのデグレ確認（「〇〇機能が従来通り動くこと」）
-  - パフォーマンスやUXの観点での確認
-  - 各項目は確認手順が明確であること。「問題がないこと」「適切であること」のような作業者の判断に委ねる曖昧な表現は避け、「〇〇画面で△△を実行し、□□が表示されること」のように具体的な操作と期待結果を書く`,
+PR本文の書き方: [${prBodyGuide.filename}](${prBodyGuide.filename})`,
     },
     {
       id: "3a",
