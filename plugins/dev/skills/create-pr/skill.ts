@@ -22,6 +22,7 @@ const createPrSkill = new WorkerWithSubAgent({
   ],
   files: [
     { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
+    { role: "REFERENCE", filename: "pr-body-guide.md", sortOrder: 2 },
   ],
   agentConfig: {
     model: "sonnet",
@@ -68,7 +69,15 @@ const createPrSkill = new WorkerWithSubAgent({
     {
       id: "3",
       title: "PR作成",
-      bodyFile: "step-pr-creation.md",
+      body: `\`gh pr create --draft\` でドラフトPRを作成する。
+入力として渡された base-branch.txt のパスを読み込み、\`--base {ベースブランチ}\` を指定してPRのマージ先を明示する。
+作成後、\`gh pr edit --add-reviewer\` で作業者（自分）をレビュアーにアサインする。
+
+PRタイトル: \`{チケットID}: {チケットタイトル}\`（タイトルにチケットIDを含めることでLinearと自動紐づけされる。descriptionにLinearリンクは不要）
+
+PR本文は [template.md](template.md) のフォーマットに従う。
+
+PR本文の書き方: [pr-body-guide.md](pr-body-guide.md)`,
     },
     {
       id: "3a",

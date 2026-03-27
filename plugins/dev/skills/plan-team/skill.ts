@@ -98,12 +98,42 @@ const reviewer: Teammate = {
     {
       id: "R4",
       title: "レビュー",
-      bodyFile: "step-review.md",
+      body: `以下の観点でレビューする:
+
+要件との整合性:
+- 受入条件がすべて実装ステップでカバーされているか
+- スコープ外の変更が含まれていないか
+
+実現可能性:
+- 変更対象のファイル・関数が実在するか
+- 既存コードの構造と矛盾する計画になっていないか
+- 依存関係の考慮漏れがないか
+
+設計判断:
+- 既存の設計パターンに沿っているか
+- より単純なアプローチがないか
+- 変更の影響範囲が適切に把握されているか
+
+テスト計画:
+- 受入条件に対応するテストが計画されているか
+- エッジケースのテストが考慮されているか
+- テストの種別（unit/integration）が適切か
+
+実装順序:
+- ステップの順序に依存関係の矛盾がないか
+- 段階的に動作確認できる順序になっているか`,
     },
     {
       id: "R5",
       title: "レビュー結果の保存と通知",
-      bodyFile: "step-review-result.md",
+      body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/plan-review.md\` に保存する。
+
+ファイルのフォーマット: [plan-review-format.md](plan-review-format.md)
+
+保存後、planner と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。レビューの詳細はファイルを参照させる。
+
+- NEEDS_REVISION を送った場合 → R6 へ進み、planner の修正通知を待つ
+- PASS を送った場合 → R7 へ進む`,
     },
     {
       id: "R6",
@@ -145,6 +175,7 @@ const planTeamSkill = new WorkerWithAgentTeam({
   ],
   files: [
     { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
+    { role: "REFERENCE", filename: "plan-review-format.md", sortOrder: 2 },
   ],
   teammates: [planner, reviewer],
   teamPrefix: "plan",

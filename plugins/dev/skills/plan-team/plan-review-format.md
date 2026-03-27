@@ -1,8 +1,4 @@
-レビュー結果を `~/claude-code-data/workflows/{チケットID}/triage-review.md` に保存する。
-
-ファイルのフォーマット:
-```markdown
-## Triage Plan レビュー結果
+## 計画レビュー結果
 
 ### 判定: {PASS / NEEDS_REVISION}
 
@@ -16,9 +12,6 @@
 - 対象: {計画のどの部分か}
 - 問題: {何が問題か}
 - 方向性: {どういう方向で見直すべきか。答えが明確な場合のみ具体的な修正を書いてよい}
-```
 
-保存後、triager と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
-
-- NEEDS_REVISION を送った場合 → R6 へ進み、triager の修正通知を待つ
-- PASS を送った場合 → R7 へ進む
+### 良い点
+- {計画の良かった点}

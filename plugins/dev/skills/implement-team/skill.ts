@@ -17,7 +17,20 @@ const implementer: Teammate = {
     {
       id: "I2",
       title: "実装",
-      bodyFile: "step-implement.md",
+      body: `計画のコミット計画に従い、コミット単位で実装を進める。
+1つのコミットの実装が完了したらコミットし、次のコミットに進む。
+
+テスト:
+- 3A形式（Arrange / Act / Assert）で記述
+- Red-Green-Refactorサイクルで進める:
+  1. 失敗するテストを書く
+  2. テストが通る最小限の実装をする
+  3. リファクタリングする
+
+コード品質:
+- 計画に記載された既存パターンに従う
+- 不要な変更を加えない（計画のスコープに限定）
+- TypeScriptの場合はLSPで型エラーがないことを確認`,
     },
     {
       id: "I3",
@@ -86,12 +99,43 @@ const reviewer: Teammate = {
     {
       id: "V3",
       title: "レビュー",
-      bodyFile: "step-review.md",
+      body: `以下の観点でレビューする:
+
+計画との整合性:
+- 計画にある変更がすべて実装されているか
+- 計画にない変更が含まれていないか
+
+コード品質:
+- 可読性: 変数名・関数名は明確か、処理の意図が読み取れるか
+- 重複: 同じ処理が複数箇所にないか
+- 複雑度: 不必要に複雑な実装になっていないか
+
+正確性:
+- エッジケース: 境界値・null・空配列等の考慮漏れ
+- エラーハンドリング: 外部境界（ユーザー入力、API）での適切な処理
+- 型安全性: 型の不整合やany型の安易な使用
+
+セキュリティ:
+- インジェクション（SQL, XSS, コマンド）の危険性
+- セキュアな情報のハードコーディング
+- 入力バリデーションの不足
+
+テスト:
+- テストの網羅性: 受入条件がすべてテストされているか
+- エッジケースのテスト有無
+- テストが3A形式で記述されているか`,
     },
     {
       id: "V4",
       title: "レビュー結果の保存と通知",
-      bodyFile: "step-review-result.md",
+      body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/review-result.md\` に保存する。
+
+ファイルのフォーマット: [review-result-format.md](review-result-format.md)
+
+保存後、implementer と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
+
+- NEEDS_REVISION を送った場合 → V5 へ進み、implementer の修正通知を待つ
+- PASS を送った場合 → V6 へ進む`,
     },
     {
       id: "V5",
@@ -131,6 +175,7 @@ const implementTeamSkill = new WorkerWithAgentTeam({
   ],
   files: [
     { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
+    { role: "REFERENCE", filename: "review-result-format.md", sortOrder: 2 },
   ],
   teammates: [implementer, reviewer],
   teamPrefix: "impl",

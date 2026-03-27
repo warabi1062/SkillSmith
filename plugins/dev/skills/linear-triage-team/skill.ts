@@ -42,12 +42,30 @@ Notion:
     {
       id: "T4",
       title: "スコープ分析",
-      bodyFile: "step-scope-analysis.md",
+      body: `チケットのdescription・受入条件から実装スコープを分析する。以下を評価:
+
+- 変更が必要なファイル数の見積もり
+- 機能の独立性（複数の独立した機能変更が含まれるか）
+- DB変更・API変更・UI変更など異なるレイヤーの変更が混在するか
+
+以下のいずれかに該当する場合、分割が必要と判断する:
+
+- 独立した複数の機能変更が含まれる
+- 異なるレイヤー（DB/API/UI）の大きな変更が混在する
+- 受入条件が5つ以上あり、それぞれ独立している
+- 実装が段階的に進められる（例: バックエンド → フロントエンド）`,
     },
     {
       id: "T5",
       title: "計画の作成と保存",
-      bodyFile: "step-plan-creation.md",
+      body: `\`~/claude-code-data/workflows/{チケットID}/triage-plan.md\` に [template-result.md](template-result.md) 形式で計画を書き出す。
+
+内容:
+- チケット更新内容（提案するdescription全文）
+- 分割計画（分割する場合: 各サブチケットのtitle, description, 依存関係）
+- 判断根拠
+
+descriptionの構造ルール: [description-structure.md](description-structure.md)`,
     },
     {
       id: "T6",
@@ -105,12 +123,34 @@ const reviewer: Teammate = {
     {
       id: "R4",
       title: "レビュー",
-      bodyFile: "step-review.md",
+      body: `以下の観点でレビューする:
+
+更新内容の妥当性:
+- 補完情報が正確か
+- 受入条件が具体的か（曖昧な表現がないか）
+- 元のチケット内容を損なっていないか
+
+分割の適切さ:
+- 分割粒度は適切か（細かすぎ・大きすぎがないか）
+- 不要な分割がないか
+- 漏れているスコープがないか
+
+依存関係:
+- サブチケット間の依存が正しいか
+- 循環依存がないか
+- 実装順序が合理的か`,
     },
     {
       id: "R5",
       title: "レビュー結果の保存と通知",
-      bodyFile: "step-review-result.md",
+      body: `レビュー結果を \`~/claude-code-data/workflows/{チケットID}/triage-review.md\` に保存する。
+
+ファイルのフォーマット: [triage-review-format.md](triage-review-format.md)
+
+保存後、triager と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
+
+- NEEDS_REVISION を送った場合 → R6 へ進み、triager の修正通知を待つ
+- PASS を送った場合 → R7 へ進む`,
     },
     {
       id: "R6",
@@ -148,6 +188,8 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
   ],
   files: [
     { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
+    { role: "REFERENCE", filename: "description-structure.md", sortOrder: 2 },
+    { role: "REFERENCE", filename: "triage-review-format.md", sortOrder: 3 },
   ],
   teammates: [triager, reviewer],
   teamPrefix: "triage",
