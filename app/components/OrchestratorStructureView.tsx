@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { SectionPosition, CommunicationPattern } from "../lib/types/skill";
 import { serializeToolRef } from "../lib/types/skill";
 import type {
@@ -200,9 +201,9 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
 
 // --- 表示コンポーネント ---
 
-// bodyFile の内容をサイドパネルで表示するコンポーネント
+// bodyFile の内容をサイドパネルで表示するコンポーネント（Portalで body 直下にレンダリング）
 function BodyFilePanel({ filename, content, onClose }: { filename: string; content: string; onClose: () => void }) {
-  return (
+  return createPortal(
     <div className="ov-sidepanel-overlay" onClick={onClose}>
       <div className="ov-sidepanel" onClick={e => e.stopPropagation()}>
         <div className="ov-sidepanel-header">
@@ -211,7 +212,8 @@ function BodyFilePanel({ filename, content, onClose }: { filename: string; conte
         </div>
         <pre className="ov-sidepanel-content">{content}</pre>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
