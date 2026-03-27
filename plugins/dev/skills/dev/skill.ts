@@ -44,13 +44,6 @@ const devSkill = new EntryPointSkill({
   ],
   sections: [
     {
-      heading: "事前確認",
-      body: `Agent Team を使用するため、\`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\` が有効か確認する。
-\`claude config list\` を実行し、\`env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\` が \`1\` に設定されていることを確認する。
-未設定の場合はユーザーに設定を促して中断する。`,
-      position: "before-steps",
-    },
-    {
       heading: "確認のスキップ",
       body: "最終的にユーザーはPRでレビューするため、基本的には確認を省略してそのまま次のステップに進んでよい。設計判断の幅が大きく方向性の確認が重要なケースでは確認を取る。判断に迷う場合はスキップして進める。",
       position: "after-steps",
