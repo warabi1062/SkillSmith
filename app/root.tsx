@@ -77,11 +77,11 @@ export function ErrorBoundary() {
             </nav>
           </header>
           <main>
-            <div style={{ textAlign: "center", padding: "2rem" }}>
+            <div className="error-page">
               <h2>{title}</h2>
               <p>{message}</p>
               <p>
-                <Link to="/">Back to Home</Link>
+                <Link to="/" className="btn btn-secondary">Back to Home</Link>
               </p>
             </div>
           </main>

@@ -33,7 +33,9 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
       {orchestrators.length > 0 && (
         <div className="ov-container">
-          <h3>Orchestrators</h3>
+          <div className="orchestrator-list-header">
+            Orchestrators
+          </div>
           {orchestrators.map(orch => (
             <Link
               key={orch.name}
