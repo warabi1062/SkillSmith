@@ -1,6 +1,10 @@
 // create-pr スキル: 実装済みコードのGitHub PR作成
 
 import { WorkerWithSubAgent, tool, bash, mcp } from "../../../../app/lib/types";
+import type { SupportFile } from "../../../../app/lib/types";
+
+const templateFile: SupportFile = { role: "TEMPLATE", filename: "template.md", sortOrder: 1 };
+const prBodyGuide: SupportFile = { role: "REFERENCE", filename: "pr-body-guide.md", sortOrder: 2 };
 
 const createPrSkill = new WorkerWithSubAgent({
   name: "create-pr",
@@ -20,10 +24,7 @@ const createPrSkill = new WorkerWithSubAgent({
     tool("ToolSearch"),
     mcp("plugin_linear_linear", "get_issue"),
   ],
-  files: [
-    { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
-    { role: "REFERENCE", filename: "pr-body-guide.md", sortOrder: 2 },
-  ],
+  files: [templateFile, prBodyGuide],
   agentConfig: {
     model: "sonnet",
     tools: [
@@ -75,9 +76,9 @@ const createPrSkill = new WorkerWithSubAgent({
 
 PRタイトル: \`{チケットID}: {チケットタイトル}\`（タイトルにチケットIDを含めることでLinearと自動紐づけされる。descriptionにLinearリンクは不要）
 
-PR本文は [template.md](template.md) のフォーマットに従う。
+PR本文は [${templateFile.filename}](${templateFile.filename}) のフォーマットに従う。
 
-PR本文の書き方: [pr-body-guide.md](pr-body-guide.md)`,
+PR本文の書き方: [${prBodyGuide.filename}](${prBodyGuide.filename})`,
     },
     {
       id: "3a",

@@ -1,7 +1,11 @@
 // linear-triage-team スキル: Agent Teamでtriager/reviewerを編成し、Linearチケットの調査・計画作成とレビューを行う
 
 import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
-import type { Teammate } from "../../../../app/lib/types";
+import type { Teammate, SupportFile } from "../../../../app/lib/types";
+
+const templateResult: SupportFile = { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 };
+const descriptionStructure: SupportFile = { role: "REFERENCE", filename: "description-structure.md", sortOrder: 2 };
+const triageReviewFormat: SupportFile = { role: "REFERENCE", filename: "triage-review-format.md", sortOrder: 3 };
 
 const triager: Teammate = {
   name: "triager",
@@ -58,14 +62,14 @@ Notion:
     {
       id: "T5",
       title: "計画の作成と保存",
-      body: `\`~/claude-code-data/workflows/{チケットID}/triage-plan.md\` に [template-result.md](template-result.md) 形式で計画を書き出す。
+      body: `\`~/claude-code-data/workflows/{チケットID}/triage-plan.md\` に [${templateResult.filename}](${templateResult.filename}) 形式で計画を書き出す。
 
 内容:
 - チケット更新内容（提案するdescription全文）
 - 分割計画（分割する場合: 各サブチケットのtitle, description, 依存関係）
 - 判断根拠
 
-descriptionの構造ルール: [description-structure.md](description-structure.md)`,
+descriptionの構造ルール: [${descriptionStructure.filename}](${descriptionStructure.filename})`,
     },
     {
       id: "T6",
@@ -145,7 +149,7 @@ const reviewer: Teammate = {
       title: "レビュー結果の保存と通知",
       body: `レビュー結果を \`~/claude-code-data/workflows/{チケットID}/triage-review.md\` に保存する。
 
-ファイルのフォーマット: [triage-review-format.md](triage-review-format.md)
+ファイルのフォーマット: [${triageReviewFormat.filename}](${triageReviewFormat.filename})
 
 保存後、triager と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
 
@@ -186,11 +190,7 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
     tool("AskUserQuestion"),
     tool("ToolSearch"),
   ],
-  files: [
-    { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
-    { role: "REFERENCE", filename: "description-structure.md", sortOrder: 2 },
-    { role: "REFERENCE", filename: "triage-review-format.md", sortOrder: 3 },
-  ],
+  files: [templateResult, descriptionStructure, triageReviewFormat],
   teammates: [triager, reviewer],
   teamPrefix: "triage",
   requiresUserApproval: true,

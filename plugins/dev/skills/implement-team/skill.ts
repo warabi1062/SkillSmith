@@ -1,7 +1,10 @@
 // implement-team スキル: Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う
 
 import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
-import type { Teammate } from "../../../../app/lib/types";
+import type { Teammate, SupportFile } from "../../../../app/lib/types";
+
+const templateResult: SupportFile = { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 };
+const reviewResultFormat: SupportFile = { role: "REFERENCE", filename: "review-result-format.md", sortOrder: 2 };
 
 const implementer: Teammate = {
   name: "implementer",
@@ -46,7 +49,7 @@ const implementer: Teammate = {
     {
       id: "I4",
       title: "結果の保存",
-      body: "`~/claude-code-data/workflows/{タスクID}/implement-result.md` に [template-result.md](template-result.md) 形式で結果を書き出す。",
+      body: `\`~/claude-code-data/workflows/{タスクID}/implement-result.md\` に [${templateResult.filename}](${templateResult.filename}) 形式で結果を書き出す。`,
     },
     {
       id: "I5",
@@ -130,7 +133,7 @@ const reviewer: Teammate = {
       title: "レビュー結果の保存と通知",
       body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/review-result.md\` に保存する。
 
-ファイルのフォーマット: [review-result-format.md](review-result-format.md)
+ファイルのフォーマット: [${reviewResultFormat.filename}](${reviewResultFormat.filename})
 
 保存後、implementer と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
 
@@ -173,10 +176,7 @@ const implementTeamSkill = new WorkerWithAgentTeam({
     tool("AskUserQuestion"),
     tool("ToolSearch"),
   ],
-  files: [
-    { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
-    { role: "REFERENCE", filename: "review-result-format.md", sortOrder: 2 },
-  ],
+  files: [templateResult, reviewResultFormat],
   teammates: [implementer, reviewer],
   teamPrefix: "impl",
 });
