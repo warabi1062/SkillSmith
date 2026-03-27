@@ -1,7 +1,6 @@
 import type { SectionPosition, CommunicationPattern } from "../lib/types/skill";
 import { serializeToolRef } from "../lib/types/skill";
 import type {
-  LoadedPluginDefinition,
   LoadedSkillUnion,
   LoadedStep,
   LoadedBranch,
@@ -438,7 +437,7 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
 }
 
 // オーケストレーター単体の構造表示
-function OrchestratorView({ skill, allSkills }: { skill: LoadedSkillUnion; allSkills: LoadedSkillUnion[] }) {
+export function OrchestratorView({ skill, allSkills }: { skill: LoadedSkillUnion; allSkills: LoadedSkillUnion[] }) {
   const steps = skill.steps ? skill.steps.map(convertStep) : [];
   const sections = skill.sections ? convertSections(skill.sections as LoadedOrchestratorSection[]) : [];
 
@@ -488,30 +487,3 @@ function OrchestratorView({ skill, allSkills }: { skill: LoadedSkillUnion; allSk
   );
 }
 
-// --- メインコンポーネント ---
-
-interface OrchestratorStructureViewProps {
-  plugin: LoadedPluginDefinition;
-}
-
-export default function OrchestratorStructureView({ plugin }: OrchestratorStructureViewProps) {
-  // ENTRY_POINT スキルをフィルタ
-  const orchestrators = plugin.skills.filter(s => s.skillType === "ENTRY_POINT");
-
-  if (orchestrators.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="ov-container">
-      <h3>Orchestrator Structure</h3>
-      {orchestrators.map(orch => (
-        <OrchestratorView
-          key={orch.name}
-          skill={orch}
-          allSkills={plugin.skills}
-        />
-      ))}
-    </div>
-  );
-}

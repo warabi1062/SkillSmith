@@ -1,7 +1,6 @@
-import { data } from "react-router";
+import { data, Link } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
 import type { Route } from "./+types/plugins.$id";
-import OrchestratorStructureView from "../components/OrchestratorStructureView";
 import PluginActionsSection from "../components/PluginActionsSection";
 import * as path from "node:path";
 
@@ -16,14 +15,15 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   try {
     const plugin = await loadPluginDefinition(dirPath);
-    return { plugin };
+    return { plugin, pluginId: params.id };
   } catch {
     throw data("Plugin not found", { status: 404 });
   }
 }
 
 export default function PluginDetail({ loaderData }: Route.ComponentProps) {
-  const { plugin } = loaderData;
+  const { plugin, pluginId } = loaderData;
+  const orchestrators = plugin.skills.filter(s => s.skillType === "ENTRY_POINT");
 
   return (
     <div className="plugin-detail-page">
@@ -31,7 +31,24 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         plugin={{ name: plugin.name, description: plugin.description ?? null }}
       />
 
-      <OrchestratorStructureView plugin={plugin} />
+      {orchestrators.length > 0 && (
+        <div className="ov-container">
+          <h3>Orchestrators</h3>
+          {orchestrators.map(orch => (
+            <Link
+              key={orch.name}
+              to={`/plugins/${pluginId}/orchestrators/${orch.name}`}
+              className="card"
+              style={{ display: "block" }}
+            >
+              <div className="card-title">{orch.name}</div>
+              {orch.description && (
+                <div className="card-description">{orch.description}</div>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
