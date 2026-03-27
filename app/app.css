@@ -1397,7 +1397,7 @@ h3 {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.4);
+  background: transparent;
   display: flex;
   justify-content: flex-end;
 }
