@@ -15,9 +15,12 @@ export default function Plugins({ loaderData }: Route.ComponentProps) {
   const { plugins } = loaderData;
 
   return (
-    <div>
-      <div className="detail-header">
+    <div className="plugins-page">
+      <div className="plugins-page-header">
         <h2>Plugins</h2>
+        <span className="plugins-page-count">
+          {plugins.length} plugin{plugins.length !== 1 ? "s" : ""}
+        </span>
       </div>
 
       {plugins.length === 0 ? (
@@ -25,7 +28,7 @@ export default function Plugins({ loaderData }: Route.ComponentProps) {
           <p>No plugins yet.</p>
         </div>
       ) : (
-        <div>
+        <div className="plugins-grid">
           {plugins.map((plugin) => (
             <Link
               key={plugin.dirName}
@@ -37,12 +40,12 @@ export default function Plugins({ loaderData }: Route.ComponentProps) {
               {plugin.description && (
                 <div className="card-description">{plugin.description}</div>
               )}
-              <div
-                className="card-description"
-                style={{ marginTop: "0.5rem" }}
-              >
-                {plugin.skillCount} skill
-                {plugin.skillCount !== 1 ? "s" : ""}
+              <div className="plugin-card-meta">
+                <span className="plugin-card-stat">
+                  <span className="plugin-card-stat-icon">S</span>
+                  {plugin.skillCount} skill
+                  {plugin.skillCount !== 1 ? "s" : ""}
+                </span>
               </div>
             </Link>
           ))}
