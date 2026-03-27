@@ -3,20 +3,20 @@
 /* === デザイントークン === */
 :root {
   /* カラーパレット */
-  --bg-deep: #0c1017;
-  --bg-base: #111820;
-  --bg-surface: #182030;
-  --bg-elevated: #1e2a3a;
-  --bg-hover: #243344;
+  --bg-deep: #0a0e14;
+  --bg-base: #0f1620;
+  --bg-surface: #151f2e;
+  --bg-elevated: #1c2940;
+  --bg-hover: #233550;
 
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.13);
+  --border-strong: rgba(255, 255, 255, 0.2);
 
-  --text-primary: #e8ecf1;
-  --text-secondary: #8899aa;
-  --text-tertiary: #5a6a7a;
-  --text-inverse: #0c1017;
+  --text-primary: #f0f4f8;
+  --text-secondary: #a8b8c8;
+  --text-tertiary: #7a8da0;
+  --text-inverse: #0a0e14;
 
   --accent-teal: #00d4aa;
   --accent-teal-dim: rgba(0, 212, 170, 0.15);
