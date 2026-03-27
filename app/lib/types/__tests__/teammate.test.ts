@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { toAgentTeamMember, WorkerWithAgentTeam } from "../skill";
+import { toAgentTeamMember, WorkerWithAgentTeam, tool } from "../skill";
 import type { Teammate } from "../skill";
 
 // テスト用ヘルパー: 最小の Teammate を作成
@@ -89,12 +89,12 @@ describe("WorkerWithAgentTeam", () => {
       description: "テスト",
       input: "入力",
       output: "出力",
-      allowedTools: ["Read"],
+      allowedTools: [tool("Read")],
     });
 
     expect(skill.description).toBe("テスト");
     expect(skill.input).toBe("入力");
     expect(skill.output).toBe("出力");
-    expect(skill.allowedTools).toEqual(["Read"]);
+    expect(skill.allowedTools).toEqual([tool("Read")]);
   });
 });

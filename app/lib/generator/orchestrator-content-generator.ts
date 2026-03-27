@@ -3,6 +3,7 @@
 import type { LoadedStep, LoadedOrchestratorSection } from "../types/loader.server";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
+import { serializeToolRef } from "../types/skill";
 
 export interface OrchestratorContentInput {
   name: string;
@@ -177,7 +178,7 @@ function renderInlineStep(step: LoadedInlineStep, stepNumber: string): string {
   // 使用ツール
   if (step.tools && step.tools.length > 0) {
     lines.push("");
-    lines.push(`**使用ツール**: ${step.tools.join(", ")}`);
+    lines.push(`**使用ツール**: ${step.tools.map(serializeToolRef).join(", ")}`);
   }
 
   if (step.input) {

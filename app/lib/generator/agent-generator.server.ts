@@ -1,6 +1,8 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "./frontmatter.server";
 import { generateAgentContent } from "./agent-content-generator";
+import type { ToolRef } from "../types/skill";
+import { serializeToolRef } from "../types/skill";
 
 // --- Agent Team MD生成 ---
 
@@ -74,7 +76,7 @@ export function generateAgentTeamMd(component: AgentTeamComponentData): {
 // Agent設定データ
 interface AgentConfigData {
   model?: string;
-  tools?: string[];
+  tools?: ToolRef[];
   content: string;
   description?: string;
   sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
@@ -128,8 +130,8 @@ export function generateAgentMd(component: AgentComponentData): {
     return { file: null, errors };
   }
 
-  // tools はすでに string[] で渡されるため、JSON パース不要
-  const tools = config.tools;
+  // ToolRef[] → string[] にシリアライズしてfrontmatter用に変換
+  const tools = config.tools?.map(serializeToolRef);
 
   // Build frontmatter
   const frontmatterFields: Record<

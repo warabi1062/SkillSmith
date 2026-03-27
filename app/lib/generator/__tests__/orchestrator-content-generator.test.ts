@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { generateOrchestratorContent } from "../orchestrator-content-generator";
 import type { LoadedStep } from "../../types/loader.server";
+import { tool } from "../../types/skill";
 
 describe("generateOrchestratorContent", () => {
   it("name + description のみ（steps が空配列）の場合", () => {
@@ -170,7 +171,7 @@ describe("generateOrchestratorContent", () => {
         steps: [
           { id: "1", title: "検索実行", body: "関連ファイルを検索する" },
         ],
-        tools: ["Grep", "Glob", "Read"],
+        tools: [tool("Grep"), tool("Glob"), tool("Read")],
       },
     ];
 

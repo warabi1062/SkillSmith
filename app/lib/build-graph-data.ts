@@ -1,6 +1,7 @@
 import dagre from "@dagrejs/dagre";
 import type { Node, Edge } from "@xyflow/react";
 import type { LoadedSkillUnion, LoadedStep, LoadedBranch, LoadedInlineStep } from "./types/loader.server";
+import { serializeToolRef } from "./types/skill";
 import { applyStepOrderPostProcessing } from "./layout-utils";
 
 export const DEFAULT_NODE_WIDTH = 260;
@@ -66,7 +67,7 @@ function flattenStepsData(stepsData: LoadedStep[], orchName: string, seenInlineI
           label: step.inline,
           isNew,
           output: step.output,
-          tools: step.tools,
+          tools: step.tools?.map(serializeToolRef),
           steps: step.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
         });
         seenInlineIds?.add(id);

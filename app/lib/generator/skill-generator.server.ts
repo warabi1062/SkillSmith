@@ -1,5 +1,7 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "./frontmatter.server";
+import type { ToolRef } from "../types/skill";
+import { serializeToolRef } from "../types/skill";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const SKILL_NAME_MAX_LENGTH = 64;
@@ -10,7 +12,7 @@ export interface SkillGeneratorInput {
   description?: string;
   skillType: string;
   argumentHint?: string;
-  allowedTools?: string[];
+  allowedTools?: ToolRef[];
   content: string;
   input?: string;
   output?: string;
@@ -54,8 +56,8 @@ export function generateSkillMd(component: SkillComponentData): {
     return { file: null, errors };
   }
 
-  // allowedTools はすでに string[] で渡されるため、JSON パース不要
-  const allowedTools = config.allowedTools;
+  // ToolRef[] → string[] にシリアライズしてfrontmatter用に変換
+  const allowedTools = config.allowedTools?.map(serializeToolRef);
 
   // Build frontmatter
   const frontmatterFields: Record<

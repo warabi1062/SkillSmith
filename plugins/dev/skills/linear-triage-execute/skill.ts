@@ -1,6 +1,6 @@
 // linear-triage-execute スキル: 承認済みtriage計画に基づくチケット更新・サブチケット作成
 
-import { WorkerWithSubAgent } from "../../../../app/lib/types";
+import { WorkerWithSubAgent, tool, mcp } from "../../../../app/lib/types";
 
 const linearTriageExecuteSkill = new WorkerWithSubAgent({
   name: "linear-triage-execute",
@@ -10,20 +10,20 @@ const linearTriageExecuteSkill = new WorkerWithSubAgent({
 - triage-plan.md のパス（orchestrator から渡される）`,
   output: "triage結果の保存先パス",
   allowedTools: [
-    "Read",
-    "Write",
-    "ToolSearch",
-    "mcp__plugin_linear_linear__get_issue",
-    "mcp__plugin_linear_linear__update_issue",
-    "mcp__plugin_linear_linear__create_issue",
-    "mcp__plugin_linear_linear__list_issues",
+    tool("Read"),
+    tool("Write"),
+    tool("ToolSearch"),
+    mcp("plugin_linear_linear", "get_issue"),
+    mcp("plugin_linear_linear", "update_issue"),
+    mcp("plugin_linear_linear", "create_issue"),
+    mcp("plugin_linear_linear", "list_issues"),
   ],
   files: [
     { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
   ],
   agentConfig: {
     model: "sonnet",
-    tools: ["Read", "Write", "ToolSearch"],
+    tools: [tool("Read"), tool("Write"), tool("ToolSearch")],
     content: "",
     description: "承認済みのtriage計画に基づいてチケット更新・サブチケット作成を実行するエージェント。",
     sections: [

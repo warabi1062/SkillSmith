@@ -1,6 +1,6 @@
 // create-pr スキル: 実装済みコードのGitHub PR作成
 
-import { WorkerWithSubAgent } from "../../../../app/lib/types";
+import { WorkerWithSubAgent, tool, bash, mcp } from "../../../../app/lib/types";
 
 const createPrSkill = new WorkerWithSubAgent({
   name: "create-pr",
@@ -11,14 +11,14 @@ const createPrSkill = new WorkerWithSubAgent({
 - implement-result.md のパス（orchestrator から渡される、渡されない場合がある）
 - base-branch.txt のパス（orchestrator から渡される）`,
   allowedTools: [
-    "Read",
-    "Grep",
-    "Glob",
-    "Bash(git *)",
-    "Bash(gh *)",
-    "Task",
-    "ToolSearch",
-    "mcp__plugin_linear_linear__get_issue",
+    tool("Read"),
+    tool("Grep"),
+    tool("Glob"),
+    bash("git *"),
+    bash("gh *"),
+    tool("Task"),
+    tool("ToolSearch"),
+    mcp("plugin_linear_linear", "get_issue"),
   ],
   files: [
     { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },
@@ -26,12 +26,12 @@ const createPrSkill = new WorkerWithSubAgent({
   agentConfig: {
     model: "sonnet",
     tools: [
-      "Read",
-      "Grep",
-      "Glob",
-      "Bash(git *)",
-      "Bash(gh *)",
-      "ToolSearch",
+      tool("Read"),
+      tool("Grep"),
+      tool("Glob"),
+      bash("git *"),
+      bash("gh *"),
+      tool("ToolSearch"),
     ],
     content: "",
     description: "実装内容をGitHub PRとして提出するエージェント。",
