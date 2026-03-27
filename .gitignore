@@ -153,3 +153,4 @@ app/generated/prisma/
 # Project specific
 .react-router/
 build/
+output/
