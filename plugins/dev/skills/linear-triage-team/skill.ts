@@ -42,35 +42,12 @@ Notion:
     {
       id: "T4",
       title: "スコープ分析",
-      body: `チケットのdescription・受入条件から実装スコープを分析する。以下を評価:
-
-- 変更が必要なファイル数の見積もり
-- 機能の独立性（複数の独立した機能変更が含まれるか）
-- DB変更・API変更・UI変更など異なるレイヤーの変更が混在するか
-
-以下のいずれかに該当する場合、分割が必要と判断する:
-
-- 独立した複数の機能変更が含まれる
-- 異なるレイヤー（DB/API/UI）の大きな変更が混在する
-- 受入条件が5つ以上あり、それぞれ独立している
-- 実装が段階的に進められる（例: バックエンド → フロントエンド）`,
+      bodyFile: "step-scope-analysis.md",
     },
     {
       id: "T5",
       title: "計画の作成と保存",
-      body: `\`~/claude-code-data/workflows/{チケットID}/triage-plan.md\` に [template-result.md](template-result.md) 形式で計画を書き出す。
-
-内容:
-- チケット更新内容（提案するdescription全文）
-- 分割計画（分割する場合: 各サブチケットのtitle, description, 依存関係）
-- 判断根拠
-
-descriptionの構造ルール:
-チケットのdescriptionは \`---\`（divider）で「全員向け」と「開発者向け」に区分けする。
-- dividerより上: 目的・背景、要件、受入条件、再現手順など、チームの誰もが理解すべき情報
-- dividerより下: 技術メモ（対象コンポーネント・ファイル・API・実装方針など）、影響範囲
-
-コードに関する記述やファイルパス、技術的な実装詳細はdividerより下に配置する。既存のdescriptionにdividerがない場合は適切な位置にdividerを挿入して整理する。分割で作成するサブチケットのdescriptionにも同じルールを適用する。`,
+      bodyFile: "step-plan-creation.md",
     },
     {
       id: "T6",
@@ -128,50 +105,12 @@ const reviewer: Teammate = {
     {
       id: "R4",
       title: "レビュー",
-      body: `以下の観点でレビューする:
-
-更新内容の妥当性:
-- 補完情報が正確か
-- 受入条件が具体的か（曖昧な表現がないか）
-- 元のチケット内容を損なっていないか
-
-分割の適切さ:
-- 分割粒度は適切か（細かすぎ・大きすぎがないか）
-- 不要な分割がないか
-- 漏れているスコープがないか
-
-依存関係:
-- サブチケット間の依存が正しいか
-- 循環依存がないか
-- 実装順序が合理的か`,
+      bodyFile: "step-review.md",
     },
     {
       id: "R5",
       title: "レビュー結果の保存と通知",
-      body: `レビュー結果を \`~/claude-code-data/workflows/{チケットID}/triage-review.md\` に保存する。
-
-ファイルのフォーマット:
-\`\`\`markdown
-## Triage Plan レビュー結果
-
-### 判定: {PASS / NEEDS_REVISION}
-
-### 指摘事項
-（NEEDS_REVISIONの場合のみ）
-
-#### [{種別: must/imo/question}][{重要度: critical/major/minor}] {指摘の概要}
-- must: 変えないと問題がある指摘
-- imo: 問題はないが自分ならこうする、という提案
-- question: 意図や背景の確認（回答によっては指摘に変わる可能性がある）
-- 対象: {計画のどの部分か}
-- 問題: {何が問題か}
-- 方向性: {どういう方向で見直すべきか。答えが明確な場合のみ具体的な修正を書いてよい}
-\`\`\`
-
-保存後、triager と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
-
-- NEEDS_REVISION を送った場合 → R6 へ進み、triager の修正通知を待つ
-- PASS を送った場合 → R7 へ進む`,
+      bodyFile: "step-review-result.md",
     },
     {
       id: "R6",

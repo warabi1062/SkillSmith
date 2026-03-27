@@ -1,0 +1,13 @@
+`~/claude-code-data/workflows/{チケットID}/triage-plan.md` に [template-result.md](template-result.md) 形式で計画を書き出す。
+
+内容:
+- チケット更新内容（提案するdescription全文）
+- 分割計画（分割する場合: 各サブチケットのtitle, description, 依存関係）
+- 判断根拠
+
+descriptionの構造ルール:
+チケットのdescriptionは `---`（divider）で「全員向け」と「開発者向け」に区分けする。
+- dividerより上: 目的・背景、要件、受入条件、再現手順など、チームの誰もが理解すべき情報
+- dividerより下: 技術メモ（対象コンポーネント・ファイル・API・実装方針など）、影響範囲
+
+コードに関する記述やファイルパス、技術的な実装詳細はdividerより下に配置する。既存のdescriptionにdividerがない場合は適切な位置にdividerを挿入して整理する。分割で作成するサブチケットのdescriptionにも同じルールを適用する。
