@@ -1,41 +1,29 @@
-import { data, Link } from "react-router";
-import { loadPluginDefinition } from "../lib/types/loader.server";
+import { data, Link, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/plugins.$id.orchestrators.$name";
+import type { Route as ParentRoute } from "./+types/plugins.$id";
 import { OrchestratorView } from "../components/OrchestratorStructureView";
-import * as path from "node:path";
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
-  const name = loaderData?.orchestratorName ?? "Orchestrator";
-  const pluginName = loaderData?.plugin?.name ?? "Plugin";
-  return [{ title: `${name} - ${pluginName} - SkillSmith` }];
+export function meta({ params }: Route.MetaArgs) {
+  return [{ title: `${params.name} - SkillSmith` }];
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const pluginsDir = path.join(process.cwd(), "plugins");
-  const dirPath = path.join(pluginsDir, params.id);
-
-  try {
-    const plugin = await loadPluginDefinition(dirPath);
-    const orchestrator = plugin.skills.find(
-      s => s.skillType === "ENTRY_POINT" && s.name === params.name
-    );
-    if (!orchestrator) {
-      throw new Error("Orchestrator not found");
-    }
-    return { plugin, pluginId: params.id, orchestratorName: params.name };
-  } catch {
-    throw data("Orchestrator not found", { status: 404 });
-  }
-}
-
-export default function OrchestratorDetail({ loaderData }: Route.ComponentProps) {
-  const { plugin, pluginId, orchestratorName } = loaderData;
+export default function OrchestratorDetail({ params }: Route.ComponentProps) {
+  const { plugin, pluginId } = useRouteLoaderData("routes/plugins.$id") as ParentRoute.ComponentProps["loaderData"];
   const orchestrator = plugin.skills.find(
-    s => s.skillType === "ENTRY_POINT" && s.name === orchestratorName
+    s => s.skillType === "ENTRY_POINT" && s.name === params.name
   );
 
   if (!orchestrator) {
-    return null;
+    return (
+      <div className="plugin-detail-page">
+        <div className="detail-header">
+          <Link to={`/plugins/${pluginId}`} className="back-link">
+            &larr; {plugin.name}
+          </Link>
+        </div>
+        <p>Orchestrator not found</p>
+      </div>
+    );
   }
 
   return (
