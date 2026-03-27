@@ -304,7 +304,7 @@ function SectionItems({ sections, supportFiles }: { sections: SectionFields[]; s
 }
 
 // ステップの再帰的表示コンポーネント
-function StepItem({ step, index }: { step: StepFields; index: number }) {
+function StepItem({ step, index, allSkills }: { step: StepFields; index: number; allSkills: LoadedSkillUnion[] }) {
   if (step.type === "branch") {
     return (
       <div className="ov-step">
@@ -320,7 +320,7 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
               <div className="ov-case-label">{c.name}</div>
               <div className="ov-case-steps">
                 {c.steps.map((s, i) => (
-                  <StepItem key={`${s.label}-${i}`} step={s} index={i + 1} />
+                  <StepItem key={`${s.label}-${i}`} step={s} index={i + 1} allSkills={allSkills} />
                 ))}
               </div>
             </div>
@@ -363,12 +363,21 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
     );
   }
 
+  // skillステップ: 参照先skillを検索してインライン展開
+  const referencedSkill = allSkills.find(s => s.name === step.label) ?? null;
+
   return (
     <div className="ov-step">
       <div className="ov-step-header ov-step--skill">
         <span className="ov-step-type">SKILL</span>
         {index}. {step.label}
       </div>
+      {referencedSkill && (
+        <SkillDetail
+          data={buildSkillDetailData(referencedSkill)}
+          allSkills={allSkills}
+        />
+      )}
     </div>
   );
 }
@@ -545,30 +554,15 @@ export function OrchestratorView({ skill, allSkills }: { skill: LoadedSkillUnion
       <SectionItems sections={sections.filter(s => s.position === "before-steps")} />
 
       <div className="ov-steps">
-        {steps.map((step, i) => {
-          // skillステップの場合、参照先のskillを検索してインライン展開
-          const referencedSkill = step.type === "skill"
-            ? allSkills.find(s => s.name === step.label)
-            : null;
+        {steps.map((step, i) => (
+          <div key={`${step.label}-${i}`} className="ov-step-wrapper">
+            <SectionItems sections={getStepSections(sections, "before-step", i)} />
 
-          return (
-            <div key={`${step.label}-${i}`} className="ov-step-wrapper">
-              <SectionItems sections={getStepSections(sections, "before-step", i)} />
+            <StepItem step={step} index={i + 1} allSkills={allSkills} />
 
-              <StepItem step={step} index={i + 1} />
-
-              {/* skillステップの場合、参照先skill詳細をインライン展開 */}
-              {referencedSkill && (
-                <SkillDetail
-                  data={buildSkillDetailData(referencedSkill)}
-                  allSkills={allSkills}
-                />
-              )}
-
-              <SectionItems sections={getStepSections(sections, "after-step", i)} />
-            </div>
-          );
-        })}
+            <SectionItems sections={getStepSections(sections, "after-step", i)} />
+          </div>
+        ))}
       </div>
 
       {/* after-steps セクション + 範囲外フォールバック */}
