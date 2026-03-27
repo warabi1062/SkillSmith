@@ -342,65 +342,6 @@ h3 {
   color: #1a1a1a;
 }
 
-.dependency-graph {
-  flex: 1;
-  min-height: 300px;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.dependency-graph-section {
-  margin-top: 0.5rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.dependency-graph-content {
-  flex: 1;
-  position: relative;
-  min-height: 0;
-}
-
-.dependency-graph-main {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* エッジのSVGコンテナをノードより前面に描画する（選択時のノード z-index: 1000 より大きくする） */
-.react-flow__edges {
-  position: relative;
-  z-index: 1001 !important;
-}
-
-.react-flow__edge:hover .react-flow__edge-path {
-  stroke: #dc2626;
-  stroke-width: 2;
-  cursor: pointer;
-}
-
-.react-flow__edge.selected .react-flow__edge-path {
-  stroke: #dc2626;
-  stroke-width: 2.5;
-}
-
-.react-flow__handle {
-  background-color: #2563eb;
-  width: 8px;
-  height: 8px;
-}
-
-.react-flow__handle-connecting {
-  background-color: #16a34a;
-}
-
-.react-flow__handle-valid {
-  background-color: #16a34a;
-}
 
 .markdown-editor {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -496,522 +437,216 @@ h3 {
   background-color: #fef2f2;
 }
 
-/* Orchestrator Node */
-.orchestrator-node {
-  background: #dbeafe;
-  border: 2px solid #3b82f6;
-  border-left: 4px solid #2563eb;
-  border-radius: 0.375rem;
-  padding: 0;
-  min-width: 140px;
-  max-width: 260px;
-  font-size: 0.8rem;
+
+
+/* Orchestrator Structure View */
+.ov-container {
+  margin-top: 0.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.orchestrator-node-title {
-  padding: 6px 12px;
+.ov-orchestrator {
+  padding: 1.5rem 0;
+}
+
+.ov-orchestrator-title {
+  font-size: 1.25rem;
   font-weight: 600;
   color: #1e3a5f;
-  border-bottom: 1px solid #93c5fd;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 0.5rem;
 }
 
-.orchestrator-node-steps {
-  padding: 2px 0;
-}
-
-.orchestrator-node-step {
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-bottom: 1px solid #bfdbfe;
-  color: #1e40af;
-  font-size: 0.75rem;
-  position: relative;
-}
-
-.orchestrator-node-step:last-child {
-  border-bottom: none;
-}
-
-.orchestrator-node-step-num {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #3b82f6;
-  flex-shrink: 0;
-  margin-right: 4px;
-}
-
-/* ステップ名をflex-growで広げ、Handleを右端に配置する */
-.orchestrator-node-step > span:not(.orchestrator-node-step-num),
-.orchestrator-node-inline-step > span:not(.orchestrator-node-step-num) {
-  flex-grow: 1;
-}
-
-/* Orchestrator Node - インラインステップ（スキル委譲なし） */
-.orchestrator-node-inline-step {
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-bottom: 1px dashed #bfdbfe;
+.ov-orchestrator-desc {
+  font-size: 0.875rem;
   color: #6b7280;
-  font-size: 0.75rem;
-  font-style: italic;
-  position: relative;
+  margin-bottom: 1rem;
 }
 
-.orchestrator-node-inline-step:last-child {
-  border-bottom: none;
-}
-
-/* Orchestrator Node - description */
-.orchestrator-node-description {
-  padding: 2px 12px 4px;
-  font-size: 0.7rem;
-  color: #1e40af;
-}
-
-.orchestrator-node-description-empty {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.orchestrator-node-step--empty {
-  background-color: rgba(219, 234, 254, 0.5);
-  border-style: dashed;
-  border-bottom-style: dashed;
-  border-bottom-color: #93c5fd;
-  color: #6b7280;
-}
-
-.orchestrator-node-add-step-btn {
-  display: block;
-  width: 100%;
-  padding: 4px 12px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: #3b82f6;
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: center;
-  transition: background-color 0.15s;
-}
-
-.orchestrator-node-add-step-btn:hover {
-  background-color: #bfdbfe;
-  color: #1e40af;
-}
-
-.orchestrator-node-step-btn-cancel {
-  color: #6b7280;
-  font-size: 0.7rem;
-}
-
-.orchestrator-node-step-btn-cancel:hover {
-  color: #374151;
-}
-
-/* Orchestrator Node - 分岐 (Branch) */
-.orchestrator-node-branch {
-  border-top: 1px solid #93c5fd;
-  padding: 2px 0;
-}
-
-.orchestrator-node-branch-header {
-  padding: 3px 12px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #1e3a5f;
-  background: #bfdbfe;
-}
-
-.orchestrator-node-case {
-  padding: 0;
-}
-
-.orchestrator-node-case-name {
-  padding: 2px 12px;
-  font-size: 0.68rem;
-  font-weight: 500;
-  color: #2563eb;
-  background: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
-}
-
-.orchestrator-node-case-steps {
-  padding: 0;
-}
-
-.orchestrator-node-case-empty {
-  padding: 2px 12px;
-  font-size: 0.68rem;
-  color: #9ca3af;
-  font-style: italic;
-  border-bottom: 1px solid #bfdbfe;
-}
-
-/* Skill Node（共通） */
-.skill-node {
-  border: 1px solid #93c5fd;
-  border-radius: 0.375rem;
-  padding: 0;
-  min-width: 140px;
-  max-width: 260px;
-  font-size: 0.8rem;
-}
-
-/* Worker（単独）: アンバー/オレンジ */
-.skill-node--worker {
-  background: #fef3c7;
-  border-color: #fbbf24;
-}
-.skill-node--worker .skill-node-badge {
-  background-color: #b45309;
-}
-.skill-node--worker .skill-node-skill-type {
-  color: #d97706;
-}
-.skill-node--worker .skill-node-title {
-  color: #78350f;
-}
-.skill-node--worker .skill-node-description {
-  color: #92400e;
-}
-
-/* Worker + SubAgent: 紫 */
-.skill-node--sub-agent {
-  background: #ede9fe;
-  border-color: #a78bfa;
-}
-.skill-node--sub-agent .skill-node-badge {
-  background-color: #5b21b6;
-}
-.skill-node--sub-agent .skill-node-skill-type {
-  color: #7c3aed;
-}
-.skill-node--sub-agent .skill-node-title {
-  color: #3b0764;
-}
-.skill-node--sub-agent .skill-node-description {
-  color: #5b21b6;
-}
-
-/* Worker + AgentTeam: 緑 */
-.skill-node--agent-team {
-  background: #dcfce7;
-  border-color: #86efac;
-}
-.skill-node--agent-team .skill-node-badge {
-  background-color: #166534;
-}
-.skill-node--agent-team .skill-node-skill-type {
-  color: #16a34a;
-}
-.skill-node--agent-team .skill-node-title {
-  color: #14532d;
-}
-.skill-node--agent-team .skill-node-description {
-  color: #166534;
-}
-
-.skill-node-header {
+.ov-steps {
   display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 4px 10px;
-}
-
-.skill-node-badge {
-  display: inline-block;
-  padding: 0 0.375rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: #1e40af;
-  color: #fff;
-  line-height: 1.5;
-}
-
-.skill-node-skill-type {
-  font-size: 0.625rem;
-  color: #3b82f6;
-  font-weight: 500;
-}
-
-.skill-node-title {
-  padding: 0 10px 2px;
-  font-weight: 600;
-  color: #1e3a5f;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.skill-node-description {
-  padding: 2px 10px 6px;
-  font-size: 0.7rem;
-  color: #1e40af;
-}
-
-.skill-node-description-empty {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.skill-node-teammates {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  padding: 2px 10px 6px;
-}
-
-.skill-node-teammate-tag {
-  display: inline-block;
-  padding: 0 0.375rem;
-  font-size: 0.6rem;
-  font-weight: 500;
-  border-radius: 9999px;
-  background-color: #166534;
-  color: #fff;
-  line-height: 1.5;
-}
-
-/* Inline Step Node: グレー系 */
-.inline-step-node {
-  border: 1px dashed #9ca3af;
-  border-radius: 0.375rem;
-  padding: 0;
-  min-width: 140px;
-  max-width: 260px;
-  font-size: 0.8rem;
-  background: #f3f4f6;
-}
-
-.inline-step-node-badge {
-  display: inline-block;
-  padding: 0 0.375rem;
-  margin: 4px 10px 0;
-  font-size: 0.625rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: #6b7280;
-  color: #fff;
-  line-height: 1.5;
-}
-
-.inline-step-node-title {
-  padding: 2px 10px 6px;
-  font-weight: 600;
-  color: #374151;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Agent Node */
-.agent-node {
-  background: #fce7f3;
-  border: 1px solid #f9a8d4;
-  border-radius: 0.375rem;
-  padding: 0;
-  min-width: 140px;
-  font-size: 0.8rem;
-}
-
-.agent-node-header {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 4px 10px;
-}
-
-.agent-node-badge {
-  display: inline-block;
-  padding: 0 0.375rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: #9d174d;
-  color: #fff;
-  line-height: 1.5;
-}
-
-.agent-node-title {
-  padding: 0 10px 2px;
-  font-weight: 600;
-  color: #831843;
-}
-
-.agent-node-description {
-  padding: 2px 10px 6px;
-  font-size: 0.7rem;
-  color: #9d174d;
-}
-
-.agent-node-description-empty {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-/* Agent Team Node */
-.agentteam-node {
-  background: #dcfce7;
-  border: 1px solid #86efac;
-  border-radius: 0.375rem;
-  padding: 0;
-  min-width: 140px;
-  font-size: 0.8rem;
-}
-
-.agentteam-node-header {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 4px 10px;
-}
-
-.agentteam-node-badge {
-  display: inline-block;
-  padding: 0 0.375rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: #166534;
-  color: #fff;
-  line-height: 1.5;
-}
-
-.agentteam-node-title {
-  padding: 0 10px 2px;
-  font-weight: 600;
-  color: #14532d;
-}
-
-.agentteam-node-description {
-  padding: 2px 10px 4px;
-  font-size: 0.7rem;
-  color: #166534;
-}
-
-.agentteam-node-description-empty {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.agentteam-node-orchestrator {
-  padding: 2px 10px 6px;
-  font-size: 0.65rem;
-  color: #6b7280;
-}
-
-/* Graph Toolbar */
-.graph-toolbar {
-  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
 }
 
-/* Side Panel（グラフ上にオーバーレイ表示） */
-.side-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 600px;
-  background-color: #fff;
-  border-left: 1px solid #e5e7eb;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  z-index: 10;
-  animation: side-panel-slide-in 0.2s ease-out;
+.ov-step-wrapper {
+  margin-bottom: 0.5rem;
 }
 
-@keyframes side-panel-slide-in {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+.ov-step {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #f9fafb;
 }
 
-.side-panel-header {
+.ov-step-header {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  gap: 0.5rem;
 }
 
-.side-panel-badge {
+.ov-step-type {
   display: inline-block;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.7rem;
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   border-radius: 9999px;
-  background-color: #e5e7eb;
+  line-height: 1.5;
+}
+
+.ov-step--skill .ov-step-type {
+  background-color: #fbbf24;
+  color: #78350f;
+}
+
+.ov-step--inline .ov-step-type {
+  background-color: #9ca3af;
+  color: #fff;
+}
+
+.ov-step--branch {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.ov-step-content {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.ov-step-desc {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #4b5563;
+}
+
+.ov-case {
+  margin-top: 0.5rem;
+  margin-left: 0.75rem;
+  border-left: 2px solid #93c5fd;
+  padding-left: 0.75rem;
+}
+
+.ov-case-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.375rem;
+}
+
+.ov-case-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* スキル詳細インライン展開 */
+.ov-skill-detail {
+  margin-left: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid #dbeafe;
+  background: #f8fafc;
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+}
+
+.ov-field {
+  margin-bottom: 0.625rem;
+}
+
+.ov-field label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
   color: #374151;
 }
 
-.side-panel-close {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 0.25rem 0.5rem;
-  line-height: 1;
-}
-
-.side-panel-close:hover {
-  color: #1a1a1a;
-}
-
-.side-panel-body {
-  padding: 1rem;
-}
-
-.side-panel-readonly {
-  padding: 0.375rem 0;
+.ov-field-value {
   font-size: 0.875rem;
   color: #6b7280;
 }
 
-.side-panel-agent-config-header {
+.ov-pre {
+  margin: 0;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #374151;
+}
+
+.ov-structure {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ov-structure > label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  margin-top: 0.25rem;
+}
+
+/* セクション */
+.ov-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  margin-bottom: 0.375rem;
+}
+
+.ov-section-heading {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.ov-section-body {
+  margin: 0;
+  padding: 0 0.75rem 0.625rem;
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #4b5563;
+}
+
+/* インラインツール */
+.ov-inline-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 0.5rem;
 }
 
-.side-panel-agent-config-header h4 {
-  margin: 0;
+.ov-inline-tools-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  margin-right: 0.25rem;
 }
 
-.side-panel-agent-model-badge {
+.ov-tool-tag {
   display: inline-block;
   padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: #7c3aed;
-  color: #fff;
-}
-
-.side-panel-agent-tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.side-panel-agent-tool-tag {
-  display: inline-block;
-  padding: 0.125rem 0.375rem;
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   border-radius: 0.25rem;
   background-color: #ede9fe;
@@ -1019,251 +654,106 @@ h3 {
   border: 1px solid #c4b5fd;
 }
 
-.side-panel-checkboxes {
+.ov-tools {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 0.375rem;
 }
 
-.side-panel-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+/* サブステップ */
+.ov-substep {
+  margin-bottom: 0.5rem;
+}
+
+.ov-substep-heading {
   font-size: 0.875rem;
-  font-weight: normal;
-  cursor: pointer;
-  margin-bottom: 0;
-}
-
-.side-panel-checkbox-label input[type="checkbox"] {
-  width: auto;
-}
-
-.side-panel-agent-config-section {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-/* Teammates Section（SidePanel内） */
-.side-panel-teammates-section {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.side-panel-teammates-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.side-panel-teammates-header h4 {
-  margin: 0;
-}
-
-.side-panel-teammate {
-  border: 1px solid #d1fae5;
-  border-radius: 0.375rem;
-  margin-bottom: 0.5rem;
-  background: #f0fdf4;
-}
-
-.side-panel-teammate-summary {
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.side-panel-teammate-summary:hover {
-  background: #dcfce7;
-}
-
-.side-panel-teammate-name {
-  font-weight: 600;
-  color: #166534;
-  font-size: 0.85rem;
-}
-
-.side-panel-teammate-role {
-  font-size: 0.75rem;
-  color: #4b5563;
-}
-
-.side-panel-teammate-details {
-  padding: 0 0.75rem 0.5rem;
-}
-
-.side-panel-teammate-meta {
-  font-size: 0.7rem;
-  color: #6b7280;
-  padding: 0.125rem 0;
-  font-family: monospace;
-}
-
-.side-panel-teammate-steps {
-  margin-top: 0.375rem;
-}
-
-.side-panel-teammate-step {
-  margin-bottom: 0.25rem;
-}
-
-.side-panel-teammate-step-summary {
-  cursor: pointer;
-  font-size: 0.8rem;
   font-weight: 500;
   color: #1f2937;
   padding: 0.25rem 0;
 }
 
-.side-panel-teammate-step-summary:hover {
-  color: #166534;
-}
-
-.side-panel-teammate-step-body {
+.ov-substep-body {
   margin: 0.25rem 0 0.5rem;
   padding: 0.5rem;
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
   white-space: pre-wrap;
   word-break: break-word;
   color: #374151;
-  max-height: 200px;
-  overflow-y: auto;
 }
 
-/* Orchestrator Structure（SidePanel内） */
-.side-panel-orch-structure {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* AgentConfig */
+.ov-agent-config {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
 }
 
-.side-panel-orch-structure > label {
-  font-weight: 600;
-  font-size: 0.85rem;
-  color: #374151;
-  margin-top: 0.25rem;
+.ov-agent-config h5 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
 }
 
-.side-panel-orch-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.side-panel-orch-step {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  background: #f9fafb;
-}
-
-.side-panel-orch-step-summary {
-  cursor: pointer;
-  padding: 0.375rem 0.625rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #1f2937;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.side-panel-orch-step-summary:hover {
-  background: #f3f4f6;
-}
-
-.side-panel-orch-step-type {
+.ov-model-badge {
   display: inline-block;
-  padding: 0 0.3rem;
-  font-size: 0.6rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: 9999px;
-  line-height: 1.5;
-}
-
-.side-panel-orch-step--skill .side-panel-orch-step-type {
-  background-color: #fbbf24;
-  color: #78350f;
-}
-
-.side-panel-orch-step--inline .side-panel-orch-step-type {
-  background-color: #9ca3af;
+  background-color: #7c3aed;
   color: #fff;
 }
 
-.side-panel-orch-step--branch {
-  color: #2563eb;
-  font-weight: 600;
+/* Teammates */
+.ov-teammates {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
 }
 
-.side-panel-orch-step-content {
-  padding: 0 0.625rem 0.5rem;
+.ov-teammates h5 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
 }
 
-.side-panel-orch-step-desc {
-  margin: 0.25rem 0;
-  padding: 0.375rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.25rem;
-  font-size: 0.7rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: #4b5563;
-  max-height: 150px;
-  overflow-y: auto;
+.ov-teammate {
+  border: 1px solid #d1fae5;
+  border-radius: 0.5rem;
+  margin-bottom: 0.625rem;
+  background: #f0fdf4;
 }
 
-.side-panel-orch-case {
-  margin-top: 0.375rem;
-  margin-left: 0.5rem;
-  border-left: 2px solid #93c5fd;
-  padding-left: 0.5rem;
-}
-
-.side-panel-orch-case-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #2563eb;
-  margin-bottom: 0.25rem;
-}
-
-.side-panel-orch-case-steps {
+.ov-teammate-header {
+  padding: 0.625rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.125rem;
 }
 
-.side-panel-orch-section {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
+.ov-teammate-name {
+  font-weight: 600;
+  color: #166534;
+  font-size: 0.9375rem;
 }
 
-.side-panel-orch-section-summary {
-  cursor: pointer;
-  padding: 0.375rem 0.625rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.side-panel-orch-section-summary:hover {
-  background: #f3f4f6;
-}
-
-.side-panel-orch-section-body {
-  margin: 0;
-  padding: 0.375rem 0.625rem 0.5rem;
-  font-size: 0.7rem;
-  white-space: pre-wrap;
-  word-break: break-word;
+.ov-teammate-role {
+  font-size: 0.8125rem;
   color: #4b5563;
-  max-height: 200px;
-  overflow-y: auto;
+}
+
+.ov-teammate-details {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.ov-teammate-meta {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  padding: 0.125rem 0;
+  font-family: monospace;
+}
+
+.ov-teammate-steps {
+  margin-top: 0.5rem;
 }
