@@ -1,7 +1,7 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "./frontmatter.server";
 import { generateAgentContent } from "./agent-content-generator";
-import type { ToolRef } from "../types/skill";
+import type { ToolRef, SectionPosition } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
 
 // --- Agent Team MD生成 ---
@@ -79,7 +79,7 @@ interface AgentConfigData {
   tools?: ToolRef[];
   content: string;
   description?: string;
-  sections?: { heading: string; body: string; position: "before-steps" | "after-steps" }[];
+  sections?: { heading: string; body?: string; position: SectionPosition }[];
 }
 
 // スキル設定の情報
@@ -115,7 +115,11 @@ export function generateAgentMd(component: AgentComponentData): {
       description: config.description,
       input: skillConfig.input,
       output: skillConfig.output,
-      sections: config.sections,
+      sections: config.sections?.map(s => ({
+        heading: s.heading,
+        body: s.body ?? "",
+        position: s.position,
+      })),
     });
   }
 

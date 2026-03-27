@@ -183,7 +183,7 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
           description: agentConfigData.description,
           sections: agentConfigData.sections?.map(s => ({
             heading: s.heading,
-            body: s.body,
+            body: s.body ?? "",
             position: s.position,
           })),
         }
