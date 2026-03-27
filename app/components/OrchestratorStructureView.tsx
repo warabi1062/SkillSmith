@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { SectionPosition, CommunicationPattern } from "../lib/types/skill";
 import { serializeToolRef } from "../lib/types/skill";
 import type {
@@ -25,25 +26,29 @@ interface AgentConfigFields {
   sections?: AgentConfigSectionFields[];
 }
 
+// ステップの共通bodyフィールド（body + bodyFile）
+interface BodyFields {
+  body: string;
+  bodyFile?: string;
+}
+
 // Workerのステップ（構造化表示用）
-interface WorkerStepFields {
+interface WorkerStepFields extends BodyFields {
   id: string;
   title: string;
-  body: string;
 }
 
 interface TeammateFields {
   name: string;
   role: string;
-  steps: { id: string; title: string; body: string }[];
+  steps: (WorkerStepFields)[];
   communicationPattern?: CommunicationPattern;
 }
 
 // インラインステップのサブステップ（構造化表示用）
-interface InlineSubStepFields {
+interface InlineSubStepFields extends BodyFields {
   id: string;
   title: string;
-  body: string;
 }
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
@@ -57,9 +62,8 @@ export interface StepFields {
 }
 
 // オーケストレーターのセクション
-export interface SectionFields {
+export interface SectionFields extends BodyFields {
   heading: string;
-  body: string;
   position: SectionPosition;
 }
 
@@ -86,13 +90,13 @@ export function convertStep(step: LoadedStep): StepFields {
   return {
     type: "inline",
     label: inline.inline,
-    inlineSteps: inline.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
+    inlineSteps: inline.steps.map(s => ({ id: s.id, title: s.title, body: s.body, bodyFile: s.bodyFile })),
     inlineTools: inline.tools?.map(serializeToolRef),
   };
 }
 
 export function convertSections(sections: LoadedOrchestratorSection[]): SectionFields[] {
-  return sections.map(s => ({ heading: s.heading, body: s.body, position: s.position }));
+  return sections.map(s => ({ heading: s.heading, body: s.body, bodyFile: s.bodyFile, position: s.position }));
 }
 
 // --- ヘルパー関数 ---
@@ -145,12 +149,12 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
 
   const workerStepsData: WorkerStepFields[] | null =
     skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSteps
-      ? skill.workerSteps.map(s => ({ id: s.id, title: s.title, body: s.body }))
+      ? skill.workerSteps.map(s => ({ id: s.id, title: s.title, body: s.body, bodyFile: s.bodyFile }))
       : null;
 
   const workerSectionsData: SectionFields[] | null =
     skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSections
-      ? skill.workerSections.map(s => ({ heading: s.heading, body: s.body, position: s.position }))
+      ? skill.workerSections.map(s => ({ heading: s.heading, body: s.body, bodyFile: s.bodyFile, position: s.position }))
       : null;
 
   const teammatesData =
@@ -158,7 +162,7 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? skill.teammates.map(t => ({
           name: t.name,
           role: t.role,
-          steps: t.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
+          steps: t.steps.map(s => ({ id: s.id, title: s.title, body: s.body, bodyFile: s.bodyFile })),
           communicationPattern: t.communicationPattern,
         }))
       : null;
@@ -196,6 +200,49 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
 
 // --- 表示コンポーネント ---
 
+// bodyFile の内容をサイドパネルで表示するコンポーネント
+function BodyFilePanel({ filename, content, onClose }: { filename: string; content: string; onClose: () => void }) {
+  return (
+    <div className="ov-sidepanel-overlay" onClick={onClose}>
+      <div className="ov-sidepanel" onClick={e => e.stopPropagation()}>
+        <div className="ov-sidepanel-header">
+          <span className="ov-sidepanel-filename">{filename}</span>
+          <button className="ov-sidepanel-close" onClick={onClose}>&times;</button>
+        </div>
+        <pre className="ov-sidepanel-content">{content}</pre>
+      </div>
+    </div>
+  );
+}
+
+// body または bodyFile リンクを表示するコンポーネント
+function BodyContent({ body, bodyFile }: BodyFields) {
+  const [panelOpen, setPanelOpen] = useState(false);
+
+  if (bodyFile) {
+    return (
+      <>
+        <div
+          className="ov-bodyfile-link"
+          onClick={() => setPanelOpen(true)}
+        >
+          {bodyFile}
+        </div>
+        {panelOpen && (
+          <BodyFilePanel
+            filename={bodyFile}
+            content={body}
+            onClose={() => setPanelOpen(false)}
+          />
+        )}
+      </>
+    );
+  }
+
+  if (!body) return null;
+  return <pre className="ov-substep-body">{body}</pre>;
+}
+
 // セクション一覧の表示
 function SectionItems({ sections }: { sections: SectionFields[] }) {
   return (
@@ -203,7 +250,7 @@ function SectionItems({ sections }: { sections: SectionFields[] }) {
       {sections.map(s => (
         <div key={s.heading} className="ov-section">
           <div className="ov-section-heading">{s.heading}</div>
-          <pre className="ov-section-body">{s.body}</pre>
+          <BodyContent body={s.body} bodyFile={s.bodyFile} />
         </div>
       ))}
     </>
@@ -260,7 +307,7 @@ function StepItem({ step, index }: { step: StepFields; index: number }) {
                   <div className="ov-substep-heading">
                     {subStep.id}. {subStep.title}
                   </div>
-                  <pre className="ov-substep-body">{subStep.body}</pre>
+                  <BodyContent body={subStep.body} bodyFile={subStep.bodyFile} />
                 </div>
               ))}
             </div>
@@ -317,7 +364,7 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
                   <div className="ov-substep-heading">
                     {step.id}. {step.title}
                   </div>
-                  <pre className="ov-substep-body">{step.body}</pre>
+                  <BodyContent body={step.body} bodyFile={step.bodyFile} />
                 </div>
                 <SectionItems sections={getStepSections(data.workerSections, "after-step", i)} />
               </div>
@@ -423,7 +470,7 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
                       <div className="ov-substep-heading">
                         {step.id}. {step.title}
                       </div>
-                      <pre className="ov-substep-body">{step.body}</pre>
+                      <BodyContent body={step.body} bodyFile={step.bodyFile} />
                     </div>
                   ))}
                 </div>
