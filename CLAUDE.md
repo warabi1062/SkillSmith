@@ -12,12 +12,58 @@ SkillSmith は、Claude Code のスキル設計パターンをスキーマとし
 
 - コード内のコメント文は日本語で書くこと
 
-## 開発環境
+## 開発コマンド
 
 - パッケージマネージャ: `pnpm@10.6.4`（必須）
 - `pnpm install` で依存関係をインストール
+- `pnpm dev` - 開発サーバー起動（React Router dev）
+- `pnpm build` - プロダクションビルド
+- `pnpm typecheck` - TypeScript型チェック（`tsc --noEmit`）
+- `pnpm lint` - Lint実行（oxlint）
+- `pnpm format` - フォーマット（Biome）
+- `pnpm cli` - CLIの直接実行（`tsx cli/index.ts`）
 
 ## アーキテクチャ
+
+### 3つのレイヤー
+
+SkillSmithは **Web UI** / **生成エンジン** / **CLI** の3層で構成される。
+
+1. **Web UI**（`app/routes/`）: React Router v7。プラグイン定義の閲覧・オーケストレーター構造の可視化
+2. **生成エンジン**（`app/lib/`）: TypeScriptのスキル定義 → Markdownベースのプラグインファイルへの変換パイプライン
+3. **CLI**（`cli/`）: `skillsmith plugin export` コマンドでプラグインをファイルシステムに出力
+
+### データフロー（生成パイプライン）
+
+```
+plugin.ts（TypeScriptスキル定義）
+  ↓ loader.server.ts（jiti で動的読み込み + bodyFile解決）
+LoadedPluginDefinition（型付き・内容解決済み）
+  ↓ plugin-generator.server.ts（各スキル種別ごとに委譲）
+  │  ├→ skill-generator（SKILL.md frontmatter + content）
+  │  ├→ orchestrator-content-generator（EntryPoint: steps→markdown）
+  │  ├→ worker-content-generator / agent-content-generator（Worker系）
+  │  ├→ team-content-generator（AgentTeam系）
+  │  └→ file-generator（サポートファイルコピー）
+GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
+  ↓ exporter.server.ts（一時ディレクトリ→ターゲットへ2段階書き出し）
+ファイルシステム出力
+```
+
+### スキル型の階層
+
+`app/lib/types/skill.ts` に定義された抽象基底クラス `Skill` から4つの具象型が派生する。スキル種別（`skillType`）がDiscriminated Unionのキーとなり、生成パイプラインの分岐を制御する。
+
+| 型 | skillType | 生成物 |
+|---|---|---|
+| `EntryPointSkill` | `ENTRY_POINT` | SKILL.md（自動生成オーケストレーション） |
+| `WorkerSkill` | `WORKER` | SKILL.md のみ |
+| `WorkerWithSubAgent` | `WORKER_WITH_SUB_AGENT` | SKILL.md + agent.md |
+| `WorkerWithAgentTeam` | `WORKER_WITH_AGENT_TEAM` | SKILL.md + TeamCreate指示 |
+
+### プラグイン定義の書き方
+
+プラグインは `plugins/{name}/plugin.ts` に `PluginDefinition` を default export する。各スキルは上記4型のいずれかのインスタンスで、`steps[]`・`sections[]`・`bodyFile`（外部markdown参照）・`ToolRef`（`tool()`, `bash()`, `mcp()`）を組み合わせて定義する。実例は `plugins/dev/` を参照。
 
 ### コア設計パターン: Orchestrator中心 + ファイルベース契約
 
@@ -36,40 +82,19 @@ SkillSmith は、Claude Code のスキル設計パターンをスキーマとし
 | Worker skill | オーケストレーターの1ステップを担当 | `implement`, `create-pr` |
 | Cross-cutting skill | CLAUDE.mdからグローバル注入される横断的関心事 | `slack-notify`, `memory-manager` |
 
-### プラグインディレクトリ構造
-
-```
-plugins/{plugin-name}/
-├── .claude-plugin/
-│   └── plugin.json           # メタデータ（必須）
-├── skills/{skill-name}/
-│   ├── SKILL.md              # メイン指示（必須）
-│   ├── template.md           # 出力フォーマット（任意）
-│   └── reference.md          # 詳細リファレンス（任意）
-├── agents/
-│   └── {name}-agent.md       # 単一ファイルで完結
-└── docs/
-```
-
 ### Skill と Agent の役割分離
 
 - **Skill** = 手順・知識の定義（What）。SKILL.md + サポートファイル群
 - **Agent** = 実行環境・振る舞いの定義（How）。単一mdファイル、末尾に `-agent` を付ける命名規約
 - Agent本文にはskillの手順を転記しない。`skills:` でプリロードし、agent固有の制約のみ記述
 
-### 情報の保存先（3層）
-
-| パス | 用途 | 管理者 |
-|------|------|--------|
-| `~/.claude/memory/` | 作業コンテキスト（短期・中期・長期） | memory-manager skill |
-| `~/.claude/workflows/` | ステップ間データ受け渡し | 各スキル |
-| `~/.claude/state/` | スキル固有の永続状態 | 各スキル |
-
 ## テスト
 
 - フレームワーク: Vitest
 - 実行: `pnpm test`（単発）/ `pnpm test:watch`（ウォッチ）/ `pnpm test:coverage`（カバレッジ）
+- 単一ファイル実行: `pnpm test -- app/lib/generator/__tests__/skill-generator.test.ts`
 - 配置: 対象モジュールと同階層の `__tests__/` ディレクトリに `*.test.ts(x)` として作成
+- 対象パターン: `app/**/__tests__/**/*.test.{ts,tsx}`, `cli/**/__tests__/**/*.test.ts`
 
 ### テストを書くべきケース
 
