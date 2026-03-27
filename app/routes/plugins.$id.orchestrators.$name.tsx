@@ -1,16 +1,12 @@
-import { data, Link, useRouteLoaderData } from "react-router";
-import type { Route } from "./+types/plugins.$id.orchestrators.$name";
-import type { Route as ParentRoute } from "./+types/plugins.$id";
+import { Link } from "react-router";
+import type { Route } from "./+types/plugins.$id";
 import { OrchestratorView } from "../components/OrchestratorStructureView";
 
-export function meta({ params }: Route.MetaArgs) {
-  return [{ title: `${params.name} - SkillSmith` }];
-}
-
-export default function OrchestratorDetail({ params }: Route.ComponentProps) {
-  const { plugin, pluginId } = useRouteLoaderData("routes/plugins.$id") as ParentRoute.ComponentProps["loaderData"];
+export default function OrchestratorDetail({ loaderData, params }: Route.ComponentProps) {
+  const { plugin, pluginId } = loaderData;
+  const orchestratorName = (params as Record<string, string>).name;
   const orchestrator = plugin.skills.find(
-    s => s.skillType === "ENTRY_POINT" && s.name === params.name
+    s => s.skillType === "ENTRY_POINT" && s.name === orchestratorName
   );
 
   if (!orchestrator) {

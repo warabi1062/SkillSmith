@@ -1,9 +1,9 @@
-import { Link, useRouteLoaderData } from "react-router";
-import type { Route as ParentRoute } from "./+types/plugins.$id";
+import { Link } from "react-router";
+import type { Route } from "./+types/plugins.$id";
 import PluginActionsSection from "../components/PluginActionsSection";
 
-export default function PluginDetail() {
-  const { plugin, pluginId } = useRouteLoaderData("routes/plugins.$id") as ParentRoute.ComponentProps["loaderData"];
+export default function PluginDetail({ loaderData }: Route.ComponentProps) {
+  const { plugin, pluginId } = loaderData;
   const orchestrators = plugin.skills.filter(s => s.skillType === "ENTRY_POINT");
 
   return (
