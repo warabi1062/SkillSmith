@@ -1452,10 +1452,123 @@ h3 {
   overflow-y: auto;
   padding: 1.25rem;
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  line-height: 1.6;
+  font-size: 0.875rem;
+  line-height: 1.7;
   color: var(--text-secondary);
-  white-space: pre-wrap;
-  word-wrap: break-word;
+}
+
+/* サイドパネル内markdownスタイル */
+.ov-sidepanel-content h1,
+.ov-sidepanel-content h2,
+.ov-sidepanel-content h3,
+.ov-sidepanel-content h4,
+.ov-sidepanel-content h5,
+.ov-sidepanel-content h6 {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  margin: 1.25em 0 0.5em;
+  line-height: 1.3;
+}
+
+.ov-sidepanel-content h1 { font-size: 1.375rem; font-weight: 600; }
+.ov-sidepanel-content h2 { font-size: 1.15rem; font-weight: 600; }
+.ov-sidepanel-content h3 { font-size: 1rem; font-weight: 600; }
+
+.ov-sidepanel-content h1:first-child,
+.ov-sidepanel-content h2:first-child,
+.ov-sidepanel-content h3:first-child {
+  margin-top: 0;
+}
+
+.ov-sidepanel-content p {
+  margin: 0.6em 0;
+}
+
+.ov-sidepanel-content ul,
+.ov-sidepanel-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.ov-sidepanel-content li {
+  margin: 0.25em 0;
+}
+
+.ov-sidepanel-content code {
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+}
+
+.ov-sidepanel-content pre {
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+
+.ov-sidepanel-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.ov-sidepanel-content blockquote {
+  margin: 0.75em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid var(--accent-teal);
+  background: var(--accent-teal-dim);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-secondary);
+}
+
+.ov-sidepanel-content blockquote p {
+  margin: 0.25em 0;
+}
+
+.ov-sidepanel-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75em 0;
+  font-size: 0.825rem;
+}
+
+.ov-sidepanel-content th,
+.ov-sidepanel-content td {
+  border: 1px solid var(--border-default);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.ov-sidepanel-content th {
+  background: var(--bg-elevated);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ov-sidepanel-content hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 1.25em 0;
+}
+
+.ov-sidepanel-content a {
+  color: var(--accent-teal);
+  text-decoration: none;
+}
+
+.ov-sidepanel-content a:hover {
+  text-decoration: underline;
+}
+
+.ov-sidepanel-content strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }

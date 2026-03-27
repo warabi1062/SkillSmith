@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import Markdown from "react-markdown";
 import type { SectionPosition, CommunicationPattern } from "../lib/types/skill";
 import { serializeToolRef } from "../lib/types/skill";
 import type {
@@ -217,7 +218,9 @@ function BodyFilePanel({ filename, content, onClose }: { filename: string; conte
           <span className="ov-sidepanel-filename">{filename}</span>
           <button className="ov-sidepanel-close" onClick={onClose}>&times;</button>
         </div>
-        <pre className="ov-sidepanel-content">{content}</pre>
+        <div className="ov-sidepanel-content">
+          <Markdown>{content}</Markdown>
+        </div>
       </div>
     </div>,
     document.body,
