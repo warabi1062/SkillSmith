@@ -1,5 +1,53 @@
 // スキル型定義: abstract class とサブクラス
 
+// ツール参照の構造化型（string ではなく型安全にツールを指定する）
+export type ToolRef =
+  | { type: "tool"; name: string; pattern?: string }  // 組み込みツール: "Read", "Bash(git *)"
+  | { type: "mcp"; server: string; method: string };  // MCPツール: "mcp__server__method"
+
+// ファクトリ関数
+export function tool(name: string): ToolRef {
+  return { type: "tool", name };
+}
+
+export function bash(pattern: string): ToolRef {
+  return { type: "tool", name: "Bash", pattern };
+}
+
+export function mcp(server: string, method: string): ToolRef {
+  return { type: "mcp", server, method };
+}
+
+// ToolRef → YAML出力用文字列に変換
+export function serializeToolRef(ref: ToolRef): string {
+  if (ref.type === "mcp") {
+    return `mcp__${ref.server}__${ref.method}`;
+  }
+  if (ref.pattern) {
+    return `${ref.name}(${ref.pattern})`;
+  }
+  return ref.name;
+}
+
+// 文字列 → ToolRef にパース
+export function parseToolRef(str: string): ToolRef {
+  // MCPツール: mcp__server__method
+  if (str.startsWith("mcp__")) {
+    const rest = str.slice(5); // "mcp__" を除去
+    const idx = rest.indexOf("__");
+    if (idx >= 0) {
+      return { type: "mcp", server: rest.slice(0, idx), method: rest.slice(idx + 2) };
+    }
+  }
+  // パターン付きツール: Name(pattern)
+  const match = str.match(/^([A-Za-z]+)\((.+)\)$/);
+  if (match) {
+    return { type: "tool", name: match[1], pattern: match[2] };
+  }
+  // 単純ツール
+  return { type: "tool", name: str };
+}
+
 // 分岐ステップ（再帰的にネスト可能）
 export interface Branch {
   decisionPoint: string;           // 分岐判定名（例: "入力判定"）
@@ -20,7 +68,7 @@ export interface InlineStep {
   steps: InlineSubStep[];          // 構造化された手順ステップ
   input?: string;                  // 入力の説明
   output?: string;                 // 出力の説明
-  tools?: string[];                // 使用するツール
+  tools?: ToolRef[];               // 使用するツール
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）
@@ -98,7 +146,7 @@ export interface AgentConfigSection {
 // content 直書きまたは description + sections から自動生成
 export interface AgentConfig {
   model?: string;
-  tools?: string[];
+  tools?: ToolRef[];
   content: string; // agent.md 本文（後方互換）
   description?: string;                // 構造化時: agentの説明
   sections?: AgentConfigSection[];     // 構造化時: 追加セクション
@@ -161,7 +209,7 @@ export abstract class Skill {
   description?: string;
   input?: string;
   output?: string;
-  allowedTools?: string[];
+  allowedTools?: ToolRef[];
   argumentHint?: string;
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
