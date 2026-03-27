@@ -227,57 +227,38 @@ function BodyFilePanel({ filename, content, onClose }: { filename: string; conte
   );
 }
 
-// body テキスト内のmarkdownリンクをパースして表示するコンポーネント
-// [text](filename) パターンを検出し、supportFilesに該当ファイルがあればクリック可能なリンクにする
+// body テキスト内をMarkdownレンダリングするコンポーネント
+// supportFiles内のファイルへのリンクはクリックでサイドパネルを開く
 function BodyContent({ body, supportFiles }: { body: string; supportFiles?: SupportFileMap }) {
   const [openFile, setOpenFile] = useState<string | null>(null);
 
   if (!body) return null;
 
-  // markdownリンクパターン: [text](filename)
-  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
-  const parts: (string | { text: string; filename: string })[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = linkPattern.exec(body)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(body.slice(lastIndex, match.index));
-    }
-    const filename = match[2].replace(/^\.\//, ""); // ./prefix を除去
-    parts.push({ text: match[1], filename });
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < body.length) {
-    parts.push(body.slice(lastIndex));
-  }
-
-  // リンクがない場合はそのまま表示
-  if (parts.length === 1 && typeof parts[0] === "string") {
-    return <pre className="ov-substep-body">{body}</pre>;
-  }
-
   return (
     <>
-      <pre className="ov-substep-body">
-        {parts.map((part, i) => {
-          if (typeof part === "string") return part;
-          const fileContent = supportFiles?.[part.filename];
-          if (fileContent !== undefined) {
-            return (
-              <span
-                key={i}
-                className="ov-bodyfile-link"
-                onClick={() => setOpenFile(part.filename)}
-              >
-                {part.text}
-              </span>
-            );
-          }
-          // SupportFileにない場合はプレーンテキストとして表示
-          return `[${part.text}](${part.filename})`;
-        })}
-      </pre>
+      <div className="ov-substep-body ov-markdown">
+        <Markdown
+          components={{
+            a: ({ href, children }) => {
+              const filename = href?.replace(/^\.\//, "") ?? "";
+              const fileContent = supportFiles?.[filename];
+              if (fileContent !== undefined) {
+                return (
+                  <span
+                    className="ov-bodyfile-link"
+                    onClick={() => setOpenFile(filename)}
+                  >
+                    {children}
+                  </span>
+                );
+              }
+              return <a href={href}>{children}</a>;
+            },
+          }}
+        >
+          {body}
+        </Markdown>
+      </div>
       {openFile && supportFiles?.[openFile] !== undefined && (
         <BodyFilePanel
           filename={openFile}
@@ -313,7 +294,7 @@ function StepItem({ step, index, allSkills }: { step: StepFields; index: number;
         </div>
         <div className="ov-step-content">
           {step.description && (
-            <pre className="ov-step-desc">{step.description}</pre>
+            <div className="ov-step-desc ov-markdown"><Markdown>{step.description}</Markdown></div>
           )}
           {step.cases?.map((c) => (
             <div key={c.name} className="ov-case">
@@ -435,7 +416,7 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
         data.content && (
           <div className="ov-field">
             <label>Content</label>
-            <pre className="ov-pre">{data.content}</pre>
+            <div className="ov-pre ov-markdown"><Markdown>{data.content}</Markdown></div>
           </div>
         )
       )}
@@ -491,7 +472,7 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
             data.agentConfig.agentContent && (
               <div className="ov-field">
                 <label>Agent Content</label>
-                <pre className="ov-pre">{data.agentConfig.agentContent}</pre>
+                <div className="ov-pre ov-markdown"><Markdown>{data.agentConfig.agentContent}</Markdown></div>
               </div>
             )
           )}
