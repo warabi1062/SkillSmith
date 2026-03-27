@@ -838,7 +838,6 @@ h3 {
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-size: 0.8125rem;
-  white-space: pre-wrap;
   word-break: break-word;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -906,7 +905,6 @@ h3 {
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-size: 0.8125rem;
-  white-space: pre-wrap;
   word-break: break-word;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -1019,7 +1017,6 @@ h3 {
   border-radius: var(--radius-sm);
   font-family: var(--font-body);
   font-size: 0.8125rem;
-  white-space: pre-wrap;
   word-break: break-word;
   color: var(--text-secondary);
   line-height: 1.6;
@@ -1569,6 +1566,130 @@ h3 {
 }
 
 .ov-sidepanel-content strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* インラインMarkdownコンテンツ共通スタイル */
+.ov-markdown h1,
+.ov-markdown h2,
+.ov-markdown h3,
+.ov-markdown h4,
+.ov-markdown h5,
+.ov-markdown h6 {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  margin: 1em 0 0.4em;
+  line-height: 1.3;
+}
+
+.ov-markdown h1 { font-size: 1.125rem; font-weight: 600; }
+.ov-markdown h2 { font-size: 1rem; font-weight: 600; }
+.ov-markdown h3 { font-size: 0.9rem; font-weight: 600; }
+
+.ov-markdown h1:first-child,
+.ov-markdown h2:first-child,
+.ov-markdown h3:first-child {
+  margin-top: 0;
+}
+
+.ov-markdown p {
+  margin: 0.5em 0;
+}
+
+.ov-markdown p:first-child {
+  margin-top: 0;
+}
+
+.ov-markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.ov-markdown ul,
+.ov-markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.ov-markdown li {
+  margin: 0.2em 0;
+}
+
+.ov-markdown code {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+}
+
+.ov-markdown pre {
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.75rem 0.875rem;
+  overflow-x: auto;
+  margin: 0.6em 0;
+}
+
+.ov-markdown pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.775rem;
+  line-height: 1.5;
+}
+
+.ov-markdown blockquote {
+  margin: 0.6em 0;
+  padding: 0.4em 0.875em;
+  border-left: 3px solid var(--accent-teal);
+  background: var(--accent-teal-dim);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-secondary);
+}
+
+.ov-markdown blockquote p {
+  margin: 0.2em 0;
+}
+
+.ov-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6em 0;
+  font-size: 0.8rem;
+}
+
+.ov-markdown th,
+.ov-markdown td {
+  border: 1px solid var(--border-default);
+  padding: 0.4em 0.625em;
+  text-align: left;
+}
+
+.ov-markdown th {
+  background: var(--bg-elevated);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ov-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 1em 0;
+}
+
+.ov-markdown a {
+  color: var(--accent-teal);
+  text-decoration: none;
+}
+
+.ov-markdown a:hover {
+  text-decoration: underline;
+}
+
+.ov-markdown strong {
   color: var(--text-primary);
   font-weight: 600;
 }
