@@ -1405,7 +1405,7 @@ h3 {
 .ov-sidepanel {
   width: min(600px, 90vw);
   height: 100vh;
-  background: var(--bg-primary);
+  background: var(--bg-surface);
   border-left: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
