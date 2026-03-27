@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateAgentMd, generateAgentTeamMd } from "../agent-generator.server";
+import { tool } from "../../types/skill";
+import type { ToolRef } from "../../types/skill";
 
 function makeAgentComponent(overrides: {
   skillName?: string;
@@ -8,7 +10,7 @@ function makeAgentComponent(overrides: {
   skillOutput?: string;
   content?: string;
   model?: string;
-  tools?: string[];
+  tools?: ToolRef[];
 }) {
   return {
     skillName: overrides.skillName ?? "my-skill",
@@ -67,7 +69,7 @@ describe("generateAgentMd", () => {
 
   it("toolsをYAMLリストで出力する", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ tools: ["Read", "Grep"] }),
+      makeAgentComponent({ tools: [tool("Read"), tool("Grep")] }),
     );
     expect(file!.content).toContain("tools:");
     expect(file!.content).toContain("  - Read");

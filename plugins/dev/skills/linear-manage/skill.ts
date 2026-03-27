@@ -1,6 +1,6 @@
 // linear-manage スキル: Linearチケットの新規作成・修正・情報補完・スコープ分割
 
-import { EntryPointSkill } from "../../../../app/lib/types";
+import { EntryPointSkill, tool, mcp } from "../../../../app/lib/types";
 import linearTriageTeamSkill from "../linear-triage-team/skill";
 import linearTriageExecuteSkill from "../linear-triage-execute/skill";
 
@@ -10,17 +10,17 @@ const linearManageSkill = new EntryPointSkill({
     "Linearチケットを新規作成・修正し、情報補完・スコープ分割まで行うタスク整理スキル。実装は行わず、チケットを実装可能な状態に整える。",
   argumentHint: "[LINEAR_ISSUE_ID or 概要]",
   allowedTools: [
-    "Read",
-    "Write",
-    "Task",
-    "ToolSearch",
-    "AskUserQuestion",
-    "mcp__plugin_linear_linear__get_issue",
-    "mcp__plugin_linear_linear__create_issue",
-    "mcp__plugin_linear_linear__update_issue",
-    "mcp__plugin_linear_linear__list_teams",
-    "mcp__plugin_linear_linear__list_issue_labels",
-    "mcp__plugin_linear_linear__list_projects",
+    tool("Read"),
+    tool("Write"),
+    tool("Task"),
+    tool("ToolSearch"),
+    tool("AskUserQuestion"),
+    mcp("plugin_linear_linear", "get_issue"),
+    mcp("plugin_linear_linear", "create_issue"),
+    mcp("plugin_linear_linear", "update_issue"),
+    mcp("plugin_linear_linear", "list_teams"),
+    mcp("plugin_linear_linear", "list_issue_labels"),
+    mcp("plugin_linear_linear", "list_projects"),
   ],
   steps: [
     {
@@ -37,7 +37,7 @@ const linearManageSkill = new EntryPointSkill({
                 body: "AskUserQuestionでチケット種類（Bug / Feature / Task）を確認する。",
               },
             ],
-            tools: ["AskUserQuestion"],
+            tools: [tool("AskUserQuestion")],
           },
           {
             inline: "テンプレート適用・チケット作成",
@@ -59,11 +59,11 @@ const linearManageSkill = new EntryPointSkill({
               },
             ],
             tools: [
-              "Read",
-              "mcp__plugin_linear_linear__list_teams",
-              "mcp__plugin_linear_linear__list_issue_labels",
-              "mcp__plugin_linear_linear__list_projects",
-              "mcp__plugin_linear_linear__save_issue",
+              tool("Read"),
+              mcp("plugin_linear_linear", "list_teams"),
+              mcp("plugin_linear_linear", "list_issue_labels"),
+              mcp("plugin_linear_linear", "list_projects"),
+              mcp("plugin_linear_linear", "save_issue"),
             ],
           },
         ],

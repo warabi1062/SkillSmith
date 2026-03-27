@@ -1,6 +1,6 @@
 // dev-lite スキル: 軽量版devワークフロー
 
-import { EntryPointSkill } from "../../../../app/lib/types";
+import { EntryPointSkill, tool } from "../../../../app/lib/types";
 import implementTeamSkill from "../implement-team/skill";
 import createPrSkill from "../create-pr/skill";
 import { generateTaskId, createBranch } from "../shared-steps";
@@ -11,15 +11,15 @@ const devLiteSkill = new EntryPointSkill({
     "ユーザー指示から実装・レビュー・draft PR作成を簡易ステップで行う軽量版dev",
   argumentHint: "[説明]",
   allowedTools: [
-    "Read",
-    "Write",
-    "Edit",
-    "Glob",
-    "Grep",
-    "Bash",
-    "Task",
-    "AskUserQuestion",
-    "ToolSearch",
+    tool("Read"),
+    tool("Write"),
+    tool("Edit"),
+    tool("Glob"),
+    tool("Grep"),
+    tool("Bash"),
+    tool("Task"),
+    tool("AskUserQuestion"),
+    tool("ToolSearch"),
   ],
   steps: [
     generateTaskId,
@@ -43,7 +43,7 @@ const devLiteSkill = new EntryPointSkill({
           body: "実装計画の保存先パスを記録し、後続のステップに渡す。コードベースの深い調査は不要。plan review やユーザー承認は行わない。",
         },
       ],
-      tools: ["Read", "Glob", "Grep", "Write"],
+      tools: [tool("Read"), tool("Glob"), tool("Grep"), tool("Write")],
     },
     implementTeamSkill,
     createPrSkill,

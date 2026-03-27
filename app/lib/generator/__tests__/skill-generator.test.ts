@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generateSkillMd } from "../skill-generator.server";
+import { tool } from "../../types/skill";
 
 function makeSkillComponent(overrides: {
   name?: string;
@@ -7,7 +8,7 @@ function makeSkillComponent(overrides: {
   content?: string;
   skillType?: string;
   argumentHint?: string;
-  allowedTools?: string[];
+  allowedTools?: import("../../types/skill").ToolRef[];
   input?: string;
   output?: string;
 }) {
@@ -73,7 +74,7 @@ describe("generateSkillMd", () => {
 
   it("includes allowed-tools as YAML list", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ allowedTools: ["Read", "Write"] }),
+      makeSkillComponent({ allowedTools: [tool("Read"), tool("Write")] }),
     );
     expect(file!.content).toContain("allowed-tools:");
     expect(file!.content).toContain("  - Read");

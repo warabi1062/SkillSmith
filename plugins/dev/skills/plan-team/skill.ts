@@ -1,6 +1,6 @@
 // plan-team スキル: Agent Teamでplanner/reviewerを編成し、実装計画の作成とレビューを並列で行う
 
-import { WorkerWithAgentTeam } from "../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
 import type { Teammate } from "../../../../app/lib/types";
 
 const planner: Teammate = {
@@ -183,14 +183,14 @@ const planTeamSkill = new WorkerWithAgentTeam({
   - 要件テキスト（事前調査なしの場合）`,
   output: "- 実装計画の保存先パス（`~/claude-code-data/workflows/{タスクID}/plan.md`）",
   allowedTools: [
-    "Read",
-    "Write",
-    "Glob",
-    "Grep",
-    "Bash",
-    "Task",
-    "AskUserQuestion",
-    "ToolSearch",
+    tool("Read"),
+    tool("Write"),
+    tool("Glob"),
+    tool("Grep"),
+    tool("Bash"),
+    tool("Task"),
+    tool("AskUserQuestion"),
+    tool("ToolSearch"),
   ],
   files: [
     { role: "TEMPLATE", filename: "template.md", sortOrder: 1 },

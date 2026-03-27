@@ -1,6 +1,7 @@
 // dev プラグイン内の共通 InlineStep 定義
 
 import type { InlineStep } from "../../../app/lib/types";
+import { tool } from "../../../app/lib/types";
 
 // タスクID生成: ユーザー指示からslugベースのIDを生成する
 export const generateTaskId: InlineStep = {
@@ -35,7 +36,7 @@ export const createBranch: InlineStep = {
       body: "判定したベースブランチ名は `~/claude-code-data/workflows/{ID}/base-branch.txt` に保存し、そのパスを記録して後続のステップに渡す。",
     },
   ],
-  tools: ["Bash"],
+  tools: [tool("Bash")],
   output:
     "ブランチ名: feature/{ID}-{タイトルのslug}\n例（Linear）: feature/LIN-123-add-user-authentication\n例（Quick）: feature/quick-add-dark-mode",
 };

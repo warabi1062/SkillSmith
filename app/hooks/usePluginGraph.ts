@@ -8,6 +8,7 @@ import {
   clearGraphPositions,
 } from "../lib/graph-positions";
 import type { LoadedPluginDefinition, LoadedSkillUnion, LoadedStep, LoadedBranch, LoadedInlineStep, LoadedOrchestratorSection } from "../lib/types/loader.server";
+import { serializeToolRef } from "../lib/types/skill";
 import type { StepFields, SectionFields, WorkerStepFields, AgentConfigSectionFields } from "../components/SidePanel";
 
 export type Plugin = LoadedPluginDefinition;
@@ -34,7 +35,7 @@ function convertStep(step: LoadedStep): StepFields {
     type: "inline",
     label: inline.inline,
     inlineSteps: inline.steps.map(s => ({ id: s.id, title: s.title, body: s.body })),
-    inlineTools: inline.tools,
+    inlineTools: inline.tools?.map(serializeToolRef),
   };
 }
 
@@ -213,7 +214,7 @@ export function usePluginGraph({
       agentConfig: agentConfigData
         ? {
             model: agentConfigData.model ?? "",
-            tools: agentConfigData.tools ?? [],
+            tools: (agentConfigData.tools ?? []).map(serializeToolRef),
             agentContent: agentConfigData.content ?? "",
             description: agentConfigData.description,
             sections: agentConfigData.sections?.map(s => ({
@@ -229,7 +230,7 @@ export function usePluginGraph({
       steps: skill.steps ? skill.steps.map(convertStep) : null,
       sections: skill.sections ? convertSections(skill.sections as LoadedOrchestratorSection[]) : null,
       allowedTools: skill.allowedTools
-        ? JSON.stringify(skill.allowedTools)
+        ? JSON.stringify(skill.allowedTools.map(serializeToolRef))
         : null,
       argumentHint: skill.argumentHint ?? null,
       inlineSteps: null,

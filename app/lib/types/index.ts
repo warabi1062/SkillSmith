@@ -9,6 +9,7 @@ export {
   WorkerWithAgentTeam,
 } from "./skill";
 export type {
+  ToolRef,
   SupportFileRole,
   SupportFile,
   AgentConfig,
@@ -22,7 +23,7 @@ export type {
   OrchestratorSection,
   CommunicationPattern,
 } from "./skill";
-export { isBranch, isInlineStep, collectSkillsFromSteps, toAgentTeamMember } from "./skill";
+export { tool, bash, mcp, serializeToolRef, parseToolRef, isBranch, isInlineStep, collectSkillsFromSteps, toAgentTeamMember } from "./skill";
 
 // Plugin 関連
 export type { PluginDefinition } from "./plugin";

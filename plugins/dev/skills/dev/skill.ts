@@ -1,6 +1,6 @@
 // dev スキル: Linearチケットまたはユーザー指示から実装計画・実装・PR作成を自動で行う
 
-import { EntryPointSkill } from "../../../../app/lib/types";
+import { EntryPointSkill, tool } from "../../../../app/lib/types";
 import linearTriageTeamSkill from "../linear-triage-team/skill";
 import linearTriageExecuteSkill from "../linear-triage-execute/skill";
 import planTeamSkill from "../plan-team/skill";
@@ -14,15 +14,15 @@ const devSkill = new EntryPointSkill({
     "Linearチケットまたはユーザー指示から実装計画・実装・PR作成を自動で行う",
   argumentHint: "[LINEAR_ISSUE_ID or 説明]",
   allowedTools: [
-    "Read",
-    "Write",
-    "Edit",
-    "Glob",
-    "Grep",
-    "Bash",
-    "Task",
-    "AskUserQuestion",
-    "ToolSearch",
+    tool("Read"),
+    tool("Write"),
+    tool("Edit"),
+    tool("Glob"),
+    tool("Grep"),
+    tool("Bash"),
+    tool("Task"),
+    tool("AskUserQuestion"),
+    tool("ToolSearch"),
   ],
   steps: [
     {

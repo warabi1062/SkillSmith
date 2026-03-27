@@ -4,7 +4,8 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition, CommunicationPattern } from "./skill";
+import type { ToolRef, SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition, CommunicationPattern } from "./skill";
+import { serializeToolRef } from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -26,7 +27,7 @@ interface ImportedInlineStep {
   steps: ImportedInlineSubStep[];
   input?: string;
   output?: string;
-  tools?: string[];
+  tools?: ToolRef[];
 }
 
 type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
@@ -49,7 +50,7 @@ interface ImportedSkill {
   description?: string;
   input?: string;
   output?: string;
-  allowedTools?: string[];
+  allowedTools?: ToolRef[];
   argumentHint?: string;
   files?: SupportFile[];
   dependencies?: { name: string }[];
@@ -108,7 +109,7 @@ export interface LoadedInlineStep {
   steps: LoadedInlineSubStep[];
   input?: string;
   output?: string;
-  tools?: string[];
+  tools?: ToolRef[];
 }
 
 // ローダー用のオーケストレーターセクション型
@@ -137,7 +138,7 @@ interface LoadedSkillBase {
   description?: string;
   input?: string;
   output?: string;
-  allowedTools?: string[];
+  allowedTools?: ToolRef[];
   argumentHint?: string;
   files: LoadedSupportFile[];
   dependencies?: string[];

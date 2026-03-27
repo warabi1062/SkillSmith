@@ -1,6 +1,6 @@
 // implement-team スキル: Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う
 
-import { WorkerWithAgentTeam } from "../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
 import type { Teammate } from "../../../../app/lib/types";
 
 const implementer: Teammate = {
@@ -182,15 +182,15 @@ const implementTeamSkill = new WorkerWithAgentTeam({
   input: "- タスクID\n- 実装計画のパス",
   output: "- 実装結果のパス",
   allowedTools: [
-    "Read",
-    "Write",
-    "Edit",
-    "Glob",
-    "Grep",
-    "Bash",
-    "Task",
-    "AskUserQuestion",
-    "ToolSearch",
+    tool("Read"),
+    tool("Write"),
+    tool("Edit"),
+    tool("Glob"),
+    tool("Grep"),
+    tool("Bash"),
+    tool("Task"),
+    tool("AskUserQuestion"),
+    tool("ToolSearch"),
   ],
   files: [
     { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
