@@ -1,7 +1,7 @@
 import { data } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
 import type { Route } from "./+types/plugins.$id";
-import PluginGraphSection from "../components/PluginGraphSection";
+import OrchestratorStructureView from "../components/OrchestratorStructureView";
 import PluginActionsSection from "../components/PluginActionsSection";
 import * as path from "node:path";
 
@@ -31,7 +31,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
         plugin={{ name: plugin.name, description: plugin.description ?? null }}
       />
 
-      <PluginGraphSection plugin={plugin} />
+      <OrchestratorStructureView plugin={plugin} />
     </div>
   );
 }
