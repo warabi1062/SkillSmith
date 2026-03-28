@@ -355,12 +355,14 @@ function SectionItems({
       {sections.map((s) => (
         <div
           key={s.heading}
-          className="border border-border-subtle rounded-md mb-1 overflow-hidden"
+          className="border border-border-subtle rounded-md mb-2 overflow-hidden bg-bg-surface"
         >
           <div className="px-3.5 py-2 font-display text-sm font-medium text-text-tertiary bg-bg-elevated border-b border-border-subtle">
             {s.heading}
           </div>
-          <BodyContent body={s.body} supportFiles={supportFiles} />
+          <div className="px-3.5 py-2.5">
+            <BodyContent body={s.body} supportFiles={supportFiles} />
+          </div>
         </div>
       ))}
     </>
