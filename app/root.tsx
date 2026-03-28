@@ -81,7 +81,9 @@ export function ErrorBoundary() {
               <h2>{title}</h2>
               <p>{message}</p>
               <p>
-                <Link to="/" className="btn btn-secondary">Back to Home</Link>
+                <Link to="/" className="btn btn-secondary">
+                  Back to Home
+                </Link>
               </p>
             </div>
           </main>

@@ -33,8 +33,8 @@ const devSkill = new EntryPointSkill({
 2. \`^[A-Z]+-\\d+$\` にマッチ（例: LIN-123, PROJ-456）→ Linearモード
 3. それ以外 → Quickモード`,
       cases: {
-        "Linearモード": [linearTriageTeamSkill, linearTriageExecuteSkill],
-        "Quickモード": [generateTaskId],
+        Linearモード: [linearTriageTeamSkill, linearTriageExecuteSkill],
+        Quickモード: [generateTaskId],
       },
     },
     createBranch,

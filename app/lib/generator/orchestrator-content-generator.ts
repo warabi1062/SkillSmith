@@ -1,6 +1,9 @@
 // オーケストレーター（EntryPointSkill）の content を steps + sections + メタデータから自動生成する
 
-import type { LoadedStep, LoadedOrchestratorSection } from "../types/loader.server";
+import type {
+  LoadedStep,
+  LoadedOrchestratorSection,
+} from "../types/loader.server";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
 import { serializeToolRef } from "../types/skill";
@@ -15,10 +18,15 @@ export interface OrchestratorContentInput {
 }
 
 // セクションのpositionを解析するヘルパー
-function parseStepPosition(position: string): { type: "before-step" | "after-step"; index: number } | null {
+function parseStepPosition(
+  position: string,
+): { type: "before-step" | "after-step"; index: number } | null {
   const match = position.match(/^(before-step|after-step):(\d+)$/);
   if (!match) return null;
-  return { type: match[1] as "before-step" | "after-step", index: Number(match[2]) };
+  return {
+    type: match[1] as "before-step" | "after-step",
+    index: Number(match[2]),
+  };
 }
 
 // 指定positionのセクションをレンダリングするヘルパー
@@ -47,7 +55,7 @@ function renderStepsWithSections(
     const stepNumber = `${i + 1}`;
 
     // before-step:{i} セクション
-    const beforeStepSections = sections.filter(s => {
+    const beforeStepSections = sections.filter((s) => {
       const parsed = parseStepPosition(s.position);
       return parsed?.type === "before-step" && parsed.index === i;
     });
@@ -64,7 +72,7 @@ function renderStepsWithSections(
     }
 
     // after-step:{i} セクション
-    const afterStepSections = sections.filter(s => {
+    const afterStepSections = sections.filter((s) => {
       const parsed = parseStepPosition(s.position);
       return parsed?.type === "after-step" && parsed.index === i;
     });
@@ -76,15 +84,20 @@ function renderStepsWithSections(
 }
 
 // 範囲外indexのstep間セクションを収集するヘルパー
-function getOutOfRangeStepSections(sections: LoadedOrchestratorSection[], stepCount: number): LoadedOrchestratorSection[] {
-  return sections.filter(s => {
+function getOutOfRangeStepSections(
+  sections: LoadedOrchestratorSection[],
+  stepCount: number,
+): LoadedOrchestratorSection[] {
+  return sections.filter((s) => {
     const parsed = parseStepPosition(s.position);
     if (!parsed) return false;
     return parsed.index < 0 || parsed.index >= stepCount;
   });
 }
 
-export function generateOrchestratorContent(input: OrchestratorContentInput): string {
+export function generateOrchestratorContent(
+  input: OrchestratorContentInput,
+): string {
   const lines: string[] = [];
 
   // ヘッダー
@@ -95,7 +108,8 @@ export function generateOrchestratorContent(input: OrchestratorContentInput): st
   }
 
   // before-steps セクション
-  const beforeSections = input.sections?.filter(s => s.position === "before-steps") ?? [];
+  const beforeSections =
+    input.sections?.filter((s) => s.position === "before-steps") ?? [];
   for (const section of beforeSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);
@@ -110,18 +124,27 @@ export function generateOrchestratorContent(input: OrchestratorContentInput): st
     lines.push("");
 
     // step間セクションを抽出
-    const stepSections = input.sections?.filter(s => {
-      const parsed = parseStepPosition(s.position);
-      return parsed !== null;
-    }) ?? [];
+    const stepSections =
+      input.sections?.filter((s) => {
+        const parsed = parseStepPosition(s.position);
+        return parsed !== null;
+      }) ?? [];
 
-    const stepLines = renderStepsWithSections(input.steps, stepSections, input.skillDescriptions);
+    const stepLines = renderStepsWithSections(
+      input.steps,
+      stepSections,
+      input.skillDescriptions,
+    );
     lines.push(stepLines);
   }
 
   // after-steps セクション + 範囲外indexのフォールバック
-  const afterSections = input.sections?.filter(s => s.position === "after-steps") ?? [];
-  const outOfRange = getOutOfRangeStepSections(input.sections ?? [], input.steps.length);
+  const afterSections =
+    input.sections?.filter((s) => s.position === "after-steps") ?? [];
+  const outOfRange = getOutOfRangeStepSections(
+    input.sections ?? [],
+    input.steps.length,
+  );
   for (const section of [...afterSections, ...outOfRange]) {
     lines.push("");
     lines.push(`## ${section.heading}`);
@@ -178,7 +201,9 @@ function renderInlineStep(step: LoadedInlineStep, stepNumber: string): string {
   // 使用ツール
   if (step.tools && step.tools.length > 0) {
     lines.push("");
-    lines.push(`**使用ツール**: ${step.tools.map(serializeToolRef).join(", ")}`);
+    lines.push(
+      `**使用ツール**: ${step.tools.map(serializeToolRef).join(", ")}`,
+    );
   }
 
   if (step.input) {

@@ -25,8 +25,7 @@ export function validateGeneratedPlugin(
     errors.push({
       severity: "error",
       code: "EMPTY_PLUGIN",
-      message:
-        "Plugin must have at least one component (skill or agent)",
+      message: "Plugin must have at least one component (skill or agent)",
     });
   } else {
     // Only check file-level emptiness when skill-level check didn't fire
@@ -37,8 +36,7 @@ export function validateGeneratedPlugin(
       errors.push({
         severity: "error",
         code: "EMPTY_PLUGIN",
-        message:
-          "Plugin must have at least one component (skill or agent)",
+        message: "Plugin must have at least one component (skill or agent)",
       });
     }
   }

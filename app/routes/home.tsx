@@ -36,7 +36,9 @@ export default function Home() {
         <div className="home-feature">
           <div className="home-feature-icon home-feature-icon--teal">S</div>
           <h4>Skill Schema</h4>
-          <p>Orchestrator + Worker + Agent パターンに沿ったスキルを構造的に定義</p>
+          <p>
+            Orchestrator + Worker + Agent パターンに沿ったスキルを構造的に定義
+          </p>
         </div>
         <div className="home-feature">
           <div className="home-feature-icon home-feature-icon--amber">O</div>

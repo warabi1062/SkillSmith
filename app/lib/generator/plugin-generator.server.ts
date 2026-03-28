@@ -1,7 +1,6 @@
 import type {
   LoadedPluginDefinition,
   LoadedSkillUnion,
-  LoadedSupportFile,
 } from "../types/loader.server";
 import type {
   GeneratedPlugin,
@@ -16,7 +15,6 @@ import { generateSupportFiles } from "./file-generator.server";
 import { generateOrchestratorContent } from "./orchestrator-content-generator";
 import { generateTeamContent } from "./team-content-generator";
 import { generateWorkerContent } from "./worker-content-generator";
-import { generateAgentContent } from "./agent-content-generator";
 
 export interface GeneratePluginResult {
   plugin: GeneratedPlugin;
@@ -103,7 +101,11 @@ function generateSkillComponent(
   }
 
   // WorkerWithAgentTeam の場合は teammates から content を自動生成する
-  if (skill.skillType === "WORKER_WITH_AGENT_TEAM" && skill.teammates && skill.teamPrefix) {
+  if (
+    skill.skillType === "WORKER_WITH_AGENT_TEAM" &&
+    skill.teammates &&
+    skill.teamPrefix
+  ) {
     content = generateTeamContent({
       name: skill.name,
       description: skill.description,

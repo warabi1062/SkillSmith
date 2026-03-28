@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { generateAgentMd, generateAgentTeamMd } from "../agent-generator.server";
+import {
+  generateAgentMd,
+  generateAgentTeamMd,
+} from "../agent-generator.server";
 import { tool } from "../../types/skill";
 import type { ToolRef } from "../../types/skill";
 
@@ -61,9 +64,7 @@ describe("generateAgentMd", () => {
   });
 
   it("modelをfrontmatterに含める", () => {
-    const { file } = generateAgentMd(
-      makeAgentComponent({ model: "sonnet" }),
-    );
+    const { file } = generateAgentMd(makeAgentComponent({ model: "sonnet" }));
     expect(file!.content).toContain("model: sonnet");
   });
 
@@ -91,9 +92,7 @@ describe("generateAgentMd", () => {
   });
 
   it("input/outputがundefinedの場合はfrontmatterに含めない", () => {
-    const { file } = generateAgentMd(
-      makeAgentComponent({}),
-    );
+    const { file } = generateAgentMd(makeAgentComponent({}));
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
   });

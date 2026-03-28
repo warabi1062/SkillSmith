@@ -4,7 +4,9 @@ interface PluginActionsSectionProps {
   plugin: { name: string; description: string | null };
 }
 
-export default function PluginActionsSection({ plugin }: PluginActionsSectionProps) {
+export default function PluginActionsSection({
+  plugin,
+}: PluginActionsSectionProps) {
   return (
     <div className="detail-header">
       <div>

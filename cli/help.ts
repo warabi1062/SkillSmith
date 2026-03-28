@@ -5,9 +5,10 @@ import type { CommandDefinition } from "./types";
 
 // パッケージバージョンを package.json から取得するヘルパー
 export function getVersion(): string {
-  const dir = typeof __dirname !== "undefined"
-    ? __dirname
-    : fileURLToPath(new URL(".", import.meta.url));
+  const dir =
+    typeof __dirname !== "undefined"
+      ? __dirname
+      : fileURLToPath(new URL(".", import.meta.url));
   const pkgPath = resolve(dir, "..", "package.json");
   const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
   return pkg.version;
@@ -71,9 +72,7 @@ export function formatEntityHelp(
   ];
 
   // アクション名の最大幅を計算して列を揃える
-  const maxWidth = Math.max(
-    ...entityCommands.map((cmd) => cmd.action.length),
-  );
+  const maxWidth = Math.max(...entityCommands.map((cmd) => cmd.action.length));
   for (const cmd of entityCommands) {
     lines.push(`  ${cmd.action.padEnd(maxWidth)}    ${cmd.description}`);
   }

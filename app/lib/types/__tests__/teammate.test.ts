@@ -38,10 +38,7 @@ describe("WorkerWithAgentTeam", () => {
   it("teammates ベースで作成した場合、agentTeamMembers が自動導出される", () => {
     const skill = new WorkerWithAgentTeam({
       name: "test-team",
-      teammates: [
-        makeTeammate("worker", 1),
-        makeTeammate("reviewer", 2),
-      ],
+      teammates: [makeTeammate("worker", 1), makeTeammate("reviewer", 2)],
       teamPrefix: "test",
     });
 
@@ -58,9 +55,7 @@ describe("WorkerWithAgentTeam", () => {
     const skill = new WorkerWithAgentTeam({
       name: "legacy-team",
       content: "# Legacy",
-      agentTeamMembers: [
-        { skillName: "worker", sortOrder: 1 },
-      ],
+      agentTeamMembers: [{ skillName: "worker", sortOrder: 1 }],
     });
 
     expect(skill.agentTeamMembers).toEqual([

@@ -25,9 +25,10 @@ const linearManageSkill = new EntryPointSkill({
   steps: [
     {
       decisionPoint: "入力判定",
-      description: "`$ARGUMENTS` が `^[A-Z]+-\\d+$` にマッチする場合（例: LIN-123）は **既存チケット**、それ以外は **新規作成** として処理する。",
+      description:
+        "`$ARGUMENTS` が `^[A-Z]+-\\d+$` にマッチする場合（例: LIN-123）は **既存チケット**、それ以外は **新規作成** として処理する。",
       cases: {
-        "新規作成": [
+        新規作成: [
           {
             inline: "チケット種類確認",
             steps: [
@@ -67,7 +68,7 @@ const linearManageSkill = new EntryPointSkill({
             ],
           },
         ],
-        "既存チケット": [],
+        既存チケット: [],
       },
     },
     linearTriageTeamSkill,

@@ -16,7 +16,7 @@ describe("isBranch", () => {
   it("Branch オブジェクトに対して true を返す", () => {
     const branch: Branch = {
       decisionPoint: "入力判定",
-      cases: { "A": [], "B": [] },
+      cases: { A: [], B: [] },
     };
     expect(isBranch(branch)).toBe(true);
   });
@@ -64,8 +64,8 @@ describe("collectSkillsFromSteps", () => {
       {
         decisionPoint: "分岐",
         cases: {
-          "A": [s1, s2],
-          "B": [s3],
+          A: [s1, s2],
+          B: [s3],
         },
       },
     ];
@@ -80,8 +80,8 @@ describe("collectSkillsFromSteps", () => {
       {
         decisionPoint: "分岐",
         cases: {
-          "A": [s1, shared],
-          "B": [shared],
+          A: [s1, shared],
+          B: [shared],
         },
       },
     ];
@@ -98,8 +98,8 @@ describe("collectSkillsFromSteps", () => {
       {
         decisionPoint: "入力判定",
         cases: {
-          "Linearモード": [s1, s2],
-          "Quickモード": [],
+          Linearモード: [s1, s2],
+          Quickモード: [],
         },
       },
       s3,
@@ -117,17 +117,17 @@ describe("collectSkillsFromSteps", () => {
       {
         decisionPoint: "外側",
         cases: {
-          "A": [
+          A: [
             s1,
             {
               decisionPoint: "内側",
               cases: {
-                "X": [s2],
-                "Y": [s3],
+                X: [s2],
+                Y: [s3],
               },
             },
           ],
-          "B": [],
+          B: [],
         },
       },
     ];
@@ -152,8 +152,8 @@ describe("collectSkillsFromSteps", () => {
       {
         decisionPoint: "分岐",
         cases: {
-          "A": [{ inline: "準備", steps: [] }, s1],
-          "B": [{ inline: "クリーンアップ", steps: [] }],
+          A: [{ inline: "準備", steps: [] }, s1],
+          B: [{ inline: "クリーンアップ", steps: [] }],
         },
       },
     ];

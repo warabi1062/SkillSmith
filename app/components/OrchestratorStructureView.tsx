@@ -46,7 +46,7 @@ interface WorkerStepFields extends BodyFields {
 interface TeammateFields {
   name: string;
   role: string;
-  steps: (WorkerStepFields)[];
+  steps: WorkerStepFields[];
   communicationPattern?: CommunicationPattern;
 }
 
@@ -95,39 +95,67 @@ export function convertStep(step: LoadedStep): StepFields {
   return {
     type: "inline",
     label: inline.inline,
-    inlineSteps: inline.steps.map(s => ({ id: s.id, title: s.title, body: s.body, bodyFile: s.bodyFile })),
+    inlineSteps: inline.steps.map((s) => ({
+      id: s.id,
+      title: s.title,
+      body: s.body,
+      bodyFile: s.bodyFile,
+    })),
     inlineTools: inline.tools?.map(serializeToolRef),
   };
 }
 
-export function convertSections(sections: LoadedOrchestratorSection[]): SectionFields[] {
-  return sections.map(s => ({ heading: s.heading, body: s.body, bodyFile: s.bodyFile, position: s.position }));
+export function convertSections(
+  sections: LoadedOrchestratorSection[],
+): SectionFields[] {
+  return sections.map((s) => ({
+    heading: s.heading,
+    body: s.body,
+    bodyFile: s.bodyFile,
+    position: s.position,
+  }));
 }
 
 // --- ヘルパー関数 ---
 
 // セクションのpositionを解析するヘルパー
-function parseStepPosition(position: string): { type: "before-step" | "after-step"; index: number } | null {
+function parseStepPosition(
+  position: string,
+): { type: "before-step" | "after-step"; index: number } | null {
   const match = position.match(/^(before-step|after-step):(\d+)$/);
   if (!match) return null;
-  return { type: match[1] as "before-step" | "after-step", index: Number(match[2]) };
+  return {
+    type: match[1] as "before-step" | "after-step",
+    index: Number(match[2]),
+  };
 }
 
 // 指定indexのbefore-step/after-stepセクションを取得するヘルパー
-function getStepSections(sections: SectionFields[] | null | undefined, type: "before-step" | "after-step", index: number): SectionFields[] {
-  return sections?.filter(s => {
-    const parsed = parseStepPosition(s.position);
-    return parsed?.type === type && parsed.index === index;
-  }) ?? [];
+function getStepSections(
+  sections: SectionFields[] | null | undefined,
+  type: "before-step" | "after-step",
+  index: number,
+): SectionFields[] {
+  return (
+    sections?.filter((s) => {
+      const parsed = parseStepPosition(s.position);
+      return parsed?.type === type && parsed.index === index;
+    }) ?? []
+  );
 }
 
 // 範囲外indexのstep間セクションを取得するヘルパー
-function getOutOfRangeSections(sections: SectionFields[] | null | undefined, stepCount: number): SectionFields[] {
-  return sections?.filter(s => {
-    const parsed = parseStepPosition(s.position);
-    if (!parsed) return false;
-    return parsed.index < 0 || parsed.index >= stepCount;
-  }) ?? [];
+function getOutOfRangeSections(
+  sections: SectionFields[] | null | undefined,
+  stepCount: number,
+): SectionFields[] {
+  return (
+    sections?.filter((s) => {
+      const parsed = parseStepPosition(s.position);
+      if (!parsed) return false;
+      return parsed.index < 0 || parsed.index >= stepCount;
+    }) ?? []
+  );
 }
 
 // --- skill情報の組み立て ---
@@ -155,20 +183,35 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
 
   const workerStepsData: WorkerStepFields[] | null =
     skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSteps
-      ? skill.workerSteps.map(s => ({ id: s.id, title: s.title, body: s.body, bodyFile: s.bodyFile }))
+      ? skill.workerSteps.map((s) => ({
+          id: s.id,
+          title: s.title,
+          body: s.body,
+          bodyFile: s.bodyFile,
+        }))
       : null;
 
   const workerSectionsData: SectionFields[] | null =
     skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSections
-      ? skill.workerSections.map(s => ({ heading: s.heading, body: s.body, bodyFile: s.bodyFile, position: s.position }))
+      ? skill.workerSections.map((s) => ({
+          heading: s.heading,
+          body: s.body,
+          bodyFile: s.bodyFile,
+          position: s.position,
+        }))
       : null;
 
   const teammatesData =
     skill.skillType === "WORKER_WITH_AGENT_TEAM" && skill.teammates
-      ? skill.teammates.map(t => ({
+      ? skill.teammates.map((t) => ({
           name: t.name,
           role: t.role,
-          steps: t.steps.map(s => ({ id: s.id, title: s.title, body: s.body, bodyFile: s.bodyFile })),
+          steps: t.steps.map((s) => ({
+            id: s.id,
+            title: s.title,
+            body: s.body,
+            bodyFile: s.bodyFile,
+          })),
           communicationPattern: t.communicationPattern,
         }))
       : null;
@@ -184,14 +227,16 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? JSON.stringify(skill.allowedTools.map(serializeToolRef))
       : null,
     steps: skill.steps ? skill.steps.map(convertStep) : null,
-    sections: skill.sections ? convertSections(skill.sections as LoadedOrchestratorSection[]) : null,
+    sections: skill.sections
+      ? convertSections(skill.sections as LoadedOrchestratorSection[])
+      : null,
     agentConfig: agentConfigData
       ? {
           model: agentConfigData.model ?? "",
           tools: (agentConfigData.tools ?? []).map(serializeToolRef),
           agentContent: agentConfigData.content ?? "",
           description: agentConfigData.description,
-          sections: agentConfigData.sections?.map(s => ({
+          sections: agentConfigData.sections?.map((s) => ({
             heading: s.heading,
             body: s.body ?? "",
             position: s.position,
@@ -202,7 +247,7 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     workerSections: workerSectionsData,
     teammates: teammatesData,
     supportFiles: Object.fromEntries(
-      (skill.files ?? []).map(f => [f.filename, f.content]),
+      (skill.files ?? []).map((f) => [f.filename, f.content]),
     ),
   };
 }
@@ -210,13 +255,23 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
 // --- 表示コンポーネント ---
 
 // bodyFile の内容をサイドパネルで表示するコンポーネント（Portalで body 直下にレンダリング）
-function BodyFilePanel({ filename, content, onClose }: { filename: string; content: string; onClose: () => void }) {
+function BodyFilePanel({
+  filename,
+  content,
+  onClose,
+}: {
+  filename: string;
+  content: string;
+  onClose: () => void;
+}) {
   return createPortal(
     <div className="ov-sidepanel-overlay" onClick={onClose}>
-      <div className="ov-sidepanel" onClick={e => e.stopPropagation()}>
+      <div className="ov-sidepanel" onClick={(e) => e.stopPropagation()}>
         <div className="ov-sidepanel-header">
           <span className="ov-sidepanel-filename">{filename}</span>
-          <button className="ov-sidepanel-close" onClick={onClose}>&times;</button>
+          <button className="ov-sidepanel-close" onClick={onClose}>
+            &times;
+          </button>
         </div>
         <div className="ov-sidepanel-content">
           <Markdown>{content}</Markdown>
@@ -229,7 +284,13 @@ function BodyFilePanel({ filename, content, onClose }: { filename: string; conte
 
 // body テキスト内をMarkdownレンダリングするコンポーネント
 // supportFiles内のファイルへのリンクはクリックでサイドパネルを開く
-function BodyContent({ body, supportFiles }: { body: string; supportFiles?: SupportFileMap }) {
+function BodyContent({
+  body,
+  supportFiles,
+}: {
+  body: string;
+  supportFiles?: SupportFileMap;
+}) {
   const [openFile, setOpenFile] = useState<string | null>(null);
 
   if (!body) return null;
@@ -271,10 +332,16 @@ function BodyContent({ body, supportFiles }: { body: string; supportFiles?: Supp
 }
 
 // セクション一覧の表示
-function SectionItems({ sections, supportFiles }: { sections: SectionFields[]; supportFiles?: SupportFileMap }) {
+function SectionItems({
+  sections,
+  supportFiles,
+}: {
+  sections: SectionFields[];
+  supportFiles?: SupportFileMap;
+}) {
   return (
     <>
-      {sections.map(s => (
+      {sections.map((s) => (
         <div key={s.heading} className="ov-section">
           <div className="ov-section-heading">{s.heading}</div>
           <BodyContent body={s.body} supportFiles={supportFiles} />
@@ -285,7 +352,15 @@ function SectionItems({ sections, supportFiles }: { sections: SectionFields[]; s
 }
 
 // ステップの再帰的表示コンポーネント
-function StepItem({ step, index, allSkills }: { step: StepFields; index: number; allSkills: LoadedSkillUnion[] }) {
+function StepItem({
+  step,
+  index,
+  allSkills,
+}: {
+  step: StepFields;
+  index: number;
+  allSkills: LoadedSkillUnion[];
+}) {
   if (step.type === "branch") {
     return (
       <div className="ov-step">
@@ -294,14 +369,21 @@ function StepItem({ step, index, allSkills }: { step: StepFields; index: number;
         </div>
         <div className="ov-step-content">
           {step.description && (
-            <div className="ov-step-desc ov-markdown"><Markdown>{step.description}</Markdown></div>
+            <div className="ov-step-desc ov-markdown">
+              <Markdown>{step.description}</Markdown>
+            </div>
           )}
           {step.cases?.map((c) => (
             <div key={c.name} className="ov-case">
               <div className="ov-case-label">{c.name}</div>
               <div className="ov-case-steps">
                 {c.steps.map((s, i) => (
-                  <StepItem key={`${s.label}-${i}`} step={s} index={i + 1} allSkills={allSkills} />
+                  <StepItem
+                    key={`${s.label}-${i}`}
+                    step={s}
+                    index={i + 1}
+                    allSkills={allSkills}
+                  />
                 ))}
               </div>
             </div>
@@ -323,7 +405,9 @@ function StepItem({ step, index, allSkills }: { step: StepFields; index: number;
             <div className="ov-inline-tools">
               <span className="ov-inline-tools-label">Tools:</span>
               {step.inlineTools.map((tool) => (
-                <span key={tool} className="ov-tool-tag">{tool}</span>
+                <span key={tool} className="ov-tool-tag">
+                  {tool}
+                </span>
               ))}
             </div>
           )}
@@ -345,7 +429,7 @@ function StepItem({ step, index, allSkills }: { step: StepFields; index: number;
   }
 
   // skillステップ: 参照先skillを検索してインライン展開
-  const referencedSkill = allSkills.find(s => s.name === step.label) ?? null;
+  const referencedSkill = allSkills.find((s) => s.name === step.label) ?? null;
 
   return (
     <div className="ov-step">
@@ -354,20 +438,24 @@ function StepItem({ step, index, allSkills }: { step: StepFields; index: number;
         {index}. {step.label}
       </div>
       {referencedSkill && (
-        <SkillDetail
-          data={buildSkillDetailData(referencedSkill)}
-          allSkills={allSkills}
-        />
+        <SkillDetail data={buildSkillDetailData(referencedSkill)} />
       )}
     </div>
   );
 }
 
 // スキル詳細のインライン展開
-function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: LoadedSkillUnion[] }) {
-  const showAgentConfig = data.skillType === "WORKER_WITH_SUB_AGENT" && data.agentConfig;
-  const showWorkerSteps = data.skillType === "WORKER_WITH_SUB_AGENT" && data.workerSteps && data.workerSteps.length > 0;
-  const showTeammates = data.skillType === "WORKER_WITH_AGENT_TEAM" && data.teammates && data.teammates.length > 0;
+function SkillDetail({ data }: { data: SkillDetailData }) {
+  const showAgentConfig =
+    data.skillType === "WORKER_WITH_SUB_AGENT" && data.agentConfig;
+  const showWorkerSteps =
+    data.skillType === "WORKER_WITH_SUB_AGENT" &&
+    data.workerSteps &&
+    data.workerSteps.length > 0;
+  const showTeammates =
+    data.skillType === "WORKER_WITH_AGENT_TEAM" &&
+    data.teammates &&
+    data.teammates.length > 0;
 
   return (
     <div className="ov-skill-detail">
@@ -390,33 +478,67 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
       {/* 構造表示: workerSteps */}
       {showWorkerSteps && data.workerSteps ? (
         <div className="ov-structure">
-          <SectionItems sections={data.workerSections?.filter(s => s.position === "before-steps") ?? []} supportFiles={data.supportFiles} />
+          <SectionItems
+            sections={
+              data.workerSections?.filter(
+                (s) => s.position === "before-steps",
+              ) ?? []
+            }
+            supportFiles={data.supportFiles}
+          />
           <label>Worker Steps</label>
           <div className="ov-steps">
             {data.workerSteps.map((step, i) => (
               <div key={step.id}>
-                <SectionItems sections={getStepSections(data.workerSections, "before-step", i)} supportFiles={data.supportFiles} />
+                <SectionItems
+                  sections={getStepSections(
+                    data.workerSections,
+                    "before-step",
+                    i,
+                  )}
+                  supportFiles={data.supportFiles}
+                />
                 <div className="ov-substep">
                   <div className="ov-substep-heading">
                     {step.id}. {step.title}
                   </div>
-                  <BodyContent body={step.body} supportFiles={data.supportFiles} />
+                  <BodyContent
+                    body={step.body}
+                    supportFiles={data.supportFiles}
+                  />
                 </div>
-                <SectionItems sections={getStepSections(data.workerSections, "after-step", i)} supportFiles={data.supportFiles} />
+                <SectionItems
+                  sections={getStepSections(
+                    data.workerSections,
+                    "after-step",
+                    i,
+                  )}
+                  supportFiles={data.supportFiles}
+                />
               </div>
             ))}
           </div>
-          <SectionItems sections={[
-            ...(data.workerSections?.filter(s => s.position === "after-steps") ?? []),
-            ...getOutOfRangeSections(data.workerSections, data.workerSteps.length),
-          ]} supportFiles={data.supportFiles} />
+          <SectionItems
+            sections={[
+              ...(data.workerSections?.filter(
+                (s) => s.position === "after-steps",
+              ) ?? []),
+              ...getOutOfRangeSections(
+                data.workerSections,
+                data.workerSteps.length,
+              ),
+            ]}
+            supportFiles={data.supportFiles}
+          />
         </div>
       ) : (
         /* 本文（workerStepsがない場合） */
         data.content && (
           <div className="ov-field">
             <label>Content</label>
-            <div className="ov-pre ov-markdown"><Markdown>{data.content}</Markdown></div>
+            <div className="ov-pre ov-markdown">
+              <Markdown>{data.content}</Markdown>
+            </div>
           </div>
         )
       )}
@@ -443,36 +565,60 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
           <h5>Agent Config</h5>
           <div className="ov-field">
             <label>Model</label>
-            <span className="ov-model-badge">{data.agentConfig.model || "(not set)"}</span>
+            <span className="ov-model-badge">
+              {data.agentConfig.model || "(not set)"}
+            </span>
           </div>
           <div className="ov-field">
             <label>Tools</label>
             <div className="ov-tools">
-              {data.agentConfig.tools.length > 0 ? data.agentConfig.tools.map((tool) => (
-                <span key={tool} className="ov-tool-tag">{tool}</span>
-              )) : "(not set)"}
+              {data.agentConfig.tools.length > 0
+                ? data.agentConfig.tools.map((tool) => (
+                    <span key={tool} className="ov-tool-tag">
+                      {tool}
+                    </span>
+                  ))
+                : "(not set)"}
             </div>
           </div>
-          {data.agentConfig.description || (data.agentConfig.sections && data.agentConfig.sections.length > 0) ? (
+          {data.agentConfig.description ||
+          (data.agentConfig.sections &&
+            data.agentConfig.sections.length > 0) ? (
             <div className="ov-structure">
               {data.agentConfig.description && (
                 <div className="ov-field">
                   <label>Agent Description</label>
-                  <div className="ov-field-value">{data.agentConfig.description}</div>
+                  <div className="ov-field-value">
+                    {data.agentConfig.description}
+                  </div>
                 </div>
               )}
-              <SectionItems sections={data.agentConfig.sections?.filter(s =>
-                s.position === "before-steps" || s.position.startsWith("before-step:")
-              ) ?? []} />
-              <SectionItems sections={data.agentConfig.sections?.filter(s =>
-                s.position === "after-steps" || s.position.startsWith("after-step:")
-              ) ?? []} />
+              <SectionItems
+                sections={
+                  data.agentConfig.sections?.filter(
+                    (s) =>
+                      s.position === "before-steps" ||
+                      s.position.startsWith("before-step:"),
+                  ) ?? []
+                }
+              />
+              <SectionItems
+                sections={
+                  data.agentConfig.sections?.filter(
+                    (s) =>
+                      s.position === "after-steps" ||
+                      s.position.startsWith("after-step:"),
+                  ) ?? []
+                }
+              />
             </div>
           ) : (
             data.agentConfig.agentContent && (
               <div className="ov-field">
                 <label>Agent Content</label>
-                <div className="ov-pre ov-markdown"><Markdown>{data.agentConfig.agentContent}</Markdown></div>
+                <div className="ov-pre ov-markdown">
+                  <Markdown>{data.agentConfig.agentContent}</Markdown>
+                </div>
               </div>
             )
           )}
@@ -496,9 +642,7 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
                   </div>
                 )}
                 {mate.communicationPattern?.type === "responder" && (
-                  <div className="ov-teammate-meta">
-                    status_check responder
-                  </div>
+                  <div className="ov-teammate-meta">status_check responder</div>
                 )}
                 <div className="ov-teammate-steps">
                   {mate.steps.map((step) => (
@@ -506,7 +650,10 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
                       <div className="ov-substep-heading">
                         {step.id}. {step.title}
                       </div>
-                      <BodyContent body={step.body} supportFiles={data.supportFiles} />
+                      <BodyContent
+                        body={step.body}
+                        supportFiles={data.supportFiles}
+                      />
                     </div>
                   ))}
                 </div>
@@ -520,9 +667,17 @@ function SkillDetail({ data, allSkills }: { data: SkillDetailData; allSkills: Lo
 }
 
 // オーケストレーター単体の構造表示
-export function OrchestratorView({ skill, allSkills }: { skill: LoadedSkillUnion; allSkills: LoadedSkillUnion[] }) {
+export function OrchestratorView({
+  skill,
+  allSkills,
+}: {
+  skill: LoadedSkillUnion;
+  allSkills: LoadedSkillUnion[];
+}) {
   const steps = skill.steps ? skill.steps.map(convertStep) : [];
-  const sections = skill.sections ? convertSections(skill.sections as LoadedOrchestratorSection[]) : [];
+  const sections = skill.sections
+    ? convertSections(skill.sections as LoadedOrchestratorSection[])
+    : [];
 
   return (
     <div className="ov-orchestrator">
@@ -532,26 +687,33 @@ export function OrchestratorView({ skill, allSkills }: { skill: LoadedSkillUnion
       )}
 
       {/* before-steps セクション */}
-      <SectionItems sections={sections.filter(s => s.position === "before-steps")} />
+      <SectionItems
+        sections={sections.filter((s) => s.position === "before-steps")}
+      />
 
       <div className="ov-steps">
         {steps.map((step, i) => (
           <div key={`${step.label}-${i}`} className="ov-step-wrapper">
-            <SectionItems sections={getStepSections(sections, "before-step", i)} />
+            <SectionItems
+              sections={getStepSections(sections, "before-step", i)}
+            />
 
             <StepItem step={step} index={i + 1} allSkills={allSkills} />
 
-            <SectionItems sections={getStepSections(sections, "after-step", i)} />
+            <SectionItems
+              sections={getStepSections(sections, "after-step", i)}
+            />
           </div>
         ))}
       </div>
 
       {/* after-steps セクション + 範囲外フォールバック */}
-      <SectionItems sections={[
-        ...sections.filter(s => s.position === "after-steps"),
-        ...getOutOfRangeSections(sections, steps.length),
-      ]} />
+      <SectionItems
+        sections={[
+          ...sections.filter((s) => s.position === "after-steps"),
+          ...getOutOfRangeSections(sections, steps.length),
+        ]}
+      />
     </div>
   );
 }
-

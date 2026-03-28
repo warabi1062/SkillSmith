@@ -4,8 +4,18 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createJiti } from "jiti";
-import type { ToolRef, SupportFileRole, SkillType, AgentConfig, AgentConfigSection, AgentTeamMember, SupportFile, TeammateStep, OrchestratorSection, SectionPosition, CommunicationPattern } from "./skill";
-import { serializeToolRef } from "./skill";
+import type {
+  ToolRef,
+  SupportFileRole,
+  SkillType,
+  AgentConfig,
+  AgentTeamMember,
+  SupportFile,
+  TeammateStep,
+  OrchestratorSection,
+  SectionPosition,
+  CommunicationPattern,
+} from "./skill";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -56,7 +66,12 @@ interface ImportedSkill {
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
-  sections?: { heading: string; body?: string; bodyFile?: string; position: SectionPosition }[];
+  sections?: {
+    heading: string;
+    body?: string;
+    bodyFile?: string;
+    position: SectionPosition;
+  }[];
   agentConfig?: AgentConfig;
   workerSteps?: TeammateStep[];
   workerSections?: OrchestratorSection[];
@@ -110,7 +125,7 @@ export interface LoadedInlineSubStep {
   id: string;
   title: string;
   body: string;
-  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
+  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // ローダー用のインラインステップ型
@@ -126,7 +141,7 @@ export interface LoadedInlineStep {
 export interface LoadedOrchestratorSection {
   heading: string;
   body: string;
-  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
+  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
   position: SectionPosition;
 }
 
@@ -139,7 +154,9 @@ export function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
 
 // LoadedInlineStep かどうかを判定する型ガード
 export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
-  return typeof step === "object" && "inline" in step && !("decisionPoint" in step);
+  return (
+    typeof step === "object" && "inline" in step && !("decisionPoint" in step)
+  );
 }
 
 // ローダーが返すスキルの共通フィールド
@@ -166,7 +183,7 @@ export interface LoadedSkill extends LoadedSkillBase {
 export interface LoadedAgentConfigSection {
   heading: string;
   body: string;
-  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
+  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
   position: SectionPosition;
 }
 
@@ -175,7 +192,7 @@ export interface LoadedWorkerStep {
   id: string;
   title: string;
   body: string;
-  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
+  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
@@ -191,7 +208,7 @@ export interface LoadedTeammateStep {
   id: string;
   title: string;
   body: string;
-  bodyFile?: string;  // 外部ファイル由来の場合にファイル名を保持（UI表示用）
+  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // ローダー用のチームメンバー型
@@ -259,7 +276,12 @@ async function resolveStepBodyFiles(
 // OrchestratorSection 配列の bodyFile を一括解決
 async function resolveSectionBodyFiles(
   skillDir: string,
-  sections: { heading: string; body?: string; bodyFile?: string; position: SectionPosition }[],
+  sections: {
+    heading: string;
+    body?: string;
+    bodyFile?: string;
+    position: SectionPosition;
+  }[],
 ): Promise<LoadedOrchestratorSection[]> {
   return Promise.all(
     sections.map(async (s) => {
@@ -284,11 +306,18 @@ export async function loadPluginDefinition(
 
   // plugin.ts を動的importで読み込む（jiti で TypeScript をトランスパイル）
   const jiti = createJiti(import.meta.url);
-  const pluginModule = await jiti.import(pluginTsPath) as Record<string, unknown>;
-  const pluginDef = pluginModule.default as ImportedPluginDefinition | undefined;
+  const pluginModule = (await jiti.import(pluginTsPath)) as Record<
+    string,
+    unknown
+  >;
+  const pluginDef = pluginModule.default as
+    | ImportedPluginDefinition
+    | undefined;
 
   if (!pluginDef || !pluginDef.name || !Array.isArray(pluginDef.skills)) {
-    throw new Error(`plugin.ts が有効な PluginDefinition を export していません: ${pluginTsPath}`);
+    throw new Error(
+      `plugin.ts が有効な PluginDefinition を export していません: ${pluginTsPath}`,
+    );
   }
 
   // 各スキルを LoadedSkillUnion に変換
@@ -298,7 +327,12 @@ export async function loadPluginDefinition(
       const loadedFiles: LoadedSupportFile[] = [];
       if (skill.files && Array.isArray(skill.files)) {
         for (const file of skill.files) {
-          const filePath = path.join(dirPath, "skills", skill.name, file.filename);
+          const filePath = path.join(
+            dirPath,
+            "skills",
+            skill.name,
+            file.filename,
+          );
           try {
             const content = await fs.readFile(filePath, "utf-8");
             loadedFiles.push({
@@ -308,9 +342,7 @@ export async function loadPluginDefinition(
               sortOrder: file.sortOrder,
             });
           } catch {
-            throw new Error(
-              `サポートファイルが見つかりません: ${filePath}`,
-            );
+            throw new Error(`サポートファイルが見つかりません: ${filePath}`);
           }
         }
       }
@@ -319,11 +351,16 @@ export async function loadPluginDefinition(
       const skillDir = path.join(dirPath, "skills", skill.name);
 
       // ImportedStep[] → LoadedStep[] への再帰的変換（bodyFile 解決を含む）
-      const loadedSteps = skill.steps ? await convertImportedStepsAsync(skill.steps, skillDir) : undefined;
+      const loadedSteps = skill.steps
+        ? await convertImportedStepsAsync(skill.steps, skillDir)
+        : undefined;
 
       // dependencies の解決: 明示的指定があればそれを使い、なければ steps から自動導出
-      const dependencies = skill.dependencies?.map(d => d.name)
-        ?? (loadedSteps ? collectSkillNamesFromLoadedSteps(loadedSteps) : undefined);
+      const dependencies =
+        skill.dependencies?.map((d) => d.name) ??
+        (loadedSteps
+          ? collectSkillNamesFromLoadedSteps(loadedSteps)
+          : undefined);
 
       // 基本フィールド
       const base = {
@@ -351,10 +388,16 @@ export async function loadPluginDefinition(
           agentConfig: skill.agentConfig,
         };
         if (skill.workerSteps) {
-          loaded.workerSteps = await resolveStepBodyFiles(skillDir, skill.workerSteps);
+          loaded.workerSteps = await resolveStepBodyFiles(
+            skillDir,
+            skill.workerSteps,
+          );
         }
         if (skill.workerSections) {
-          loaded.workerSections = await resolveSectionBodyFiles(skillDir, skill.workerSections);
+          loaded.workerSections = await resolveSectionBodyFiles(
+            skillDir,
+            skill.workerSections,
+          );
         }
         return loaded;
       }
@@ -371,10 +414,12 @@ export async function loadPluginDefinition(
               communicationPattern: t.communicationPattern,
             })),
           );
-          const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(t => ({
-            skillName: t.name,
-            sortOrder: t.sortOrder,
-          }));
+          const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(
+            (t) => ({
+              skillName: t.name,
+              sortOrder: t.sortOrder,
+            }),
+          );
           return {
             ...base,
             skillType: "WORKER_WITH_AGENT_TEAM" as const,
@@ -416,12 +461,15 @@ export interface PluginMeta {
   skillCount: number;
 }
 
-export async function loadPluginMeta(dirPath: string, dirName: string): Promise<PluginMeta | null> {
+export async function loadPluginMeta(
+  dirPath: string,
+  dirName: string,
+): Promise<PluginMeta | null> {
   const pluginTsPath = path.join(dirPath, "plugin.ts");
   try {
     await fs.access(pluginTsPath);
     const jiti = createJiti(import.meta.url);
-    const mod = await jiti.import(pluginTsPath) as Record<string, unknown>;
+    const mod = (await jiti.import(pluginTsPath)) as Record<string, unknown>;
     const def = mod.default as ImportedPluginDefinition | undefined;
     if (def && def.name) {
       return {
@@ -449,21 +497,32 @@ export async function loadAllPluginMeta(): Promise<PluginMeta[]> {
   }
 
   const results = await Promise.all(
-    dirEntries.map((dirName) => loadPluginMeta(path.join(pluginsDir, dirName), dirName)),
+    dirEntries.map((dirName) =>
+      loadPluginMeta(path.join(pluginsDir, dirName), dirName),
+    ),
   );
   return results.filter((r): r is PluginMeta => r !== null);
 }
 
 // ImportedStep[] → LoadedStep[] への再帰的変換（bodyFile 解決を含む非同期版）
-async function convertImportedStepsAsync(steps: ImportedStep[], skillDir: string): Promise<LoadedStep[]> {
+async function convertImportedStepsAsync(
+  steps: ImportedStep[],
+  skillDir: string,
+): Promise<LoadedStep[]> {
   return Promise.all(
     steps.map(async (step): Promise<LoadedStep> => {
       if (isImportedBranch(step)) {
         const cases: Record<string, LoadedStep[]> = {};
         for (const [caseName, caseSteps] of Object.entries(step.cases)) {
-          cases[caseName] = await convertImportedStepsAsync(caseSteps, skillDir);
+          cases[caseName] = await convertImportedStepsAsync(
+            caseSteps,
+            skillDir,
+          );
         }
-        const loaded: LoadedBranch = { decisionPoint: step.decisionPoint, cases };
+        const loaded: LoadedBranch = {
+          decisionPoint: step.decisionPoint,
+          cases,
+        };
         if (step.description) loaded.description = step.description;
         return loaded;
       }

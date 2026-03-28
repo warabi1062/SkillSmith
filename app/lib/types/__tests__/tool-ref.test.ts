@@ -59,10 +59,18 @@ describe("ファクトリ関数", () => {
   });
 
   it("bash() は Bash + pattern のToolRefを返す", () => {
-    expect(bash("npm *")).toEqual({ type: "tool", name: "Bash", pattern: "npm *" });
+    expect(bash("npm *")).toEqual({
+      type: "tool",
+      name: "Bash",
+      pattern: "npm *",
+    });
   });
 
   it("mcp() は type: mcp のToolRefを返す", () => {
-    expect(mcp("server", "method")).toEqual({ type: "mcp", server: "server", method: "method" });
+    expect(mcp("server", "method")).toEqual({
+      type: "mcp",
+      server: "server",
+      method: "method",
+    });
   });
 });

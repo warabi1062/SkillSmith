@@ -69,7 +69,6 @@ describe("export コマンド", () => {
       name: "test-plugin",
       description: "A test plugin",
       skills: [],
-
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: true,
@@ -103,10 +102,7 @@ describe("export コマンド", () => {
 
     try {
       // Act
-      const exitCode = await route(
-        ["plugin", "export", "./plugin.ts"],
-        noop,
-      );
+      const exitCode = await route(["plugin", "export", "./plugin.ts"], noop);
 
       // Assert
       expect(exitCode).toBe(1);
@@ -145,7 +141,6 @@ describe("export コマンド", () => {
     vi.mocked(loadPluginDefinition).mockResolvedValue({
       name: "test-plugin",
       skills: [],
-
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: true,
@@ -158,7 +153,14 @@ describe("export コマンド", () => {
     try {
       // Act
       await route(
-        ["plugin", "export", "./plugin.ts", "--output", "/tmp/output", "--overwrite"],
+        [
+          "plugin",
+          "export",
+          "./plugin.ts",
+          "--output",
+          "/tmp/output",
+          "--overwrite",
+        ],
         noop,
       );
 
@@ -181,7 +183,6 @@ describe("export コマンド", () => {
     vi.mocked(loadPluginDefinition).mockResolvedValue({
       name: "test-plugin",
       skills: [],
-
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: true,
@@ -194,7 +195,14 @@ describe("export コマンド", () => {
     try {
       // Act
       const exitCode = await route(
-        ["plugin", "export", "./plugin.ts", "--output", "/tmp/output", "--json"],
+        [
+          "plugin",
+          "export",
+          "./plugin.ts",
+          "--output",
+          "/tmp/output",
+          "--json",
+        ],
         noop,
       );
 
@@ -217,7 +225,6 @@ describe("export コマンド", () => {
     vi.mocked(loadPluginDefinition).mockResolvedValue({
       name: "test-plugin",
       skills: [],
-
     });
     vi.mocked(exportPlugin).mockResolvedValue({
       success: false,

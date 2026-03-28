@@ -3,11 +3,11 @@
 import type { LoadedAgentConfigSection } from "../types/loader.server";
 
 export interface AgentContentInput {
-  skillName: string;                          // 対応するスキル名
-  description?: string;                       // agentの説明
-  input?: string;                             // 入力の説明
-  output?: string;                            // 出力の説明
-  sections?: LoadedAgentConfigSection[];      // 追加セクション
+  skillName: string; // 対応するスキル名
+  description?: string; // agentの説明
+  input?: string; // 入力の説明
+  output?: string; // 出力の説明
+  sections?: LoadedAgentConfigSection[]; // 追加セクション
 }
 
 export function generateAgentContent(input: AgentContentInput): string {
@@ -41,9 +41,11 @@ export function generateAgentContent(input: AgentContentInput): string {
   lines.push(`${input.skillName} skill の手順に従って実行する。`);
 
   // before-steps セクション（before-step:* もbefore-stepsと同じ位置に配置）
-  const beforeSections = input.sections?.filter(s =>
-    s.position === "before-steps" || s.position.startsWith("before-step:")
-  ) ?? [];
+  const beforeSections =
+    input.sections?.filter(
+      (s) =>
+        s.position === "before-steps" || s.position.startsWith("before-step:"),
+    ) ?? [];
   for (const section of beforeSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);
@@ -52,9 +54,11 @@ export function generateAgentContent(input: AgentContentInput): string {
   }
 
   // after-steps セクション（after-step:* もafter-stepsと同じ位置に配置）
-  const afterSections = input.sections?.filter(s =>
-    s.position === "after-steps" || s.position.startsWith("after-step:")
-  ) ?? [];
+  const afterSections =
+    input.sections?.filter(
+      (s) =>
+        s.position === "after-steps" || s.position.startsWith("after-step:"),
+    ) ?? [];
   for (const section of afterSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);

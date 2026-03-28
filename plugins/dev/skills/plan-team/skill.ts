@@ -3,8 +3,16 @@
 import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
 import type { Teammate, SupportFile } from "../../../../app/lib/types";
 
-const template: SupportFile = { role: "TEMPLATE", filename: "template.md", sortOrder: 1 };
-const planReviewFormat: SupportFile = { role: "REFERENCE", filename: "plan-review-format.md", sortOrder: 2 };
+const template: SupportFile = {
+  role: "TEMPLATE",
+  filename: "template.md",
+  sortOrder: 1,
+};
+const planReviewFormat: SupportFile = {
+  role: "REFERENCE",
+  filename: "plan-review-format.md",
+  sortOrder: 2,
+};
 
 const planner: Teammate = {
   name: "planner",
@@ -141,7 +149,7 @@ const reviewer: Teammate = {
     {
       id: "R6",
       title: "修正完了のポーリング（→ R2 に戻る）",
-      body: "NEEDS_REVISION 送信後、planner の修正完了を確認する。R1 と同じ要領で status_check を送信し、`{status: \"done\"}` を受け取ったら R2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。",
+      body: 'NEEDS_REVISION 送信後、planner の修正完了を確認する。R1 と同じ要領で status_check を送信し、`{status: "done"}` を受け取ったら R2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。',
     },
     {
       id: "R7",
@@ -165,7 +173,8 @@ const planTeamSkill = new WorkerWithAgentTeam({
 - 要件情報（以下のいずれか）:
   - 事前調査ファイルのパス（任意、複数可）
   - 要件テキスト（事前調査なしの場合）`,
-  output: "- 実装計画の保存先パス（`~/claude-code-data/workflows/{タスクID}/plan.md`）",
+  output:
+    "- 実装計画の保存先パス（`~/claude-code-data/workflows/{タスクID}/plan.md`）",
   allowedTools: [
     tool("Read"),
     tool("Write"),

@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import { generateWorkerContent } from "../worker-content-generator";
 import type { WorkerContentInput } from "../worker-content-generator";
 
-function makeInput(overrides?: Partial<WorkerContentInput>): WorkerContentInput {
+function makeInput(
+  overrides?: Partial<WorkerContentInput>,
+): WorkerContentInput {
   return {
     name: "test-worker",
     description: "テスト用ワーカースキル",
@@ -68,11 +70,17 @@ describe("generateWorkerContent", () => {
   });
 
   it("before-stepsセクションがstepsの前に配置される", () => {
-    const result = generateWorkerContent(makeInput({
-      workerSections: [
-        { heading: "前提条件", body: "必要な前提条件の説明。", position: "before-steps" },
-      ],
-    }));
+    const result = generateWorkerContent(
+      makeInput({
+        workerSections: [
+          {
+            heading: "前提条件",
+            body: "必要な前提条件の説明。",
+            position: "before-steps",
+          },
+        ],
+      }),
+    );
 
     const beforeIdx = result.indexOf("## 前提条件");
     const stepsIdx = result.indexOf("## 手順");
@@ -82,11 +90,17 @@ describe("generateWorkerContent", () => {
   });
 
   it("after-stepsセクションがstepsの後に配置される", () => {
-    const result = generateWorkerContent(makeInput({
-      workerSections: [
-        { heading: "注意事項", body: "注意事項の説明。", position: "after-steps" },
-      ],
-    }));
+    const result = generateWorkerContent(
+      makeInput({
+        workerSections: [
+          {
+            heading: "注意事項",
+            body: "注意事項の説明。",
+            position: "after-steps",
+          },
+        ],
+      }),
+    );
 
     const stepsIdx = result.indexOf("## 手順");
     const afterIdx = result.indexOf("## 注意事項");
@@ -96,11 +110,17 @@ describe("generateWorkerContent", () => {
   });
 
   it("before-step:0 を指定したセクションが最初のステップの直前に表示される", () => {
-    const result = generateWorkerContent(makeInput({
-      workerSections: [
-        { heading: "ステップ前メモ", body: "メモ内容", position: "before-step:0" },
-      ],
-    }));
+    const result = generateWorkerContent(
+      makeInput({
+        workerSections: [
+          {
+            heading: "ステップ前メモ",
+            body: "メモ内容",
+            position: "before-step:0",
+          },
+        ],
+      }),
+    );
 
     const sectionIdx = result.indexOf("## ステップ前メモ");
     const step1Idx = result.indexOf("### 1. 計画の読み込み");
@@ -110,11 +130,17 @@ describe("generateWorkerContent", () => {
   });
 
   it("after-step:0 を指定したセクションが最初のステップの直後に表示される", () => {
-    const result = generateWorkerContent(makeInput({
-      workerSections: [
-        { heading: "ステップ間メモ", body: "メモ内容", position: "after-step:0" },
-      ],
-    }));
+    const result = generateWorkerContent(
+      makeInput({
+        workerSections: [
+          {
+            heading: "ステップ間メモ",
+            body: "メモ内容",
+            position: "after-step:0",
+          },
+        ],
+      }),
+    );
 
     const step1Idx = result.indexOf("### 1. 計画の読み込み");
     const sectionIdx = result.indexOf("## ステップ間メモ");
@@ -124,11 +150,17 @@ describe("generateWorkerContent", () => {
   });
 
   it("範囲外indexのstep間セクションはafter-stepsにフォールバックする", () => {
-    const result = generateWorkerContent(makeInput({
-      workerSections: [
-        { heading: "範囲外", body: "フォールバック", position: "after-step:99" },
-      ],
-    }));
+    const result = generateWorkerContent(
+      makeInput({
+        workerSections: [
+          {
+            heading: "範囲外",
+            body: "フォールバック",
+            position: "after-step:99",
+          },
+        ],
+      }),
+    );
 
     const step2Idx = result.indexOf("### 2. 実行");
     const sectionIdx = result.indexOf("## 範囲外");

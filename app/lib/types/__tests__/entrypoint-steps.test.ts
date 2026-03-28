@@ -18,8 +18,8 @@ describe("EntryPointSkill の steps → dependencies 自動導出", () => {
         {
           decisionPoint: "判定",
           cases: {
-            "A": [s1],
-            "B": [],
+            A: [s1],
+            B: [],
           },
         },
         s2,

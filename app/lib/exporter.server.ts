@@ -111,7 +111,9 @@ export async function exportPlugin(
       }
       const message =
         err instanceof Error ? err.message : "Unknown error copying file";
-      result.errors.push(`Failed to copy files to target directory: ${message}`);
+      result.errors.push(
+        `Failed to copy files to target directory: ${message}`,
+      );
       result.writtenFiles = [];
       return result;
     }
