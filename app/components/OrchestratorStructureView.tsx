@@ -356,16 +356,19 @@ function StepItem({
   step,
   index,
   allSkills,
+  prefix = "",
 }: {
   step: StepFields;
   index: number;
   allSkills: LoadedSkillUnion[];
+  prefix?: string;
 }) {
+  const stepLabel = `Step${prefix}${index}`;
   if (step.type === "branch") {
     return (
       <div className="ov-step">
         <div className="ov-step-header ov-step--branch">
-          {index}. {step.label}
+          {stepLabel}. {step.label}
         </div>
         <div className="ov-step-content">
           {step.description && (
@@ -383,6 +386,7 @@ function StepItem({
                     step={s}
                     index={i + 1}
                     allSkills={allSkills}
+                    prefix={`${prefix}${index}-`}
                   />
                 ))}
               </div>
@@ -397,8 +401,8 @@ function StepItem({
     return (
       <div className="ov-step">
         <div className="ov-step-header ov-step--inline">
+          {stepLabel}. {step.label}
           <span className="ov-step-type">INLINE</span>
-          {index}. {step.label}
         </div>
         <div className="ov-step-content">
           {step.inlineTools && step.inlineTools.length > 0 && (
@@ -416,7 +420,7 @@ function StepItem({
               {step.inlineSteps.map((subStep) => (
                 <div key={subStep.id} className="ov-substep">
                   <div className="ov-substep-heading">
-                    {subStep.id}. {subStep.title}
+                    {stepLabel}-{subStep.id}. {subStep.title}
                   </div>
                   <BodyContent body={subStep.body} />
                 </div>
@@ -434,8 +438,8 @@ function StepItem({
   return (
     <div className="ov-step">
       <div className="ov-step-header ov-step--skill">
+        {stepLabel}. {step.label}
         <span className="ov-step-type">SKILL</span>
-        {index}. {step.label}
       </div>
       {referencedSkill && (
         <SkillDetail data={buildSkillDetailData(referencedSkill)} />
