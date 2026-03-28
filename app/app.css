@@ -397,57 +397,6 @@ h3 {
   margin-top: var(--space-lg);
 }
 
-/* === カード === */
-.card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg) var(--space-lg);
-  transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(10, 158, 128, 0.04), transparent 60%);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  pointer-events: none;
-}
-
-.card + .card {
-  margin-top: 0.75rem;
-}
-
-.card:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-elevated);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.card:hover::before {
-  opacity: 1;
-}
-
-.card-title {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: var(--space-xs);
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-
-.card-description {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
 
 /* === バッジ === */
 .badge {
@@ -475,47 +424,6 @@ h3 {
   border: 1px solid rgba(244, 114, 182, 0.2);
 }
 
-/* === プラグイン詳細ページ === */
-.plugin-detail-page {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  position: relative;
-  animation: fadeInUp 0.4s ease-out;
-}
-
-.detail-header {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: var(--space-lg);
-}
-
-.detail-header h2 {
-  margin-bottom: var(--space-xs);
-}
-
-.detail-actions {
-  display: flex;
-  gap: var(--space-sm);
-  margin-top: var(--space-sm);
-}
-
-.back-link {
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) 0;
-  transition: color var(--transition-fast);
-}
-
-.back-link:hover {
-  color: var(--accent-teal);
-}
 
 /* === コンポーネントリスト === */
 .component-list {
@@ -1126,18 +1034,6 @@ h3 {
   margin-top: var(--space-sm);
 }
 
-/* === プラグイン詳細内のオーケストレーター一覧 === */
-.orchestrator-list-header {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: var(--space-sm);
-  padding-bottom: var(--space-xs);
-  border-bottom: 1px solid var(--border-subtle);
-}
 
 /* === エラーページ === */
 .error-page {

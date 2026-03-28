@@ -6,11 +6,11 @@ interface PluginActionsSectionProps {
 
 export default function PluginActionsSection({ plugin }: PluginActionsSectionProps) {
   return (
-    <div className="detail-header">
+    <div className="flex items-start mb-6">
       <div>
-        <h2>{plugin.name}</h2>
+        <h2 className="mb-1">{plugin.name}</h2>
         {plugin.description && (
-          <p className="card-description">{plugin.description}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{plugin.description}</p>
         )}
       </div>
     </div>
