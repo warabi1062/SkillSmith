@@ -265,15 +265,26 @@ function BodyFilePanel({
   onClose: () => void;
 }) {
   return createPortal(
-    <div className="ov-sidepanel-overlay" onClick={onClose}>
-      <div className="ov-sidepanel" onClick={(e) => e.stopPropagation()}>
-        <div className="ov-sidepanel-header">
-          <span className="ov-sidepanel-filename">{filename}</span>
-          <button className="ov-sidepanel-close" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[1000] bg-transparent flex justify-end"
+      onClick={onClose}
+    >
+      <div
+        className="w-[min(600px,90vw)] h-screen bg-bg-surface border-l border-border-default flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle shrink-0">
+          <span className="font-mono text-sm font-semibold text-text-primary">
+            {filename}
+          </span>
+          <button
+            className="bg-transparent border-none text-2xl text-text-tertiary cursor-pointer px-1 leading-none hover:text-text-primary"
+            onClick={onClose}
+          >
             &times;
           </button>
         </div>
-        <div className="ov-sidepanel-content">
+        <div className="ov-sidepanel-content flex-1 overflow-y-auto p-5 text-sm leading-relaxed text-text-secondary">
           <Markdown>{content}</Markdown>
         </div>
       </div>
@@ -297,7 +308,7 @@ function BodyContent({
 
   return (
     <>
-      <div className="ov-substep-body ov-markdown">
+      <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
         <Markdown
           components={{
             a: ({ href, children }) => {
@@ -306,7 +317,7 @@ function BodyContent({
               if (fileContent !== undefined) {
                 return (
                   <span
-                    className="ov-bodyfile-link"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 mt-1 font-mono text-[0.8rem] text-accent-teal bg-bg-elevated border border-border-subtle rounded-sm cursor-pointer hover:border-accent-teal hover:bg-accent-teal-dim transition-all before:content-['📄'] before:text-xs"
                     onClick={() => setOpenFile(filename)}
                   >
                     {children}
@@ -342,8 +353,13 @@ function SectionItems({
   return (
     <>
       {sections.map((s) => (
-        <div key={s.heading} className="ov-section">
-          <div className="ov-section-heading">{s.heading}</div>
+        <div
+          key={s.heading}
+          className="border border-border-subtle rounded-md mb-1 overflow-hidden"
+        >
+          <div className="px-3.5 py-2 font-display text-sm font-medium text-text-tertiary bg-bg-elevated border-b border-border-subtle">
+            {s.heading}
+          </div>
           <BodyContent body={s.body} supportFiles={supportFiles} />
         </div>
       ))}
@@ -366,20 +382,25 @@ function StepItem({
   const stepLabel = `Step${prefix}${index}`;
   if (step.type === "branch") {
     return (
-      <div className="ov-step">
-        <div className="ov-step-header ov-step--branch">
+      <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
+        <div className="px-3.5 py-2.5 font-display text-sm font-medium flex items-center gap-2 text-accent-blue font-semibold">
           {stepLabel}. {step.label}
         </div>
-        <div className="ov-step-content">
+        <div className="px-3.5 pb-3.5">
           {step.description && (
-            <div className="ov-step-desc ov-markdown">
+            <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
               <Markdown>{step.description}</Markdown>
             </div>
           )}
           {step.cases?.map((c) => (
-            <div key={c.name} className="ov-case">
-              <div className="ov-case-label">{c.name}</div>
-              <div className="ov-case-steps">
+            <div
+              key={c.name}
+              className="mt-2 ml-4 border-l-2 border-accent-blue-border pl-4"
+            >
+              <div className="font-display text-sm font-semibold text-accent-blue mb-1 tracking-[0.01em]">
+                {c.name}
+              </div>
+              <div className="flex flex-col gap-1.5">
                 {c.steps.map((s, i) => (
                   <StepItem
                     key={`${s.label}-${i}`}
@@ -399,27 +420,34 @@ function StepItem({
 
   if (step.type === "inline") {
     return (
-      <div className="ov-step">
-        <div className="ov-step-header ov-step--inline">
+      <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
+        <div className="px-3.5 py-2.5 font-display text-sm font-medium text-text-primary flex items-center gap-2">
           {stepLabel}. {step.label}
-          <span className="ov-step-type">INLINE</span>
+          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-bg-hover text-text-secondary border border-border-default">
+            INLINE
+          </span>
         </div>
-        <div className="ov-step-content">
+        <div className="px-3.5 pb-3.5">
           {step.inlineTools && step.inlineTools.length > 0 && (
-            <div className="ov-inline-tools">
-              <span className="ov-inline-tools-label">Tools:</span>
+            <div className="flex flex-wrap gap-1.5 items-center mb-2">
+              <span className="font-display text-xs font-semibold text-text-tertiary mr-1 uppercase tracking-wider">
+                Tools:
+              </span>
               {step.inlineTools.map((tool) => (
-                <span key={tool} className="ov-tool-tag">
+                <span
+                  key={tool}
+                  className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
+                >
                   {tool}
                 </span>
               ))}
             </div>
           )}
           {step.inlineSteps && step.inlineSteps.length > 0 && (
-            <div className="ov-inline-substeps">
+            <div>
               {step.inlineSteps.map((subStep) => (
-                <div key={subStep.id} className="ov-substep">
-                  <div className="ov-substep-heading">
+                <div key={subStep.id} className="mb-2">
+                  <div className="font-display text-sm font-medium text-text-primary py-1">
                     {stepLabel}-{subStep.id}. {subStep.title}
                   </div>
                   <BodyContent body={subStep.body} />
@@ -436,10 +464,12 @@ function StepItem({
   const referencedSkill = allSkills.find((s) => s.name === step.label) ?? null;
 
   return (
-    <div className="ov-step">
-      <div className="ov-step-header ov-step--skill">
+    <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
+      <div className="px-3.5 py-2.5 font-display text-sm font-medium text-text-primary flex items-center gap-2">
         {stepLabel}. {step.label}
-        <span className="ov-step-type">SKILL</span>
+        <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-amber-dim text-accent-amber border border-accent-amber-border">
+          SKILL
+        </span>
       </div>
       {referencedSkill && (
         <SkillDetail data={buildSkillDetailData(referencedSkill)} />
@@ -462,22 +492,31 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
     data.teammates.length > 0;
 
   return (
-    <div className="ov-skill-detail">
+    <div className="ml-6 px-6 py-4 border-l-[3px] border-border-strong my-1 rounded-r-md">
       {/* 説明 */}
       {data.description && (
-        <div className="ov-field">
-          <label>Description</label>
-          <div className="ov-field-value">{data.description}</div>
+        <div className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+            Description
+          </label>
+          <div className="text-sm text-text-secondary leading-normal">
+            {data.description}
+          </div>
         </div>
       )}
 
       {/* Allowed Tools */}
       {data.allowedTools && data.allowedTools.length > 0 && (
-        <div className="ov-field">
-          <label>Allowed Tools</label>
-          <div className="ov-tools">
+        <div className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+            Allowed Tools
+          </label>
+          <div className="flex flex-wrap gap-1.5">
             {data.allowedTools.map((tool) => (
-              <span key={tool} className="ov-tool-tag">
+              <span
+                key={tool}
+                className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
+              >
                 {tool}
               </span>
             ))}
@@ -487,7 +526,7 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
 
       {/* 構造表示: workerSteps */}
       {showWorkerSteps && data.workerSteps ? (
-        <div className="ov-structure">
+        <div className="flex flex-col gap-2">
           <SectionItems
             sections={
               data.workerSections?.filter(
@@ -496,8 +535,10 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
             }
             supportFiles={data.supportFiles}
           />
-          <label>Worker Steps</label>
-          <div className="ov-steps">
+          <label className="font-display font-semibold text-sm text-text-primary mt-1">
+            Worker Steps
+          </label>
+          <div className="flex flex-col gap-2">
             {data.workerSteps.map((step, i) => (
               <div key={step.id}>
                 <SectionItems
@@ -508,8 +549,8 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
                   )}
                   supportFiles={data.supportFiles}
                 />
-                <div className="ov-substep">
-                  <div className="ov-substep-heading">
+                <div className="mb-2">
+                  <div className="font-display text-sm font-medium text-text-primary py-1">
                     {step.id}. {step.title}
                   </div>
                   <BodyContent
@@ -544,9 +585,11 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
       ) : (
         /* 本文（workerStepsがない場合） */
         data.content && (
-          <div className="ov-field">
-            <label>Content</label>
-            <div className="ov-pre ov-markdown">
+          <div className="mb-3">
+            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+              Content
+            </label>
+            <div className="m-0 p-3 bg-bg-deep border border-border-subtle rounded-sm font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
               <Markdown>{data.content}</Markdown>
             </div>
           </div>
@@ -555,36 +598,53 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
 
       {/* 入力 */}
       {data.input && (
-        <div className="ov-field">
-          <label>Input</label>
-          <div className="ov-field-value">{data.input}</div>
+        <div className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+            Input
+          </label>
+          <div className="text-sm text-text-secondary leading-normal">
+            {data.input}
+          </div>
         </div>
       )}
 
       {/* 出力 */}
       {data.output && (
-        <div className="ov-field">
-          <label>Output</label>
-          <div className="ov-field-value">{data.output}</div>
+        <div className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+            Output
+          </label>
+          <div className="text-sm text-text-secondary leading-normal">
+            {data.output}
+          </div>
         </div>
       )}
 
       {/* AgentConfig */}
       {showAgentConfig && data.agentConfig && (
-        <div className="ov-agent-config">
-          <h5>Agent Config</h5>
-          <div className="ov-field">
-            <label>Model</label>
-            <span className="ov-model-badge">
+        <div className="border-t border-border-subtle pt-4 mt-4">
+          <h5 className="font-display mb-2 text-sm font-semibold text-text-primary tracking-[0.01em]">
+            Agent Config
+          </h5>
+          <div className="mb-3">
+            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+              Model
+            </label>
+            <span className="inline-block px-2.5 py-0.5 font-mono text-xs font-semibold rounded-full bg-gradient-to-br from-model-purple-from to-model-purple-to text-white shadow-[0_0_12px_var(--color-model-purple-glow)]">
               {data.agentConfig.model || "(not set)"}
             </span>
           </div>
-          <div className="ov-field">
-            <label>Tools</label>
-            <div className="ov-tools">
+          <div className="mb-3">
+            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+              Tools
+            </label>
+            <div className="flex flex-wrap gap-1.5">
               {data.agentConfig.tools.length > 0
                 ? data.agentConfig.tools.map((tool) => (
-                    <span key={tool} className="ov-tool-tag">
+                    <span
+                      key={tool}
+                      className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
+                    >
                       {tool}
                     </span>
                   ))
@@ -594,11 +654,13 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
           {data.agentConfig.description ||
           (data.agentConfig.sections &&
             data.agentConfig.sections.length > 0) ? (
-            <div className="ov-structure">
+            <div className="flex flex-col gap-2">
               {data.agentConfig.description && (
-                <div className="ov-field">
-                  <label>Agent Description</label>
-                  <div className="ov-field-value">
+                <div className="mb-3">
+                  <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+                    Agent Description
+                  </label>
+                  <div className="text-sm text-text-secondary leading-normal">
                     {data.agentConfig.description}
                   </div>
                 </div>
@@ -624,9 +686,11 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
             </div>
           ) : (
             data.agentConfig.agentContent && (
-              <div className="ov-field">
-                <label>Agent Content</label>
-                <div className="ov-pre ov-markdown">
+              <div className="mb-3">
+                <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+                  Agent Content
+                </label>
+                <div className="m-0 p-3 bg-bg-deep border border-border-subtle rounded-sm font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
                   <Markdown>{data.agentConfig.agentContent}</Markdown>
                 </div>
               </div>
@@ -637,27 +701,36 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
 
       {/* Teammates */}
       {showTeammates && data.teammates && (
-        <div className="ov-teammates">
-          <h5>Teammates</h5>
+        <div className="border-t border-border-subtle pt-4 mt-4">
+          <h5 className="font-display mb-2 text-sm font-semibold text-text-primary">
+            Teammates
+          </h5>
           {data.teammates.map((mate) => (
-            <div key={mate.name} className="ov-teammate">
-              <div className="ov-teammate-header">
-                <span className="ov-teammate-name">{mate.name}</span>
-                <span className="ov-teammate-role">{mate.role}</span>
+            <div
+              key={mate.name}
+              className="border-l-[3px] border-accent-teal mb-3 pl-4"
+            >
+              <div className="flex flex-col gap-0.5">
+                <span className="font-display font-semibold text-accent-teal text-[0.9375rem] tracking-tight">
+                  {mate.name}
+                </span>
+                <span className="text-sm text-text-secondary">{mate.role}</span>
               </div>
-              <div className="ov-teammate-details">
+              <div className="pb-2">
                 {mate.communicationPattern?.type === "poller" && (
-                  <div className="ov-teammate-meta">
+                  <div className="text-sm text-text-tertiary py-0.5 font-mono">
                     polling &rarr; {mate.communicationPattern.target}
                   </div>
                 )}
                 {mate.communicationPattern?.type === "responder" && (
-                  <div className="ov-teammate-meta">status_check responder</div>
+                  <div className="text-sm text-text-tertiary py-0.5 font-mono">
+                    status_check responder
+                  </div>
                 )}
-                <div className="ov-teammate-steps">
+                <div className="mt-2">
                   {mate.steps.map((step) => (
-                    <div key={step.id} className="ov-substep">
-                      <div className="ov-substep-heading">
+                    <div key={step.id} className="mb-2">
+                      <div className="font-display text-sm font-medium text-text-primary py-1">
                         {step.id}. {step.title}
                       </div>
                       <BodyContent
@@ -690,10 +763,14 @@ export function OrchestratorView({
     : [];
 
   return (
-    <div className="ov-orchestrator">
-      <h4 className="ov-orchestrator-title">{skill.name}</h4>
+    <div className="py-6">
+      <h4 className="font-display text-[1.375rem] font-bold text-text-primary mb-2 tracking-tight">
+        {skill.name}
+      </h4>
       {skill.description && (
-        <p className="ov-orchestrator-desc">{skill.description}</p>
+        <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
+          {skill.description}
+        </p>
       )}
 
       {/* before-steps セクション */}
@@ -701,9 +778,9 @@ export function OrchestratorView({
         sections={sections.filter((s) => s.position === "before-steps")}
       />
 
-      <div className="ov-steps">
+      <div className="flex flex-col gap-2">
         {steps.map((step, i) => (
-          <div key={`${step.label}-${i}`} className="ov-step-wrapper">
+          <div key={`${step.label}-${i}`} className="mb-2">
             <SectionItems
               sections={getStepSections(sections, "before-step", i)}
             />

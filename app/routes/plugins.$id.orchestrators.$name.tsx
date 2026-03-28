@@ -41,9 +41,12 @@ export default function OrchestratorDetail({
   }
 
   return (
-    <div className="plugin-detail-page">
-      <div className="detail-header">
-        <Link to={`/plugins/${pluginId}`} className="back-link">
+    <div className="flex flex-col flex-1 min-h-0 relative">
+      <div className="flex items-start mb-6">
+        <Link
+          to={`/plugins/${pluginId}`}
+          className="font-display text-sm font-medium text-text-tertiary inline-flex items-center gap-1 py-1 hover:text-accent-teal transition-colors"
+        >
           &larr; {plugin.name}
         </Link>
       </div>
