@@ -39,9 +39,9 @@ export default function OrchestratorDetail({ loaderData }: Route.ComponentProps)
   }
 
   return (
-    <div className="plugin-detail-page">
-      <div className="detail-header">
-        <Link to={`/plugins/${pluginId}`} className="back-link">
+    <div className="flex flex-col flex-1 min-h-0 relative animate-in fade-in slide-in-from-bottom-2 duration-400">
+      <div className="flex items-start mb-6">
+        <Link to={`/plugins/${pluginId}`} className="font-heading text-[0.8125rem] font-medium text-muted-foreground inline-flex items-center gap-1 py-1 transition-colors hover:text-accent-foreground">
           &larr; {plugin.name}
         </Link>
       </div>
