@@ -12,7 +12,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "rootDirs": [".", "./.react-router/types"]
+    "rootDirs": [".", "./.react-router/types"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./app/*"]
+    }
   },
   "include": [".react-router/types/**/*", "app/**/*", "cli/**/*", "plugins/**/*"]
 }
