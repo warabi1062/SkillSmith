@@ -394,27 +394,30 @@ function StepItem({
               <Markdown>{step.description}</Markdown>
             </div>
           )}
-          {step.cases?.map((c) => (
-            <div
-              key={c.name}
-              className="mt-2 ml-4 border-l-2 border-accent-blue-border pl-4"
-            >
-              <div className="font-display text-sm font-semibold text-accent-blue mb-1 tracking-[0.01em]">
-                {c.name}
+          {step.cases?.map((c, caseIndex) => {
+            const caseLetter = String.fromCharCode(65 + caseIndex);
+            return (
+              <div
+                key={c.name}
+                className="mt-2 ml-4 border-l-2 border-accent-blue-border pl-4"
+              >
+                <div className="font-display text-sm font-semibold text-accent-blue mb-1 tracking-[0.01em]">
+                  {c.name}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {c.steps.map((s, i) => (
+                    <StepItem
+                      key={`${s.label}-${i}`}
+                      step={s}
+                      index={i + 1}
+                      allSkills={allSkills}
+                      prefix={`${prefix}${index}${caseLetter}-`}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-col gap-1.5">
-                {c.steps.map((s, i) => (
-                  <StepItem
-                    key={`${s.label}-${i}`}
-                    step={s}
-                    index={i + 1}
-                    allSkills={allSkills}
-                    prefix={`${prefix}${index}-`}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
