@@ -167,7 +167,7 @@ interface SkillDetailData {
   content: string;
   input: string;
   output: string;
-  allowedTools: string | null;
+  allowedTools: string[] | null;
   steps: StepFields[] | null;
   sections: SectionFields[] | null;
   agentConfig: AgentConfigFields | null;
@@ -224,7 +224,7 @@ function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     input: skill.input ?? "",
     output: skill.output ?? "",
     allowedTools: skill.allowedTools
-      ? JSON.stringify(skill.allowedTools.map(serializeToolRef))
+      ? skill.allowedTools.map(serializeToolRef)
       : null,
     steps: skill.steps ? skill.steps.map(convertStep) : null,
     sections: skill.sections
@@ -472,10 +472,16 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
       )}
 
       {/* Allowed Tools */}
-      {data.allowedTools && (
+      {data.allowedTools && data.allowedTools.length > 0 && (
         <div className="ov-field">
           <label>Allowed Tools</label>
-          <div className="ov-field-value">{data.allowedTools}</div>
+          <div className="ov-tools">
+            {data.allowedTools.map((tool) => (
+              <span key={tool} className="ov-tool-tag">
+                {tool}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
