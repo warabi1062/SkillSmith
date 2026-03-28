@@ -30,7 +30,11 @@ describe("generateOrchestratorContent", () => {
       {
         inline: "タスクID生成",
         steps: [
-          { id: "1", title: "slug生成", body: "指示内容から短いslugを生成する" },
+          {
+            id: "1",
+            title: "slug生成",
+            body: "指示内容から短いslugを生成する",
+          },
         ],
         input: "ユーザー指示",
         output: "タスクID: quick-{slug}",
@@ -56,8 +60,13 @@ describe("generateOrchestratorContent", () => {
         decisionPoint: "入力判定",
         description: "入力パターンに応じて分岐する",
         cases: {
-          "モードA": ["worker-a"],
-          "モードB": [{ inline: "手動処理", steps: [{ id: "1", title: "処理実行", body: "手動で処理する" }] }],
+          モードA: ["worker-a"],
+          モードB: [
+            {
+              inline: "手動処理",
+              steps: [{ id: "1", title: "処理実行", body: "手動で処理する" }],
+            },
+          ],
         },
       },
     ];
@@ -101,12 +110,12 @@ describe("generateOrchestratorContent", () => {
       {
         decisionPoint: "分岐1",
         cases: {
-          "ケースA": [
+          ケースA: [
             "worker-b",
             {
               decisionPoint: "分岐2",
               cases: {
-                "サブケース": ["worker-c"],
+                サブケース: ["worker-c"],
               },
             },
           ],
@@ -145,8 +154,16 @@ describe("generateOrchestratorContent", () => {
       {
         inline: "ブランチ作成",
         steps: [
-          { id: "1", title: "ベースブランチ判定", body: "git branch -a で develop の存在を確認する" },
-          { id: "2", title: "ブランチ切り替え", body: "feature/{タスクID} ブランチを作成して切り替える" },
+          {
+            id: "1",
+            title: "ベースブランチ判定",
+            body: "git branch -a で develop の存在を確認する",
+          },
+          {
+            id: "2",
+            title: "ブランチ切り替え",
+            body: "feature/{タスクID} ブランチを作成して切り替える",
+          },
         ],
       },
     ];
@@ -168,9 +185,7 @@ describe("generateOrchestratorContent", () => {
     const steps: LoadedStep[] = [
       {
         inline: "コード検索",
-        steps: [
-          { id: "1", title: "検索実行", body: "関連ファイルを検索する" },
-        ],
+        steps: [{ id: "1", title: "検索実行", body: "関連ファイルを検索する" }],
         tools: [tool("Grep"), tool("Glob"), tool("Read")],
       },
     ];
@@ -210,7 +225,11 @@ describe("generateOrchestratorContent", () => {
       name: "test",
       steps: ["worker-a", "worker-b"],
       sections: [
-        { heading: "Step1の前", body: "Step1前のコンテンツ", position: "before-step:0" },
+        {
+          heading: "Step1の前",
+          body: "Step1前のコンテンツ",
+          position: "before-step:0",
+        },
       ],
     });
 
@@ -226,7 +245,11 @@ describe("generateOrchestratorContent", () => {
       name: "test",
       steps: ["worker-a", "worker-b"],
       sections: [
-        { heading: "Step1の後", body: "Step1後のコンテンツ", position: "after-step:0" },
+        {
+          heading: "Step1の後",
+          body: "Step1後のコンテンツ",
+          position: "after-step:0",
+        },
       ],
     });
 
@@ -242,7 +265,11 @@ describe("generateOrchestratorContent", () => {
       name: "test",
       steps: ["worker-a", "worker-b", "worker-c"],
       sections: [
-        { heading: "Step2の後", body: "Step2後のコンテンツ", position: "after-step:1" },
+        {
+          heading: "Step2の後",
+          body: "Step2後のコンテンツ",
+          position: "after-step:1",
+        },
       ],
     });
 
@@ -258,7 +285,11 @@ describe("generateOrchestratorContent", () => {
       name: "test",
       steps: ["worker-a"],
       sections: [
-        { heading: "範囲外", body: "フォールバックコンテンツ", position: "before-step:99" },
+        {
+          heading: "範囲外",
+          body: "フォールバックコンテンツ",
+          position: "before-step:99",
+        },
       ],
     });
 
@@ -306,9 +337,11 @@ describe("generateOrchestratorContent", () => {
     expect(result).not.toContain("別スキルの説明");
     // スキル名行の後に説明がないことを確認
     const lines = result.split("\n");
-    const stepLine = lines.findIndex(l => l.includes("### Step 1: unknown-skill"));
+    const stepLine = lines.findIndex((l) =>
+      l.includes("### Step 1: unknown-skill"),
+    );
     // ステップ行の次は空行またはファイル末尾
-    const nextNonEmpty = lines.slice(stepLine + 1).find(l => l.trim() !== "");
+    const nextNonEmpty = lines.slice(stepLine + 1).find((l) => l.trim() !== "");
     expect(nextNonEmpty).toBeUndefined();
   });
 });

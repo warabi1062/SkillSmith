@@ -23,7 +23,9 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 export default function PluginDetail({ loaderData }: Route.ComponentProps) {
   const { plugin, pluginId } = loaderData;
-  const orchestrators = plugin.skills.filter(s => s.skillType === "ENTRY_POINT");
+  const orchestrators = plugin.skills.filter(
+    (s) => s.skillType === "ENTRY_POINT",
+  );
 
   return (
     <div className="plugin-detail-page">
@@ -33,10 +35,8 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
 
       {orchestrators.length > 0 && (
         <div className="ov-container">
-          <div className="orchestrator-list-header">
-            Orchestrators
-          </div>
-          {orchestrators.map(orch => (
+          <div className="orchestrator-list-header">Orchestrators</div>
+          {orchestrators.map((orch) => (
             <Link
               key={orch.name}
               to={`/plugins/${pluginId}/orchestrators/${orch.name}`}

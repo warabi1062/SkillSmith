@@ -6,7 +6,9 @@ function captureOutput(): { output: string[]; write: (s: string) => void } {
   const output: string[] = [];
   return {
     output,
-    write: (s: string) => { output.push(s); },
+    write: (s: string) => {
+      output.push(s);
+    },
   };
 }
 

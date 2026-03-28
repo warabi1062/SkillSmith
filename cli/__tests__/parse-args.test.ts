@@ -91,12 +91,7 @@ describe("parseGlobalArgs", () => {
 
   it("未知オプション引数（--name=value 形式）を rest に含める", () => {
     // Arrange & Act
-    const result = parseGlobalArgs([
-      "plugin",
-      "update",
-      "abc",
-      "--name=test",
-    ]);
+    const result = parseGlobalArgs(["plugin", "update", "abc", "--name=test"]);
 
     // Assert
     expect(result.positionals[0]).toBe("plugin");

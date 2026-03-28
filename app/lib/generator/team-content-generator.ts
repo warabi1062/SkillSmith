@@ -3,13 +3,13 @@
 import type { LoadedTeammate } from "../types/loader.server";
 
 export interface TeamContentInput {
-  name: string;                    // スキル名
-  description?: string;            // スキルの説明
-  input?: string;                  // 入力の説明
-  output?: string;                 // 出力の説明
-  teammates: LoadedTeammate[];     // チームメンバー定義
-  teamPrefix: string;              // チーム名のプレフィックス
-  requiresUserApproval?: boolean;  // レビューPASS後にユーザー承認を得るか
+  name: string; // スキル名
+  description?: string; // スキルの説明
+  input?: string; // 入力の説明
+  output?: string; // 出力の説明
+  teammates: LoadedTeammate[]; // チームメンバー定義
+  teamPrefix: string; // チーム名のプレフィックス
+  requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
 export function generateTeamContent(input: TeamContentInput): string {
@@ -38,7 +38,7 @@ export function generateTeamContent(input: TeamContentInput): string {
   const memberNames = input.teammates
     .slice()
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    .map(t => t.name);
+    .map((t) => t.name);
 
   lines.push("");
   lines.push("### 1. チーム作成");
@@ -56,7 +56,9 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("");
   lines.push("### 2. メンバー起動");
   lines.push("");
-  lines.push(`Agent ツールで ${memberNames.join(" と ")} を同時に起動する（並列）。`);
+  lines.push(
+    `Agent ツールで ${memberNames.join(" と ")} を同時に起動する（並列）。`,
+  );
 
   for (const name of memberNames) {
     lines.push("");
@@ -65,17 +67,26 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push("Agent(");
     lines.push(`  team_name: "${input.teamPrefix}-{入力ID}",`);
     lines.push(`  name: "${name}",`);
-    lines.push(`  prompt: 以下の「${name} の作業内容」セクションの指示 + 入力情報`);
+    lines.push(
+      `  prompt: 以下の「${name} の作業内容」セクションの指示 + 入力情報`,
+    );
     lines.push(")");
     lines.push("```");
   }
 
   // ポーリング関係の説明を追加
-  const pollers = input.teammates.filter(t => t.communicationPattern?.type === "poller");
+  const pollers = input.teammates.filter(
+    (t) => t.communicationPattern?.type === "poller",
+  );
   for (const poller of pollers) {
-    const pattern = poller.communicationPattern as { type: "poller"; target: string };
+    const pattern = poller.communicationPattern as {
+      type: "poller";
+      target: string;
+    };
     lines.push("");
-    lines.push(`${poller.name} は起動後、${pattern.target} に定期的に status_check を送信して進捗を確認する。`);
+    lines.push(
+      `${poller.name} は起動後、${pattern.target} に定期的に status_check を送信して進捗を確認する。`,
+    );
   }
 
   // 3. リーダーの役割
@@ -90,16 +101,24 @@ export function generateTeamContent(input: TeamContentInput): string {
 
   if (input.requiresUserApproval) {
     // worker（responder）の名前を特定
-    const worker = input.teammates.find(t => t.communicationPattern?.type === "responder");
+    const worker = input.teammates.find(
+      (t) => t.communicationPattern?.type === "responder",
+    );
     const workerName = worker?.name ?? memberNames[0];
     lines.push("- レビューPASS後、成果物をユーザーに提示して承認を得る");
-    lines.push(`- フィードバックがあれば ${workerName} に SendMessage で修正を依頼する`);
+    lines.push(
+      `- フィードバックがあれば ${workerName} に SendMessage で修正を依頼する`,
+    );
   }
 
   lines.push("- チーム完了後のシャットダウン:");
-  lines.push("  1. 全teammateに SendMessage で `{type: \"shutdown_request\"}` を送信");
+  lines.push(
+    '  1. 全teammateに SendMessage で `{type: "shutdown_request"}` を送信',
+  );
   lines.push("  2. 各teammateの `shutdown_response`（approve）を確認");
-  lines.push("  3. 全員がシャットダウンしたら TeamDelete でチームリソースを削除");
+  lines.push(
+    "  3. 全員がシャットダウンしたら TeamDelete でチームリソースを削除",
+  );
 
   // 4. 出力
   if (input.output) {
@@ -136,16 +155,24 @@ export function generateTeamContent(input: TeamContentInput): string {
       lines.push("");
       lines.push("### status_check への応答ルール");
       // ポーリング元の名前を特定
-      const poller = input.teammates.find(t =>
-        t.communicationPattern?.type === "poller" &&
-        (t.communicationPattern as { type: "poller"; target: string }).target === teammate.name
+      const poller = input.teammates.find(
+        (t) =>
+          t.communicationPattern?.type === "poller" &&
+          (t.communicationPattern as { type: "poller"; target: string })
+            .target === teammate.name,
       );
       const pollerName = poller?.name ?? "reviewer";
-      lines.push(`作業中のどの時点でも、${pollerName} から \`{type: "status_check"}\` を受信する場合がある。受信したら現在の状況を即座に返信する:`);
+      lines.push(
+        `作業中のどの時点でも、${pollerName} から \`{type: "status_check"}\` を受信する場合がある。受信したら現在の状況を即座に返信する:`,
+      );
       lines.push("");
-      lines.push("- `{status: \"working\"}` — まだ作業中");
-      lines.push("- `{status: \"done\", path: \"{成果物ファイルパス}\"}` — 作業完了またはレビュー指摘への対応完了。レビュー可能");
-      lines.push("- `{status: \"blocked\", reason: \"{理由}\"}` — ブロックされている");
+      lines.push('- `{status: "working"}` — まだ作業中');
+      lines.push(
+        '- `{status: "done", path: "{成果物ファイルパス}"}` — 作業完了またはレビュー指摘への対応完了。レビュー可能',
+      );
+      lines.push(
+        '- `{status: "blocked", reason: "{理由}"}` — ブロックされている',
+      );
     }
   }
 

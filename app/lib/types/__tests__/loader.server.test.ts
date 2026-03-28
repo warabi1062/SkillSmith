@@ -120,7 +120,9 @@ describe("loadPluginDefinition", () => {
     expect(result.skills[0].files).toHaveLength(1);
     expect(result.skills[0].files[0].role).toBe("TEMPLATE");
     expect(result.skills[0].files[0].filename).toBe("template.md");
-    expect(result.skills[0].files[0].content).toBe("# Template Content\n\nHello World");
+    expect(result.skills[0].files[0].content).toBe(
+      "# Template Content\n\nHello World",
+    );
     expect(result.skills[0].files[0].sortOrder).toBe(1);
   });
 

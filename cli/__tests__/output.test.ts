@@ -9,8 +9,16 @@ function createMockStreams(): OutputStreams & {
   const stdoutData: string[] = [];
   const stderrData: string[] = [];
   return {
-    stdout: { write: (s: string) => { stdoutData.push(s); } },
-    stderr: { write: (s: string) => { stderrData.push(s); } },
+    stdout: {
+      write: (s: string) => {
+        stdoutData.push(s);
+      },
+    },
+    stderr: {
+      write: (s: string) => {
+        stderrData.push(s);
+      },
+    },
     stdoutData,
     stderrData,
   };

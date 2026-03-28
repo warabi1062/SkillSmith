@@ -18,14 +18,13 @@ const linearTriageExecuteSkill = new WorkerWithSubAgent({
     mcp("plugin_linear_linear", "create_issue"),
     mcp("plugin_linear_linear", "list_issues"),
   ],
-  files: [
-    { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 },
-  ],
+  files: [{ role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 }],
   agentConfig: {
     model: "sonnet",
     tools: [tool("Read"), tool("Write"), tool("ToolSearch")],
     content: "",
-    description: "承認済みのtriage計画に基づいてチケット更新・サブチケット作成を実行するエージェント。",
+    description:
+      "承認済みのtriage計画に基づいてチケット更新・サブチケット作成を実行するエージェント。",
     sections: [
       {
         heading: "セキュリティ",

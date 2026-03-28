@@ -3,9 +3,21 @@
 import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
 import type { Teammate, SupportFile } from "../../../../app/lib/types";
 
-const templateResult: SupportFile = { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 };
-const descriptionStructure: SupportFile = { role: "REFERENCE", filename: "description-structure.md", sortOrder: 2 };
-const triageReviewFormat: SupportFile = { role: "REFERENCE", filename: "triage-review-format.md", sortOrder: 3 };
+const templateResult: SupportFile = {
+  role: "TEMPLATE",
+  filename: "template-result.md",
+  sortOrder: 1,
+};
+const descriptionStructure: SupportFile = {
+  role: "REFERENCE",
+  filename: "description-structure.md",
+  sortOrder: 2,
+};
+const triageReviewFormat: SupportFile = {
+  role: "REFERENCE",
+  filename: "triage-review-format.md",
+  sortOrder: 3,
+};
 
 const triager: Teammate = {
   name: "triager",
@@ -159,7 +171,7 @@ const reviewer: Teammate = {
     {
       id: "R6",
       title: "修正完了のポーリング（→ R2 に戻る）",
-      body: "NEEDS_REVISION 送信後、triager の修正完了を確認する。R1 と同じ要領で status_check を送信し、`{status: \"done\"}` を受け取ったら R2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。",
+      body: 'NEEDS_REVISION 送信後、triager の修正完了を確認する。R1 と同じ要領で status_check を送信し、`{status: "done"}` を受け取ったら R2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。',
     },
     {
       id: "R7",

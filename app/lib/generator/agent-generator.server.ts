@@ -115,7 +115,7 @@ export function generateAgentMd(component: AgentComponentData): {
       description: config.description,
       input: skillConfig.input,
       output: skillConfig.output,
-      sections: config.sections?.map(s => ({
+      sections: config.sections?.map((s) => ({
         heading: s.heading,
         body: s.body ?? "",
         position: s.position,

@@ -17,7 +17,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   try {
     const plugin = await loadPluginDefinition(dirPath);
     const orchestrator = plugin.skills.find(
-      s => s.skillType === "ENTRY_POINT" && s.name === params.name
+      (s) => s.skillType === "ENTRY_POINT" && s.name === params.name,
     );
     if (!orchestrator) {
       throw new Error("Orchestrator not found");
@@ -28,10 +28,12 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 }
 
-export default function OrchestratorDetail({ loaderData }: Route.ComponentProps) {
+export default function OrchestratorDetail({
+  loaderData,
+}: Route.ComponentProps) {
   const { plugin, pluginId, orchestratorName } = loaderData;
   const orchestrator = plugin.skills.find(
-    s => s.skillType === "ENTRY_POINT" && s.name === orchestratorName
+    (s) => s.skillType === "ENTRY_POINT" && s.name === orchestratorName,
   );
 
   if (!orchestrator) {

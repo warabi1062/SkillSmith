@@ -3,8 +3,16 @@
 import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
 import type { Teammate, SupportFile } from "../../../../app/lib/types";
 
-const templateResult: SupportFile = { role: "TEMPLATE", filename: "template-result.md", sortOrder: 1 };
-const reviewResultFormat: SupportFile = { role: "REFERENCE", filename: "review-result-format.md", sortOrder: 2 };
+const templateResult: SupportFile = {
+  role: "TEMPLATE",
+  filename: "template-result.md",
+  sortOrder: 1,
+};
+const reviewResultFormat: SupportFile = {
+  role: "REFERENCE",
+  filename: "review-result-format.md",
+  sortOrder: 2,
+};
 
 const implementer: Teammate = {
   name: "implementer",
@@ -143,7 +151,7 @@ const reviewer: Teammate = {
     {
       id: "V5",
       title: "修正完了のポーリング（→ V2 に戻る）",
-      body: "NEEDS_REVISION 送信後、implementer の修正完了を確認する。V1 と同じ要領で status_check を送信し、`{status: \"done\"}` を受け取ったら V2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。",
+      body: 'NEEDS_REVISION 送信後、implementer の修正完了を確認する。V1 と同じ要領で status_check を送信し、`{status: "done"}` を受け取ったら V2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。',
     },
     {
       id: "V6",

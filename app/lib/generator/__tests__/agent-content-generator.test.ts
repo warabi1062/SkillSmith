@@ -59,11 +59,17 @@ describe("generateAgentContent", () => {
   });
 
   it("before-stepsセクションが実行セクションの後に配置される", () => {
-    const result = generateAgentContent(makeInput({
-      sections: [
-        { heading: "前提条件", body: "必要な前提条件。", position: "before-steps" },
-      ],
-    }));
+    const result = generateAgentContent(
+      makeInput({
+        sections: [
+          {
+            heading: "前提条件",
+            body: "必要な前提条件。",
+            position: "before-steps",
+          },
+        ],
+      }),
+    );
 
     const execIdx = result.indexOf("## 実行");
     const beforeIdx = result.indexOf("## 前提条件");
@@ -73,12 +79,18 @@ describe("generateAgentContent", () => {
   });
 
   it("after-stepsセクションがbefore-stepsの後に配置される", () => {
-    const result = generateAgentContent(makeInput({
-      sections: [
-        { heading: "前提条件", body: "前提条件。", position: "before-steps" },
-        { heading: "セキュリティ", body: "セキュリティ要件。", position: "after-steps" },
-      ],
-    }));
+    const result = generateAgentContent(
+      makeInput({
+        sections: [
+          { heading: "前提条件", body: "前提条件。", position: "before-steps" },
+          {
+            heading: "セキュリティ",
+            body: "セキュリティ要件。",
+            position: "after-steps",
+          },
+        ],
+      }),
+    );
 
     const beforeIdx = result.indexOf("## 前提条件");
     const afterIdx = result.indexOf("## セキュリティ");
@@ -88,11 +100,17 @@ describe("generateAgentContent", () => {
   });
 
   it("before-step:*セクションがbefore-stepsと同じ位置に配置される", () => {
-    const result = generateAgentContent(makeInput({
-      sections: [
-        { heading: "ステップ間メモ", body: "メモ内容", position: "before-step:0" },
-      ],
-    }));
+    const result = generateAgentContent(
+      makeInput({
+        sections: [
+          {
+            heading: "ステップ間メモ",
+            body: "メモ内容",
+            position: "before-step:0",
+          },
+        ],
+      }),
+    );
 
     const execIdx = result.indexOf("## 実行");
     const sectionIdx = result.indexOf("## ステップ間メモ");
@@ -102,12 +120,18 @@ describe("generateAgentContent", () => {
   });
 
   it("after-step:*セクションがafter-stepsと同じ位置に配置される", () => {
-    const result = generateAgentContent(makeInput({
-      sections: [
-        { heading: "前提", body: "前提内容", position: "before-steps" },
-        { heading: "ステップ後メモ", body: "メモ内容", position: "after-step:0" },
-      ],
-    }));
+    const result = generateAgentContent(
+      makeInput({
+        sections: [
+          { heading: "前提", body: "前提内容", position: "before-steps" },
+          {
+            heading: "ステップ後メモ",
+            body: "メモ内容",
+            position: "after-step:0",
+          },
+        ],
+      }),
+    );
 
     const beforeIdx = result.indexOf("## 前提");
     const afterStepIdx = result.indexOf("## ステップ後メモ");
@@ -115,11 +139,13 @@ describe("generateAgentContent", () => {
   });
 
   it("sectionsがない場合はdescription+実行のみ生成される", () => {
-    const result = generateAgentContent(makeInput({
-      input: undefined,
-      output: undefined,
-      sections: undefined,
-    }));
+    const result = generateAgentContent(
+      makeInput({
+        input: undefined,
+        output: undefined,
+        sections: undefined,
+      }),
+    );
 
     expect(result).toContain("テスト用エージェント。");
     expect(result).toContain("## 実行");

@@ -4,7 +4,10 @@ import { parseArgs } from "node:util";
 export function parseCommandArgs(
   args: string[],
   options: Record<string, { type: "string" | "boolean" }>,
-): { values: Record<string, string | boolean | undefined>; positionals: string[] } {
+): {
+  values: Record<string, string | boolean | undefined>;
+  positionals: string[];
+} {
   const result = parseArgs({
     args,
     options,

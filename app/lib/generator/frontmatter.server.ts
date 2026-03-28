@@ -1,10 +1,4 @@
-type FrontmatterValue =
-  | string
-  | number
-  | boolean
-  | string[]
-  | null
-  | undefined;
+type FrontmatterValue = string | number | boolean | string[] | null | undefined;
 
 function serializeYamlValue(value: FrontmatterValue): string | null {
   if (value == null) {
@@ -45,7 +39,7 @@ function needsYamlQuoting(value: string): boolean {
   // Characters that require quoting: colon+space, hash, braces, brackets,
   // quotes, newlines, leading/trailing whitespace, pipe, ampersand, asterisk,
   // exclamation, at, backtick, greater-than (YAML block/flow indicators)
-  return /[:#{\[}"'\n\r|&*!@`>]|^\s|\s$/.test(value);
+  return /[:#{[}"'\n\r|&*!@`>]|^\s|\s$/.test(value);
 }
 
 /**

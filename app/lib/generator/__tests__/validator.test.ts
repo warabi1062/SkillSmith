@@ -15,7 +15,9 @@ function makePlugin(
   };
 }
 
-function makeSkillData(overrides: Partial<ValidatorSkillData> = {}): ValidatorSkillData {
+function makeSkillData(
+  overrides: Partial<ValidatorSkillData> = {},
+): ValidatorSkillData {
   return {
     name: overrides.name ?? "my-skill",
     skillType: overrides.skillType ?? "WORKER",

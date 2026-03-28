@@ -113,9 +113,7 @@ describe("generateSkillMd", () => {
   });
 
   it("omits input/output when undefined", () => {
-    const { file } = generateSkillMd(
-      makeSkillComponent({}),
-    );
+    const { file } = generateSkillMd(makeSkillComponent({}));
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
   });

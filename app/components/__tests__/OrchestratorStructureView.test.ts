@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { convertStep, convertSections } from "../OrchestratorStructureView";
-import type { StepFields, SectionFields } from "../OrchestratorStructureView";
-import type { LoadedStep, LoadedOrchestratorSection } from "../../lib/types/loader.server";
+
+import type {
+  LoadedStep,
+  LoadedOrchestratorSection,
+} from "../../lib/types/loader.server";
 import { tool } from "../../lib/types/skill";
 
 describe("convertStep", () => {
@@ -48,8 +51,8 @@ describe("convertStep", () => {
       decisionPoint: "入力判定",
       description: "入力内容に応じて分岐",
       cases: {
-        "ケースA": ["skill-a"],
-        "ケースB": ["skill-b"],
+        ケースA: ["skill-a"],
+        ケースB: ["skill-b"],
       },
     };
     const result = convertStep(step);
@@ -68,7 +71,7 @@ describe("convertStep", () => {
     const step: LoadedStep = {
       decisionPoint: "判定",
       cases: {
-        "ケース1": [
+        ケース1: [
           {
             inline: "前処理",
             steps: [{ id: "1", title: "準備", body: "準備する" }],
@@ -88,7 +91,7 @@ describe("convertStep", () => {
   it("descriptionがない分岐ステップではdescriptionがundefinedになる", () => {
     const step: LoadedStep = {
       decisionPoint: "判定",
-      cases: { "A": ["s1"] },
+      cases: { A: ["s1"] },
     };
     const result = convertStep(step);
     expect(result.description).toBeUndefined();

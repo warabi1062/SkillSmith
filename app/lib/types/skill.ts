@@ -2,8 +2,8 @@
 
 // ツール参照の構造化型（string ではなく型安全にツールを指定する）
 export type ToolRef =
-  | { type: "tool"; name: string; pattern?: string }  // 組み込みツール: "Read", "Bash(git *)"
-  | { type: "mcp"; server: string; method: string };  // MCPツール: "mcp__server__method"
+  | { type: "tool"; name: string; pattern?: string } // 組み込みツール: "Read", "Bash(git *)"
+  | { type: "mcp"; server: string; method: string }; // MCPツール: "mcp__server__method"
 
 // ファクトリ関数
 export function tool(name: string): ToolRef {
@@ -36,7 +36,11 @@ export function parseToolRef(str: string): ToolRef {
     const rest = str.slice(5); // "mcp__" を除去
     const idx = rest.indexOf("__");
     if (idx >= 0) {
-      return { type: "mcp", server: rest.slice(0, idx), method: rest.slice(idx + 2) };
+      return {
+        type: "mcp",
+        server: rest.slice(0, idx),
+        method: rest.slice(idx + 2),
+      };
     }
   }
   // パターン付きツール: Name(pattern)
@@ -50,26 +54,26 @@ export function parseToolRef(str: string): ToolRef {
 
 // 分岐ステップ（再帰的にネスト可能）
 export interface Branch {
-  decisionPoint: string;           // 分岐判定名（例: "入力判定"）
-  description?: string;            // 判定条件の詳細説明
-  cases: Record<string, Step[]>;   // case名 → ステップ列
+  decisionPoint: string; // 分岐判定名（例: "入力判定"）
+  description?: string; // 判定条件の詳細説明
+  cases: Record<string, Step[]>; // case名 → ステップ列
 }
 
 // インラインステップのサブステップ（構造化された手順記述）
 export interface InlineSubStep {
-  id: string;                      // ステップID（例: "1", "2a"）
-  title: string;                   // ステップ名（例: "ベースブランチ判定"）
-  body?: string;                   // ステップの説明本文（bodyFile と排他）
-  bodyFile?: string;               // 説明本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
+  id: string; // ステップID（例: "1", "2a"）
+  title: string; // ステップ名（例: "ベースブランチ判定"）
+  body?: string; // ステップの説明本文（bodyFile と排他）
+  bodyFile?: string; // 説明本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
 }
 
 // インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
 export interface InlineStep {
-  inline: string;                  // 表示名（例: "ブランチ作成"）
-  steps: InlineSubStep[];          // 構造化された手順ステップ
-  input?: string;                  // 入力の説明
-  output?: string;                 // 出力の説明
-  tools?: ToolRef[];               // 使用するツール
+  inline: string; // 表示名（例: "ブランチ作成"）
+  steps: InlineSubStep[]; // 構造化された手順ステップ
+  input?: string; // 入力の説明
+  output?: string; // 出力の説明
+  tools?: ToolRef[]; // 使用するツール
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）
@@ -122,8 +126,8 @@ export type SectionPosition =
 // オーケストレーターのセクション（steps前後またはstep間に配置する追加コンテンツ）
 export interface OrchestratorSection {
   heading: string;
-  body?: string;                   // セクション本文（bodyFile と排他）
-  bodyFile?: string;               // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
+  body?: string; // セクション本文（bodyFile と排他）
+  bodyFile?: string; // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
   position: SectionPosition;
 }
 
@@ -140,8 +144,8 @@ export interface SupportFile {
 // Agent設定のセクション（OrchestratorSectionと同じ構造）
 export interface AgentConfigSection {
   heading: string;
-  body?: string;                   // セクション本文（bodyFile と排他）
-  bodyFile?: string;               // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
+  body?: string; // セクション本文（bodyFile と排他）
+  bodyFile?: string; // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
   position: SectionPosition;
 }
 
@@ -151,8 +155,8 @@ export interface AgentConfig {
   model?: string;
   tools?: ToolRef[];
   content: string; // agent.md 本文（後方互換）
-  description?: string;                // 構造化時: agentの説明
-  sections?: AgentConfigSection[];     // 構造化時: 追加セクション
+  description?: string; // 構造化時: agentの説明
+  sections?: AgentConfigSection[]; // 構造化時: 追加セクション
 }
 
 // Agent Teamメンバー（WorkerWithAgentTeam用）
@@ -163,24 +167,24 @@ export interface AgentTeamMember {
 
 // チームメンバーの手順ステップ
 export interface TeammateStep {
-  id: string;        // ステップID（例: "I1", "V1"）
-  title: string;     // ステップ名（例: "実装計画の読み込み"）
-  body?: string;     // ステップの説明本文（bodyFile と排他）
+  id: string; // ステップID（例: "I1", "V1"）
+  title: string; // ステップ名（例: "実装計画の読み込み"）
+  body?: string; // ステップの説明本文（bodyFile と排他）
   bodyFile?: string; // 説明本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
 }
 
 // チームメンバーのコミュニケーションパターン（discriminated union）
 export type CommunicationPattern =
-  | { type: "poller"; target: string }   // このメンバーが target をポーリング
-  | { type: "responder" };               // status_check に応答する側
+  | { type: "poller"; target: string } // このメンバーが target をポーリング
+  | { type: "responder" }; // status_check に応答する側
 
 // チームメンバーの構造化定義
 export interface Teammate {
-  name: string;                              // メンバー名（例: "implementer"）
-  role: string;                              // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
-  steps: TeammateStep[];                     // 手順ステップの配列
+  name: string; // メンバー名（例: "implementer"）
+  role: string; // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
+  steps: TeammateStep[]; // 手順ステップの配列
   sortOrder?: number;
-  communicationPattern?: CommunicationPattern;  // コミュニケーションパターン
+  communicationPattern?: CommunicationPattern; // コミュニケーションパターン
 }
 
 // Teammate → AgentTeamMember への変換
@@ -201,7 +205,15 @@ export type SkillType =
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
-  "description" | "input" | "output" | "allowedTools" | "argumentHint" | "files" | "dependencies" | "steps" | "sections"
+  | "description"
+  | "input"
+  | "output"
+  | "allowedTools"
+  | "argumentHint"
+  | "files"
+  | "dependencies"
+  | "steps"
+  | "sections"
 >;
 
 // 基底クラス
@@ -217,13 +229,11 @@ export abstract class Skill {
   argumentHint?: string;
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
-  steps?: Step[];         // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
+  steps?: Step[]; // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
   sections?: OrchestratorSection[]; // オーケストレーター用: steps前後の追加セクション
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
-  protected assignOptionalFields(
-    init: Partial<SkillOptionalFields>,
-  ): void {
+  protected assignOptionalFields(init: Partial<SkillOptionalFields>): void {
     if (init.description !== undefined) this.description = init.description;
     if (init.input !== undefined) this.input = init.input;
     if (init.output !== undefined) this.output = init.output;
@@ -244,7 +254,9 @@ export class EntryPointSkill extends Skill {
   readonly content: string = "";
 
   constructor(
-    init: { name: string; steps: Step[] } & Partial<Omit<SkillOptionalFields, "steps">>,
+    init: { name: string; steps: Step[] } & Partial<
+      Omit<SkillOptionalFields, "steps">
+    >,
   ) {
     super();
     this.name = init.name;
@@ -279,13 +291,23 @@ export class WorkerWithSubAgent extends Skill {
   readonly name: string;
   readonly content: string;
   readonly agentConfig: AgentConfig;
-  readonly workerSteps?: TeammateStep[];                // 構造化時: Workerの手順ステップ
-  readonly workerSections?: OrchestratorSection[];      // 構造化時: steps前後の追加セクション
+  readonly workerSteps?: TeammateStep[]; // 構造化時: Workerの手順ステップ
+  readonly workerSections?: OrchestratorSection[]; // 構造化時: steps前後の追加セクション
 
   constructor(
     init: (
-      | { name: string; content: string; workerSteps?: never; workerSections?: never }
-      | { name: string; workerSteps: TeammateStep[]; workerSections?: OrchestratorSection[]; content?: string }
+      | {
+          name: string;
+          content: string;
+          workerSteps?: never;
+          workerSections?: never;
+        }
+      | {
+          name: string;
+          workerSteps: TeammateStep[];
+          workerSections?: OrchestratorSection[];
+          content?: string;
+        }
     ) & {
       agentConfig: AgentConfig;
     } & Partial<SkillOptionalFields>,
@@ -309,8 +331,8 @@ export class WorkerWithAgentTeam extends Skill {
   readonly name: string;
   readonly content: string;
   readonly teammates?: Teammate[];
-  readonly teamPrefix?: string;               // チーム名のプレフィックス（例: "impl", "plan", "triage"）
-  readonly requiresUserApproval?: boolean;     // レビューPASS後にユーザー承認を得るか
+  readonly teamPrefix?: string; // チーム名のプレフィックス（例: "impl", "plan", "triage"）
+  readonly requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 
   // 後方互換: teammates から AgentTeamMember[] を導出、なければ直接指定
   get agentTeamMembers(): AgentTeamMember[] {
@@ -323,9 +345,24 @@ export class WorkerWithAgentTeam extends Skill {
 
   constructor(
     init: (
-      | { name: string; teammates: Teammate[]; teamPrefix: string; requiresUserApproval?: boolean; content?: string; agentTeamMembers?: never }
-      | { name: string; content: string; agentTeamMembers: AgentTeamMember[]; teammates?: never; teamPrefix?: never; requiresUserApproval?: never }
-    ) & Partial<SkillOptionalFields>,
+      | {
+          name: string;
+          teammates: Teammate[];
+          teamPrefix: string;
+          requiresUserApproval?: boolean;
+          content?: string;
+          agentTeamMembers?: never;
+        }
+      | {
+          name: string;
+          content: string;
+          agentTeamMembers: AgentTeamMember[];
+          teammates?: never;
+          teamPrefix?: never;
+          requiresUserApproval?: never;
+        }
+    ) &
+      Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;

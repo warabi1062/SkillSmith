@@ -40,7 +40,8 @@ export function createOutput(
 
   return {
     success(data: unknown) {
-      const text = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+      const text =
+        typeof data === "string" ? data : JSON.stringify(data, null, 2);
       streams.stdout.write(`${text}\n`);
     },
     error(message: string) {

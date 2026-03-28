@@ -67,9 +67,16 @@ export function parseGlobalArgs(argv: string[]): {
         // entity/action 以降の positional は rest に含める
         rest.push(token.value);
       }
-    } else if (token.kind === "option" && !GLOBAL_OPTION_NAMES.has(token.name)) {
+    } else if (
+      token.kind === "option" &&
+      !GLOBAL_OPTION_NAMES.has(token.name)
+    ) {
       // コマンド固有の未知オプションを rest に再構成する
-      if ("inlineValue" in token && token.inlineValue && token.value !== undefined) {
+      if (
+        "inlineValue" in token &&
+        token.inlineValue &&
+        token.value !== undefined
+      ) {
         // --name=value 形式
         rest.push(`${token.rawName}=${token.value}`);
       } else if (token.value !== undefined) {
