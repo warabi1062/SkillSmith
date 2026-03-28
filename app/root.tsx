@@ -20,16 +20,19 @@ export default function Root() {
         <Links />
       </head>
       <body>
-        <div className="layout">
-          <header className="layout-header">
-            <h1>
-              <Link to="/">SkillSmith</Link>
+        <div className="px-6 py-8 md:px-8 h-screen flex flex-col max-w-[1400px] mx-auto w-full">
+          <header className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--border-subtle)] shrink-0">
+            <h1 className="font-heading text-xl font-bold tracking-tight">
+              <Link to="/" className="flex items-center gap-2 text-[var(--text-primary)] hover:text-[var(--accent-teal)] transition-colors no-underline">
+                <span className="inline-block w-2 h-2 bg-[var(--accent-teal)] rounded-[2px] rotate-45 shadow-[0_0_20px_rgba(10,158,128,0.1)]" />
+                SkillSmith
+              </Link>
             </h1>
-            <nav>
-              <Link to="/plugins">Plugins</Link>
+            <nav className="flex gap-4 items-center">
+              <Link to="/plugins" className="font-heading text-[0.8125rem] font-medium text-muted-foreground px-4 py-1 rounded-full border border-transparent hover:text-foreground hover:bg-[var(--bg-elevated)] hover:border-[var(--border-subtle)] transition-colors tracking-[0.01em] no-underline">Plugins</Link>
             </nav>
           </header>
-          <main>
+          <main className="flex-1 min-h-0 flex flex-col">
             <Outlet />
           </main>
         </div>
@@ -67,21 +70,24 @@ export function ErrorBoundary() {
         <Links />
       </head>
       <body>
-        <div className="layout">
-          <header className="layout-header">
-            <h1>
-              <Link to="/">SkillSmith</Link>
+        <div className="px-6 py-8 md:px-8 h-screen flex flex-col max-w-[1400px] mx-auto w-full">
+          <header className="flex items-center justify-between mb-6 pb-4 border-b border-[var(--border-subtle)] shrink-0">
+            <h1 className="font-heading text-xl font-bold tracking-tight">
+              <Link to="/" className="flex items-center gap-2 text-[var(--text-primary)] hover:text-[var(--accent-teal)] transition-colors no-underline">
+                <span className="inline-block w-2 h-2 bg-[var(--accent-teal)] rounded-[2px] rotate-45 shadow-[0_0_20px_rgba(10,158,128,0.1)]" />
+                SkillSmith
+              </Link>
             </h1>
-            <nav>
-              <Link to="/plugins">Plugins</Link>
+            <nav className="flex gap-4 items-center">
+              <Link to="/plugins" className="font-heading text-[0.8125rem] font-medium text-muted-foreground px-4 py-1 rounded-full border border-transparent hover:text-foreground hover:bg-[var(--bg-elevated)] hover:border-[var(--border-subtle)] transition-colors tracking-[0.01em] no-underline">Plugins</Link>
             </nav>
           </header>
-          <main>
-            <div className="error-page">
-              <h2>{title}</h2>
-              <p>{message}</p>
+          <main className="flex-1 min-h-0 flex flex-col">
+            <div className="flex flex-col items-center justify-center flex-1 text-center p-12 animate-[fadeInUp_0.4s_ease-out]">
+              <h2 className="font-heading text-2xl font-semibold text-[var(--text-primary)] mb-2">{title}</h2>
+              <p className="text-[var(--text-secondary)] mb-4">{message}</p>
               <p>
-                <Link to="/" className="btn btn-secondary">Back to Home</Link>
+                <Link to="/" className="inline-flex items-center gap-2 px-4 py-2 font-heading text-[0.8125rem] font-medium rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:bg-[var(--bg-hover)] hover:border-[var(--border-strong)] transition-colors no-underline">Back to Home</Link>
               </p>
             </div>
           </main>
