@@ -32,8 +32,8 @@ export default function Plugins({ loaderData }: Route.ComponentProps) {
       </div>
 
       {plugins.length === 0 ? (
-        <div className="empty-state">
-          <p>No plugins yet.</p>
+        <div className="text-center py-16 px-4 text-muted-foreground">
+          <p className="mb-4 text-[0.9375rem]">No plugins yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">

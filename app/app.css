@@ -475,18 +475,6 @@ h3 {
   border: 1px solid rgba(244, 114, 182, 0.2);
 }
 
-/* === エンプティステート === */
-.empty-state {
-  text-align: center;
-  padding: var(--space-3xl) var(--space-md);
-  color: var(--text-tertiary);
-}
-
-.empty-state p {
-  margin-bottom: var(--space-md);
-  font-size: 0.9375rem;
-}
-
 /* === プラグイン詳細ページ === */
 .plugin-detail-page {
   display: flex;
