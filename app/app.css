@@ -19,25 +19,18 @@
   --color-text-primary: #1a1f28;
   --color-text-secondary: #374151;
   --color-text-tertiary: #718096;
-  --color-text-inverse: #ffffff;
   --color-accent-teal: #0a9e80;
   --color-accent-teal-dim: rgba(10, 158, 128, 0.08);
-  --color-accent-teal-glow: rgba(10, 158, 128, 0.15);
   --color-accent-teal-hover: #078068;
-  --color-accent-teal-light: #0bb896;
   --color-accent-amber: #c47a18;
   --color-accent-amber-dim: rgba(196, 122, 24, 0.08);
   --color-accent-amber-border: rgba(232, 160, 64, 0.25);
   --color-accent-blue: #2e6fd6;
-  --color-accent-blue-dim: rgba(46, 111, 214, 0.07);
   --color-accent-blue-border: rgba(78, 143, 255, 0.3);
   --color-accent-violet: #7c5cbf;
   --color-accent-violet-dim: rgba(124, 92, 191, 0.07);
   --color-accent-violet-border: rgba(124, 92, 191, 0.2);
   --color-accent-violet-hover: rgba(124, 92, 191, 0.12);
-  --color-accent-rose: #d44a8a;
-  --color-accent-rose-dim: rgba(212, 74, 138, 0.07);
-  --color-accent-rose-border: rgba(244, 114, 182, 0.2);
   --color-accent-red: #dc3545;
   --color-accent-red-dim: rgba(220, 53, 69, 0.08);
   --color-accent-red-border: rgba(220, 53, 69, 0.2);
@@ -58,7 +51,6 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
   --shadow-glow-teal: 0 0 20px rgba(10, 158, 128, 0.1);
-  --shadow-glow-amber: 0 0 20px rgba(196, 122, 24, 0.08);
 }
 
 /* グローバルスタイル */
