@@ -1,7 +1,8 @@
-// implement-team スキル: Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う
+// implement-team スキル: Agent Teamでimplementer/reviewer/pr-creatorを編成し、コード実装・レビュー・PR作成を行う
 
-import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool, mcp } from "../../../../app/lib/types";
 import type { Teammate, SupportFile } from "../../../../app/lib/types";
+import createPrSkill from "../create-pr/skill";
 
 const templateResult: SupportFile = {
   role: "TEMPLATE",
@@ -18,7 +19,6 @@ const implementer: Teammate = {
   name: "implementer",
   role: "実装計画に従ってコードを実装し、テストを書く。",
   sortOrder: 1,
-  communicationPattern: { type: "responder" },
   steps: [
     {
       id: "I1",
@@ -28,8 +28,9 @@ const implementer: Teammate = {
     {
       id: "I2",
       title: "実装",
-      body: `計画のコミット計画に従い、コミット単位で実装を進める。
-1つのコミットの実装が完了したらコミットし、次のコミットに進む。
+      body: `計画を参考に、コミット単位で実装を進める。
+1つのコミットの実装が完了したらコミットし、次のコミットに進む。機密ファイル（.env、credentials等）はコミットに含めない。
+やむを得ない理由（計画の考慮漏れの発覚、計画通りだとエラーになる等）がある場合は事前の計画にない実装を加えてよい。その場合は理由を記録する。
 
 テスト:
 - 3A形式（Arrange / Act / Assert）で記述
@@ -39,16 +40,13 @@ const implementer: Teammate = {
   3. リファクタリングする
 
 コード品質:
-- 計画に記載された既存パターンに従う
-- 不要な変更を加えない（計画のスコープに限定）
+- 既存の設計パターンに従う
 - TypeScriptの場合はLSPで型エラーがないことを確認`,
     },
     {
       id: "I3",
       title: "セルフチェック",
       body: `実装完了後、自身で以下を確認する:
-- 計画通りに実装できたか
-- 計画にない変更が発生した場合、その理由を記録
 - テストがすべてpassするか
 - 明らかなコード品質の問題がないか
 
@@ -61,60 +59,41 @@ const implementer: Teammate = {
     },
     {
       id: "I5",
-      title: "reviewer からのレビュー結果を待つ",
-      body: `実装結果を保存したら、reviewer からの連絡を待つ。reviewer が status_check で状況を確認してくるので、応答する（後述の「status_check への応答ルール」参照）。
-
-reviewer からレビュー結果を受け取ったら:
-- PASS の場合 → I7 へ進む
-- NEEDS_REVISION の場合 → I6 へ進む`,
+      title: "reviewer に完了を通知する",
+      body: "reviewer に実装が完了した旨と結果ファイルのパスを伝える。",
     },
     {
       id: "I6",
-      title: "レビュー対応（→ I5 に戻る）",
-      body: `reviewer から NEEDS_REVISION の通知を受けた場合、通知に含まれるレビュー結果のファイルパスから指摘内容を読み込み、対応する。
+      title: "レビュー対応",
+      body: `reviewer から NEEDS_REVISION を受け取った場合、通知に含まれるレビュー結果のファイルパスから指摘内容を読み込み、対応する。
 
 - must: コードを修正する
 - imo: 採用するか判断し、採用する場合は修正、しない場合は理由を回答する
 - question: 質問に回答する。質問が出たこと自体が分かりにくさの兆候かもしれないため、回答に加えてコードや命名の改善も検討する
 
-対応後、実装結果ファイルに対応内容（修正箇所、imo判断の理由、質問への回答）を追記する。reviewer が status_check で修正完了を検知するので、I5 の待機に戻る。`,
-    },
-    {
-      id: "I7",
-      title: "作業完了後の待機",
-      body: "レビューPASS後も、shutdown_request が届くまで自発的に作業完了としない。idle状態になるのは正常（メッセージ受信で自動復帰する）。リーダーやチームメンバーからフィードバック付きの修正依頼が届く場合があるため、メッセージを受信したら対応する。shutdown_request を受けたら shutdown_response（approve）を返して終了する。",
+対応後、実装結果ファイルに対応内容（修正箇所、imo判断の理由、質問への回答）を追記する。reviewer に修正が完了した旨と結果ファイルのパスを伝える。`,
     },
   ],
 };
 
 const reviewer: Teammate = {
   name: "reviewer",
-  role: "実装の経緯を知らない第三者の視点で、コードレビューを行う。",
+  role: "実装の経緯を知らない第三者の視点で、コードレビューを行う。問題点や理由を曖昧にせず具体的に指摘する。セキュアな情報を出力に含めない。",
   sortOrder: 2,
-  communicationPattern: { type: "poller", target: "implementer" },
   steps: [
     {
       id: "V1",
-      title: "作業完了のポーリング",
-      body: `implementer に SendMessage で \`{type: "status_check"}\` を送信し、返信を待つ。
-
-- \`{status: "working"}\` → 2分待ってから再度 status_check を送信（V1 を繰り返す）
-- \`{status: "done", path: "..."}\` → V2 へ進む
-- \`{status: "blocked", reason: "..."}\` → リーダーに報告し、V1 を繰り返す`,
+      title: "実装計画と差分の読み込み",
+      body: "implementer から通知されたパスから実装結果を読み込む。実装結果に記載された実装計画のパスから計画も読み込む。\n`git diff` で変更差分を取得する。",
     },
     {
       id: "V2",
-      title: "実装計画と差分の読み込み",
-      body: "通知されたパスから実装結果を読み込む。実装結果に記載された実装計画のパスから計画も読み込む。\n`git diff` で変更差分を取得する。",
-    },
-    {
-      id: "V3",
       title: "レビュー",
       body: `以下の観点でレビューする:
 
 計画との整合性:
 - 計画にある変更がすべて実装されているか
-- 計画にない変更が含まれていないか
+- 計画にない変更が含まれている場合、やむを得ない理由が記録されており、その理由が妥当か
 
 コード品質:
 - 可読性: 変数名・関数名は明確か、処理の意図が読み取れるか
@@ -137,32 +116,32 @@ const reviewer: Teammate = {
 - テストが3A形式で記述されているか`,
     },
     {
+      id: "V3",
+      title: "レビュー結果の保存",
+      body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/review-result.md\` に [${reviewResultFormat.filename}](${reviewResultFormat.filename}) 形式で保存する。`,
+    },
+    {
       id: "V4",
-      title: "レビュー結果の保存と通知",
-      body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/review-result.md\` に保存する。
-
-ファイルのフォーマット: [${reviewResultFormat.filename}](${reviewResultFormat.filename})
-
-保存後、implementer と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。
-
-- NEEDS_REVISION を送った場合 → V5 へ進み、implementer の修正通知を待つ
-- PASS を送った場合 → V6 へ進む`,
+      title: "通知",
+      body: `implementer と リーダー（team lead）の両方に判定結果（PASS / NEEDS_REVISION）とファイルパスを伝える。`,
     },
     {
       id: "V5",
-      title: "修正完了のポーリング（→ V2 に戻る）",
-      body: 'NEEDS_REVISION 送信後、implementer の修正完了を確認する。V1 と同じ要領で status_check を送信し、`{status: "done"}` を受け取ったら V2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。',
+      title: "再レビュー",
+      body: "NEEDS_REVISION の場合、implementer がコードを修正したら V1 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。",
     },
-    {
-      id: "V6",
-      title: "作業完了後の待機",
-      body: `レビューPASS後も、shutdown_request が届くまで自発的に作業完了としない。idle状態になるのは正常（メッセージ受信で自動復帰する）。shutdown_request を受けたら shutdown_response（approve）を返して終了する。
+  ],
+};
 
-注意:
-- 実装の経緯は知らない前提でレビューする。計画と差分だけを見る
-- 指摘は具体的に。ファイルパスと行番号を必ず含める
-- セキュアな情報を出力に含めない
-- shutdown_request が届くまで自発的に作業完了としないこと`,
+const prCreator: Teammate = {
+  name: "pr-creator",
+  role: "実装・コミット済みのコードをプッシュし、GitHub PRを作成する。",
+  sortOrder: 3,
+  steps: [
+    {
+      id: "C1",
+      title: "create-pr skill の実行",
+      body: "create-pr skill を実行する。リーダーから受け取った実装計画のパス、実装結果のパス、ベースブランチ情報のパス、モードを入力として渡す。完了後、リーダーにPR URLを伝える。",
     },
   ],
 };
@@ -170,9 +149,10 @@ const reviewer: Teammate = {
 const implementTeamSkill = new WorkerWithAgentTeam({
   name: "implement-team",
   description:
-    "Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う。ワークフローの一部として使用される。",
-  input: "- タスクID\n- 実装計画のパス",
-  output: "- 実装結果のパス",
+    "Agent Teamでimplementer/reviewer/pr-creatorを編成し、コード実装とレビュー・PR作成を行う。ワークフローの一部として使用される。",
+  input:
+    "- タスクID\n- モード（Linear / Quick）\n- 実装計画のパス\n- ベースブランチ情報のパス",
+  output: "- 実装結果のパス\n- PR URL",
   allowedTools: [
     tool("Read"),
     tool("Write"),
@@ -183,10 +163,12 @@ const implementTeamSkill = new WorkerWithAgentTeam({
     tool("Task"),
     tool("AskUserQuestion"),
     tool("ToolSearch"),
+    mcp("plugin_linear_linear", "get_issue"),
   ],
   files: [templateResult, reviewResultFormat],
-  teammates: [implementer, reviewer],
+  teammates: [implementer, reviewer, prCreator],
   teamPrefix: "impl",
+  dependencies: [createPrSkill],
 });
 
 export default implementTeamSkill;

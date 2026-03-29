@@ -2,7 +2,6 @@
 
 import { EntryPointSkill, tool } from "../../../../app/lib/types";
 import implementTeamSkill from "../implement-team/skill";
-import createPrSkill from "../create-pr/skill";
 import { generateTaskId, createBranch } from "../shared-steps";
 
 const devLiteSkill = new EntryPointSkill({
@@ -46,7 +45,6 @@ const devLiteSkill = new EntryPointSkill({
       tools: [tool("Read"), tool("Glob"), tool("Grep"), tool("Write")],
     },
     implementTeamSkill,
-    createPrSkill,
   ],
   sections: [
     {

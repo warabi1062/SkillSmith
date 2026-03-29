@@ -2,7 +2,6 @@
 
 import { EntryPointSkill, tool, mcp } from "../../../../app/lib/types";
 import linearTriageTeamSkill from "../linear-triage-team/skill";
-import linearTriageExecuteSkill from "../linear-triage-execute/skill";
 
 const linearManageSkill = new EntryPointSkill({
   name: "linear-manage",
@@ -64,7 +63,7 @@ const linearManageSkill = new EntryPointSkill({
               mcp("plugin_linear_linear", "list_teams"),
               mcp("plugin_linear_linear", "list_issue_labels"),
               mcp("plugin_linear_linear", "list_projects"),
-              mcp("plugin_linear_linear", "save_issue"),
+              mcp("plugin_linear_linear", "create_issue"),
             ],
           },
         ],
@@ -72,7 +71,6 @@ const linearManageSkill = new EntryPointSkill({
       },
     },
     linearTriageTeamSkill,
-    linearTriageExecuteSkill,
   ],
   files: [
     { role: "TEMPLATE", filename: "templates/bug.md", sortOrder: 1 },
