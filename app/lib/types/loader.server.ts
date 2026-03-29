@@ -485,9 +485,51 @@ export async function loadPluginMeta(
   }
 }
 
-// 全プラグインのメタデータを取得する（一覧表示用）
-export async function loadAllPluginMeta(): Promise<PluginMeta[]> {
-  const pluginsDir = path.join(process.cwd(), "plugins");
+// marketplace のメタデータ型（一覧表示用）
+export interface MarketplaceMeta {
+  dirName: string;
+  pluginCount: number;
+}
+
+// marketplace のメタデータを取得する
+export async function loadMarketplaceMeta(
+  dirPath: string,
+  dirName: string,
+): Promise<MarketplaceMeta | null> {
+  const pluginsDir = path.join(dirPath, "plugins");
+  try {
+    const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+    const pluginCount = entries.filter((e) => e.isDirectory()).length;
+    return { dirName, pluginCount };
+  } catch {
+    return null;
+  }
+}
+
+// 全 marketplace のメタデータを取得する（一覧表示用）
+export async function loadAllMarketplaceMeta(): Promise<MarketplaceMeta[]> {
+  const marketplacesDir = path.join(process.cwd(), "marketplaces");
+  let dirEntries: string[] = [];
+  try {
+    const entries = await fs.readdir(marketplacesDir, { withFileTypes: true });
+    dirEntries = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  } catch {
+    return [];
+  }
+
+  const results = await Promise.all(
+    dirEntries.map((dirName) =>
+      loadMarketplaceMeta(path.join(marketplacesDir, dirName), dirName),
+    ),
+  );
+  return results.filter((r): r is MarketplaceMeta => r !== null);
+}
+
+// 特定 marketplace 内の全プラグインメタデータを取得する
+export async function loadAllPluginMetaInMarketplace(
+  marketplaceDirPath: string,
+): Promise<PluginMeta[]> {
+  const pluginsDir = path.join(marketplaceDirPath, "plugins");
   let dirEntries: string[] = [];
   try {
     const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
