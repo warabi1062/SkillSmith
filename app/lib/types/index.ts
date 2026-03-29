@@ -42,7 +42,8 @@ export type { PluginDefinition } from "./plugin";
 export {
   loadPluginDefinition,
   loadPluginMeta,
-  loadAllPluginMeta,
+  loadAllMarketplaceMeta,
+  loadAllPluginMetaInMarketplace,
 } from "./loader.server";
 export type {
   LoadedSupportFile,
@@ -52,6 +53,7 @@ export type {
   LoadedSkillUnion,
   LoadedPluginDefinition,
   PluginMeta,
+  MarketplaceMeta,
   LoadedBranch,
   LoadedInlineStep,
   LoadedStep,
