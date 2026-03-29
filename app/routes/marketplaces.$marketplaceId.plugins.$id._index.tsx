@@ -1,6 +1,6 @@
 import { data, Link } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
-import type { Route } from "./+types/plugins.$id._index";
+import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id._index";
 import PluginActionsSection from "../components/PluginActionsSection";
 import * as path from "node:path";
 
@@ -10,12 +10,21 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const pluginsDir = path.join(process.cwd(), "plugins");
-  const dirPath = path.join(pluginsDir, params.id);
+  const dirPath = path.join(
+    process.cwd(),
+    "marketplaces",
+    params.marketplaceId,
+    "plugins",
+    params.id,
+  );
 
   try {
     const plugin = await loadPluginDefinition(dirPath);
-    return { plugin, pluginId: params.id };
+    return {
+      plugin,
+      pluginId: params.id,
+      marketplaceId: params.marketplaceId,
+    };
   } catch {
     throw data("Plugin not found", { status: 404 });
   }
@@ -36,7 +45,7 @@ function getSkillTypeBadge(skillType: string): string {
 }
 
 export default function PluginDetail({ loaderData }: Route.ComponentProps) {
-  const { plugin, pluginId } = loaderData;
+  const { plugin, pluginId, marketplaceId } = loaderData;
   const orchestrators = plugin.skills.filter(
     (s) => s.skillType === "ENTRY_POINT",
   );
@@ -56,7 +65,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           {orchestrators.map((orch) => (
             <Link
               key={orch.name}
-              to={`/plugins/${pluginId}/orchestrators/${orch.name}`}
+              to={`/marketplaces/${marketplaceId}/plugins/${pluginId}/orchestrators/${orch.name}`}
               className="block bg-bg-surface border border-border-subtle rounded-lg px-6 py-6 transition-all relative overflow-hidden hover:border-border-strong hover:bg-bg-elevated hover:-translate-y-0.5 hover:shadow-md mt-3 first:mt-0"
             >
               <div className="font-display text-base font-semibold text-text-primary tracking-tight mb-1">
@@ -80,7 +89,7 @@ export default function PluginDetail({ loaderData }: Route.ComponentProps) {
           {workers.map((worker) => (
             <Link
               key={worker.name}
-              to={`/plugins/${pluginId}/skills/${worker.name}`}
+              to={`/marketplaces/${marketplaceId}/plugins/${pluginId}/skills/${worker.name}`}
               className="block bg-bg-surface border border-border-subtle rounded-lg px-6 py-6 transition-all relative overflow-hidden hover:border-border-strong hover:bg-bg-elevated hover:-translate-y-0.5 hover:shadow-md mt-3 first:mt-0"
             >
               <div className="flex items-center gap-2 mb-1">

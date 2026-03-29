@@ -1,6 +1,6 @@
 import { data } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
-import type { Route } from "./+types/plugins.$id.orchestrators.$name";
+import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.orchestrators.$name";
 import { OrchestratorView } from "../components/OrchestratorStructureView";
 import * as path from "node:path";
 
@@ -11,8 +11,13 @@ export function meta({ data: loaderData }: Route.MetaArgs) {
 }
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const pluginsDir = path.join(process.cwd(), "plugins");
-  const dirPath = path.join(pluginsDir, params.id);
+  const dirPath = path.join(
+    process.cwd(),
+    "marketplaces",
+    params.marketplaceId,
+    "plugins",
+    params.id,
+  );
 
   try {
     const plugin = await loadPluginDefinition(dirPath);
