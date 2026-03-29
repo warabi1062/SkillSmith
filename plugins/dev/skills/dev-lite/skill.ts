@@ -50,19 +50,19 @@ const devLiteSkill = new EntryPointSkill({
     {
       heading: "確認のスキップ",
       body: "最終的にユーザーはPRでレビューするため、中間の確認はすべて省略してそのまま次のステップに進む。",
-      position: "before-steps",
+      position: "after-steps",
     },
     {
       heading: "注意事項",
       body: `- 各ステップで問題が発生した場合はユーザーに報告して判断を仰ぐ
 - Linearチケットは作成・更新しない（Quick mode）
 - ユーザーからアプローチの変更提案があった場合は、即座に作業を中断し、plan.mdを修正してから再開する`,
-      position: "before-steps",
+      position: "after-steps",
     },
     {
       heading: "ステップ間の情報受け渡し",
       body: "ステップ間の情報受け渡しは会話コンテキストではなくファイルを介して行う。会話コンテキストの肥大化を防ぎ、後続ステップが必要な情報だけを選択的に読めるようにする。",
-      position: "before-steps",
+      position: "after-steps",
     },
   ],
 });

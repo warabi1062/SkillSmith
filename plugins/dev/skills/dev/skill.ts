@@ -43,19 +43,19 @@ const devSkill = new EntryPointSkill({
     {
       heading: "確認のスキップ",
       body: "最終的にユーザーはPRでレビューするため、基本的には確認を省略してそのまま次のステップに進んでよい。設計判断の幅が大きく方向性の確認が重要なケースでは確認を取る。判断に迷う場合はスキップして進める。",
-      position: "before-steps",
+      position: "after-steps",
     },
     {
       heading: "注意事項",
       body: `- 各ステップで問題が発生した場合はユーザーに報告して判断を仰ぐ
 - Quickモードの場合: Linearチケットは作成・更新しない
 - ユーザーからplanの根幹に関わる提案・コメント（使用ツールの変更、アーキテクチャの変更、アプローチの変更など）があった場合は、即座に作業を中断し、planを修正してから再開する。実装を進めてから後で修正するのではなく、plan段階に戻る`,
-      position: "before-steps",
+      position: "after-steps",
     },
     {
       heading: "ステップ間の情報受け渡し",
       body: "ステップ間の情報受け渡しは会話コンテキストではなくファイルを介して行う。会話コンテキストの肥大化を防ぎ、後続ステップが必要な情報だけを選択的に読めるようにする。",
-      position: "before-steps",
+      position: "after-steps",
     },
   ],
 });
