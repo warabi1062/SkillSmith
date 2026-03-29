@@ -16,7 +16,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 }
 
-// ブレッドクラム: 「プラグイン一覧 > {プラグイン名}」
+// ブレッドクラム: 「Top > {プラグイン名}」
 export const handle = {
   breadcrumb: ({ data: loaderData }: { data: { pluginName: string } }) => ({
     label: loaderData.pluginName,

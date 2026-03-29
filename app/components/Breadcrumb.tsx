@@ -47,7 +47,7 @@ export default function Breadcrumb() {
             to="/"
             className="text-text-tertiary hover:text-accent-teal transition-colors"
           >
-            プラグイン一覧
+            Top
           </Link>
         </li>
         {items.map((item, index) => {
