@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { SectionPosition, CommunicationPattern } from "../lib/types/skill";
 import { serializeToolRef } from "../lib/types/skill";
 import type {
@@ -285,7 +286,7 @@ function BodyFilePanel({
           </button>
         </div>
         <div className="ov-sidepanel-content flex-1 overflow-y-auto p-5 text-sm leading-relaxed text-text-secondary">
-          <Markdown>{content}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
         </div>
       </div>
     </div>,
@@ -310,6 +311,7 @@ function BodyContent({
     <>
       <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
         <Markdown
+          remarkPlugins={[remarkGfm]}
           components={{
             a: ({ href, children }) => {
               const filename = href?.replace(/^\.\//, "") ?? "";
@@ -391,7 +393,7 @@ function StepItem({
         <div className="px-3.5 pb-3.5">
           {step.description && (
             <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
-              <Markdown>{step.description}</Markdown>
+              <Markdown remarkPlugins={[remarkGfm]}>{step.description}</Markdown>
             </div>
           )}
           {step.cases?.map((c, caseIndex) => {
@@ -595,7 +597,7 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
               Content
             </label>
             <div className="m-0 p-3 bg-bg-deep border border-border-subtle rounded-sm font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
-              <Markdown>{data.content}</Markdown>
+              <Markdown remarkPlugins={[remarkGfm]}>{data.content}</Markdown>
             </div>
           </div>
         )
@@ -696,7 +698,7 @@ function SkillDetail({ data }: { data: SkillDetailData }) {
                   Agent Content
                 </label>
                 <div className="m-0 p-3 bg-bg-deep border border-border-subtle rounded-sm font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
-                  <Markdown>{data.agentConfig.agentContent}</Markdown>
+                  <Markdown remarkPlugins={[remarkGfm]}>{data.agentConfig.agentContent}</Markdown>
                 </div>
               </div>
             )
