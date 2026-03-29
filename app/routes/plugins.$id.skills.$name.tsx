@@ -82,7 +82,9 @@ export default function SkillDetailPage({ loaderData }: Route.ComponentProps) {
             {skill.description}
           </p>
         )}
-        <SkillDetail data={detailData} />
+        <div className="border border-border-subtle rounded-md bg-bg-surface p-6">
+          <SkillDetail data={detailData} />
+        </div>
       </div>
     </div>
   );
