@@ -6,8 +6,7 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-  index("routes/home.tsx"),
-  route("plugins", "routes/plugins.tsx"),
+  index("routes/plugins.tsx"),
   layout("routes/plugins.$id.tsx", [
     route("plugins/:id", "routes/plugins.$id._index.tsx"),
     route(

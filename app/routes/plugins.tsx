@@ -3,7 +3,7 @@ import { loadAllPluginMeta } from "../lib/types/loader.server";
 import type { Route } from "./+types/plugins";
 
 export function meta(_args: Route.MetaArgs) {
-  return [{ title: "Plugins - SkillSmith" }];
+  return [{ title: "SkillSmith" }];
 }
 
 export async function loader(_args: Route.LoaderArgs) {

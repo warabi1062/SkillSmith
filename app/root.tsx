@@ -31,14 +31,6 @@ export default function Root() {
                 SkillSmith
               </Link>
             </h1>
-            <nav className="flex gap-4 items-center">
-              <Link
-                to="/plugins"
-                className="font-display text-sm font-medium text-text-secondary px-4 py-1 rounded-full border border-transparent hover:text-text-primary hover:bg-bg-elevated hover:border-border-subtle tracking-[0.01em] transition-all"
-              >
-                Plugins
-              </Link>
-            </nav>
           </header>
           <main className="flex-1 min-h-0 flex flex-col">
             <Outlet />
@@ -89,14 +81,6 @@ export function ErrorBoundary() {
                 SkillSmith
               </Link>
             </h1>
-            <nav className="flex gap-4 items-center">
-              <Link
-                to="/plugins"
-                className="font-display text-sm font-medium text-text-secondary px-4 py-1 rounded-full border border-transparent hover:text-text-primary hover:bg-bg-elevated hover:border-border-subtle tracking-[0.01em] transition-all"
-              >
-                Plugins
-              </Link>
-            </nav>
           </header>
           <main className="flex-1 min-h-0 flex flex-col">
             <div className="flex flex-col items-center justify-center flex-1 text-center p-12">
