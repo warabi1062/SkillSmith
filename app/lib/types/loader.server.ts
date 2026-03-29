@@ -492,7 +492,7 @@ export interface MarketplaceMeta {
 }
 
 // marketplace のメタデータを取得する
-export async function loadMarketplaceMeta(
+async function loadMarketplaceMeta(
   dirPath: string,
   dirName: string,
 ): Promise<MarketplaceMeta | null> {
