@@ -161,7 +161,7 @@ function getOutOfRangeSections(
 
 // --- skill情報の組み立て ---
 
-interface SkillDetailData {
+export interface SkillDetailData {
   name: string;
   description: string | null;
   skillType: string;
@@ -178,7 +178,7 @@ interface SkillDetailData {
   supportFiles: SupportFileMap;
 }
 
-function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
+export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
   const agentConfigData =
     skill.skillType === "WORKER_WITH_SUB_AGENT" ? skill.agentConfig : null;
 
@@ -486,7 +486,7 @@ function StepItem({
 }
 
 // スキル詳細のインライン展開
-function SkillDetail({ data }: { data: SkillDetailData }) {
+export function SkillDetail({ data }: { data: SkillDetailData }) {
   const showAgentConfig =
     data.skillType === "WORKER_WITH_SUB_AGENT" && data.agentConfig;
   const showWorkerSteps =
