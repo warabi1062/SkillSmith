@@ -8,7 +8,7 @@ type BreadcrumbDef =
 
 interface BreadcrumbItem {
   label: string;
-  to?: string;
+  to: string;
 }
 
 // ルート階層からブレッドクラムアイテムを構築する
@@ -53,7 +53,7 @@ export default function Breadcrumb() {
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={item.to ?? index} className="flex items-center gap-1">
+            <li key={item.to} className="flex items-center gap-1">
               <span className="text-text-tertiary select-none">/</span>
               {isLast ? (
                 <span className="font-medium text-text-primary">
@@ -61,7 +61,7 @@ export default function Breadcrumb() {
                 </span>
               ) : (
                 <Link
-                  to={item.to!}
+                  to={item.to}
                   className="text-text-tertiary hover:text-accent-teal transition-colors"
                 >
                   {item.label}

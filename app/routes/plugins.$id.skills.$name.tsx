@@ -25,7 +25,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     if (!skill) {
       throw new Error("Skill not found");
     }
-    return { plugin, pluginId: params.id, skillName: params.name };
+    return { plugin, skillName: params.name };
   } catch {
     throw data("Skill not found", { status: 404 });
   }

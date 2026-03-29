@@ -22,7 +22,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     if (!orchestrator) {
       throw new Error("Orchestrator not found");
     }
-    return { plugin, pluginId: params.id, orchestratorName: params.name };
+    return { plugin, orchestratorName: params.name };
   } catch {
     throw data("Orchestrator not found", { status: 404 });
   }
