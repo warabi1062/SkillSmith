@@ -6,16 +6,25 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-  index("routes/plugins.tsx"),
-  layout("routes/plugins.$id.tsx", [
-    route("plugins/:id", "routes/plugins.$id._index.tsx"),
+  index("routes/marketplaces.tsx"),
+  layout("routes/marketplaces.$marketplaceId.tsx", [
     route(
-      "plugins/:id/orchestrators/:name",
-      "routes/plugins.$id.orchestrators.$name.tsx",
+      "marketplaces/:marketplaceId",
+      "routes/marketplaces.$marketplaceId._index.tsx",
     ),
-    route(
-      "plugins/:id/skills/:name",
-      "routes/plugins.$id.skills.$name.tsx",
-    ),
+    layout("routes/marketplaces.$marketplaceId.plugins.$id.tsx", [
+      route(
+        "marketplaces/:marketplaceId/plugins/:id",
+        "routes/marketplaces.$marketplaceId.plugins.$id._index.tsx",
+      ),
+      route(
+        "marketplaces/:marketplaceId/plugins/:id/orchestrators/:name",
+        "routes/marketplaces.$marketplaceId.plugins.$id.orchestrators.$name.tsx",
+      ),
+      route(
+        "marketplaces/:marketplaceId/plugins/:id/skills/:name",
+        "routes/marketplaces.$marketplaceId.plugins.$id.skills.$name.tsx",
+      ),
+    ]),
   ]),
 ] satisfies RouteConfig;
