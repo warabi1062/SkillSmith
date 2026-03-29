@@ -29,15 +29,14 @@ const linearManageSkill = new EntryPointSkill({
       cases: {
         新規作成: [
           {
-            inline: "チケット種類確認",
+            inline: "チケット種類の判定",
             steps: [
               {
                 id: "1",
-                title: "種類ヒアリング",
-                body: "AskUserQuestionでチケット種類（Bug / Feature / Task）を確認する。",
+                title: "種類判定",
+                body: "ユーザーの指示内容からチケット種類（Bug / Task）を判定する。明確に判断できない場合はTaskとして作成する。",
               },
             ],
-            tools: [tool("AskUserQuestion")],
           },
           {
             inline: "テンプレート適用・チケット作成",
@@ -45,7 +44,7 @@ const linearManageSkill = new EntryPointSkill({
               {
                 id: "1",
                 title: "テンプレート読み込み",
-                body: "`templates/` 配下の該当テンプレートファイル（Bug: `bug.md`, Feature: `feature.md`, Task: `task.md`）を読み込む。",
+                body: "`templates/` 配下の該当テンプレートファイル（Bug: `bug.md`, Task: `task.md`）を読み込む。",
               },
               {
                 id: "2",
@@ -71,21 +70,36 @@ const linearManageSkill = new EntryPointSkill({
       },
     },
     linearTriageTeamSkill,
-  ],
-  files: [
-    { role: "TEMPLATE", filename: "templates/bug.md", sortOrder: 1 },
-    { role: "TEMPLATE", filename: "templates/feature.md", sortOrder: 2 },
-    { role: "TEMPLATE", filename: "templates/task.md", sortOrder: 3 },
-  ],
-  sections: [
     {
-      heading: "結果報告",
-      body: `ユーザーに以下を報告する:
+      inline: "結果報告",
+      steps: [
+        {
+          id: "1",
+          title: "結果報告",
+          body: `ユーザーに以下を報告する:
 - 作成・更新したチケットのURL
 - triage結果サマリー
 - 分割結果（分割した場合はサブチケット一覧）
 - 次のアクション: \`/dev {チケットID}\` で実装開始可能`,
-      position: "after-steps",
+        },
+      ],
+    },
+  ],
+  files: [
+    { role: "TEMPLATE", filename: "templates/bug.md", sortOrder: 1 },
+    { role: "TEMPLATE", filename: "templates/task.md", sortOrder: 2 },
+  ],
+  sections: [
+    {
+      heading: "注意事項",
+      body: `- 各ステップで問題が発生した場合はユーザーに報告して判断を仰ぐ
+- 実装は行わない。チケット整理が完了したら \`/dev {チケットID}\` で実装開始可能であることを案内する`,
+      position: "before-steps",
+    },
+    {
+      heading: "ステップ間の情報受け渡し",
+      body: "ステップ間の情報受け渡しは会話コンテキストではなくファイルを介して行う。会話コンテキストの肥大化を防ぎ、後続ステップが必要な情報だけを選択的に読めるようにする。",
+      position: "before-steps",
     },
   ],
 });
