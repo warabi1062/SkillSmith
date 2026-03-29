@@ -13,5 +13,9 @@ export default [
       "plugins/:id/orchestrators/:name",
       "routes/plugins.$id.orchestrators.$name.tsx",
     ),
+    route(
+      "plugins/:id/skills/:name",
+      "routes/plugins.$id.skills.$name.tsx",
+    ),
   ]),
 ] satisfies RouteConfig;
