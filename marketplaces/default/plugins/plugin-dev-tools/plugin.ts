@@ -1,6 +1,6 @@
 // plugin-dev-tools プラグイン定義
 
-import type { PluginDefinition } from "../../app/lib/types";
+import type { PluginDefinition } from "../../../../app/lib/types";
 import checkUpdatesSkill from "./skills/check-updates/skill";
 import createPluginSkill from "./skills/create-plugin/skill";
 import lintPluginSkill from "./skills/lint-plugin/skill";

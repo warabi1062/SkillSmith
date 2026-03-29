@@ -1,6 +1,6 @@
 // slack-notify スキル: Slack DMでの通知送信
 
-import { WorkerSkill, bash } from "../../../../app/lib/types";
+import { WorkerSkill, bash } from "../../../../../../app/lib/types";
 
 const slackNotifySkill = new WorkerSkill({
   name: "slack-notify",

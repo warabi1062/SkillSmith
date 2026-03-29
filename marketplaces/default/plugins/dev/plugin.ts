@@ -1,6 +1,6 @@
 // dev プラグイン定義
 
-import type { PluginDefinition } from "../../app/lib/types";
+import type { PluginDefinition } from "../../../../app/lib/types";
 import devSkill from "./skills/dev/skill";
 import devLiteSkill from "./skills/dev-lite/skill";
 import linearManageSkill from "./skills/linear-manage/skill";

@@ -1,6 +1,6 @@
 // review-pr スキル: GitHub PRをレビューし総評を報告
 
-import { WorkerSkill, tool, bash } from "../../../../app/lib/types";
+import { WorkerSkill, tool, bash } from "../../../../../../app/lib/types";
 
 const reviewPrSkill = new WorkerSkill({
   name: "review-pr",

@@ -1,6 +1,6 @@
 // review-lint-rules スキル: lintルールの定期見直しと改善
 
-import { WorkerSkill, tool } from "../../../../app/lib/types";
+import { WorkerSkill, tool } from "../../../../../../app/lib/types";
 
 const reviewLintRulesSkill = new WorkerSkill({
   name: "review-lint-rules",

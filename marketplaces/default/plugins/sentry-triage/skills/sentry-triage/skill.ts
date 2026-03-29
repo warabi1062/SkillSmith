@@ -1,6 +1,6 @@
 // sentry-triage スキル: SentryエラーのトリアージとLinear起票のオーケストレーター
 
-import { EntryPointSkill, tool } from "../../../../app/lib/types";
+import { EntryPointSkill, tool } from "../../../../../../app/lib/types";
 import sentryInvestigateSkill from "../sentry-investigate/skill";
 
 const sentryTriageSkill = new EntryPointSkill({

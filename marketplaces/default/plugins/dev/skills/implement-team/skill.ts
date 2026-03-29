@@ -1,7 +1,7 @@
 // implement-team スキル: Agent Teamでimplementer/reviewer/pr-creatorを編成し、コード実装・レビュー・PR作成を行う
 
-import { WorkerWithAgentTeam, tool, mcp } from "../../../../app/lib/types";
-import type { Teammate, SupportFile } from "../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool, mcp } from "../../../../../../app/lib/types";
+import type { Teammate, SupportFile } from "../../../../../../app/lib/types";
 import createPrSkill from "../create-pr/skill";
 
 const templateResult: SupportFile = {

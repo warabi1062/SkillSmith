@@ -1,6 +1,6 @@
 // triage-github-pr-comments スキル: PRレビューコメントのトリアージとコード修正
 
-import { WorkerSkill, tool, bash } from "../../../../app/lib/types";
+import { WorkerSkill, tool, bash } from "../../../../../../app/lib/types";
 
 const triageGithubPrCommentsSkill = new WorkerSkill({
   name: "triage-github-pr-comments",

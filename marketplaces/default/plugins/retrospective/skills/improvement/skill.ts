@@ -1,6 +1,6 @@
 // improvement スキル: retrospectiveレポートの分析とスキル改善
 
-import { WorkerSkill, tool } from "../../../../app/lib/types";
+import { WorkerSkill, tool } from "../../../../../../app/lib/types";
 
 const improvementSkill = new WorkerSkill({
   name: "improvement",

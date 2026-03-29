@@ -1,6 +1,6 @@
 // linear-manage スキル: Linearチケットの新規作成・修正・情報補完・スコープ分割
 
-import { EntryPointSkill, tool, mcp } from "../../../../app/lib/types";
+import { EntryPointSkill, tool, mcp } from "../../../../../../app/lib/types";
 import linearTriageTeamSkill from "../linear-triage-team/skill";
 
 const linearManageSkill = new EntryPointSkill({

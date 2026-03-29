@@ -1,6 +1,6 @@
 // check-updates スキル: Claude Codeの最新リリース確認とプラグイン更新
 
-import { WorkerSkill, tool } from "../../../../app/lib/types";
+import { WorkerSkill, tool } from "../../../../../../app/lib/types";
 
 const checkUpdatesSkill = new WorkerSkill({
   name: "check-updates",

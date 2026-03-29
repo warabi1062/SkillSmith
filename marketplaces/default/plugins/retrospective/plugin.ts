@@ -1,6 +1,6 @@
 // retrospective プラグイン定義
 
-import type { PluginDefinition } from "../../app/lib/types";
+import type { PluginDefinition } from "../../../../app/lib/types";
 import retrospectiveSkill from "./skills/retrospective/skill";
 import improvementSkill from "./skills/improvement/skill";
 

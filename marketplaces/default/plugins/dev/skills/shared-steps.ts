@@ -1,7 +1,7 @@
 // dev プラグイン内の共通 InlineStep 定義
 
-import type { InlineStep } from "../../../app/lib/types";
-import { tool } from "../../../app/lib/types";
+import type { InlineStep } from "../../../../../app/lib/types";
+import { tool } from "../../../../../app/lib/types";
 
 // タスクID生成: ユーザー指示からslugベースのIDを生成する
 export const generateTaskId: InlineStep = {

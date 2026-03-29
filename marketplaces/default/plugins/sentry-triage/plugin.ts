@@ -1,6 +1,6 @@
 // sentry-triage プラグイン定義
 
-import type { PluginDefinition } from "../../app/lib/types";
+import type { PluginDefinition } from "../../../../app/lib/types";
 import sentryTriageSkill from "./skills/sentry-triage/skill";
 import sentryInvestigateSkill from "./skills/sentry-investigate/skill";
 

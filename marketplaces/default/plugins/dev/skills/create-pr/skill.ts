@@ -1,7 +1,7 @@
 // create-pr スキル: 実装済みコードのGitHub PR作成
 
-import { WorkerWithSubAgent, tool, bash, mcp } from "../../../../app/lib/types";
-import type { SupportFile } from "../../../../app/lib/types";
+import { WorkerWithSubAgent, tool, bash, mcp } from "../../../../../../app/lib/types";
+import type { SupportFile } from "../../../../../../app/lib/types";
 
 const templateFile: SupportFile = {
   role: "TEMPLATE",

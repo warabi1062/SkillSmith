@@ -1,6 +1,6 @@
 // github-pr プラグイン定義
 
-import type { PluginDefinition } from "../../app/lib/types";
+import type { PluginDefinition } from "../../../../app/lib/types";
 import reviewPrSkill from "./skills/review-pr/skill";
 import triageGithubPrCommentsSkill from "./skills/triage-github-pr-comments/skill";
 

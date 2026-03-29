@@ -1,8 +1,8 @@
 // create-plugin スキル: プラグインの対話的作成・スキル追加
 // 注: マーケットプレイスでは disable-model-invocation: true が設定されている
 
-import { WorkerSkill, tool } from "../../../../app/lib/types";
-import type { SupportFile } from "../../../../app/lib/types";
+import { WorkerSkill, tool } from "../../../../../../app/lib/types";
+import type { SupportFile } from "../../../../../../app/lib/types";
 
 const referenceFile: SupportFile = {
   role: "REFERENCE",

@@ -1,7 +1,7 @@
 // plan-team スキル: Agent Teamでplanner/reviewerを編成し、実装計画の作成とレビューを並列で行う
 
-import { WorkerWithAgentTeam, tool } from "../../../../app/lib/types";
-import type { Teammate, SupportFile } from "../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool } from "../../../../../../app/lib/types";
+import type { Teammate, SupportFile } from "../../../../../../app/lib/types";
 
 const template: SupportFile = {
   role: "TEMPLATE",

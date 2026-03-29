@@ -1,7 +1,7 @@
 // linear-triage-team スキル: Agent Teamでtriager/reviewer/executorを編成し、Linearチケットの調査・計画作成・レビュー・実行を行う
 
-import { WorkerWithAgentTeam, tool, mcp } from "../../../../app/lib/types";
-import type { Teammate, SupportFile } from "../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool, mcp } from "../../../../../../app/lib/types";
+import type { Teammate, SupportFile } from "../../../../../../app/lib/types";
 
 const templateResult: SupportFile = {
   role: "TEMPLATE",

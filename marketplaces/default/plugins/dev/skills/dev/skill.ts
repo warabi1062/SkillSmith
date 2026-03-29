@@ -1,6 +1,6 @@
 // dev スキル: Linearチケットまたはユーザー指示から実装計画・実装・PR作成を自動で行う
 
-import { EntryPointSkill, tool } from "../../../../app/lib/types";
+import { EntryPointSkill, tool } from "../../../../../../app/lib/types";
 import linearTriageTeamSkill from "../linear-triage-team/skill";
 import planTeamSkill from "../plan-team/skill";
 import implementTeamSkill from "../implement-team/skill";

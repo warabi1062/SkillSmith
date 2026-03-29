@@ -1,6 +1,6 @@
 // dev-lite スキル: 軽量版devワークフロー
 
-import { EntryPointSkill, tool } from "../../../../app/lib/types";
+import { EntryPointSkill, tool } from "../../../../../../app/lib/types";
 import implementTeamSkill from "../implement-team/skill";
 import { generateTaskId, createBranch } from "../shared-steps";
 

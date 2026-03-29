@@ -4,8 +4,8 @@ import {
   WorkerWithSubAgent,
   tool,
   mcp,
-} from "../../../../app/lib/types";
-import type { SupportFile } from "../../../../app/lib/types";
+} from "../../../../../../app/lib/types";
+import type { SupportFile } from "../../../../../../app/lib/types";
 
 const templateResultFile: SupportFile = {
   role: "TEMPLATE",

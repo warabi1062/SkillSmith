@@ -1,7 +1,7 @@
 // lint-plugin スキル: プラグインのベストプラクティス違反チェックと自動修正
 
-import { WorkerSkill, tool } from "../../../../app/lib/types";
-import type { SupportFile } from "../../../../app/lib/types";
+import { WorkerSkill, tool } from "../../../../../../app/lib/types";
+import type { SupportFile } from "../../../../../../app/lib/types";
 
 const rulesFile: SupportFile = {
   role: "REFERENCE",

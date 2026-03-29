@@ -1,7 +1,7 @@
 // retrospective スキル: 作業完了後の実行結果を構造化して記録
 
-import { WorkerSkill, tool } from "../../../../app/lib/types";
-import type { SupportFile } from "../../../../app/lib/types";
+import { WorkerSkill, tool } from "../../../../../../app/lib/types";
+import type { SupportFile } from "../../../../../../app/lib/types";
 
 const templateFile: SupportFile = {
   role: "TEMPLATE",

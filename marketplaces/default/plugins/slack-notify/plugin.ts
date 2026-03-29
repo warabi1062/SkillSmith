@@ -1,6 +1,6 @@
 // slack-notify プラグイン定義
 
-import type { PluginDefinition } from "../../app/lib/types";
+import type { PluginDefinition } from "../../../../app/lib/types";
 import slackNotifySkill from "./skills/slack-notify/skill";
 
 const plugin: PluginDefinition = {
