@@ -1,4 +1,4 @@
-# Triage Result: {task-id}
+# Triage Result: {チケットID}
 
 ## チケット更新
 {更新済み / スキップ}

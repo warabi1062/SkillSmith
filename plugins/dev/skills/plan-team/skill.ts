@@ -18,7 +18,6 @@ const planner: Teammate = {
   name: "planner",
   role: "チケットの要件に基づいてコードベースを調査し、実装計画を作成する。",
   sortOrder: 1,
-  communicationPattern: { type: "responder" },
   steps: [
     {
       id: "P1",
@@ -55,59 +54,40 @@ LinearチケットIDが渡されている場合は Linear MCP の \`get_issue\` 
     },
     {
       id: "P5",
-      title: "reviewer からのレビュー結果を待つ",
-      body: `計画を保存したら、reviewer からの連絡を待つ。reviewer が status_check で状況を確認してくるので、応答する（後述の「status_check への応答ルール」参照）。
-
-reviewer からレビュー結果を受け取ったら:
-- PASS の場合 → P7 へ進む
-- NEEDS_REVISION の場合 → P6 へ進む`,
+      title: "reviewer に完了を通知する",
+      body: "reviewer に計画が完了した旨と計画ファイルのパスを伝える。",
     },
     {
       id: "P6",
-      title: "レビュー対応（→ P5 に戻る）",
-      body: `reviewer から NEEDS_REVISION の通知を受けた場合、通知に含まれるレビュー結果のファイルパスから指摘内容を読み込み、対応する。
+      title: "レビュー対応",
+      body: `reviewer から NEEDS_REVISION を受け取った場合、通知に含まれるレビュー結果のファイルパスから指摘内容を読み込み、対応する。
 
 - must: 計画を修正する
 - imo: 採用するか判断し、採用する場合は修正、しない場合は理由を回答する
 - question: 質問に回答する。質問が出たこと自体が計画の分かりにくさの兆候かもしれないため、回答に加えて記述の改善も検討する
 
-対応後、計画ファイルに対応内容（修正箇所、imo判断の理由、質問への回答）を追記する。reviewer が status_check で修正完了を検知するので、P5 の待機に戻る。`,
-    },
-    {
-      id: "P7",
-      title: "作業完了後の待機",
-      body: "レビューPASS後も、shutdown_request が届くまで自発的に作業完了としない。idle状態になるのは正常（メッセージ受信で自動復帰する）。リーダーやチームメンバーからフィードバック付きの修正依頼が届く場合があるため、メッセージを受信したら対応する。shutdown_request を受けたら shutdown_response（approve）を返して終了する。",
+対応後、計画ファイルに対応内容（修正箇所、imo判断の理由、質問への回答）を追記する。reviewer に修正が完了した旨と計画ファイルのパスを伝える。`,
     },
   ],
 };
 
 const reviewer: Teammate = {
   name: "reviewer",
-  role: "実装計画を第三者の視点でレビューし、漏れや設計上の問題を指摘する。",
+  role: "実装計画を第三者の視点でレビューし、漏れや設計上の問題を指摘する。計画の作成経緯は知らない前提でレビューする。問題点や理由を曖昧にせず具体的に指摘する。セキュアな情報を出力に含めない。",
   sortOrder: 2,
-  communicationPattern: { type: "poller", target: "planner" },
   steps: [
     {
       id: "R1",
-      title: "作業完了のポーリング",
-      body: `planner に SendMessage で \`{type: "status_check"}\` を送信し、返信を待つ。
-
-- \`{status: "working"}\` → 2分待ってから再度 status_check を送信（R1 を繰り返す）
-- \`{status: "done", path: "..."}\` → R2 へ進む
-- \`{status: "blocked", reason: "..."}\` → リーダーに報告し、R1 を繰り返す`,
+      title: "計画の読み込み",
+      body: "planner から通知されたパスから実装計画を読み込む。チケットの要件は Linear MCP は使わず、計画に記載されたゴール・受入条件を参照する。",
     },
     {
       id: "R2",
-      title: "計画の読み込み",
-      body: "通知されたパスから実装計画を読み込む。チケットの要件は Linear MCP は使わず、計画に記載されたゴール・受入条件を参照する。",
-    },
-    {
-      id: "R3",
       title: "コードベースの軽い調査",
       body: "計画の前提が正しいか、コードベースを確認する。",
     },
     {
-      id: "R4",
+      id: "R3",
       title: "レビュー",
       body: `以下の観点でレビューする:
 
@@ -135,32 +115,19 @@ const reviewer: Teammate = {
 - 段階的に動作確認できる順序になっているか`,
     },
     {
+      id: "R4",
+      title: "レビュー結果の保存",
+      body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/plan-review.md\` に [${planReviewFormat.filename}](${planReviewFormat.filename}) 形式で保存する。`,
+    },
+    {
       id: "R5",
-      title: "レビュー結果の保存と通知",
-      body: `レビュー結果を \`~/claude-code-data/workflows/{タスクID}/plan-review.md\` に保存する。
-
-ファイルのフォーマット: [${planReviewFormat.filename}](${planReviewFormat.filename})
-
-保存後、planner と リーダー（team lead）の両方に SendMessage で通知する。SendMessage には判定結果（PASS / NEEDS_REVISION）とファイルパスのみを含める。レビューの詳細はファイルを参照させる。
-
-- NEEDS_REVISION を送った場合 → R6 へ進み、planner の修正通知を待つ
-- PASS を送った場合 → R7 へ進む`,
+      title: "通知",
+      body: `planner と リーダー（team lead）の両方に判定結果（PASS / NEEDS_REVISION）とファイルパスを伝える。`,
     },
     {
       id: "R6",
-      title: "修正完了のポーリング（→ R2 に戻る）",
-      body: 'NEEDS_REVISION 送信後、planner の修正完了を確認する。R1 と同じ要領で status_check を送信し、`{status: "done"}` を受け取ったら R2 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。',
-    },
-    {
-      id: "R7",
-      title: "作業完了後の待機",
-      body: `レビューPASS後も、shutdown_request が届くまで自発的に作業完了としない。idle状態になるのは正常（メッセージ受信で自動復帰する）。shutdown_request を受けたら shutdown_response（approve）を返して終了する。
-
-注意:
-- 計画の作成経緯は知らない前提でレビューする
-- 指摘は具体的に。計画のどのセクション・ステップかを明示する
-- セキュアな情報を出力に含めない
-- shutdown_request が届くまで自発的に作業完了としないこと`,
+      title: "再レビュー",
+      body: "NEEDS_REVISION の場合、planner が計画を修正したら R1 に戻って再レビューする。レビュー結果は同じファイルパスに上書き保存する。",
     },
   ],
 };
