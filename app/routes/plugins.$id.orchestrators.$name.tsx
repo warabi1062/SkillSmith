@@ -1,4 +1,4 @@
-import { data, Link } from "react-router";
+import { data } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
 import type { Route } from "./+types/plugins.$id.orchestrators.$name";
 import { OrchestratorView } from "../components/OrchestratorStructureView";
@@ -28,10 +28,19 @@ export async function loader({ params }: Route.LoaderArgs) {
   }
 }
 
+// ブレッドクラム: オーケストレーター名を表示
+export const handle = {
+  breadcrumb: ({
+    data: loaderData,
+  }: { data: { orchestratorName: string } }) => ({
+    label: loaderData.orchestratorName,
+  }),
+};
+
 export default function OrchestratorDetail({
   loaderData,
 }: Route.ComponentProps) {
-  const { plugin, pluginId, orchestratorName } = loaderData;
+  const { plugin, orchestratorName } = loaderData;
   const orchestrator = plugin.skills.find(
     (s) => s.skillType === "ENTRY_POINT" && s.name === orchestratorName,
   );
@@ -42,15 +51,6 @@ export default function OrchestratorDetail({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">
-      <div className="flex items-start mb-6">
-        <Link
-          to={`/plugins/${pluginId}`}
-          className="font-display text-sm font-medium text-text-tertiary inline-flex items-center gap-1 py-1 hover:text-accent-teal transition-colors"
-        >
-          &larr; {plugin.name}
-        </Link>
-      </div>
-
       <OrchestratorView skill={orchestrator} allSkills={plugin.skills} />
     </div>
   );
