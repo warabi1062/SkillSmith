@@ -36,5 +36,5 @@ export const createBranch: InlineStep = {
     },
   ],
   output:
-    "ブランチ名: feature/{ID}-{タイトルのslug}\n例（Linear）: feature/LIN-123-add-user-authentication\n例（Quick）: feature/quick-add-dark-mode",
+    "ブランチ名: feature/{ID}-{タイトルのslug}\n例: feature/LIN-123-add-user-authentication, feature/quick-add-dark-mode",
 };

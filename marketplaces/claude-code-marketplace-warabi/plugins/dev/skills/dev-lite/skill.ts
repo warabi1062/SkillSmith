@@ -1,8 +1,15 @@
 // dev-lite スキル: 軽量版devワークフロー
 
 import { EntryPointSkill, tool } from "../../../../../../app/lib/types";
+import type { SupportFile } from "../../../../../../app/lib/types";
 import implementTeamSkill from "../implement-team/skill";
 import { generateTaskId, createBranch } from "../shared-steps";
+
+const planFormatFile: SupportFile = {
+  role: "TEMPLATE",
+  filename: "plan-format.md",
+  sortOrder: 1,
+};
 
 const devLiteSkill = new EntryPointSkill({
   name: "dev-lite",
@@ -35,7 +42,7 @@ const devLiteSkill = new EntryPointSkill({
         {
           id: "2",
           title: "plan.md の書き出し",
-          body: "`~/claude-code-data/workflows/{タスクID}/plan.md` に実装計画を書き出す。フォーマット: ゴール、変更ファイル一覧、コミット計画、テスト計画、既存パターンへの準拠。",
+          body: "`~/claude-code-data/workflows/{タスクID}/plan.md` に [plan-format.md](plan-format.md) のフォーマットで実装計画を書き出す。",
         },
         {
           id: "3",
@@ -65,6 +72,7 @@ const devLiteSkill = new EntryPointSkill({
       position: "after-steps",
     },
   ],
+  files: [planFormatFile],
 });
 
 export default devLiteSkill;
