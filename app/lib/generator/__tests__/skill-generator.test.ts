@@ -98,22 +98,10 @@ describe("generateSkillMd", () => {
     expect(errors.some((e) => e.code === "EMPTY_CONTENT")).toBe(true);
   });
 
-  it("includes input in frontmatter when set", () => {
+  it("SKILL.mdのfrontmatterにinput/outputを含めない", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ input: "- task ID\n- file path" }),
+      makeSkillComponent({ input: "- task ID", output: "- result" }),
     );
-    expect(file!.content).toContain("input:");
-  });
-
-  it("includes output in frontmatter when set", () => {
-    const { file } = generateSkillMd(
-      makeSkillComponent({ output: "- result path" }),
-    );
-    expect(file!.content).toContain("output:");
-  });
-
-  it("omits input/output when undefined", () => {
-    const { file } = generateSkillMd(makeSkillComponent({}));
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
   });

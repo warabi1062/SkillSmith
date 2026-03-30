@@ -8,6 +8,7 @@ const sentryTriageSkill = new EntryPointSkill({
   description:
     "Sentryエラーを調査・トリアージし、対応要否の判断とLinear起票を行う",
   argumentHint: "[SENTRY_URL or ISSUE_ID]",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

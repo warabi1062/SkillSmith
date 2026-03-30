@@ -7,6 +7,7 @@ const reviewPrSkill = new WorkerSkill({
   description:
     "openしたGitHub PRをレビューし、総評をユーザーに報告するスキル。単独で使用可能。",
   argumentHint: "[PR番号 or PR_URL]",
+  userInvocable: true,
   allowedTools: [tool("Read"), tool("Grep"), tool("Glob"), bash("gh *"), tool("Task")],
   content: `# Review PR
 

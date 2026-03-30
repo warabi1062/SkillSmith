@@ -6,6 +6,7 @@ const improvementSkill = new WorkerSkill({
   name: "improvement",
   description:
     "retrospectiveレポートを分析し、skillsの改善を考えて実施するスキル",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

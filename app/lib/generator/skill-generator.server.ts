@@ -12,6 +12,8 @@ export interface SkillGeneratorInput {
   description?: string;
   skillType: string;
   argumentHint?: string;
+  userInvocable?: boolean;
+  disableModelInvocation?: boolean;
   allowedTools?: ToolRef[];
   content: string;
   input?: string;
@@ -73,18 +75,17 @@ export function generateSkillMd(component: SkillComponentData): {
   if (config.argumentHint) {
     frontmatterFields["argument-hint"] = config.argumentHint;
   }
-  // ENTRY_POINT以外のスキルはユーザーが直接呼び出さない
-  if (config.skillType !== "ENTRY_POINT") {
+  if (config.disableModelInvocation) {
+    frontmatterFields["disable-model-invocation"] = true;
+  }
+  // userInvocable が明示的に設定されていればその値を使う。未設定ならENTRY_POINT以外はfalse
+  if (config.userInvocable !== undefined) {
+    frontmatterFields["user-invocable"] = config.userInvocable;
+  } else if (config.skillType !== "ENTRY_POINT") {
     frontmatterFields["user-invocable"] = false;
   }
   if (allowedTools && allowedTools.length > 0) {
     frontmatterFields["allowed-tools"] = allowedTools;
-  }
-  if (config.input) {
-    frontmatterFields.input = config.input;
-  }
-  if (config.output) {
-    frontmatterFields.output = config.output;
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);

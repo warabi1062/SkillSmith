@@ -64,6 +64,8 @@ interface ImportedSkill {
   output?: string;
   allowedTools?: ToolRef[];
   argumentHint?: string;
+  userInvocable?: boolean;
+  disableModelInvocation?: boolean;
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
@@ -169,6 +171,8 @@ interface LoadedSkillBase {
   output?: string;
   allowedTools?: ToolRef[];
   argumentHint?: string;
+  userInvocable?: boolean;
+  disableModelInvocation?: boolean;
   files: LoadedSupportFile[];
   dependencies?: string[];
   steps?: LoadedStep[];
@@ -373,6 +377,8 @@ export async function loadPluginDefinition(
         output: skill.output,
         allowedTools: skill.allowedTools,
         argumentHint: skill.argumentHint,
+        userInvocable: skill.userInvocable,
+        disableModelInvocation: skill.disableModelInvocation,
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,

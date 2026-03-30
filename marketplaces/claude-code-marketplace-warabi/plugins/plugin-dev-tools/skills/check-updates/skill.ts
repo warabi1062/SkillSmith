@@ -6,6 +6,7 @@ const checkUpdatesSkill = new WorkerSkill({
   name: "check-updates",
   description:
     "Claude Codeの最新リリースを確認し、作業ディレクトリ内のskills・agentsに必要な更新を適用する",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

@@ -6,6 +6,7 @@ const reviewLintRulesSkill = new WorkerSkill({
   name: "review-lint-rules",
   description:
     "lint-pluginのルールを定期的に見直し、不要ルールの削除やドキュメントに基づく改善を行う",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

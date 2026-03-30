@@ -15,6 +15,8 @@ const createPluginSkill = new WorkerSkill({
   description:
     "新しいプラグインの作成、または既存プラグインへのスキル・エージェント追加を対話的に行うスキル",
   argumentHint: "[plugin名 or 操作]",
+  userInvocable: true,
+  disableModelInvocation: true,
   allowedTools: [tool("Read"), tool("Write"), tool("Grep"), tool("Glob")],
   files: [referenceFile],
   content: `# Create Plugin

@@ -67,7 +67,12 @@ export function serializeFrontmatter(
     if (serialized == null) {
       continue;
     }
-    lines.push(`${key}: ${serialized}`);
+    // 配列値は改行で始まるため、コロン直後に連結する
+    if (serialized.startsWith("\n")) {
+      lines.push(`${key}:${serialized}`);
+    } else {
+      lines.push(`${key}: ${serialized}`);
+    }
   }
 
   if (lines.length === 0) {

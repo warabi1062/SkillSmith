@@ -124,6 +124,8 @@ function generateSkillComponent(
       description: skill.description,
       skillType: skill.skillType,
       argumentHint: skill.argumentHint,
+      userInvocable: skill.userInvocable,
+      disableModelInvocation: skill.disableModelInvocation,
       allowedTools: skill.allowedTools,
       content,
       input: skill.input,

@@ -9,6 +9,7 @@ const devLiteSkill = new EntryPointSkill({
   description:
     "ユーザー指示から実装・レビュー・draft PR作成を簡易ステップで行う軽量版dev",
   argumentHint: "[説明]",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

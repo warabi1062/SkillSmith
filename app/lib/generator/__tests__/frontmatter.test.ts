@@ -27,7 +27,7 @@ describe("serializeFrontmatter", () => {
 
   it("serializes array values as YAML lists", () => {
     const result = serializeFrontmatter({ tools: ["Read", "Write"] });
-    expect(result).toBe("---\ntools: \n  - Read\n  - Write\n---");
+    expect(result).toBe("---\ntools:\n  - Read\n  - Write\n---");
   });
 
   it("omits empty arrays", () => {

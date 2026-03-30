@@ -13,6 +13,7 @@ const lintPluginSkill = new WorkerSkill({
   name: "lint-plugin",
   description:
     "作業ディレクトリ内のskills・agentsのbest practice違反をチェックし、自動修正する",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

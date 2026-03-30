@@ -210,6 +210,8 @@ type SkillOptionalFields = Pick<
   | "output"
   | "allowedTools"
   | "argumentHint"
+  | "userInvocable"
+  | "disableModelInvocation"
   | "files"
   | "dependencies"
   | "steps"
@@ -227,6 +229,8 @@ export abstract class Skill {
   output?: string;
   allowedTools?: ToolRef[];
   argumentHint?: string;
+  userInvocable?: boolean;
+  disableModelInvocation?: boolean;
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
   steps?: Step[]; // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
@@ -239,6 +243,8 @@ export abstract class Skill {
     if (init.output !== undefined) this.output = init.output;
     if (init.allowedTools !== undefined) this.allowedTools = init.allowedTools;
     if (init.argumentHint !== undefined) this.argumentHint = init.argumentHint;
+    if (init.userInvocable !== undefined) this.userInvocable = init.userInvocable;
+    if (init.disableModelInvocation !== undefined) this.disableModelInvocation = init.disableModelInvocation;
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
     if (init.steps !== undefined) this.steps = init.steps;

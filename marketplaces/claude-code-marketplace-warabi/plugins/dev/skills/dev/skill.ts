@@ -11,6 +11,7 @@ const devSkill = new EntryPointSkill({
   description:
     "Linearチケットまたはユーザー指示から実装計画・実装・PR作成を自動で行う",
   argumentHint: "[LINEAR_ISSUE_ID or 説明]",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

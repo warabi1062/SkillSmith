@@ -7,6 +7,7 @@ const triageGithubPrCommentsSkill = new WorkerSkill({
   description:
     "GitHub PRのレビューコメントURLを受け取り、指摘の妥当性を判断してコード修正で対応する",
   argumentHint: "[コメントURL]",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),

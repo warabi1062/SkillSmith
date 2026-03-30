@@ -8,6 +8,7 @@ const linearManageSkill = new EntryPointSkill({
   description:
     "Linearチケットを新規作成・修正し、情報補完・スコープ分割まで行うタスク整理スキル。実装は行わず、チケットを実装可能な状態に整える。",
   argumentHint: "[LINEAR_ISSUE_ID or 概要]",
+  userInvocable: true,
   allowedTools: [
     tool("Read"),
     tool("Write"),
