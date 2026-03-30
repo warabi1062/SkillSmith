@@ -5,7 +5,6 @@ import type {
   LoadedStep,
   LoadedOrchestratorSection,
 } from "../../lib/types/loader.server";
-import { tool } from "../../lib/types/skill";
 
 describe("convertStep", () => {
   it("文字列ステップをskill型に変換する", () => {
@@ -23,7 +22,6 @@ describe("convertStep", () => {
         { id: "1", title: "ベース確認", body: "mainブランチを確認" },
         { id: "2", title: "作成", body: "新規ブランチを作成" },
       ],
-      tools: [tool("Bash")],
     };
     const result = convertStep(step);
     expect(result).toEqual({
@@ -33,17 +31,7 @@ describe("convertStep", () => {
         { id: "1", title: "ベース確認", body: "mainブランチを確認" },
         { id: "2", title: "作成", body: "新規ブランチを作成" },
       ],
-      inlineTools: ["Bash"],
     });
-  });
-
-  it("toolsがないインラインステップではinlineToolsがundefinedになる", () => {
-    const step: LoadedStep = {
-      inline: "確認",
-      steps: [{ id: "1", title: "test", body: "body" }],
-    };
-    const result = convertStep(step);
-    expect(result.inlineTools).toBeUndefined();
   });
 
   it("分岐ステップをbranch型に変換する", () => {
@@ -84,7 +72,6 @@ describe("convertStep", () => {
       type: "inline",
       label: "前処理",
       inlineSteps: [{ id: "1", title: "準備", body: "準備する" }],
-      inlineTools: undefined,
     });
   });
 

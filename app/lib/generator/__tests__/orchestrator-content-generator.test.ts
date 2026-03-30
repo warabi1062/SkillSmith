@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { generateOrchestratorContent } from "../orchestrator-content-generator";
 import type { LoadedStep } from "../../types/loader.server";
-import { tool } from "../../types/skill";
+
 
 describe("generateOrchestratorContent", () => {
   it("stepsが空配列の場合は空文字を返す", () => {
@@ -45,11 +45,13 @@ describe("generateOrchestratorContent", () => {
     });
 
     expect(result).toContain("### Step 1: タスクID生成");
-    expect(result).toContain("#### 手順");
-    expect(result).toContain("**1. slug生成**");
+    // ステップが1つだけの場合はフラットに展開される
+    expect(result).not.toContain("#### 手順");
     expect(result).toContain("指示内容から短いslugを生成する");
-    expect(result).toContain("**入力**: ユーザー指示");
-    expect(result).toContain("**出力**: タスクID: quick-{slug}");
+    expect(result).toContain("#### 入力");
+    expect(result).toContain("ユーザー指示");
+    expect(result).toContain("#### 出力");
+    expect(result).toContain("タスクID: quick-{slug}");
   });
 
   it("Branch（description あり + 各 case にステップあり）の場合", () => {
@@ -94,7 +96,7 @@ describe("generateOrchestratorContent", () => {
 
     const beforeIdx = result.indexOf("## 事前確認");
     const stepsIdx = result.indexOf("## ステップ");
-    const afterIdx = result.indexOf("## 注意事項");
+    const afterIdx = result.indexOf("### 注意事項");
 
     expect(beforeIdx).toBeLessThan(stepsIdx);
     expect(stepsIdx).toBeLessThan(afterIdx);
@@ -133,18 +135,13 @@ describe("generateOrchestratorContent", () => {
     expect(result).toContain("####### Step 2A-2A-1: worker-c");
   });
 
-  it("skillDescriptions から Worker skill の description が引用される", () => {
-    const skillDescriptions = new Map<string, string>();
-    skillDescriptions.set("worker-a", "Worker Aの説明文");
-
+  it("スキル参照ステップに委譲文が出力される", () => {
     const result = generateOrchestratorContent({
-
       steps: ["worker-a"],
-      skillDescriptions,
     });
 
     expect(result).toContain("### Step 1: worker-a");
-    expect(result).toContain("Worker Aの説明文");
+    expect(result).toContain("worker-a skill を実行する。");
   });
 
   it("InlineStep に複数の steps がある場合、構造化された手順が出力される", () => {
@@ -172,29 +169,11 @@ describe("generateOrchestratorContent", () => {
     });
 
     expect(result).toContain("### Step 1: ブランチ作成");
-    expect(result).toContain("#### 手順");
-    expect(result).toContain("**1. ベースブランチ判定**");
+    expect(result).not.toContain("#### 手順");
+    expect(result).toContain("1. ベースブランチ判定");
     expect(result).toContain("git branch -a で develop の存在を確認する");
-    expect(result).toContain("**2. ブランチ切り替え**");
+    expect(result).toContain("2. ブランチ切り替え");
     expect(result).toContain("feature/{タスクID} ブランチを作成して切り替える");
-  });
-
-  it("InlineStep に tools がある場合、使用ツールが出力される", () => {
-    const steps: LoadedStep[] = [
-      {
-        inline: "コード検索",
-        steps: [{ id: "1", title: "検索実行", body: "関連ファイルを検索する" }],
-        tools: [tool("Grep"), tool("Glob"), tool("Read")],
-      },
-    ];
-
-    const result = generateOrchestratorContent({
-
-      steps,
-    });
-
-    expect(result).toContain("### Step 1: コード検索");
-    expect(result).toContain("**使用ツール**: Grep, Glob, Read");
   });
 
   it("InlineStep に steps が空配列の場合、手順セクションが出力されない", () => {
@@ -213,8 +192,10 @@ describe("generateOrchestratorContent", () => {
     });
 
     expect(result).toContain("### Step 1: シンプル処理");
-    expect(result).toContain("**入力**: 入力データ");
-    expect(result).toContain("**出力**: 出力結果");
+    expect(result).toContain("#### 入力");
+    expect(result).toContain("入力データ");
+    expect(result).toContain("#### 出力");
+    expect(result).toContain("出力結果");
     expect(result).not.toContain("#### 手順");
   });
 
@@ -312,7 +293,7 @@ describe("generateOrchestratorContent", () => {
     const step1Idx = result.indexOf("### Step 1: worker-a");
     const betweenIdx = result.indexOf("## Step間メモ");
     const step2Idx = result.indexOf("### Step 2: worker-b");
-    const afterIdx = result.indexOf("## 注意事項");
+    const afterIdx = result.indexOf("### 注意事項");
 
     expect(beforeIdx).toBeLessThan(stepsIdx);
     expect(step1Idx).toBeLessThan(betweenIdx);
@@ -320,26 +301,4 @@ describe("generateOrchestratorContent", () => {
     expect(step2Idx).toBeLessThan(afterIdx);
   });
 
-  it("skillDescriptions に該当スキルが無い場合、スキル名のみがフォールバック出力される", () => {
-    const skillDescriptions = new Map<string, string>();
-    skillDescriptions.set("other-skill", "別スキルの説明");
-
-    const result = generateOrchestratorContent({
-
-      steps: ["unknown-skill"],
-      skillDescriptions,
-    });
-
-    expect(result).toContain("### Step 1: unknown-skill");
-    // description が含まれないこと
-    expect(result).not.toContain("別スキルの説明");
-    // スキル名行の後に説明がないことを確認
-    const lines = result.split("\n");
-    const stepLine = lines.findIndex((l) =>
-      l.includes("### Step 1: unknown-skill"),
-    );
-    // ステップ行の次は空行またはファイル末尾
-    const nextNonEmpty = lines.slice(stepLine + 1).find((l) => l.trim() !== "");
-    expect(nextNonEmpty).toBeUndefined();
-  });
 });

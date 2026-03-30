@@ -40,17 +40,20 @@ export function generatePlugin(
     files.push(pluginJson.file);
   }
 
-  // skillDescriptions マップを構築（Worker skill の description を参照するため）
-  const skillDescriptions = new Map<string, string>();
+  // skillMetas マップを構築（オーケストレーターのスキル参照ステップで入出力を表示するため）
+  const skillMetas = new Map<string, { input?: string; output?: string }>();
   for (const skill of pluginDef.skills) {
-    if (skill.description) {
-      skillDescriptions.set(skill.name, skill.description);
+    if (skill.input || skill.output) {
+      skillMetas.set(skill.name, {
+        input: skill.input,
+        output: skill.output,
+      });
     }
   }
 
   // Generate skill files
   for (const skill of pluginDef.skills) {
-    generateSkillComponent(skill, files, validationErrors, skillDescriptions);
+    generateSkillComponent(skill, files, validationErrors, skillMetas);
   }
 
   // Build skill data for validator
@@ -74,7 +77,7 @@ function generateSkillComponent(
   skill: LoadedSkillUnion,
   files: GeneratedFile[],
   errors: GenerationValidationError[],
-  skillDescriptions: Map<string, string>,
+  skillMetas: Map<string, { input?: string; output?: string }>,
 ): void {
   // EntryPoint スキルの場合は steps + sections + メタデータから content を自動生成する
   let content = skill.content;
@@ -82,7 +85,7 @@ function generateSkillComponent(
     content = generateOrchestratorContent({
       steps: skill.steps,
       sections: skill.sections,
-      skillDescriptions,
+      skillMetas,
     });
   }
 
@@ -103,6 +106,7 @@ function generateSkillComponent(
     skill.teamPrefix
   ) {
     content = generateTeamContent({
+      description: skill.description,
       input: skill.input,
       output: skill.output,
       teammates: skill.teammates,

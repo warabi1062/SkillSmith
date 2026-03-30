@@ -39,7 +39,6 @@ interface ImportedInlineStep {
   steps: ImportedInlineSubStep[];
   input?: string;
   output?: string;
-  tools?: ToolRef[];
 }
 
 type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
@@ -138,7 +137,6 @@ export interface LoadedInlineStep {
   steps: LoadedInlineSubStep[];
   input?: string;
   output?: string;
-  tools?: ToolRef[];
 }
 
 // ローダー用のオーケストレーターセクション型
@@ -585,7 +583,6 @@ async function convertImportedStepsAsync(
         };
         if (step.input) loaded.input = step.input;
         if (step.output) loaded.output = step.output;
-        if (step.tools) loaded.tools = [...step.tools];
         return loaded;
       }
       return step.name;

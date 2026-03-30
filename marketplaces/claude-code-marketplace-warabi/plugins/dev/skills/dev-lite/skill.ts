@@ -43,7 +43,6 @@ const devLiteSkill = new EntryPointSkill({
           body: "実装計画の保存先パスを記録し、後続のステップに渡す。コードベースの深い調査は不要。plan review やユーザー承認は行わない。",
         },
       ],
-      tools: [tool("Read"), tool("Glob"), tool("Grep"), tool("Write")],
     },
     implementTeamSkill,
   ],

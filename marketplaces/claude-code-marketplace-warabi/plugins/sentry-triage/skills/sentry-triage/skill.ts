@@ -35,7 +35,6 @@ const sentryTriageSkill = new EntryPointSkill({
           body: "ユーザーに対応方針を確認する:\n- **対応する** → 次のステップ（Linear起票）へ\n- **対応しない** → 調査結果の「無視方法」があればそれを報告して終了",
         },
       ],
-      tools: [tool("Read"), tool("AskUserQuestion")],
     },
     {
       inline: "Linear起票",
@@ -56,7 +55,6 @@ const sentryTriageSkill = new EntryPointSkill({
           body: "作成されたLinear issueのIDとURLをユーザーに報告して終了する。",
         },
       ],
-      tools: [tool("ToolSearch"), tool("AskUserQuestion")],
     },
   ],
   sections: [

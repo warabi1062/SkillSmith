@@ -64,7 +64,6 @@ export interface StepFields {
   description?: string;
   cases?: { name: string; steps: StepFields[] }[];
   inlineSteps?: InlineSubStepFields[];
-  inlineTools?: string[];
 }
 
 // オーケストレーターのセクション
@@ -102,7 +101,6 @@ export function convertStep(step: LoadedStep): StepFields {
       body: s.body,
       bodyFile: s.bodyFile,
     })),
-    inlineTools: inline.tools?.map(serializeToolRef),
   };
 }
 
@@ -435,21 +433,6 @@ function StepItem({
           </span>
         </div>
         <div className="px-3.5 pb-3.5">
-          {step.inlineTools && step.inlineTools.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 items-center mb-2">
-              <span className="font-display text-xs font-semibold text-text-tertiary mr-1 uppercase tracking-wider">
-                Tools:
-              </span>
-              {step.inlineTools.map((tool) => (
-                <span
-                  key={tool}
-                  className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
-                >
-                  {tool}
-                </span>
-              ))}
-            </div>
-          )}
           {step.inlineSteps && step.inlineSteps.length > 0 && (
             <div>
               {step.inlineSteps.map((subStep) => (

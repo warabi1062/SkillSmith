@@ -141,7 +141,7 @@ const planTeamSkill = new WorkerWithAgentTeam({
   - 事前調査ファイルのパス（任意、複数可）
   - 要件テキスト（事前調査なしの場合）`,
   output:
-    "- 実装計画の保存先パス（`~/claude-code-data/workflows/{タスクID}/plan.md`）",
+    "- 実装計画のパス",
   allowedTools: [
     tool("Read"),
     tool("Write"),

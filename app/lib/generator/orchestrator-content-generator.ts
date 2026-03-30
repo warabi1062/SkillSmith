@@ -6,13 +6,19 @@ import type {
 } from "../types/loader.server";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
-import { serializeToolRef } from "../types/skill";
+
+
+// スキル参照ステップで表示するメタ情報
+export interface SkillMeta {
+  input?: string;
+  output?: string;
+}
 
 export interface OrchestratorContentInput {
   steps: LoadedStep[];
   sections?: LoadedOrchestratorSection[];
-  // スキル名 → description のマップ（Worker skillの説明を参照するため）
-  skillDescriptions?: Map<string, string>;
+  // スキル名 → メタ情報のマップ（スキル参照ステップの入出力表示用）
+  skillMetas?: Map<string, SkillMeta>;
 }
 
 // セクションのpositionを解析するヘルパー
@@ -48,7 +54,7 @@ function renderSections(sections: LoadedOrchestratorSection[]): string[] {
 function renderStepsWithSections(
   steps: LoadedStep[],
   sections: LoadedOrchestratorSection[],
-  skillDescriptions?: Map<string, string>,
+  skillMetas?: Map<string, SkillMeta>,
 ): string {
   const lines: string[] = [];
   const stepCount = steps.length;
@@ -68,11 +74,11 @@ function renderStepsWithSections(
     if (i > 0) lines.push("");
     // トップレベルのステップは h3（「## ステップ」の直下）
     if (isLoadedBranch(step)) {
-      lines.push(renderBranch(step, stepNumber, 3, skillDescriptions));
+      lines.push(renderBranch(step, stepNumber, 3, skillMetas));
     } else if (isLoadedInlineStep(step)) {
       lines.push(renderInlineStep(step, stepNumber, 3));
     } else {
-      lines.push(renderSkillRef(step, stepNumber, 3, skillDescriptions));
+      lines.push(renderSkillRef(step, stepNumber, 3, skillMetas));
     }
 
     // after-step:{i} セクション
@@ -130,23 +136,28 @@ export function generateOrchestratorContent(
     const stepLines = renderStepsWithSections(
       input.steps,
       stepSections,
-      input.skillDescriptions,
+      input.skillMetas,
     );
     lines.push(stepLines);
   }
 
-  // after-steps セクション + 範囲外indexのフォールバック
+  // after-steps セクション + 範囲外indexのフォールバック → 「## 補足説明」の下にまとめる
   const afterSections =
     input.sections?.filter((s) => s.position === "after-steps") ?? [];
   const outOfRange = getOutOfRangeStepSections(
     input.sections ?? [],
     input.steps.length,
   );
-  for (const section of [...afterSections, ...outOfRange]) {
+  const supplementSections = [...afterSections, ...outOfRange];
+  if (supplementSections.length > 0) {
     lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
+    lines.push("## 補足説明");
+    for (const section of supplementSections) {
+      lines.push("");
+      lines.push(`### ${section.heading}`);
+      lines.push("");
+      lines.push(section.body);
+    }
   }
 
   return lines.join("\n");
@@ -157,7 +168,7 @@ function renderSteps(
   steps: LoadedStep[],
   prefix: string,
   headingLevel: number,
-  skillDescriptions?: Map<string, string>,
+  skillMetas?: Map<string, SkillMeta>,
 ): string {
   const lines: string[] = [];
 
@@ -166,15 +177,11 @@ function renderSteps(
     const stepNumber = prefix ? `${prefix}-${i + 1}` : `${i + 1}`;
 
     if (isLoadedBranch(step)) {
-      lines.push(
-        renderBranch(step, stepNumber, headingLevel, skillDescriptions),
-      );
+      lines.push(renderBranch(step, stepNumber, headingLevel, skillMetas));
     } else if (isLoadedInlineStep(step)) {
       lines.push(renderInlineStep(step, stepNumber, headingLevel));
     } else {
-      lines.push(
-        renderSkillRef(step, stepNumber, headingLevel, skillDescriptions),
-      );
+      lines.push(renderSkillRef(step, stepNumber, headingLevel, skillMetas));
     }
   }
 
@@ -186,13 +193,28 @@ function renderSkillRef(
   skillName: string,
   stepNumber: string,
   headingLevel: number,
-  skillDescriptions?: Map<string, string>,
+  skillMetas?: Map<string, SkillMeta>,
 ): string {
-  const desc = skillDescriptions?.get(skillName);
-  if (desc) {
-    return `${h(headingLevel)} Step ${stepNumber}: ${skillName}\n\n${desc}`;
+  const lines: string[] = [];
+  lines.push(`${h(headingLevel)} Step ${stepNumber}: ${skillName}`);
+  lines.push("");
+  lines.push(`${skillName} skill を実行する。`);
+
+  const meta = skillMetas?.get(skillName);
+  if (meta) {
+    if (meta.input) {
+      lines.push("");
+      lines.push("渡す情報:");
+      lines.push(meta.input);
+    }
+    if (meta.output) {
+      lines.push("");
+      lines.push("出力:");
+      lines.push(meta.output);
+    }
   }
-  return `${h(headingLevel)} Step ${stepNumber}: ${skillName}`;
+
+  return lines.join("\n");
 }
 
 // InlineStep のレンダリング
@@ -204,33 +226,31 @@ function renderInlineStep(
   const lines: string[] = [];
   lines.push(`${h(headingLevel)} Step ${stepNumber}: ${step.inline}`);
 
-  // 使用ツール
-  if (step.tools && step.tools.length > 0) {
+  // 構造化された手順ステップ（説明が先）
+  if (step.steps.length === 1) {
+    // ステップが1つだけの場合はフラットに展開
     lines.push("");
-    lines.push(
-      `**使用ツール**: ${step.tools.map(serializeToolRef).join(", ")}`,
-    );
+    lines.push(step.steps[0].body);
+  } else if (step.steps.length > 1) {
+    for (const subStep of step.steps) {
+      lines.push("");
+      lines.push(`${subStep.id}. ${subStep.title}`);
+      lines.push("");
+      lines.push(subStep.body);
+    }
   }
 
   if (step.input) {
     lines.push("");
-    lines.push(`**入力**: ${step.input}`);
+    lines.push(`${h(headingLevel + 1)} 入力`);
+    lines.push("");
+    lines.push(step.input);
   }
   if (step.output) {
     lines.push("");
-    lines.push(`**出力**: ${step.output}`);
-  }
-
-  // 構造化された手順ステップ
-  if (step.steps.length > 0) {
+    lines.push(`${h(headingLevel + 1)} 出力`);
     lines.push("");
-    lines.push(`${h(headingLevel + 1)} 手順`);
-    for (const subStep of step.steps) {
-      lines.push("");
-      lines.push(`**${subStep.id}. ${subStep.title}**`);
-      lines.push("");
-      lines.push(subStep.body);
-    }
+    lines.push(step.output);
   }
 
   return lines.join("\n");
@@ -241,7 +261,7 @@ function renderBranch(
   branch: LoadedBranch,
   stepNumber: string,
   headingLevel: number,
-  skillDescriptions?: Map<string, string>,
+  skillMetas?: Map<string, SkillMeta>,
 ): string {
   const lines: string[] = [];
   lines.push(`${h(headingLevel)} Step ${stepNumber}: ${branch.decisionPoint}`);
@@ -266,7 +286,7 @@ function renderBranch(
           caseSteps,
           `${stepNumber}${caseSuffix}`,
           headingLevel + 2,
-          skillDescriptions,
+          skillMetas,
         ),
       );
     }

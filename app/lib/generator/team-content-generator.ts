@@ -3,6 +3,7 @@
 import type { LoadedTeammate } from "../types/loader.server";
 
 export interface TeamContentInput {
+  description?: string; // スキルの説明（TeamCreateのdescriptionに使用）
   input?: string; // 入力の説明
   output?: string; // 出力の説明
   teammates: LoadedTeammate[]; // チームメンバー定義

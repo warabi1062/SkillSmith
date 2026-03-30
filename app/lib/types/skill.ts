@@ -73,7 +73,6 @@ export interface InlineStep {
   steps: InlineSubStep[]; // 構造化された手順ステップ
   input?: string; // 入力の説明
   output?: string; // 出力の説明
-  tools?: ToolRef[]; // 使用するツール
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）
