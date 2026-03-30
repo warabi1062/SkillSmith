@@ -8,6 +8,7 @@ const plugin: PluginDefinition = {
   name: "sentry-triage",
   description:
     "Sentryエラーの調査・トリアージとLinear起票を行うプラグイン",
+  category: "development",
   skills: [sentryTriageSkill, sentryInvestigateSkill],
 };
 

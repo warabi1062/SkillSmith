@@ -38,12 +38,20 @@ export {
 // Plugin 関連
 export type { PluginDefinition } from "./plugin";
 
+// Marketplace 関連
+export type {
+  MarketplaceDefinition,
+  MarketplacePluginEntry,
+  MarketplaceJson,
+} from "./marketplace";
+
 // Loader 関連
 export {
   loadPluginDefinition,
   loadPluginMeta,
   loadAllMarketplaceMeta,
   loadAllPluginMetaInMarketplace,
+  loadMarketplaceDefinition,
 } from "./loader.server";
 export type {
   LoadedSupportFile,

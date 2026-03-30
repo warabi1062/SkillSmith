@@ -12,6 +12,7 @@ const plugin: PluginDefinition = {
   name: "dev",
   description:
     "Linearチケットまたはユーザー指示から実装計画・実装・PR作成まで自動で行う開発ワークフロー",
+  category: "development",
   skills: [
     devSkill,
     devLiteSkill,

@@ -11,7 +11,7 @@ const templateResult: SupportFile = {
 };
 const reviewResultFormat: SupportFile = {
   role: "REFERENCE",
-  filename: "review-result-format.md",
+  filename: "template-review.md",
   sortOrder: 2,
 };
 

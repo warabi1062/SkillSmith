@@ -16,6 +16,7 @@ import type {
   SectionPosition,
   CommunicationPattern,
 } from "./skill";
+import type { MarketplaceDefinition } from "./marketplace";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {
@@ -581,6 +582,38 @@ async function convertImportedStepsAsync(
       return step.name;
     }),
   );
+}
+
+// マーケットプレイス定義を読み込む
+export async function loadMarketplaceDefinition(
+  marketplaceDirPath: string,
+): Promise<MarketplaceDefinition> {
+  const marketplaceTsPath = path.join(marketplaceDirPath, "marketplace.ts");
+
+  // marketplace.ts の存在チェック
+  try {
+    await fs.access(marketplaceTsPath);
+  } catch {
+    throw new Error(
+      `marketplace.ts が見つかりません: ${marketplaceTsPath}`,
+    );
+  }
+
+  // marketplace.ts を動的importで読み込む
+  const jiti = createJiti(import.meta.url);
+  const mod = (await jiti.import(marketplaceTsPath)) as Record<
+    string,
+    unknown
+  >;
+  const def = mod.default as MarketplaceDefinition | undefined;
+
+  if (!def) {
+    throw new Error(
+      `marketplace.ts が有効な MarketplaceDefinition を default export していません: ${marketplaceTsPath}`,
+    );
+  }
+
+  return def;
 }
 
 // LoadedStep[] から全スキル名を再帰的にフラット収集する（重複除去）

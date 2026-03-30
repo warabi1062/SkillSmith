@@ -10,7 +10,7 @@ const template: SupportFile = {
 };
 const planReviewFormat: SupportFile = {
   role: "REFERENCE",
-  filename: "plan-review-format.md",
+  filename: "template-review.md",
   sortOrder: 2,
 };
 

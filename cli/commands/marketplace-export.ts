@@ -1,17 +1,21 @@
 import path from "node:path";
-import { readdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { registerCommand } from "../router";
 import { createOutput } from "../output";
 import { parseCommandArgs } from "../command-utils";
-import { loadPluginDefinition } from "../../app/lib/types/loader.server";
+import {
+  loadPluginDefinition,
+  loadMarketplaceDefinition,
+} from "../../app/lib/types/loader.server";
 import { exportPlugin } from "../../app/lib/exporter.server";
+import { generateMarketplaceJson } from "../../app/lib/generator/marketplace-json-generator.server";
 
 export function registerMarketplaceExportCommand(): void {
   registerCommand({
     entity: "marketplace",
     action: "export",
     description:
-      "marketplace内の全プラグインを一括エクスポート",
+      "marketplace内の全プラグインを一括エクスポート（marketplace.json含む）",
     handler: async (ctx) => {
       const output = createOutput(ctx.options);
 
@@ -37,53 +41,49 @@ export function registerMarketplaceExportCommand(): void {
       const resolvedMarketplaceDir = path.resolve(marketplaceDir);
       const pluginsDir = path.join(resolvedMarketplaceDir, "plugins");
 
-      // plugins/ ディレクトリ内のサブディレクトリを走査
-      let pluginDirNames: string[];
+      // marketplace.ts を読み込み
+      let marketplaceDef;
       try {
-        const entries = await readdir(pluginsDir, { withFileTypes: true });
-        pluginDirNames = entries
-          .filter((e) => e.isDirectory())
-          .map((e) => e.name);
-      } catch {
-        output.error(
-          `marketplaceのpluginsディレクトリが見つかりません: ${pluginsDir}`,
+        marketplaceDef = await loadMarketplaceDefinition(
+          resolvedMarketplaceDir,
         );
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "予期しないエラーが発生しました";
+        output.error(message);
         return 1;
       }
 
-      if (pluginDirNames.length === 0) {
-        output.error(
-          `marketplaceにプラグインが見つかりません: ${pluginsDir}`,
-        );
-        return 1;
-      }
-
-      // 各プラグインをエクスポート
+      // marketplace.plugins の順序で各プラグインをエクスポート
       const results: { name: string; success: boolean; error?: string }[] = [];
-      for (const dirName of pluginDirNames) {
-        const pluginDirPath = path.join(pluginsDir, dirName);
+
+      for (const pluginDef of marketplaceDef.plugins) {
+        const pluginDirPath = path.join(pluginsDir, pluginDef.name);
         try {
           const plugin = await loadPluginDefinition(pluginDirPath);
+
+          // プラグインごとに plugins/{name}/ 配下に出力
+          const pluginOutputDir = path.join(outputDir, "plugins", pluginDef.name);
           const result = await exportPlugin(plugin, {
-            targetDir: outputDir,
+            targetDir: pluginOutputDir,
             overwrite: !!values.overwrite,
           });
 
           if (!result.success) {
             results.push({
-              name: dirName,
+              name: pluginDef.name,
               success: false,
               error: result.errors.join("; "),
             });
           } else {
-            results.push({ name: dirName, success: true });
+            results.push({ name: pluginDef.name, success: true });
           }
         } catch (err) {
           const message =
             err instanceof Error
               ? err.message
               : "予期しないエラーが発生しました";
-          results.push({ name: dirName, success: false, error: message });
+          results.push({ name: pluginDef.name, success: false, error: message });
         }
       }
 
@@ -95,9 +95,44 @@ export function registerMarketplaceExportCommand(): void {
         return 1;
       }
 
+      // marketplace.json を生成・書き出し
+      const { file: marketplaceFile, errors: marketplaceErrors } =
+        generateMarketplaceJson(marketplaceDef);
+
+      // エラーがあればログ出力
+      const fatalErrors = marketplaceErrors.filter(
+        (e) => e.severity === "error",
+      );
+      if (fatalErrors.length > 0) {
+        for (const e of fatalErrors) {
+          output.error(`marketplace.json: ${e.message}`);
+        }
+        return 1;
+      }
+
+      // marketplace.json をファイルに書き出し
+      const resolvedOutputDir = path.resolve(outputDir);
+      const marketplaceJsonPath = path.join(
+        resolvedOutputDir,
+        marketplaceFile.path,
+      );
+      const marketplaceJsonDir = path.dirname(marketplaceJsonPath);
+      try {
+        await mkdir(marketplaceJsonDir, { recursive: true });
+        await writeFile(marketplaceJsonPath, marketplaceFile.content, "utf-8");
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "予期しないエラーが発生しました";
+        output.error(`marketplace.json の書き出しに失敗しました: ${message}`);
+        return 1;
+      }
+
       output.success({
         marketplace: resolvedMarketplaceDir,
         exportedPlugins: results.map((r) => r.name),
+        marketplaceJson: marketplaceJsonPath,
         outputDir,
       });
       return 0;

@@ -10,6 +10,7 @@ const plugin: PluginDefinition = {
   name: "plugin-dev-tools",
   description:
     "プラグインの作成・lint・更新チェック・ルール見直しを行う開発支援ツール",
+  category: "development",
   skills: [checkUpdatesSkill, createPluginSkill, lintPluginSkill, reviewLintRulesSkill],
 };
 

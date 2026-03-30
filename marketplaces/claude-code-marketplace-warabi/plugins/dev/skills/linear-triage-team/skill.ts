@@ -8,20 +8,15 @@ const templateResult: SupportFile = {
   filename: "template-result.md",
   sortOrder: 1,
 };
-const descriptionStructure: SupportFile = {
-  role: "REFERENCE",
-  filename: "description-structure.md",
-  sortOrder: 2,
-};
 const triageReviewFormat: SupportFile = {
   role: "REFERENCE",
-  filename: "triage-review-format.md",
-  sortOrder: 3,
+  filename: "template-review.md",
+  sortOrder: 2,
 };
 const templateTriageResult: SupportFile = {
   role: "TEMPLATE",
   filename: "template-triage-result.md",
-  sortOrder: 4,
+  sortOrder: 3,
 };
 
 const triager: Teammate = {
@@ -74,7 +69,11 @@ Notion:
 - 分割計画（分割する場合: 各サブチケットのtitle, description, 依存関係）。1チケット = 1PRの粒度で分割する
 - 判断根拠
 
-descriptionの構造ルール: [${descriptionStructure.filename}](${descriptionStructure.filename})`,
+descriptionの構造ルール:
+- チケットのdescriptionは \`---\`（divider）で「全員向け」と「開発者向け」に区分けする
+- dividerより上: 目的・背景、要件、受入条件、再現手順など
+- dividerより下: 技術メモ（対象コンポーネント・ファイル・API・実装方針など）、影響範囲
+- 分割で作成するサブチケットにも同じルールを適用する`,
     },
     {
       id: "T6",
@@ -204,7 +203,7 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
     mcp("plugin_linear_linear", "save_issue"),
     mcp("plugin_linear_linear", "list_issues"),
   ],
-  files: [templateResult, descriptionStructure, triageReviewFormat, templateTriageResult],
+  files: [templateResult, triageReviewFormat, templateTriageResult],
   teammates: [triager, reviewer, executor],
   teamPrefix: "triage",
   requiresUserApproval: true,
