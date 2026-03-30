@@ -149,7 +149,7 @@ const prCreator: Teammate = {
 const implementTeamSkill = new WorkerWithAgentTeam({
   name: "implement-team",
   description:
-    "Agent Teamでimplementer/reviewer/pr-creatorを編成し、コード実装とレビュー・PR作成を行う。ワークフローの一部として使用される。",
+    "Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う。ワークフローの一部として使用される。",
   input:
     "- タスクID\n- モード（Linear / Quick）\n- 実装計画のパス\n- ベースブランチ情報のパス",
   output: "- 実装結果のパス\n- PR URL",

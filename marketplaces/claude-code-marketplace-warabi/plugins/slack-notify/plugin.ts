@@ -5,7 +5,7 @@ import slackNotifySkill from "./skills/slack-notify/skill";
 
 const plugin: PluginDefinition = {
   name: "slack-notify",
-  description: "Slack DMでユーザーに通知を送るプラグイン",
+  description: "ユーザーへのSlack DM通知を送るプラグイン",
   category: "productivity",
   skills: [slackNotifySkill],
 };

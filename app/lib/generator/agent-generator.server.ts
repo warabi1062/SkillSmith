@@ -143,7 +143,7 @@ export function generateAgentMd(component: AgentComponentData): {
     string | number | boolean | string[] | null | undefined
   > = {
     name: agentName,
-    description: skillConfig.description ?? undefined,
+    description: config.description ?? skillConfig.description ?? undefined,
   };
 
   if (config.model) {

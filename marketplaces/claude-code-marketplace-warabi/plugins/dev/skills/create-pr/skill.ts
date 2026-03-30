@@ -39,7 +39,7 @@ const createPrSkill = new WorkerWithSubAgent({
       tool("ToolSearch"),
     ],
     content: "",
-    description: "実装・コミット済みのコードをプッシュし、GitHub PRを作成する。",
+    description: "実装・コミット済みのコードをプッシュし、GitHub PRを作成する",
     sections: [
       {
         heading: "セキュリティ",

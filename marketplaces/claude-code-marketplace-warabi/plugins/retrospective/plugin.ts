@@ -7,7 +7,7 @@ import improvementSkill from "./skills/improvement/skill";
 const plugin: PluginDefinition = {
   name: "retrospective",
   description:
-    "作業結果の構造化記録と、レポート分析によるスキル改善を行うプラグイン",
+    "作業結果の構造化記録とskills改善を行うプラグイン",
   category: "productivity",
   skills: [retrospectiveSkill, improvementSkill],
 };

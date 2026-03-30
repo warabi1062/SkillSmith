@@ -7,7 +7,7 @@ import sentryInvestigateSkill from "./skills/sentry-investigate/skill";
 const plugin: PluginDefinition = {
   name: "sentry-triage",
   description:
-    "Sentryエラーの調査・トリアージとLinear起票を行うプラグイン",
+    "Sentryエラーを調査・トリアージし、対応要否の判断とLinear起票を行う",
   category: "development",
   skills: [sentryTriageSkill, sentryInvestigateSkill],
 };

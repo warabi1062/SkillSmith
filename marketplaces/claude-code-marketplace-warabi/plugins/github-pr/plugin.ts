@@ -7,7 +7,7 @@ import triageGithubPrCommentsSkill from "./skills/triage-github-pr-comments/skil
 const plugin: PluginDefinition = {
   name: "github-pr",
   description:
-    "GitHub PRのレビューとレビューコメント対応を行うプラグイン",
+    "GitHub PR関連のスキルを管理するプラグイン",
   category: "development",
   skills: [reviewPrSkill, triageGithubPrCommentsSkill],
 };

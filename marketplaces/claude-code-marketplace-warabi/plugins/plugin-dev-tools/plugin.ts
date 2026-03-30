@@ -9,7 +9,7 @@ import reviewLintRulesSkill from "./skills/review-lint-rules/skill";
 const plugin: PluginDefinition = {
   name: "plugin-dev-tools",
   description:
-    "プラグインの作成・lint・更新チェック・ルール見直しを行う開発支援ツール",
+    "Claude Codeプラグイン開発のためのスキル・エージェント作成、lintルール見直し、更新チェックツール群",
   category: "development",
   skills: [checkUpdatesSkill, createPluginSkill, lintPluginSkill, reviewLintRulesSkill],
 };
