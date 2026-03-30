@@ -1,6 +1,11 @@
 // create-pr スキル: 実装済みコードのGitHub PR作成
 
-import { WorkerWithSubAgent, tool, bash, mcp } from "../../../../../../app/lib/types";
+import {
+  WorkerWithSubAgent,
+  tool,
+  bash,
+  mcp,
+} from "../../../../../../app/lib/types";
 import type { SupportFile } from "../../../../../../app/lib/types";
 
 const templateFile: SupportFile = {
@@ -12,12 +17,11 @@ const templateFile: SupportFile = {
 const createPrSkill = new WorkerWithSubAgent({
   name: "create-pr",
   displayName: "Create PR",
-  description:
-    "実装・コミット済みのコードをプッシュし、GitHub PRを作成するスキル。PRの本文はLinearチケットの内容から自動生成する。ワークフローの一部として使用される。",
-  input: `- チケットID（例: \`LIN-123\`）。実装が完了済みであること
-- plan.md のパス（orchestrator から渡される）
-- implement-result.md のパス（orchestrator から渡される、渡されない場合がある）
-- base-branch.txt のパス（orchestrator から渡される）`,
+  description: "実装・コミット済みのコードをプッシュし、GitHub PRを作成する。",
+  input: `- チケットID
+- 実装計画のパス（orchestrator から渡される）
+- 実装結果のパス（orchestrator から渡される、渡されない場合がある）
+- ベースブランチ情報のパス（orchestrator から渡される）`,
   allowedTools: [
     tool("Read"),
     tool("Grep"),
