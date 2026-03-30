@@ -10,6 +10,7 @@ import { serializeToolRef } from "../types/skill";
 
 export interface OrchestratorContentInput {
   name: string;
+  displayName?: string;
   description?: string;
   steps: LoadedStep[];
   sections?: LoadedOrchestratorSection[];
@@ -108,8 +109,8 @@ export function generateOrchestratorContent(
 ): string {
   const lines: string[] = [];
 
-  // ヘッダー（ハイフン区切りを Title Case に変換）
-  lines.push(`# ${toTitleCase(input.name)}`);
+  // ヘッダー
+  lines.push(`# ${input.displayName ?? toTitleCase(input.name)}`);
   if (input.description) {
     lines.push("");
     lines.push(input.description);

@@ -205,6 +205,7 @@ export type SkillType =
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
+  | "displayName"
   | "description"
   | "input"
   | "output"
@@ -224,6 +225,7 @@ export abstract class Skill {
   abstract readonly name: string;
   abstract readonly content: string;
 
+  displayName?: string; // SKILL.md の見出しに使う表示名（例: "Create PR"）
   description?: string;
   input?: string;
   output?: string;
@@ -238,6 +240,7 @@ export abstract class Skill {
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(init: Partial<SkillOptionalFields>): void {
+    if (init.displayName !== undefined) this.displayName = init.displayName;
     if (init.description !== undefined) this.description = init.description;
     if (init.input !== undefined) this.input = init.input;
     if (init.output !== undefined) this.output = init.output;

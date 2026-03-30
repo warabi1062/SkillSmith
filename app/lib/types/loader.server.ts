@@ -58,6 +58,7 @@ function isImportedInlineStep(step: ImportedStep): step is ImportedInlineStep {
 interface ImportedSkill {
   skillType: SkillType;
   name: string;
+  displayName?: string;
   content?: string;
   description?: string;
   input?: string;
@@ -165,6 +166,7 @@ export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
 // ローダーが返すスキルの共通フィールド
 interface LoadedSkillBase {
   name: string;
+  displayName?: string;
   content: string;
   description?: string;
   input?: string;
@@ -371,6 +373,7 @@ export async function loadPluginDefinition(
       const base = {
         skillType: skill.skillType,
         name: skill.name,
+        displayName: skill.displayName,
         content: skill.content ?? "",
         description: skill.description,
         input: skill.input,

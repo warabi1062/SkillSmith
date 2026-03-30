@@ -187,6 +187,7 @@ const executor: Teammate = {
 
 const linearTriageTeamSkill = new WorkerWithAgentTeam({
   name: "linear-triage-team",
+  displayName: "Triage Team",
   description:
     "Agent Teamでtriager/reviewer/executorを編成し、Linearチケットの調査・計画作成・レビュー・実行を行う。ワークフローの一部として使用される。",
   input: "- チケットID（例: `LIN-123`）",

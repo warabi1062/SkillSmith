@@ -7,6 +7,7 @@ import type {
 
 export interface WorkerContentInput {
   name: string; // スキル名
+  displayName?: string; // 表示名
   description?: string; // スキルの説明
   input?: string; // 入力の説明
   output?: string; // 出力の説明
@@ -49,8 +50,8 @@ function toTitleCase(name: string): string {
 export function generateWorkerContent(input: WorkerContentInput): string {
   const lines: string[] = [];
 
-  // ヘッダー（ハイフン区切りを Title Case に変換）
-  lines.push(`# ${toTitleCase(input.name)}`);
+  // ヘッダー
+  lines.push(`# ${input.displayName ?? toTitleCase(input.name)}`);
   if (input.description) {
     lines.push("");
     lines.push(input.description);

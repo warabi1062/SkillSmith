@@ -4,6 +4,7 @@ import { WorkerSkill, tool, bash } from "../../../../../../app/lib/types";
 
 const reviewPrSkill = new WorkerSkill({
   name: "review-pr",
+  displayName: "Review PR",
   description:
     "openしたGitHub PRをレビューし、総評をユーザーに報告するスキル。単独で使用可能。",
   argumentHint: "[PR番号 or PR_URL]",

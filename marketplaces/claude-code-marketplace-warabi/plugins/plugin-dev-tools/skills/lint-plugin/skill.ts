@@ -11,6 +11,7 @@ const rulesFile: SupportFile = {
 
 const lintPluginSkill = new WorkerSkill({
   name: "lint-plugin",
+  displayName: "Lint Settings",
   description:
     "作業ディレクトリ内のskills・agentsのbest practice違反をチェックし、自動修正する",
   userInvocable: true,

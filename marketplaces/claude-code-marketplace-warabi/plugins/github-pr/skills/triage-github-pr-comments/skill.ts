@@ -4,6 +4,7 @@ import { WorkerSkill, tool, bash } from "../../../../../../app/lib/types";
 
 const triageGithubPrCommentsSkill = new WorkerSkill({
   name: "triage-github-pr-comments",
+  displayName: "Address Review",
   description:
     "GitHub PRのレビューコメントURLを受け取り、指摘の妥当性を判断してコード修正で対応する",
   argumentHint: "[コメントURL]",

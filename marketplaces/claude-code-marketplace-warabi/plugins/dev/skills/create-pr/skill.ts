@@ -11,6 +11,7 @@ const templateFile: SupportFile = {
 
 const createPrSkill = new WorkerWithSubAgent({
   name: "create-pr",
+  displayName: "Create PR",
   description:
     "実装・コミット済みのコードをプッシュし、GitHub PRを作成するスキル。PRの本文はLinearチケットの内容から自動生成する。ワークフローの一部として使用される。",
   input: `- チケットID（例: \`LIN-123\`）。実装が完了済みであること
