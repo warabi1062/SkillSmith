@@ -16,7 +16,7 @@
     "format": "biome format --write .",
     "format:check": "biome check --formatter-enabled=true --linter-enabled=false .",
     "cli": "tsx cli/index.ts",
-    "export": "tsx cli/index.ts marketplace export marketplaces/claude-code-marketplace-warabi --output ../claude-code-marketplace-warabi --overwrite",
+    "export": "rm -rf output && tsx cli/index.ts marketplace export marketplaces/claude-code-marketplace-warabi --output output",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
