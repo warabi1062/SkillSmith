@@ -10,7 +10,7 @@ import type {
 import type { ValidatorSkillData } from "./validator.server";
 import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
-import { generateAgentMd, generateAgentTeamMd } from "./agent-generator.server";
+import { generateAgentMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
 import { generateOrchestratorContent } from "./orchestrator-content-generator";
 import { generateTeamContent } from "./team-content-generator";
@@ -170,24 +170,4 @@ function generateSkillComponent(
     }
   }
 
-  // WORKER_WITH_AGENT_TEAM の場合はagent-team用のagent.mdを生成
-  if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
-    const memberSkillNames = skill.agentTeamMembers.map((m) => m.skillName);
-
-    const agentTeamResult = generateAgentTeamMd({
-      skillName: skill.name,
-      skillConfig: {
-        name: skill.name,
-        description: skill.description,
-        input: skill.input,
-        output: skill.output,
-      },
-      memberSkillNames,
-    });
-
-    errors.push(...agentTeamResult.errors);
-    if (agentTeamResult.file) {
-      files.push(agentTeamResult.file);
-    }
-  }
 }
