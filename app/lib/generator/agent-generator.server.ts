@@ -154,12 +154,6 @@ export function generateAgentMd(component: AgentComponentData): {
   }
   // skills: SkillConfigのnameを使用
   frontmatterFields.skills = [skillConfig.name];
-  if (skillConfig.input) {
-    frontmatterFields.input = skillConfig.input;
-  }
-  if (skillConfig.output) {
-    frontmatterFields.output = skillConfig.output;
-  }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
   const content = `${frontmatter}\n\n${agentContent}\n`;

@@ -77,22 +77,10 @@ describe("generateAgentMd", () => {
     expect(file!.content).toContain("  - Grep");
   });
 
-  it("skillConfigのinputをfrontmatterに含める", () => {
+  it("agent mdのfrontmatterにinput/outputを含めない", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ skillInput: "- task ID" }),
+      makeAgentComponent({ skillInput: "- task ID", skillOutput: "- result" }),
     );
-    expect(file!.content).toContain("input:");
-  });
-
-  it("skillConfigのoutputをfrontmatterに含める", () => {
-    const { file } = generateAgentMd(
-      makeAgentComponent({ skillOutput: "- result" }),
-    );
-    expect(file!.content).toContain("output:");
-  });
-
-  it("input/outputがundefinedの場合はfrontmatterに含めない", () => {
-    const { file } = generateAgentMd(makeAgentComponent({}));
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
   });
