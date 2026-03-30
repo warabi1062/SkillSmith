@@ -43,7 +43,7 @@ describe("generateTeamContent", () => {
   it("ヘッダーにスキル名とdescriptionが含まれる", () => {
     const result = generateTeamContent(makeInput());
 
-    expect(result).toContain("# test-team");
+    expect(result).toContain("# Test Team");
     expect(result).toContain("テスト用チームスキル");
   });
 
@@ -196,7 +196,7 @@ describe("generateTeamContent", () => {
     const result = generateTeamContent(makeInput({ description: undefined }));
 
     const lines = result.split("\n");
-    expect(lines[0]).toBe("# test-team");
+    expect(lines[0]).toBe("# Test Team");
     // 2行目は空行ではなく次のセクションの開始
     expect(lines[1]).toBe("");
   });

@@ -12,11 +12,19 @@ export interface TeamContentInput {
   requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
+// ハイフン区切りの名前を Title Case に変換する（例: "implement-team" → "Implement Team"）
+function toTitleCase(name: string): string {
+  return name
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function generateTeamContent(input: TeamContentInput): string {
   const lines: string[] = [];
 
-  // ヘッダー
-  lines.push(`# ${input.name}`);
+  // ヘッダー（ハイフン区切りを Title Case に変換）
+  lines.push(`# ${toTitleCase(input.name)}`);
   if (input.description) {
     lines.push("");
     lines.push(input.description);

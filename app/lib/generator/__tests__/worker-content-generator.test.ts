@@ -22,7 +22,7 @@ describe("generateWorkerContent", () => {
   it("ヘッダーにスキル名とdescriptionが含まれる", () => {
     const result = generateWorkerContent(makeInput());
 
-    expect(result).toContain("# test-worker");
+    expect(result).toContain("# Test Worker");
     expect(result).toContain("テスト用ワーカースキル");
   });
 
@@ -65,7 +65,7 @@ describe("generateWorkerContent", () => {
   it("descriptionがない場合は省略される", () => {
     const result = generateWorkerContent(makeInput({ description: undefined }));
 
-    expect(result).toContain("# test-worker");
+    expect(result).toContain("# Test Worker");
     expect(result).not.toContain("テスト用ワーカースキル");
   });
 

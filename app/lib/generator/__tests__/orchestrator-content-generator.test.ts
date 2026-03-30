@@ -11,7 +11,7 @@ describe("generateOrchestratorContent", () => {
       steps: [],
     });
 
-    expect(result).toBe("# test-skill\n\nテスト用スキル");
+    expect(result).toBe("# Test Skill\n\nテスト用スキル");
   });
 
   it("Skill参照ステップのみの場合", () => {

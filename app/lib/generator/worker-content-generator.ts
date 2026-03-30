@@ -38,11 +38,19 @@ function renderSections(sections: LoadedOrchestratorSection[]): string[] {
   return lines;
 }
 
+// ハイフン区切りの名前を Title Case に変換する（例: "sentry-investigate" → "Sentry Investigate"）
+function toTitleCase(name: string): string {
+  return name
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function generateWorkerContent(input: WorkerContentInput): string {
   const lines: string[] = [];
 
-  // ヘッダー
-  lines.push(`# ${input.name}`);
+  // ヘッダー（ハイフン区切りを Title Case に変換）
+  lines.push(`# ${toTitleCase(input.name)}`);
   if (input.description) {
     lines.push("");
     lines.push(input.description);
