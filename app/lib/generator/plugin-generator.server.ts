@@ -80,9 +80,6 @@ function generateSkillComponent(
   let content = skill.content;
   if (skill.skillType === "ENTRY_POINT" && skill.steps) {
     content = generateOrchestratorContent({
-      name: skill.name,
-      displayName: skill.displayName,
-      description: skill.description,
       steps: skill.steps,
       sections: skill.sections,
       skillDescriptions,
@@ -92,9 +89,6 @@ function generateSkillComponent(
   // WorkerWithSubAgent の場合は workerSteps + workerSections から content を自動生成する
   if (skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSteps) {
     content = generateWorkerContent({
-      name: skill.name,
-      displayName: skill.displayName,
-      description: skill.description,
       input: skill.input,
       output: skill.output,
       workerSteps: skill.workerSteps,
@@ -109,9 +103,6 @@ function generateSkillComponent(
     skill.teamPrefix
   ) {
     content = generateTeamContent({
-      name: skill.name,
-      displayName: skill.displayName,
-      description: skill.description,
       input: skill.input,
       output: skill.output,
       teammates: skill.teammates,

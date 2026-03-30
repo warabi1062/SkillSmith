@@ -29,8 +29,6 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
 
 function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
   return {
-    name: "test-team",
-    description: "テスト用チームスキル",
     input: "- タスクID",
     output: "- 結果のパス",
     teammates: [makeWorker("implementer"), makeReviewer("implementer")],
@@ -40,13 +38,6 @@ function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
 }
 
 describe("generateTeamContent", () => {
-  it("ヘッダーにスキル名とdescriptionが含まれる", () => {
-    const result = generateTeamContent(makeInput());
-
-    expect(result).toContain("# Test Team");
-    expect(result).toContain("テスト用チームスキル");
-  });
-
   it("入力セクションが生成される", () => {
     const result = generateTeamContent(makeInput());
 
@@ -192,12 +183,4 @@ describe("generateTeamContent", () => {
     expect(result).toContain("---");
   });
 
-  it("descriptionがない場合はヘッダーにスキル名のみが含まれる", () => {
-    const result = generateTeamContent(makeInput({ description: undefined }));
-
-    const lines = result.split("\n");
-    expect(lines[0]).toBe("# Test Team");
-    // 2行目は空行ではなく次のセクションの開始
-    expect(lines[1]).toBe("");
-  });
 });

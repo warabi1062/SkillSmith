@@ -3,9 +3,6 @@
 import type { LoadedTeammate } from "../types/loader.server";
 
 export interface TeamContentInput {
-  name: string; // スキル名
-  displayName?: string; // 表示名
-  description?: string; // スキルの説明
   input?: string; // 入力の説明
   output?: string; // 出力の説明
   teammates: LoadedTeammate[]; // チームメンバー定義
@@ -13,23 +10,8 @@ export interface TeamContentInput {
   requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
-// ハイフン区切りの名前を Title Case に変換する（例: "implement-team" → "Implement Team"）
-function toTitleCase(name: string): string {
-  return name
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 export function generateTeamContent(input: TeamContentInput): string {
   const lines: string[] = [];
-
-  // ヘッダー
-  lines.push(`# ${input.displayName ?? toTitleCase(input.name)}`);
-  if (input.description) {
-    lines.push("");
-    lines.push(input.description);
-  }
 
   // 入力セクション
   if (input.input) {

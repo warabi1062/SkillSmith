@@ -9,9 +9,6 @@ import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
 import { serializeToolRef } from "../types/skill";
 
 export interface OrchestratorContentInput {
-  name: string;
-  displayName?: string;
-  description?: string;
   steps: LoadedStep[];
   sections?: LoadedOrchestratorSection[];
   // スキル名 → description のマップ（Worker skillの説明を参照するため）
@@ -96,25 +93,10 @@ function getOutOfRangeStepSections(
   });
 }
 
-// ハイフン区切りの名前を Title Case に変換する（例: "dev-lite" → "Dev Lite"）
-function toTitleCase(name: string): string {
-  return name
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 export function generateOrchestratorContent(
   input: OrchestratorContentInput,
 ): string {
   const lines: string[] = [];
-
-  // ヘッダー
-  lines.push(`# ${input.displayName ?? toTitleCase(input.name)}`);
-  if (input.description) {
-    lines.push("");
-    lines.push(input.description);
-  }
 
   // before-steps セクション
   const beforeSections =

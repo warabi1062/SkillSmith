@@ -6,9 +6,6 @@ import type {
 } from "../types/loader.server";
 
 export interface WorkerContentInput {
-  name: string; // スキル名
-  displayName?: string; // 表示名
-  description?: string; // スキルの説明
   input?: string; // 入力の説明
   output?: string; // 出力の説明
   workerSteps: LoadedWorkerStep[]; // 手順ステップ
@@ -39,23 +36,8 @@ function renderSections(sections: LoadedOrchestratorSection[]): string[] {
   return lines;
 }
 
-// ハイフン区切りの名前を Title Case に変換する（例: "sentry-investigate" → "Sentry Investigate"）
-function toTitleCase(name: string): string {
-  return name
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 export function generateWorkerContent(input: WorkerContentInput): string {
   const lines: string[] = [];
-
-  // ヘッダー
-  lines.push(`# ${input.displayName ?? toTitleCase(input.name)}`);
-  if (input.description) {
-    lines.push("");
-    lines.push(input.description);
-  }
 
   // 入力セクション
   if (input.input) {

@@ -6,8 +6,6 @@ function makeInput(
   overrides?: Partial<WorkerContentInput>,
 ): WorkerContentInput {
   return {
-    name: "test-worker",
-    description: "テスト用ワーカースキル",
     input: "- チケットID",
     output: "- 結果のパス",
     workerSteps: [
@@ -19,13 +17,6 @@ function makeInput(
 }
 
 describe("generateWorkerContent", () => {
-  it("ヘッダーにスキル名とdescriptionが含まれる", () => {
-    const result = generateWorkerContent(makeInput());
-
-    expect(result).toContain("# Test Worker");
-    expect(result).toContain("テスト用ワーカースキル");
-  });
-
   it("入力セクションが生成される", () => {
     const result = generateWorkerContent(makeInput());
 
@@ -60,13 +51,6 @@ describe("generateWorkerContent", () => {
     const result = generateWorkerContent(makeInput({ output: undefined }));
 
     expect(result).not.toContain("## 出力");
-  });
-
-  it("descriptionがない場合は省略される", () => {
-    const result = generateWorkerContent(makeInput({ description: undefined }));
-
-    expect(result).toContain("# Test Worker");
-    expect(result).not.toContain("テスト用ワーカースキル");
   });
 
   it("before-stepsセクションがstepsの前に配置される", () => {

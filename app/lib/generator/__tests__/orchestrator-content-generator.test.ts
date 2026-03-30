@@ -4,19 +4,17 @@ import type { LoadedStep } from "../../types/loader.server";
 import { tool } from "../../types/skill";
 
 describe("generateOrchestratorContent", () => {
-  it("name + description のみ（steps が空配列）の場合", () => {
+  it("stepsが空配列の場合は空文字を返す", () => {
     const result = generateOrchestratorContent({
-      name: "test-skill",
-      description: "テスト用スキル",
       steps: [],
     });
 
-    expect(result).toBe("# Test Skill\n\nテスト用スキル");
+    expect(result).toBe("");
   });
 
   it("Skill参照ステップのみの場合", () => {
     const result = generateOrchestratorContent({
-      name: "orchestrator",
+
       steps: ["worker-a", "worker-b"],
     });
 
@@ -42,7 +40,7 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps,
     });
 
@@ -72,7 +70,7 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps,
     });
 
@@ -86,7 +84,7 @@ describe("generateOrchestratorContent", () => {
 
   it("sections（before-steps / after-steps）が正しい位置に出力される", () => {
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a"],
       sections: [
         { heading: "事前確認", body: "確認事項", position: "before-steps" },
@@ -124,7 +122,7 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps,
     });
 
@@ -140,7 +138,7 @@ describe("generateOrchestratorContent", () => {
     skillDescriptions.set("worker-a", "Worker Aの説明文");
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a"],
       skillDescriptions,
     });
@@ -169,7 +167,7 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps,
     });
 
@@ -191,7 +189,7 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps,
     });
 
@@ -210,7 +208,7 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps,
     });
 
@@ -222,7 +220,7 @@ describe("generateOrchestratorContent", () => {
 
   it("before-step:0 を指定したセクションが Step 1 の直前に表示される", () => {
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a", "worker-b"],
       sections: [
         {
@@ -242,7 +240,7 @@ describe("generateOrchestratorContent", () => {
 
   it("after-step:0 を指定したセクションが Step 1 の直後に表示される", () => {
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a", "worker-b"],
       sections: [
         {
@@ -262,7 +260,7 @@ describe("generateOrchestratorContent", () => {
 
   it("after-step:1 を指定したセクションが Step 2 の直後に表示される", () => {
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a", "worker-b", "worker-c"],
       sections: [
         {
@@ -282,7 +280,7 @@ describe("generateOrchestratorContent", () => {
 
   it("範囲外の index を指定した場合 after-steps にフォールバックする", () => {
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a"],
       sections: [
         {
@@ -300,7 +298,7 @@ describe("generateOrchestratorContent", () => {
 
   it("before-steps / after-steps と step間セクションが混在する場合", () => {
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["worker-a", "worker-b"],
       sections: [
         { heading: "事前確認", body: "確認事項", position: "before-steps" },
@@ -327,7 +325,7 @@ describe("generateOrchestratorContent", () => {
     skillDescriptions.set("other-skill", "別スキルの説明");
 
     const result = generateOrchestratorContent({
-      name: "test",
+
       steps: ["unknown-skill"],
       skillDescriptions,
     });
