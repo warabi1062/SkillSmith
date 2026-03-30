@@ -8,6 +8,7 @@ const plugin: PluginDefinition = {
   name: "github-pr",
   description:
     "GitHub PRのレビューとレビューコメント対応を行うプラグイン",
+  category: "development",
   skills: [reviewPrSkill, triageGithubPrCommentsSkill],
 };
 

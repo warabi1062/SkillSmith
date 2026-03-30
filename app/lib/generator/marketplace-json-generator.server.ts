@@ -1,5 +1,5 @@
 // marketplace.json ジェネレータ
-// MarketplaceDefinition + プラグイン情報から marketplace.json を生成する
+// MarketplaceDefinition から marketplace.json を生成する
 
 import type {
   MarketplaceDefinition,
@@ -7,13 +7,6 @@ import type {
   MarketplacePluginEntry,
 } from "../types/marketplace";
 import type { GeneratedFile, GenerationValidationError } from "./types";
-
-// ジェネレータに渡すプラグイン情報
-export interface MarketplacePluginInfo {
-  dirName: string;
-  name: string;
-  description?: string;
-}
 
 // ジェネレータの結果型
 export interface GenerateMarketplaceJsonResult {
@@ -25,11 +18,9 @@ const MARKETPLACE_JSON_SCHEMA =
   "https://anthropic.com/claude-code/marketplace.schema.json";
 
 // marketplace.json を生成する
-export function generateMarketplaceJson(params: {
-  marketplace: MarketplaceDefinition;
-  plugins: MarketplacePluginInfo[];
-}): GenerateMarketplaceJsonResult {
-  const { marketplace, plugins } = params;
+export function generateMarketplaceJson(
+  marketplace: MarketplaceDefinition,
+): GenerateMarketplaceJsonResult {
   const errors: GenerationValidationError[] = [];
 
   // バリデーション: name は必須
@@ -42,7 +33,7 @@ export function generateMarketplaceJson(params: {
   }
 
   // バリデーション: プラグインが0件
-  if (plugins.length === 0) {
+  if (marketplace.plugins.length === 0) {
     errors.push({
       severity: "warning",
       code: "MARKETPLACE_NO_PLUGINS",
@@ -50,24 +41,17 @@ export function generateMarketplaceJson(params: {
     });
   }
 
-  // プラグインエントリを生成
-  const pluginEntries: MarketplacePluginEntry[] = plugins.map((p) => {
-    const entry: MarketplacePluginEntry = {
+  // プラグインエントリを生成（キー順序: name → description → source → category）
+  const pluginEntries: MarketplacePluginEntry[] = marketplace.plugins.map(
+    (p) => ({
       name: p.name,
-      source: `./plugins/${p.dirName}`,
-    };
-    if (p.description) {
-      entry.description = p.description;
-    }
-    // pluginOverrides から category を適用
-    const override = marketplace.pluginOverrides?.[p.dirName];
-    if (override?.category) {
-      entry.category = override.category;
-    }
-    return entry;
-  });
+      ...(p.description && { description: p.description }),
+      source: `./plugins/${p.name}`,
+      ...(p.category && { category: p.category }),
+    }),
+  );
 
-  // marketplace.json オブジェクトを構築（参照リポジトリのキー順序に合わせる）
+  // marketplace.json オブジェクトを構築
   const json: MarketplaceJson = {
     $schema: MARKETPLACE_JSON_SCHEMA,
     name: marketplace.name,

@@ -42,7 +42,6 @@ export type { PluginDefinition } from "./plugin";
 export type {
   MarketplaceDefinition,
   MarketplacePluginEntry,
-  MarketplacePluginOverride,
   MarketplaceJson,
 } from "./marketplace";
 

@@ -6,5 +6,6 @@ import type { Skill } from "./skill";
 export interface PluginDefinition {
   name: string;
   description?: string;
+  category?: string;
   skills: Skill[];
 }

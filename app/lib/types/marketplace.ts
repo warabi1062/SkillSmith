@@ -1,5 +1,7 @@
 // マーケットプレイス定義型
 
+import type { PluginDefinition } from "./plugin";
+
 // marketplace.json に出力されるプラグインエントリ
 export interface MarketplacePluginEntry {
   name: string;
@@ -8,17 +10,12 @@ export interface MarketplacePluginEntry {
   category?: string;
 }
 
-// プラグインごとのオーバーライド設定（category 等）
-export interface MarketplacePluginOverride {
-  category?: string;
-}
-
 // marketplace.ts で定義するマーケットプレイス定義
 export interface MarketplaceDefinition {
   name: string;
   description?: string;
   owner?: { name: string };
-  pluginOverrides?: Record<string, MarketplacePluginOverride>;
+  plugins: PluginDefinition[];
 }
 
 // marketplace.json の出力フォーマット
