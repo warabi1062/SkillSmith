@@ -163,7 +163,7 @@ function renderSteps(
 
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
-    const stepNumber = prefix ? `${prefix}.${i + 1}` : `${i + 1}`;
+    const stepNumber = prefix ? `${prefix}-${i + 1}` : `${i + 1}`;
 
     if (isLoadedBranch(step)) {
       lines.push(
@@ -251,7 +251,11 @@ function renderBranch(
     lines.push(branch.description);
   }
 
-  for (const [caseName, caseSteps] of Object.entries(branch.cases)) {
+  const caseEntries = Object.entries(branch.cases);
+  for (let ci = 0; ci < caseEntries.length; ci++) {
+    const [caseName, caseSteps] = caseEntries[ci];
+    // ケースにA, B, C...のサフィックスを付ける（例: Step 1A-1, Step 1B-1）
+    const caseSuffix = String.fromCharCode(65 + ci); // A, B, C...
     lines.push("");
     lines.push(`${h(headingLevel + 1)} ${caseName}`);
     if (caseSteps.length > 0) {
@@ -260,7 +264,7 @@ function renderBranch(
       lines.push(
         renderSteps(
           caseSteps,
-          stepNumber,
+          `${stepNumber}${caseSuffix}`,
           headingLevel + 2,
           skillDescriptions,
         ),
