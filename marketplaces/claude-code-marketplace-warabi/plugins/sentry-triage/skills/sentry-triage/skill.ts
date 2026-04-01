@@ -7,7 +7,7 @@ const sentryTriageSkill = new EntryPointSkill({
   name: "sentry-triage",
   description:
     "Sentryエラーを調査・トリアージし、対応要否の判断とLinear起票を行う",
-  argumentHint: "[SENTRY_URL or ISSUE_ID]",
+  argumentHint: "[SENTRY_URL]",
   userInvocable: true,
   allowedTools: [
     tool("Read"),
