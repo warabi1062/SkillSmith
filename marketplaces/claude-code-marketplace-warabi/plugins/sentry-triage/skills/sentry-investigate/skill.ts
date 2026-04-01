@@ -44,18 +44,8 @@ const sentryInvestigateSkill = new WorkerWithSubAgent({
     ],
     content: "",
     description:
-      "Sentryエラーの原因を調査し、対応方針を判定する",
+      "Sentryエラーの情報を取得・分析し、コードベースを横断的に調査して根本原因を特定するエージェント。対応方針の判定（修正が必要か無視してよいか）を行い、結果をユーザーに伝える。",
     sections: [
-      {
-        heading: "入力",
-        body: "- Sentry issue の識別子（URLまたはissue ID）",
-        position: "before-steps" as const,
-      },
-      {
-        heading: "出力",
-        body: "- Sentry調査結果の保存先パス",
-        position: "before-steps" as const,
-      },
       {
         heading: "セキュリティ",
         body: "セキュアな情報（APIキー、トークン、パスワード、内部URL、個人情報など）は出力に含めないこと。",

@@ -74,15 +74,16 @@ Notion:
 - 判断根拠
 
 descriptionの構造ルール:
-- チケットのdescriptionは \`---\`（divider）で「全員向け」と「開発者向け」に区分けする
-- dividerより上: 目的・背景、要件、受入条件、再現手順など
+チケットのdescriptionは \`---\`（divider）で「全員向け」と「開発者向け」に区分けする。
+- dividerより上: 目的・背景、要件、受入条件、再現手順など、チームの誰もが理解すべき情報
 - dividerより下: 技術メモ（対象コンポーネント・ファイル・API・実装方針など）、影響範囲
-- 分割で作成するサブチケットにも同じルールを適用する`,
+
+コードに関する記述やファイルパス、技術的な実装詳細はdividerより下に配置する。既存のdescriptionにdividerがない場合は適切な位置にdividerを挿入して整理する。分割で作成するサブチケットのdescriptionにも同じルールを適用する。`,
     },
     {
       id: "T6",
       title: "reviewer に完了を通知する",
-      body: "reviewer に計画が完了した旨と計画ファイルのパスを伝える。",
+      body: "計画を保存したら、reviewer に計画が完了した旨と計画ファイルのパスを伝える。",
     },
     {
       id: "T7",
@@ -211,6 +212,11 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
   files: [templateResult, triageReviewFormat, templateTriageResult],
   teammates: [triager, reviewer, executor],
   teamPrefix: "triage",
+  additionalLeaderSteps: [
+    "ユーザー承認後、executor に実行を指示する（計画ファイルのパスを伝える）",
+    "executor から完了通知を受け取り、triage結果のパスを記録する",
+    "分割が発生した場合、ユーザーにどのサブチケットから着手するか確認を取る",
+  ],
   requiresUserApproval: true,
 });
 
