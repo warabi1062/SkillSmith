@@ -1,6 +1,6 @@
 // sentry-triage スキル: SentryエラーのトリアージとLinear起票のオーケストレーター
 
-import { EntryPointSkill, tool } from "../../../../../../app/lib/types";
+import { EntryPointSkill, tool, mcp } from "../../../../../../app/lib/types";
 import sentryInvestigateSkill from "../sentry-investigate/skill";
 
 const sentryTriageSkill = new EntryPointSkill({
@@ -17,7 +17,9 @@ const sentryTriageSkill = new EntryPointSkill({
     tool("Bash"),
     tool("Task"),
     tool("AskUserQuestion"),
-    tool("ToolSearch"),
+    mcp("plugin_linear_linear", "save_issue"),
+    mcp("plugin_linear_linear", "list_issue_labels"),
+    mcp("plugin_linear_linear", "list_teams"),
   ],
   steps: [
     sentryInvestigateSkill,
@@ -41,16 +43,11 @@ const sentryTriageSkill = new EntryPointSkill({
       steps: [
         {
           id: "1",
-          title: "Linear MCPツールのロード",
-          body: "ToolSearch で Linear MCP ツール（save_issue）をロードする。",
-        },
-        {
-          id: "2",
           title: "issue作成",
           body: "調査結果ファイルから以下を抽出してissueを作成する:\n- title: エラータイトルをベースに簡潔なissueタイトルを生成\n- description: Sentry issueへのリンク、エラー概要、根本原因、関連コード、修正方針をMarkdownで構成\n- team: ユーザーに確認する（初回のみ）\n- labels: bug ラベルがあれば付与\n- priority: 発生頻度・影響範囲から判断（Urgent=1, High=2, Normal=3, Low=4）",
         },
         {
-          id: "3",
+          id: "2",
           title: "結果報告",
           body: "作成されたLinear issueのIDとURLをユーザーに報告して終了する。",
         },

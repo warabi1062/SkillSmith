@@ -41,12 +41,16 @@ export function generatePlugin(
   }
 
   // skillMetas マップを構築（オーケストレーターのスキル参照ステップで入出力を表示するため）
-  const skillMetas = new Map<string, { input?: string; output?: string }>();
+  const skillMetas = new Map<
+    string,
+    { input?: string; output?: string; hasAgent?: boolean }
+  >();
   for (const skill of pluginDef.skills) {
-    if (skill.input || skill.output) {
+    if (skill.input || skill.output || skill.skillType === "WORKER_WITH_SUB_AGENT") {
       skillMetas.set(skill.name, {
         input: skill.input,
         output: skill.output,
+        hasAgent: skill.skillType === "WORKER_WITH_SUB_AGENT",
       });
     }
   }

@@ -12,6 +12,7 @@ import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
 export interface SkillMeta {
   input?: string;
   output?: string;
+  hasAgent?: boolean; // WorkerWithSubAgent の場合 true
 }
 
 export interface OrchestratorContentInput {
@@ -196,11 +197,16 @@ function renderSkillRef(
   skillMetas?: Map<string, SkillMeta>,
 ): string {
   const lines: string[] = [];
+  const meta = skillMetas?.get(skillName);
   lines.push(`${h(headingLevel)} Step ${stepNumber}: ${skillName}`);
   lines.push("");
-  lines.push(`${skillName} skill を実行する。`);
-
-  const meta = skillMetas?.get(skillName);
+  if (meta?.hasAgent) {
+    lines.push(
+      `Task ツールを subagent_type: ${skillName}-agent で呼び出す。`,
+    );
+  } else {
+    lines.push(`${skillName} skill を実行する。`);
+  }
   if (meta) {
     if (meta.input) {
       lines.push("");
