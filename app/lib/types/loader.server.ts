@@ -81,6 +81,7 @@ interface ImportedSkill {
   agentTeamMembers?: AgentTeamMember[];
   teammates?: ImportedTeammate[];
   teamPrefix?: string;
+  additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
 
@@ -231,6 +232,7 @@ export interface LoadedWorkerWithAgentTeamSkill extends LoadedSkillBase {
   agentTeamMembers: AgentTeamMember[];
   teammates?: LoadedTeammate[];
   teamPrefix?: string;
+  additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
 
@@ -434,6 +436,7 @@ export async function loadPluginDefinition(
             agentTeamMembers,
             teammates: loadedTeammates,
             teamPrefix: skill.teamPrefix,
+            additionalLeaderSteps: skill.additionalLeaderSteps,
             requiresUserApproval: skill.requiresUserApproval,
           } satisfies LoadedWorkerWithAgentTeamSkill;
         }

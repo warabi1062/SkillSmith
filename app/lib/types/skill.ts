@@ -340,6 +340,7 @@ export class WorkerWithAgentTeam extends Skill {
   readonly content: string;
   readonly teammates?: Teammate[];
   readonly teamPrefix?: string; // チーム名のプレフィックス（例: "impl", "plan", "triage"）
+  readonly additionalLeaderSteps?: string[]; // リーダーの手順（箇条書き）
   readonly requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 
   // 後方互換: teammates から AgentTeamMember[] を導出、なければ直接指定
@@ -357,6 +358,7 @@ export class WorkerWithAgentTeam extends Skill {
           name: string;
           teammates: Teammate[];
           teamPrefix: string;
+          additionalLeaderSteps?: string[];
           requiresUserApproval?: boolean;
           content?: string;
           agentTeamMembers?: never;
@@ -378,6 +380,7 @@ export class WorkerWithAgentTeam extends Skill {
     if ("teammates" in init && init.teammates) {
       this.teammates = init.teammates;
       this.teamPrefix = init.teamPrefix;
+      this.additionalLeaderSteps = init.additionalLeaderSteps;
       this.requiresUserApproval = init.requiresUserApproval;
     } else if ("agentTeamMembers" in init && init.agentTeamMembers) {
       this._agentTeamMembers = init.agentTeamMembers;

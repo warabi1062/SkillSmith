@@ -168,6 +168,10 @@ const implementTeamSkill = new WorkerWithAgentTeam({
   files: [templateResult, reviewResultFormat],
   teammates: [implementer, reviewer, prCreator],
   teamPrefix: "impl",
+  additionalLeaderSteps: [
+    "レビューPASS後、pr-creator に実行を指示する（実装計画のパス、実装結果のパス、ベースブランチ情報のパス、モードを伝える）",
+    "pr-creator から完了通知を受け取り、PR URLを記録する",
+  ],
   dependencies: [createPrSkill],
 });
 

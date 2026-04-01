@@ -106,11 +106,11 @@ function generateSkillComponent(
     skill.teamPrefix
   ) {
     content = generateTeamContent({
-      description: skill.description,
       input: skill.input,
       output: skill.output,
       teammates: skill.teammates,
       teamPrefix: skill.teamPrefix,
+      additionalLeaderSteps: skill.additionalLeaderSteps,
       requiresUserApproval: skill.requiresUserApproval,
     });
   }
