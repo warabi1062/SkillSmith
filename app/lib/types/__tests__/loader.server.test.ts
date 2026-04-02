@@ -281,6 +281,149 @@ describe("loadPluginDefinition", () => {
     expect(skill!.content).toBe("");
   });
 
+  it("Section の bodyFile が正しく解決されること", async () => {
+    await createPluginStructure({
+      pluginTs: `
+        const plugin = {
+          name: "test-plugin",
+          skills: [
+            {
+              skillType: "ENTRY_POINT",
+              name: "with-section",
+              content: "# With Section",
+              steps: [],
+              sections: [
+                {
+                  heading: "参考情報",
+                  bodyFile: "reference.md",
+                  position: "AFTER_STEPS",
+                },
+              ],
+            },
+          ],
+        };
+        export default plugin;
+      `,
+      skills: {
+        "with-section": {
+          skillTs: "",
+          files: {
+            "reference.md": "# 参考情報の内容\n\nここに詳細を記載",
+          },
+        },
+      },
+    });
+
+    const result = await loadPluginDefinition(tmpDir);
+    const skill = result.skills[0];
+    expect(skill.sections).toBeDefined();
+    expect(skill.sections).toHaveLength(1);
+    expect(skill.sections![0].heading).toBe("参考情報");
+    expect(skill.sections![0].body).toBe("# 参考情報の内容\n\nここに詳細を記載");
+    expect(skill.sections![0].bodyFile).toBe("reference.md");
+    expect(skill.sections![0].position).toBe("AFTER_STEPS");
+  });
+
+  it("InlineStep の bodyFile が正しく解決されること", async () => {
+    await createPluginStructure({
+      pluginTs: `
+        const plugin = {
+          name: "test-plugin",
+          skills: [
+            {
+              skillType: "ENTRY_POINT",
+              name: "with-inline",
+              content: "# With Inline",
+              steps: [
+                {
+                  inline: "準備ステップ",
+                  steps: [
+                    {
+                      id: "S1",
+                      title: "環境構築",
+                      bodyFile: "setup.md",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        };
+        export default plugin;
+      `,
+      skills: {
+        "with-inline": {
+          skillTs: "",
+          files: {
+            "setup.md": "環境構築の手順です",
+          },
+        },
+      },
+    });
+
+    const result = await loadPluginDefinition(tmpDir);
+    const skill = result.skills[0];
+    expect(skill.steps).toBeDefined();
+    expect(skill.steps).toHaveLength(1);
+    const inlineStep = skill.steps![0] as { inline: string; steps: { id: string; title: string; body: string; bodyFile?: string }[] };
+    expect(inlineStep.inline).toBe("準備ステップ");
+    expect(inlineStep.steps).toHaveLength(1);
+    expect(inlineStep.steps[0].id).toBe("S1");
+    expect(inlineStep.steps[0].title).toBe("環境構築");
+    expect(inlineStep.steps[0].body).toBe("環境構築の手順です");
+    expect(inlineStep.steps[0].bodyFile).toBe("setup.md");
+  });
+
+  it("WorkerStep の bodyFile が正しく解決されること", async () => {
+    await createPluginStructure({
+      pluginTs: `
+        const plugin = {
+          name: "test-plugin",
+          skills: [
+            {
+              skillType: "WORKER_WITH_SUB_AGENT",
+              name: "worker-skill",
+              content: "# Worker",
+              agentConfig: {
+                model: "sonnet",
+                tools: ["Read"],
+                content: "# Agent",
+              },
+              workerSteps: [
+                {
+                  id: "W1",
+                  title: "実装",
+                  bodyFile: "implement.md",
+                },
+              ],
+            },
+          ],
+        };
+        export default plugin;
+      `,
+      skills: {
+        "worker-skill": {
+          skillTs: "",
+          files: {
+            "implement.md": "実装手順の詳細",
+          },
+        },
+      },
+    });
+
+    const result = await loadPluginDefinition(tmpDir);
+    const skill = result.skills[0];
+    expect(skill.skillType).toBe("WORKER_WITH_SUB_AGENT");
+    if ("workerSteps" in skill) {
+      expect(skill.workerSteps).toBeDefined();
+      expect(skill.workerSteps).toHaveLength(1);
+      expect(skill.workerSteps![0].id).toBe("W1");
+      expect(skill.workerSteps![0].title).toBe("実装");
+      expect(skill.workerSteps![0].body).toBe("実装手順の詳細");
+      expect(skill.workerSteps![0].bodyFile).toBe("implement.md");
+    }
+  });
+
   it("WORKER_WITH_AGENT_TEAM スキルの agentTeamMembers を正しく読み込むこと", async () => {
     await createPluginStructure({
       pluginTs: `
