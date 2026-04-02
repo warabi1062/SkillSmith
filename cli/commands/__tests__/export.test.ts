@@ -132,7 +132,7 @@ describe("export コマンド", () => {
     }
   });
 
-  it("--overwrite オプションを exportPlugin に渡す", async () => {
+  it("常に overwrite: true で exportPlugin を呼び出す", async () => {
     // Arrange
     registerExportCommand();
     const { cleanup } = captureProcessOutput();
@@ -151,7 +151,7 @@ describe("export コマンド", () => {
     });
 
     try {
-      // Act
+      // Act（--overwrite なしでも overwrite: true になる）
       await route(
         [
           "plugin",
@@ -159,7 +159,6 @@ describe("export コマンド", () => {
           "./plugin.ts",
           "--output",
           "/tmp/output",
-          "--overwrite",
         ],
         noop,
       );

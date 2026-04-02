@@ -21,7 +21,6 @@ export function registerMarketplaceExportCommand(): void {
 
       const { values, positionals } = parseCommandArgs(ctx.args, {
         output: { type: "string" },
-        overwrite: { type: "boolean" },
       });
 
       // --output は必須
@@ -66,7 +65,7 @@ export function registerMarketplaceExportCommand(): void {
           const pluginOutputDir = path.join(outputDir, "plugins", pluginDef.name);
           const result = await exportPlugin(plugin, {
             targetDir: pluginOutputDir,
-            overwrite: !!values.overwrite,
+            overwrite: true,
           });
 
           if (!result.success) {

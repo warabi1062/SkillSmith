@@ -16,7 +16,6 @@ export function registerExportCommand(): void {
 
       const { values, positionals } = parseCommandArgs(ctx.args, {
         output: { type: "string" },
-        overwrite: { type: "boolean" },
       });
 
       // --output は必須
@@ -49,7 +48,7 @@ export function registerExportCommand(): void {
         const plugin = await loadPluginDefinition(pluginDir);
         const result = await exportPlugin(plugin, {
           targetDir: outputDir,
-          overwrite: !!values.overwrite,
+          overwrite: true,
         });
 
         if (!result.success) {
