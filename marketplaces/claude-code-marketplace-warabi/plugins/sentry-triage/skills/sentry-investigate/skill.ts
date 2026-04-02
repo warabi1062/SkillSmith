@@ -17,8 +17,8 @@ const sentryInvestigateSkill = new WorkerWithSubAgent({
   name: "sentry-investigate",
   description:
     "Sentryエラーの原因を調査し、対応方針を判定するスキル。ワークフローの一部として使用される。",
-  input: "Sentry issue のURL（例: https://sentry.io/organizations/xxx/issues/12345/）",
-  output: "Sentry調査結果の保存先パス",
+  input: ["Sentry issue のURL（例: https://sentry.io/organizations/xxx/issues/12345/）"],
+  output: ["Sentry調査結果の保存先ファイルパス"],
   allowedTools: [
     tool("Read"),
     tool("Grep"),

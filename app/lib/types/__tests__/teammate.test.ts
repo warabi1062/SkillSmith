@@ -82,14 +82,14 @@ describe("WorkerWithAgentTeam", () => {
       teammates: [makeTeammate("worker", 1)],
       teamPrefix: "test",
       description: "テスト",
-      input: "入力",
-      output: "出力",
+      input: ["入力"],
+      output: ["出力"],
       allowedTools: [tool("Read")],
     });
 
     expect(skill.description).toBe("テスト");
-    expect(skill.input).toBe("入力");
-    expect(skill.output).toBe("出力");
+    expect(skill.input).toEqual(["入力"]);
+    expect(skill.output).toEqual(["出力"]);
     expect(skill.allowedTools).toEqual([tool("Read")]);
   });
 });

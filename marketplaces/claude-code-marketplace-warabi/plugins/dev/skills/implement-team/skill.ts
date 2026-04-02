@@ -150,9 +150,13 @@ const implementTeamSkill = new WorkerWithAgentTeam({
   name: "implement-team",
   description:
     "Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う。ワークフローの一部として使用される。",
-  input:
-    "- タスクID\n- モード（Linear / Quick）\n- 実装計画のファイルパス\n- ベースブランチ情報のファイルパス",
-  output: "- 実装結果のファイルパス\n- PR URL",
+  input: [
+    "- タスクID",
+    "- モード（Linear / Quick）",
+    "- 実装計画のファイルパス",
+    "- ベースブランチ情報のファイルパス",
+  ],
+  output: ["- 実装結果のファイルパス", "- PR URL"],
   allowedTools: [
     tool("Read"),
     tool("Write"),

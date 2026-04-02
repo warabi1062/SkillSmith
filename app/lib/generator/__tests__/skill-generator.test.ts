@@ -9,8 +9,8 @@ function makeSkillComponent(overrides: {
   skillType?: string;
   argumentHint?: string;
   allowedTools?: import("../../types/skill").ToolRef[];
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
 }) {
   return {
     skillName: overrides.name ?? "my-skill",
@@ -100,7 +100,7 @@ describe("generateSkillMd", () => {
 
   it("SKILL.mdのfrontmatterにinput/outputを含めない", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ input: "- task ID", output: "- result" }),
+      makeSkillComponent({ input: ["- task ID"], output: ["- result"] }),
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");

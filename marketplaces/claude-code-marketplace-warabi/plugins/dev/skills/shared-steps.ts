@@ -12,7 +12,7 @@ export const generateTaskId: InlineStep = {
       body: "指示内容から短いslugを生成し、タスクIDとする。",
     },
   ],
-  output: "タスクID: quick-{slug}\n例: quick-add-dark-mode",
+  output: ["タスクID: quick-{slug}", "例: quick-add-dark-mode"],
 };
 
 // ブランチ作成: ベースブランチを判定しfeatureブランチを作成する
@@ -35,6 +35,8 @@ export const createBranch: InlineStep = {
       body: "判定したベースブランチ名は `~/claude-code-data/workflows/{ID}/base-branch.txt` に保存し、そのファイルパスを記録して後続のステップに渡す。",
     },
   ],
-  output:
-    "ブランチ名: feature/{ID}-{タイトルのslug}\n例: feature/LIN-123-add-user-authentication, feature/quick-add-dark-mode",
+  output: [
+    "ブランチ名: feature/{ID}-{タイトルのslug}",
+    "例: feature/LIN-123-add-user-authentication, feature/quick-add-dark-mode",
+  ],
 };

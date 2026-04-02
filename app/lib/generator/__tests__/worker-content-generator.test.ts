@@ -6,8 +6,8 @@ function makeInput(
   overrides?: Partial<WorkerContentInput>,
 ): WorkerContentInput {
   return {
-    input: "- チケットID",
-    output: "- 結果のファイルパス",
+    input: ["- チケットID"],
+    output: ["- 結果のファイルパス"],
     workerSteps: [
       { id: "1", title: "計画の読み込み", body: "計画ファイルを読み込む。" },
       { id: "2", title: "実行", body: "計画に従って実行する。" },

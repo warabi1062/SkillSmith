@@ -5,8 +5,8 @@ import type { LoadedAgentConfigSection } from "../types/loader.server";
 export interface AgentContentInput {
   skillName: string; // 対応するスキル名
   description?: string; // agentの説明
-  input?: string; // 入力の説明
-  output?: string; // 出力の説明
+  input?: string[]; // 入力の説明
+  output?: string[]; // 出力の説明
   sections?: LoadedAgentConfigSection[]; // 追加セクション
 }
 
@@ -19,19 +19,19 @@ export function generateAgentContent(input: AgentContentInput): string {
   }
 
   // 入力セクション
-  if (input.input) {
+  if (input.input?.length) {
     if (lines.length > 0) lines.push("");
     lines.push("## 入力");
     lines.push("");
-    lines.push(input.input);
+    lines.push(...input.input);
   }
 
   // 出力セクション
-  if (input.output) {
+  if (input.output?.length) {
     if (lines.length > 0) lines.push("");
     lines.push("## 出力");
     lines.push("");
-    lines.push(input.output);
+    lines.push(...input.output);
   }
 
   // 実行セクション（対応するスキルへの委譲）

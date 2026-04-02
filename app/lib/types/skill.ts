@@ -71,8 +71,8 @@ export interface InlineSubStep {
 export interface InlineStep {
   inline: string; // 表示名（例: "ブランチ作成"）
   steps: InlineSubStep[]; // 構造化された手順ステップ
-  input?: string; // 入力の説明
-  output?: string; // 出力の説明
+  input?: string[]; // 入力の説明
+  output?: string[]; // 出力の説明
 }
 
 // ステップ型（Skill / Branch / InlineStep の union）
@@ -226,8 +226,8 @@ export abstract class Skill {
 
   displayName?: string; // SKILL.md の見出しに使う表示名（例: "Create PR"）
   description?: string;
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
   allowedTools?: ToolRef[];
   argumentHint?: string;
   userInvocable?: boolean;

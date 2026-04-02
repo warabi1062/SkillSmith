@@ -34,8 +34,8 @@ describe("generateOrchestratorContent", () => {
             body: "指示内容から短いslugを生成する",
           },
         ],
-        input: "ユーザー指示",
-        output: "タスクID: quick-{slug}",
+        input: ["ユーザー指示"],
+        output: ["タスクID: quick-{slug}"],
       },
     ];
 
@@ -181,8 +181,8 @@ describe("generateOrchestratorContent", () => {
       {
         inline: "シンプル処理",
         steps: [],
-        input: "入力データ",
-        output: "出力結果",
+        input: ["入力データ"],
+        output: ["出力結果"],
       },
     ];
 

@@ -43,7 +43,7 @@ export function generatePlugin(
   // skillMetas マップを構築（オーケストレーターのスキル参照ステップで入出力を表示するため）
   const skillMetas = new Map<
     string,
-    { input?: string; output?: string; hasAgent?: boolean }
+    { input?: string[]; output?: string[]; hasAgent?: boolean }
   >();
   for (const skill of pluginDef.skills) {
     if (skill.input || skill.output || skill.skillType === "WORKER_WITH_SUB_AGENT") {
@@ -81,7 +81,7 @@ function generateSkillComponent(
   skill: LoadedSkillUnion,
   files: GeneratedFile[],
   errors: GenerationValidationError[],
-  skillMetas: Map<string, { input?: string; output?: string }>,
+  skillMetas: Map<string, { input?: string[]; output?: string[] }>,
 ): void {
   // EntryPoint スキルの場合は steps + sections + メタデータから content を自動生成する
   let content = skill.content;

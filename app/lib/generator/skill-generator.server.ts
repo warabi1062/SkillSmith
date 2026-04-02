@@ -16,8 +16,8 @@ export interface SkillGeneratorInput {
   disableModelInvocation?: boolean;
   allowedTools?: ToolRef[];
   content: string;
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
 }
 
 interface SkillComponentData {

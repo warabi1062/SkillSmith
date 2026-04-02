@@ -37,8 +37,8 @@ interface ImportedInlineSubStep {
 interface ImportedInlineStep {
   inline: string;
   steps: ImportedInlineSubStep[];
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
 }
 
 type ImportedStep = { name: string } | ImportedBranch | ImportedInlineStep;
@@ -60,8 +60,8 @@ interface ImportedSkill {
   displayName?: string;
   content?: string;
   description?: string;
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
   allowedTools?: ToolRef[];
   argumentHint?: string;
   userInvocable?: boolean;
@@ -136,8 +136,8 @@ export interface LoadedInlineSubStep {
 export interface LoadedInlineStep {
   inline: string;
   steps: LoadedInlineSubStep[];
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
 }
 
 // ローダー用のオーケストレーターセクション型
@@ -168,8 +168,8 @@ interface LoadedSkillBase {
   displayName?: string;
   content: string;
   description?: string;
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
   allowedTools?: ToolRef[];
   argumentHint?: string;
   userInvocable?: boolean;

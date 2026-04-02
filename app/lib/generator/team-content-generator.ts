@@ -3,8 +3,8 @@
 import type { LoadedTeammate } from "../types/loader.server";
 
 export interface TeamContentInput {
-  input?: string; // 入力の説明
-  output?: string; // 出力の説明
+  input?: string[]; // 入力の説明
+  output?: string[]; // 出力の説明
   teammates: LoadedTeammate[]; // チームメンバー定義
   teamPrefix: string; // チーム名のプレフィックス
   additionalLeaderSteps?: string[]; // リーダーの追加手順（デフォルト手順に追記）
@@ -26,19 +26,19 @@ export function generateTeamContent(input: TeamContentInput): string {
   );
 
   // 入力セクション
-  if (input.input) {
+  if (input.input?.length) {
     lines.push("");
     lines.push("## 入力");
     lines.push("");
-    lines.push(input.input);
+    lines.push(...input.input);
   }
 
   // 出力セクション
-  if (input.output) {
+  if (input.output?.length) {
     lines.push("");
     lines.push("## 出力");
     lines.push("");
-    lines.push(input.output);
+    lines.push(...input.output);
   }
 
   // Teammate セクション

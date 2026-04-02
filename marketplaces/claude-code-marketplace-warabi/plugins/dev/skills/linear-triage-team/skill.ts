@@ -195,8 +195,8 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
   displayName: "Triage Team",
   description:
     "Agent Teamでtriager/reviewer/executorを編成し、Linearチケットの調査・計画作成・レビュー・実行を行う。ワークフローの一部として使用される。",
-  input: "- チケットID",
-  output: "- triage計画のファイルパス\n- triage結果のファイルパス",
+  input: ["- チケットID"],
+  output: ["- triage計画のファイルパス", "- triage結果のファイルパス"],
   allowedTools: [
     tool("Read"),
     tool("Write"),

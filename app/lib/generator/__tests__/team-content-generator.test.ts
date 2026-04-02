@@ -29,8 +29,8 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
 
 function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
   return {
-    input: "- タスクID",
-    output: "- 結果のファイルパス",
+    input: ["- タスクID"],
+    output: ["- 結果のファイルパス"],
     teammates: [makeWorker("implementer"), makeReviewer("implementer")],
     teamPrefix: "test",
     ...overrides,

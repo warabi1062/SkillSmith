@@ -164,8 +164,8 @@ export interface SkillDetailData {
   description: string | null;
   skillType: string;
   content: string;
-  input: string;
-  output: string;
+  input: string[];
+  output: string[];
   allowedTools: string[] | null;
   steps: StepFields[] | null;
   sections: SectionFields[] | null;
@@ -220,8 +220,8 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     description: skill.description ?? null,
     skillType: skill.skillType,
     content: skill.content ?? "",
-    input: skill.input ?? "",
-    output: skill.output ?? "",
+    input: skill.input ?? [],
+    output: skill.output ?? [],
     allowedTools: skill.allowedTools
       ? skill.allowedTools.map(serializeToolRef)
       : null,
@@ -587,25 +587,25 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
       )}
 
       {/* 入力 */}
-      {data.input && (
+      {data.input.length > 0 && (
         <div className="mb-3">
           <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
             Input
           </label>
           <div className="text-sm text-text-secondary leading-normal">
-            {data.input}
+            {data.input.join("\n")}
           </div>
         </div>
       )}
 
       {/* 出力 */}
-      {data.output && (
+      {data.output.length > 0 && (
         <div className="mb-3">
           <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
             Output
           </label>
           <div className="text-sm text-text-secondary leading-normal">
-            {data.output}
+            {data.output.join("\n")}
           </div>
         </div>
       )}

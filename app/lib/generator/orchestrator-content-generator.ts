@@ -10,8 +10,8 @@ import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
 
 // スキル参照ステップで表示するメタ情報
 export interface SkillMeta {
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
   hasAgent?: boolean; // WorkerWithSubAgent の場合 true
 }
 
@@ -208,15 +208,15 @@ function renderSkillRef(
     lines.push(`${skillName} skill を実行する。`);
   }
   if (meta) {
-    if (meta.input) {
+    if (meta.input?.length) {
       lines.push("");
       lines.push("渡す情報:");
-      lines.push(meta.input);
+      lines.push(...meta.input);
     }
-    if (meta.output) {
+    if (meta.output?.length) {
       lines.push("");
       lines.push("出力:");
-      lines.push(meta.output);
+      lines.push(...meta.output);
     }
   }
 
@@ -246,17 +246,17 @@ function renderInlineStep(
     }
   }
 
-  if (step.input) {
+  if (step.input?.length) {
     lines.push("");
     lines.push(`${h(headingLevel + 1)} 入力`);
     lines.push("");
-    lines.push(step.input);
+    lines.push(...step.input);
   }
-  if (step.output) {
+  if (step.output?.length) {
     lines.push("");
     lines.push(`${h(headingLevel + 1)} 出力`);
     lines.push("");
-    lines.push(step.output);
+    lines.push(...step.output);
   }
 
   return lines.join("\n");

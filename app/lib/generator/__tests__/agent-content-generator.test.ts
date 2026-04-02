@@ -6,8 +6,8 @@ function makeInput(overrides?: Partial<AgentContentInput>): AgentContentInput {
   return {
     skillName: "test-skill",
     description: "テスト用エージェント。",
-    input: "- チケットID",
-    output: "- 結果のファイルパス",
+    input: ["- チケットID"],
+    output: ["- 結果のファイルパス"],
     ...overrides,
   };
 }

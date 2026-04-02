@@ -11,8 +11,8 @@ interface AgentTeamComponentData {
   skillConfig: {
     name: string;
     description?: string;
-    input?: string;
-    output?: string;
+    input?: string[];
+    output?: string[];
   };
   memberSkillNames: string[];
 }
@@ -86,8 +86,8 @@ interface AgentConfigData {
 interface SkillConfigInfo {
   name: string;
   description?: string;
-  input?: string;
-  output?: string;
+  input?: string[];
+  output?: string[];
 }
 
 interface AgentComponentData {

@@ -9,8 +9,8 @@ import type { ToolRef } from "../../types/skill";
 function makeAgentComponent(overrides: {
   skillName?: string;
   skillDescription?: string;
-  skillInput?: string;
-  skillOutput?: string;
+  skillInput?: string[];
+  skillOutput?: string[];
   content?: string;
   model?: string;
   tools?: ToolRef[];
@@ -79,7 +79,7 @@ describe("generateAgentMd", () => {
 
   it("agent mdのfrontmatterにinput/outputを含めない", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ skillInput: "- task ID", skillOutput: "- result" }),
+      makeAgentComponent({ skillInput: ["- task ID"], skillOutput: ["- result"] }),
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
@@ -100,8 +100,8 @@ describe("generateAgentTeamMd", () => {
       skillConfig: {
         name: "review-team",
         description: "A review team",
-        input: "- PR URL",
-        output: "- review result",
+        input: ["- PR URL"],
+        output: ["- review result"],
       },
       memberSkillNames: ["code-review", "security-check", "style-lint"],
     });
