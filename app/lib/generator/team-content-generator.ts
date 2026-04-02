@@ -1,10 +1,9 @@
 // チームスキル（WorkerWithAgentTeam）の content を teammates 定義から自動生成する
 
 import type { LoadedTeammate } from "../types/loader.server";
+import type { ContentGeneratorInput } from "./content-generator-types";
 
-export interface TeamContentInput {
-  input?: string[]; // 入力の説明
-  output?: string[]; // 出力の説明
+export interface TeamContentInput extends ContentGeneratorInput {
   teammates: LoadedTeammate[]; // チームメンバー定義
   teamPrefix: string; // チーム名のプレフィックス
   additionalLeaderSteps?: string[]; // リーダーの追加手順（デフォルト手順に追記）

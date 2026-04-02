@@ -7,6 +7,7 @@ import type {
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
 import { parseStepPosition, renderSections } from "./section-utils";
+import type { ContentGeneratorInput } from "./content-generator-types";
 
 
 // スキル参照ステップで表示するメタ情報
@@ -16,7 +17,7 @@ export interface SkillMeta {
   hasAgent?: boolean; // WorkerWithSubAgent の場合 true
 }
 
-export interface OrchestratorContentInput {
+export interface OrchestratorContentInput extends ContentGeneratorInput {
   steps: LoadedStep[];
   sections?: LoadedOrchestratorSection[];
   // スキル名 → メタ情報のマップ（スキル参照ステップの入出力表示用）
