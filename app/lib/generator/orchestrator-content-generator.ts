@@ -6,6 +6,7 @@ import type {
 } from "../types/loader.server";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
+import { parseStepPosition, renderSections } from "./section-utils";
 
 
 // スキル参照ステップで表示するメタ情報
@@ -22,33 +23,9 @@ export interface OrchestratorContentInput {
   skillMetas?: Map<string, SkillMeta>;
 }
 
-// セクションのpositionを解析するヘルパー
-function parseStepPosition(
-  position: string,
-): { type: "before-step" | "after-step"; index: number } | null {
-  const match = position.match(/^(before-step|after-step):(\d+)$/);
-  if (!match) return null;
-  return {
-    type: match[1] as "before-step" | "after-step",
-    index: Number(match[2]),
-  };
-}
-
 // markdownヘッダーを生成する（例: h(3) → "###"）
 function h(level: number): string {
   return "#".repeat(level);
-}
-
-// 指定positionのセクションをレンダリングするヘルパー
-function renderSections(sections: LoadedOrchestratorSection[]): string[] {
-  const lines: string[] = [];
-  for (const section of sections) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
-  }
-  return lines;
 }
 
 // step間セクションを含むステップ列をレンダリングする
