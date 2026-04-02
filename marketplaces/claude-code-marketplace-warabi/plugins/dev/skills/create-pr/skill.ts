@@ -19,9 +19,9 @@ const createPrSkill = new WorkerWithSubAgent({
   displayName: "Create PR",
   description: "実装・コミット済みのコードをプッシュし、GitHub PRを作成する。",
   input: `- チケットID
-- 実装計画のパス（orchestrator から渡される）
-- 実装結果のパス（orchestrator から渡される、渡されない場合がある）
-- ベースブランチ情報のパス（orchestrator から渡される）`,
+- 実装計画のファイルパス（orchestrator から渡される）
+- 実装結果のファイルパス（orchestrator から渡される、渡されない場合がある）
+- ベースブランチ情報のファイルパス（orchestrator から渡される）`,
   allowedTools: [
     tool("Read"),
     tool("Grep"),
@@ -87,7 +87,7 @@ const createPrSkill = new WorkerWithSubAgent({
       id: "4",
       title: "PR作成",
       body: `\`gh pr create --draft\` でドラフトPRを作成する。
-入力として渡された base-branch.txt のパスを読み込み、\`--base {ベースブランチ}\` を指定してPRのマージ先を明示する。
+入力として渡された base-branch.txt のファイルパスを読み込み、\`--base {ベースブランチ}\` を指定してPRのマージ先を明示する。
 PRタイトル:
 - Linearモード: \`{チケットID}: {チケットタイトル}\`（タイトルにチケットIDを含めることでLinearと自動紐づけされる）
 - Quickモード: 変更内容を要約したタイトル

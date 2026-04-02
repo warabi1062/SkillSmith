@@ -39,7 +39,7 @@ const retrospectiveSkill = new WorkerSkill({
 
 ### Step 3: 結果報告
 
-ユーザーにレポートのパスを報告する。`,
+ユーザーにレポートのファイルパスを報告する。`,
 });
 
 export default retrospectiveSkill;

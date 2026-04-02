@@ -30,7 +30,7 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
 function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
   return {
     input: "- タスクID",
-    output: "- 結果のパス",
+    output: "- 結果のファイルパス",
     teammates: [makeWorker("implementer"), makeReviewer("implementer")],
     teamPrefix: "test",
     ...overrides,
@@ -55,7 +55,7 @@ describe("generateTeamContent", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("## 出力");
-    expect(result).toContain("- 結果のパス");
+    expect(result).toContain("- 結果のファイルパス");
   });
 
   it("出力がない場合は出力セクションが省略される", () => {

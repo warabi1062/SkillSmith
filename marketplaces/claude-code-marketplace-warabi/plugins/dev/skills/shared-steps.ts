@@ -32,7 +32,7 @@ export const createBranch: InlineStep = {
     {
       id: "3",
       title: "ベースブランチ情報保存",
-      body: "判定したベースブランチ名は `~/claude-code-data/workflows/{ID}/base-branch.txt` に保存し、そのパスを記録して後続のステップに渡す。",
+      body: "判定したベースブランチ名は `~/claude-code-data/workflows/{ID}/base-branch.txt` に保存し、そのファイルパスを記録して後続のステップに渡す。",
     },
   ],
   output:

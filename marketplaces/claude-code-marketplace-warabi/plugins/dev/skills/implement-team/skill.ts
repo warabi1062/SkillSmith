@@ -23,7 +23,7 @@ const implementer: Teammate = {
     {
       id: "I1",
       title: "実装計画の読み込み",
-      body: "入力として渡された実装計画のパスを読み込み、実装ステップ・変更ファイル・テスト計画を把握する。",
+      body: "入力として渡された実装計画のファイルパスを読み込み、実装ステップ・変更ファイル・テスト計画を把握する。",
     },
     {
       id: "I2",
@@ -84,7 +84,7 @@ const reviewer: Teammate = {
     {
       id: "V1",
       title: "実装計画と差分の読み込み",
-      body: "implementer から通知されたパスから実装結果を読み込む。実装結果に記載された実装計画のパスから計画も読み込む。\n`git diff` で変更差分を取得する。",
+      body: "implementer から通知されたファイルパスから実装結果を読み込む。実装結果に記載された実装計画のファイルパスから計画も読み込む。\n`git diff` で変更差分を取得する。",
     },
     {
       id: "V2",
@@ -141,7 +141,7 @@ const prCreator: Teammate = {
     {
       id: "C1",
       title: "create-pr skill の実行",
-      body: "create-pr skill を実行する。リーダーから受け取った実装計画のパス、実装結果のパス、ベースブランチ情報のパス、モードを入力として渡す。完了後、リーダーにPR URLを伝える。",
+      body: "create-pr skill を実行する。リーダーから受け取った実装計画のファイルパス、実装結果のファイルパス、ベースブランチ情報のファイルパス、モードを入力として渡す。完了後、リーダーにPR URLを伝える。",
     },
   ],
 };
@@ -151,8 +151,8 @@ const implementTeamSkill = new WorkerWithAgentTeam({
   description:
     "Agent Teamでimplementer/reviewerを編成し、コード実装とレビューを行う。ワークフローの一部として使用される。",
   input:
-    "- タスクID\n- モード（Linear / Quick）\n- 実装計画のパス\n- ベースブランチ情報のパス",
-  output: "- 実装結果のパス\n- PR URL",
+    "- タスクID\n- モード（Linear / Quick）\n- 実装計画のファイルパス\n- ベースブランチ情報のファイルパス",
+  output: "- 実装結果のファイルパス\n- PR URL",
   allowedTools: [
     tool("Read"),
     tool("Write"),
@@ -169,7 +169,7 @@ const implementTeamSkill = new WorkerWithAgentTeam({
   teammates: [implementer, reviewer, prCreator],
   teamPrefix: "impl",
   additionalLeaderSteps: [
-    "レビューPASS後、pr-creator に実行を指示する（実装計画のパス、実装結果のパス、ベースブランチ情報のパス、モードを伝える）",
+    "レビューPASS後、pr-creator に実行を指示する（実装計画のファイルパス、実装結果のファイルパス、ベースブランチ情報のファイルパス、モードを伝える）",
     "pr-creator から完了通知を受け取り、PR URLを記録する",
   ],
   dependencies: [createPrSkill],

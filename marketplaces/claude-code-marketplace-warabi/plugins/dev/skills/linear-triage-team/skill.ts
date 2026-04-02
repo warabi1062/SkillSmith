@@ -107,7 +107,7 @@ const reviewer: Teammate = {
     {
       id: "R1",
       title: "計画の読み込み",
-      body: "triager から通知されたパスからtriage計画を読み込む。",
+      body: "triager から通知されたファイルパスからtriage計画を読み込む。",
     },
     {
       id: "R2",
@@ -160,7 +160,7 @@ const executor: Teammate = {
     {
       id: "E1",
       title: "計画の読み込み",
-      body: "リーダーから受け取ったパスの計画ファイルを読み込む。",
+      body: "リーダーから受け取ったファイルパスの計画ファイルを読み込む。",
     },
     {
       id: "E2",
@@ -196,7 +196,7 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
   description:
     "Agent Teamでtriager/reviewer/executorを編成し、Linearチケットの調査・計画作成・レビュー・実行を行う。ワークフローの一部として使用される。",
   input: "- チケットID",
-  output: "- triage計画のパス\n- triage結果のパス",
+  output: "- triage計画のファイルパス\n- triage結果のファイルパス",
   allowedTools: [
     tool("Read"),
     tool("Write"),
@@ -213,8 +213,8 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
   teammates: [triager, reviewer, executor],
   teamPrefix: "triage",
   additionalLeaderSteps: [
-    "ユーザー承認後、executor に実行を指示する（計画ファイルのパスを伝える）",
-    "executor から完了通知を受け取り、triage結果のパスを記録する",
+    "ユーザー承認後、executor に実行を指示する（計画ファイルのファイルパスを伝える）",
+    "executor から完了通知を受け取り、triage結果のファイルパスを記録する",
     "分割が発生した場合、ユーザーにどのサブチケットから着手するか確認を取る",
   ],
   requiresUserApproval: true,

@@ -87,7 +87,7 @@ const sentryInvestigateSkill = new WorkerWithSubAgent({
     {
       id: "7",
       title: "結果返却",
-      body: "調査結果の概要に加え、保存先パス（sentry-investigation.md のパス）を返す。",
+      body: "調査結果の概要に加え、保存先ファイルパス（sentry-investigation.md のファイルパス）を返す。",
     },
   ],
 });

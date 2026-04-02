@@ -79,7 +79,7 @@ const reviewer: Teammate = {
     {
       id: "R1",
       title: "計画の読み込み",
-      body: "planner から通知されたパスから実装計画を読み込む。チケットの要件は Linear MCP は使わず、計画に記載されたゴール・受入条件を参照する。",
+      body: "planner から通知されたファイルパスから実装計画を読み込む。チケットの要件は Linear MCP は使わず、計画に記載されたゴール・受入条件を参照する。",
     },
     {
       id: "R2",
@@ -141,7 +141,7 @@ const planTeamSkill = new WorkerWithAgentTeam({
   - 事前調査ファイルのパス（任意、複数可）
   - 要件テキスト（事前調査なしの場合）`,
   output:
-    "- 実装計画のパス",
+    "- 実装計画のファイルパス",
   allowedTools: [
     tool("Read"),
     tool("Write"),
