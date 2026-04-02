@@ -193,13 +193,17 @@ export interface LoadedAgentConfigSection {
   position: SectionPosition;
 }
 
-// ローダー用のWorkerステップ型（TeammateStepと同じ構造）
-export interface LoadedWorkerStep {
+// ローダー用の委譲ステップ型（Worker / Teammate 共通）
+export interface LoadedDelegateStep {
   id: string;
   title: string;
   body: string;
   bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
+
+// LoadedDelegateStep の用途別エイリアス
+export type LoadedWorkerStep = LoadedDelegateStep;
+export type LoadedTeammateStep = LoadedDelegateStep;
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
 export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
@@ -207,14 +211,6 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
   agentConfig: AgentConfig;
   workerSteps?: LoadedWorkerStep[];
   workerSections?: LoadedOrchestratorSection[];
-}
-
-// ローダー用のチームメンバーステップ型
-export interface LoadedTeammateStep {
-  id: string;
-  title: string;
-  body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // ローダー用のチームメンバー型
