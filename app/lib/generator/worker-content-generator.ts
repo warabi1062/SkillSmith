@@ -5,10 +5,9 @@ import type {
   LoadedOrchestratorSection,
 } from "../types/loader.server";
 import { parseStepPosition, renderSections } from "./section-utils";
+import type { ContentGeneratorInput } from "./content-generator-types";
 
-export interface WorkerContentInput {
-  input?: string[]; // 入力の説明
-  output?: string[]; // 出力の説明
+export interface WorkerContentInput extends ContentGeneratorInput {
   workerSteps: LoadedWorkerStep[]; // 手順ステップ
   workerSections?: LoadedOrchestratorSection[]; // steps前後の追加セクション
 }
