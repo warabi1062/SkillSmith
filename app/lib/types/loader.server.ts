@@ -263,33 +263,16 @@ async function resolveBodyFile(
   return { body: item.body ?? "" };
 }
 
-// TeammateStep / InlineSubStep 配列の bodyFile を一括解決
-async function resolveStepBodyFiles(
+// bodyFile を含む任意のオブジェクト配列の bodyFile を一括解決するジェネリックヘルパー
+async function resolveBodyFiles<T extends { body?: string; bodyFile?: string }>(
   skillDir: string,
-  steps: { id: string; title: string; body?: string; bodyFile?: string }[],
-): Promise<{ id: string; title: string; body: string; bodyFile?: string }[]> {
+  items: T[],
+): Promise<(Omit<T, "body" | "bodyFile"> & { body: string; bodyFile?: string })[]> {
   return Promise.all(
-    steps.map(async (s) => {
-      const resolved = await resolveBodyFile(skillDir, s);
-      return { id: s.id, title: s.title, ...resolved };
-    }),
-  );
-}
-
-// OrchestratorSection 配列の bodyFile を一括解決
-async function resolveSectionBodyFiles(
-  skillDir: string,
-  sections: {
-    heading: string;
-    body?: string;
-    bodyFile?: string;
-    position: SectionPosition;
-  }[],
-): Promise<LoadedOrchestratorSection[]> {
-  return Promise.all(
-    sections.map(async (s) => {
-      const resolved = await resolveBodyFile(skillDir, s);
-      return { heading: s.heading, ...resolved, position: s.position };
+    items.map(async (item) => {
+      const { body: _body, bodyFile: _bodyFile, ...rest } = item;
+      const resolved = await resolveBodyFile(skillDir, item);
+      return { ...rest, ...resolved } as Omit<T, "body" | "bodyFile"> & { body: string; bodyFile?: string };
     }),
   );
 }
@@ -382,7 +365,7 @@ export async function loadPluginDefinition(
         dependencies,
         steps: loadedSteps,
         sections: skill.sections
-          ? await resolveSectionBodyFiles(skillDir, skill.sections)
+          ? await resolveBodyFiles(skillDir, skill.sections)
           : undefined,
       };
 
@@ -394,13 +377,13 @@ export async function loadPluginDefinition(
           agentConfig: skill.agentConfig,
         };
         if (skill.workerSteps) {
-          loaded.workerSteps = await resolveStepBodyFiles(
+          loaded.workerSteps = await resolveBodyFiles(
             skillDir,
             skill.workerSteps,
           );
         }
         if (skill.workerSections) {
-          loaded.workerSections = await resolveSectionBodyFiles(
+          loaded.workerSections = await resolveBodyFiles(
             skillDir,
             skill.workerSections,
           );
@@ -415,7 +398,7 @@ export async function loadPluginDefinition(
             skill.teammates.map(async (t) => ({
               name: t.name,
               role: t.role,
-              steps: await resolveStepBodyFiles(skillDir, t.steps),
+              steps: await resolveBodyFiles(skillDir, t.steps),
               sortOrder: t.sortOrder,
               communicationPattern: t.communicationPattern,
             })),
@@ -578,7 +561,7 @@ async function convertImportedStepsAsync(
       if (isImportedInlineStep(step)) {
         const loaded: LoadedInlineStep = {
           inline: step.inline,
-          steps: await resolveStepBodyFiles(skillDir, step.steps),
+          steps: await resolveBodyFiles(skillDir, step.steps),
         };
         if (step.input) loaded.input = step.input;
         if (step.output) loaded.output = step.output;
