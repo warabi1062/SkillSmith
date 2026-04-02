@@ -7,7 +7,6 @@ import { createJiti } from "jiti";
 import type {
   ToolRef,
   SupportFileRole,
-  SkillType,
   AgentConfig,
   AgentTeamMember,
   SupportFile,
@@ -53,9 +52,8 @@ function isImportedInlineStep(step: ImportedStep): step is ImportedInlineStep {
   return "inline" in step && !("decisionPoint" in step);
 }
 
-// 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
-interface ImportedSkill {
-  skillType: SkillType;
+// 動的importで読み込まれるスキルの共通フィールド
+interface ImportedSkillBase {
   name: string;
   displayName?: string;
   content?: string;
@@ -75,15 +73,36 @@ interface ImportedSkill {
     bodyFile?: string;
     position: SectionPosition;
   }[];
-  agentConfig?: AgentConfig;
+}
+
+// ENTRY_POINT / WORKER の場合
+interface ImportedSimpleSkill extends ImportedSkillBase {
+  skillType: "ENTRY_POINT" | "WORKER";
+}
+
+// WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
+interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
+  skillType: "WORKER_WITH_SUB_AGENT";
+  agentConfig: AgentConfig;
   workerSteps?: TeammateStep[];
   workerSections?: OrchestratorSection[];
+}
+
+// WORKER_WITH_AGENT_TEAM の場合は agentTeamMembers / teammates を保持
+interface ImportedWorkerWithAgentTeamSkill extends ImportedSkillBase {
+  skillType: "WORKER_WITH_AGENT_TEAM";
   agentTeamMembers?: AgentTeamMember[];
   teammates?: ImportedTeammate[];
   teamPrefix?: string;
   additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
+
+// discriminated union: skillType で型が絞り込まれる
+type ImportedSkill =
+  | ImportedSimpleSkill
+  | ImportedWorkerWithSubAgentSkill
+  | ImportedWorkerWithAgentTeamSkill;
 
 // import 用のチームメンバーステップ型
 interface ImportedTeammateStep {
@@ -370,7 +389,7 @@ export async function loadPluginDefinition(
       };
 
       // skillType に応じた拡張
-      if (skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.agentConfig) {
+      if (skill.skillType === "WORKER_WITH_SUB_AGENT") {
         const loaded: LoadedWorkerWithSubAgentSkill = {
           ...base,
           skillType: "WORKER_WITH_SUB_AGENT" as const,
