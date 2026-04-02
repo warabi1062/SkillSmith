@@ -4,36 +4,13 @@ import type {
   LoadedWorkerStep,
   LoadedOrchestratorSection,
 } from "../types/loader.server";
+import { parseStepPosition, renderSections } from "./section-utils";
 
 export interface WorkerContentInput {
   input?: string[]; // 入力の説明
   output?: string[]; // 出力の説明
   workerSteps: LoadedWorkerStep[]; // 手順ステップ
   workerSections?: LoadedOrchestratorSection[]; // steps前後の追加セクション
-}
-
-// セクションのpositionを解析するヘルパー
-function parseStepPosition(
-  position: string,
-): { type: "before-step" | "after-step"; index: number } | null {
-  const match = position.match(/^(before-step|after-step):(\d+)$/);
-  if (!match) return null;
-  return {
-    type: match[1] as "before-step" | "after-step",
-    index: Number(match[2]),
-  };
-}
-
-// セクションをレンダリングするヘルパー
-function renderSections(sections: LoadedOrchestratorSection[]): string[] {
-  const lines: string[] = [];
-  for (const section of sections) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
-  }
-  return lines;
 }
 
 export function generateWorkerContent(input: WorkerContentInput): string {
