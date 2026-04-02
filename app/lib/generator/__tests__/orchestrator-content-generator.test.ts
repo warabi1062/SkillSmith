@@ -48,9 +48,9 @@ describe("generateOrchestratorContent", () => {
     // ステップが1つだけの場合はフラットに展開される
     expect(result).not.toContain("#### 手順");
     expect(result).toContain("指示内容から短いslugを生成する");
-    expect(result).toContain("#### 入力");
+    expect(result).toContain("入力:");
     expect(result).toContain("ユーザー指示");
-    expect(result).toContain("#### 出力");
+    expect(result).toContain("出力:");
     expect(result).toContain("タスクID: quick-{slug}");
   });
 
@@ -192,9 +192,9 @@ describe("generateOrchestratorContent", () => {
     });
 
     expect(result).toContain("### Step 1: シンプル処理");
-    expect(result).toContain("#### 入力");
+    expect(result).toContain("入力:");
     expect(result).toContain("入力データ");
-    expect(result).toContain("#### 出力");
+    expect(result).toContain("出力:");
     expect(result).toContain("出力結果");
     expect(result).not.toContain("#### 手順");
   });

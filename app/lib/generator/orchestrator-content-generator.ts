@@ -248,14 +248,12 @@ function renderInlineStep(
 
   if (step.input?.length) {
     lines.push("");
-    lines.push(`${h(headingLevel + 1)} 入力`);
-    lines.push("");
+    lines.push("入力:");
     lines.push(...step.input.map((item) => `- ${item}`));
   }
   if (step.output?.length) {
     lines.push("");
-    lines.push(`${h(headingLevel + 1)} 出力`);
-    lines.push("");
+    lines.push("出力:");
     lines.push(...step.output.map((item) => `- ${item}`));
   }
 
