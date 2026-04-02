@@ -593,7 +593,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             Input
           </label>
           <div className="text-sm text-text-secondary leading-normal">
-            {data.input.join("\n")}
+            {data.input.map((item) => `- ${item}`).join("\n")}
           </div>
         </div>
       )}
@@ -605,7 +605,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             Output
           </label>
           <div className="text-sm text-text-secondary leading-normal">
-            {data.output.join("\n")}
+            {data.output.map((item) => `- ${item}`).join("\n")}
           </div>
         </div>
       )}

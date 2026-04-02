@@ -29,8 +29,8 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
 
 function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
   return {
-    input: ["- タスクID"],
-    output: ["- 結果のファイルパス"],
+    input: ["タスクID"],
+    output: ["結果のファイルパス"],
     teammates: [makeWorker("implementer"), makeReviewer("implementer")],
     teamPrefix: "test",
     ...overrides,
@@ -42,7 +42,7 @@ describe("generateTeamContent", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("## 入力");
-    expect(result).toContain("- タスクID");
+    expect(result).toContain("タスクID");
   });
 
   it("入力がない場合は入力セクションが省略される", () => {
@@ -55,7 +55,7 @@ describe("generateTeamContent", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("## 出力");
-    expect(result).toContain("- 結果のファイルパス");
+    expect(result).toContain("結果のファイルパス");
   });
 
   it("出力がない場合は出力セクションが省略される", () => {

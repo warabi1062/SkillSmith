@@ -44,7 +44,7 @@ export function generateWorkerContent(input: WorkerContentInput): string {
     lines.push("");
     lines.push("## 入力");
     lines.push("");
-    lines.push(...input.input);
+    lines.push(...input.input.map((item) => `- ${item}`));
   }
 
   // before-steps セクション
@@ -110,7 +110,7 @@ export function generateWorkerContent(input: WorkerContentInput): string {
     lines.push("");
     lines.push("## 出力");
     lines.push("");
-    lines.push(...input.output);
+    lines.push(...input.output.map((item) => `- ${item}`));
   }
 
   return lines.join("\n");

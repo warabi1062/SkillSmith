@@ -100,8 +100,8 @@ describe("generateAgentTeamMd", () => {
       skillConfig: {
         name: "review-team",
         description: "A review team",
-        input: ["- PR URL"],
-        output: ["- review result"],
+        input: ["PR URL"],
+        output: ["review result"],
       },
       memberSkillNames: ["code-review", "security-check", "style-lint"],
     });

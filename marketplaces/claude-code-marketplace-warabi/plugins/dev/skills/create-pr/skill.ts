@@ -19,10 +19,10 @@ const createPrSkill = new WorkerWithSubAgent({
   displayName: "Create PR",
   description: "実装・コミット済みのコードをプッシュし、GitHub PRを作成する。",
   input: [
-    "- チケットID",
-    "- 実装計画のファイルパス（orchestrator から渡される）",
-    "- 実装結果のファイルパス（orchestrator から渡される、渡されない場合がある）",
-    "- ベースブランチ情報のファイルパス（orchestrator から渡される）",
+    "チケットID",
+    "実装計画のファイルパス（orchestrator から渡される）",
+    "実装結果のファイルパス（orchestrator から渡される、渡されない場合がある）",
+    "ベースブランチ情報のファイルパス（orchestrator から渡される）",
   ],
   allowedTools: [
     tool("Read"),

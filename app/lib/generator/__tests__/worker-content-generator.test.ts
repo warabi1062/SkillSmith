@@ -6,8 +6,8 @@ function makeInput(
   overrides?: Partial<WorkerContentInput>,
 ): WorkerContentInput {
   return {
-    input: ["- チケットID"],
-    output: ["- 結果のファイルパス"],
+    input: ["チケットID"],
+    output: ["結果のファイルパス"],
     workerSteps: [
       { id: "1", title: "計画の読み込み", body: "計画ファイルを読み込む。" },
       { id: "2", title: "実行", body: "計画に従って実行する。" },
@@ -21,7 +21,7 @@ describe("generateWorkerContent", () => {
     const result = generateWorkerContent(makeInput());
 
     expect(result).toContain("## 入力");
-    expect(result).toContain("- チケットID");
+    expect(result).toContain("チケットID");
   });
 
   it("入力がない場合は入力セクションが省略される", () => {
@@ -44,7 +44,7 @@ describe("generateWorkerContent", () => {
     const result = generateWorkerContent(makeInput());
 
     expect(result).toContain("## 出力");
-    expect(result).toContain("- 結果のファイルパス");
+    expect(result).toContain("結果のファイルパス");
   });
 
   it("出力がない場合は出力セクションが省略される", () => {

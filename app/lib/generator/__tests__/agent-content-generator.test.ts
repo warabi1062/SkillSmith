@@ -6,8 +6,8 @@ function makeInput(overrides?: Partial<AgentContentInput>): AgentContentInput {
   return {
     skillName: "test-skill",
     description: "テスト用エージェント。",
-    input: ["- チケットID"],
-    output: ["- 結果のファイルパス"],
+    input: ["チケットID"],
+    output: ["結果のファイルパス"],
     ...overrides,
   };
 }
@@ -23,14 +23,14 @@ describe("generateAgentContent", () => {
     const result = generateAgentContent(makeInput());
 
     expect(result).toContain("## 入力");
-    expect(result).toContain("- チケットID");
+    expect(result).toContain("チケットID");
   });
 
   it("出力セクションが生成される", () => {
     const result = generateAgentContent(makeInput());
 
     expect(result).toContain("## 出力");
-    expect(result).toContain("- 結果のファイルパス");
+    expect(result).toContain("結果のファイルパス");
   });
 
   it("実行セクションにスキル名への委譲が含まれる", () => {

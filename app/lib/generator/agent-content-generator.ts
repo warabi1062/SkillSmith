@@ -23,7 +23,7 @@ export function generateAgentContent(input: AgentContentInput): string {
     if (lines.length > 0) lines.push("");
     lines.push("## 入力");
     lines.push("");
-    lines.push(...input.input);
+    lines.push(...input.input.map((item) => `- ${item}`));
   }
 
   // 出力セクション
@@ -31,7 +31,7 @@ export function generateAgentContent(input: AgentContentInput): string {
     if (lines.length > 0) lines.push("");
     lines.push("## 出力");
     lines.push("");
-    lines.push(...input.output);
+    lines.push(...input.output.map((item) => `- ${item}`));
   }
 
   // 実行セクション（対応するスキルへの委譲）

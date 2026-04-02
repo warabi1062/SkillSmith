@@ -30,7 +30,7 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push("");
     lines.push("## 入力");
     lines.push("");
-    lines.push(...input.input);
+    lines.push(...input.input.map((item) => `- ${item}`));
   }
 
   // 出力セクション
@@ -38,7 +38,7 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push("");
     lines.push("## 出力");
     lines.push("");
-    lines.push(...input.output);
+    lines.push(...input.output.map((item) => `- ${item}`));
   }
 
   // Teammate セクション

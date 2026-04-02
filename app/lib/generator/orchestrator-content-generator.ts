@@ -211,12 +211,12 @@ function renderSkillRef(
     if (meta.input?.length) {
       lines.push("");
       lines.push("渡す情報:");
-      lines.push(...meta.input);
+      lines.push(...meta.input.map((item) => `- ${item}`));
     }
     if (meta.output?.length) {
       lines.push("");
       lines.push("出力:");
-      lines.push(...meta.output);
+      lines.push(...meta.output.map((item) => `- ${item}`));
     }
   }
 
@@ -250,13 +250,13 @@ function renderInlineStep(
     lines.push("");
     lines.push(`${h(headingLevel + 1)} 入力`);
     lines.push("");
-    lines.push(...step.input);
+    lines.push(...step.input.map((item) => `- ${item}`));
   }
   if (step.output?.length) {
     lines.push("");
     lines.push(`${h(headingLevel + 1)} 出力`);
     lines.push("");
-    lines.push(...step.output);
+    lines.push(...step.output.map((item) => `- ${item}`));
   }
 
   return lines.join("\n");

@@ -137,12 +137,10 @@ const planTeamSkill = new WorkerWithAgentTeam({
   description:
     "Agent Teamでplanner/reviewerを編成し、実装計画の作成とレビューを並列で行う。ワークフローの一部として使用される。",
   input: [
-    "- タスクID（例: `LIN-123`, `quick-add-dark-mode`）",
-    "- 要件情報（以下のいずれか）:",
-    "  - 事前調査ファイルのパス（任意、複数可）",
-    "  - 要件テキスト（事前調査なしの場合）",
+    "タスクID（例: `LIN-123`, `quick-add-dark-mode`）",
+    "要件情報: 事前調査ファイルのパス（任意、複数可）または要件テキスト",
   ],
-  output: ["- 実装計画のファイルパス"],
+  output: ["実装計画のファイルパス"],
   allowedTools: [
     tool("Read"),
     tool("Write"),
