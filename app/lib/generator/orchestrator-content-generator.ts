@@ -73,7 +73,7 @@ function renderStepsWithSections(
 
     // ステップ本体
     if (i > 0) lines.push("");
-    // トップレベルのステップは h3（「## ステップ」の直下）
+    // トップレベルのステップは h3（「## 作業詳細」の直下）
     if (isLoadedBranch(step)) {
       lines.push(renderBranch(step, stepNumber, 3, skillMetas));
     } else if (isLoadedInlineStep(step)) {
@@ -124,7 +124,7 @@ export function generateOrchestratorContent(
   // ステップ（step間セクション含む）
   if (input.steps.length > 0) {
     lines.push("");
-    lines.push("## ステップ");
+    lines.push("## 作業詳細");
     lines.push("");
 
     // step間セクションを抽出

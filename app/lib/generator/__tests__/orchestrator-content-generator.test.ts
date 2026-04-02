@@ -18,7 +18,7 @@ describe("generateOrchestratorContent", () => {
       steps: ["worker-a", "worker-b"],
     });
 
-    expect(result).toContain("## ステップ");
+    expect(result).toContain("## 作業詳細");
     expect(result).toContain("### Step 1: worker-a");
     expect(result).toContain("### Step 2: worker-b");
   });
@@ -95,7 +95,7 @@ describe("generateOrchestratorContent", () => {
     });
 
     const beforeIdx = result.indexOf("## 事前確認");
-    const stepsIdx = result.indexOf("## ステップ");
+    const stepsIdx = result.indexOf("## 作業詳細");
     const afterIdx = result.indexOf("### 注意事項");
 
     expect(beforeIdx).toBeLessThan(stepsIdx);
@@ -289,7 +289,7 @@ describe("generateOrchestratorContent", () => {
     });
 
     const beforeIdx = result.indexOf("## 事前確認");
-    const stepsIdx = result.indexOf("## ステップ");
+    const stepsIdx = result.indexOf("## 作業詳細");
     const step1Idx = result.indexOf("### Step 1: worker-a");
     const betweenIdx = result.indexOf("## Step間メモ");
     const step2Idx = result.indexOf("### Step 2: worker-b");
