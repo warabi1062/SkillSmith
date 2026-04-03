@@ -76,8 +76,8 @@ export interface SectionFields extends BodyFields {
 
 // LoadedStep -> StepFields 変換（型ガードはランタイム判定）
 export function convertStep(step: LoadedStep): StepFields {
-  if (typeof step === "string") {
-    return { type: "skill", label: step };
+  if ("skillName" in step && !("decisionPoint" in step) && !("inline" in step)) {
+    return { type: "skill", label: step.skillName };
   }
   if ("decisionPoint" in step && "cases" in step) {
     const branch = step as LoadedBranch;

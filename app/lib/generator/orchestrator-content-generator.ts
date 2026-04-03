@@ -57,7 +57,7 @@ function renderStepsWithSections(
     } else if (isLoadedInlineStep(step)) {
       lines.push(renderInlineStep(step, stepNumber, 3));
     } else {
-      lines.push(renderSkillRef(step, stepNumber, 3, skillMetas));
+      lines.push(renderSkillRef(step.skillName, stepNumber, 3, skillMetas));
     }
 
     // after-step:{i} セクション
@@ -160,7 +160,7 @@ function renderSteps(
     } else if (isLoadedInlineStep(step)) {
       lines.push(renderInlineStep(step, stepNumber, headingLevel));
     } else {
-      lines.push(renderSkillRef(step, stepNumber, headingLevel, skillMetas));
+      lines.push(renderSkillRef(step.skillName, stepNumber, headingLevel, skillMetas));
     }
   }
 

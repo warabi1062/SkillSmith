@@ -68,5 +68,6 @@ export type {
   LoadedDelegateStep,
   LoadedTeammateStep,
   LoadedWorkerStep,
+  SkillRef,
 } from "./loader.server";
-export { isLoadedBranch, isLoadedInlineStep } from "./loader.server";
+export { isLoadedBranch, isLoadedInlineStep, isLoadedSkillRef } from "./loader.server";

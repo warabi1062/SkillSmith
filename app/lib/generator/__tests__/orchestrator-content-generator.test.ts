@@ -15,7 +15,7 @@ describe("generateOrchestratorContent", () => {
   it("Skill参照ステップのみの場合", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a", "worker-b"],
+      steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }],
     });
 
     expect(result).toContain("## 作業詳細");
@@ -60,7 +60,7 @@ describe("generateOrchestratorContent", () => {
         decisionPoint: "入力判定",
         description: "入力パターンに応じて分岐する",
         cases: {
-          モードA: ["worker-a"],
+          モードA: [{ skillName: "worker-a" }],
           モードB: [
             {
               inline: "手動処理",
@@ -87,7 +87,7 @@ describe("generateOrchestratorContent", () => {
   it("sections（before-steps / after-steps）が正しい位置に出力される", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a"],
+      steps: [{ skillName: "worker-a" }],
       sections: [
         { heading: "事前確認", body: "確認事項", position: "before-steps" },
         { heading: "注意事項", body: "注意内容", position: "after-steps" },
@@ -106,16 +106,16 @@ describe("generateOrchestratorContent", () => {
 
   it("ネストした Branch のステップ番号が正しい", () => {
     const steps: LoadedStep[] = [
-      "worker-a",
+      { skillName: "worker-a" },
       {
         decisionPoint: "分岐1",
         cases: {
           ケースA: [
-            "worker-b",
+            { skillName: "worker-b" },
             {
               decisionPoint: "分岐2",
               cases: {
-                サブケース: ["worker-c"],
+                サブケース: [{ skillName: "worker-c" }],
               },
             },
           ],
@@ -137,7 +137,7 @@ describe("generateOrchestratorContent", () => {
 
   it("スキル参照ステップに委譲文が出力される", () => {
     const result = generateOrchestratorContent({
-      steps: ["worker-a"],
+      steps: [{ skillName: "worker-a" }],
     });
 
     expect(result).toContain("### Step 1: worker-a");
@@ -202,7 +202,7 @@ describe("generateOrchestratorContent", () => {
   it("before-step:0 を指定したセクションが Step 1 の直前に表示される", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a", "worker-b"],
+      steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }],
       sections: [
         {
           heading: "Step1の前",
@@ -222,7 +222,7 @@ describe("generateOrchestratorContent", () => {
   it("after-step:0 を指定したセクションが Step 1 の直後に表示される", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a", "worker-b"],
+      steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }],
       sections: [
         {
           heading: "Step1の後",
@@ -242,7 +242,7 @@ describe("generateOrchestratorContent", () => {
   it("after-step:1 を指定したセクションが Step 2 の直後に表示される", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a", "worker-b", "worker-c"],
+      steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }, { skillName: "worker-c" }],
       sections: [
         {
           heading: "Step2の後",
@@ -262,7 +262,7 @@ describe("generateOrchestratorContent", () => {
   it("範囲外の index を指定した場合 after-steps にフォールバックする", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a"],
+      steps: [{ skillName: "worker-a" }],
       sections: [
         {
           heading: "範囲外",
@@ -280,7 +280,7 @@ describe("generateOrchestratorContent", () => {
   it("before-steps / after-steps と step間セクションが混在する場合", () => {
     const result = generateOrchestratorContent({
 
-      steps: ["worker-a", "worker-b"],
+      steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }],
       sections: [
         { heading: "事前確認", body: "確認事項", position: "before-steps" },
         { heading: "Step間メモ", body: "メモ内容", position: "after-step:0" },

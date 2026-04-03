@@ -7,8 +7,8 @@ import type {
 } from "../../lib/types/loader.server";
 
 describe("convertStep", () => {
-  it("文字列ステップをskill型に変換する", () => {
-    const result = convertStep("my-skill");
+  it("SkillRefステップをskill型に変換する", () => {
+    const result = convertStep({ skillName: "my-skill" });
     expect(result).toEqual({
       type: "skill",
       label: "my-skill",
@@ -39,8 +39,8 @@ describe("convertStep", () => {
       decisionPoint: "入力判定",
       description: "入力内容に応じて分岐",
       cases: {
-        ケースA: ["skill-a"],
-        ケースB: ["skill-b"],
+        ケースA: [{ skillName: "skill-a" }],
+        ケースB: [{ skillName: "skill-b" }],
       },
     };
     const result = convertStep(step);
@@ -78,7 +78,7 @@ describe("convertStep", () => {
   it("descriptionがない分岐ステップではdescriptionがundefinedになる", () => {
     const step: LoadedStep = {
       decisionPoint: "判定",
-      cases: { A: ["s1"] },
+      cases: { A: [{ skillName: "s1" }] },
     };
     const result = convertStep(step);
     expect(result.description).toBeUndefined();

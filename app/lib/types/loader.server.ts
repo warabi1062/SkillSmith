@@ -165,18 +165,26 @@ export interface LoadedOrchestratorSection {
   position: SectionPosition;
 }
 
-export type LoadedStep = string | LoadedBranch | LoadedInlineStep;
+// スキル参照（オーケストレーターのステップからWorkerスキルを参照する）
+export interface SkillRef {
+  skillName: string;
+}
+
+export type LoadedStep = SkillRef | LoadedBranch | LoadedInlineStep;
+
+// SkillRef かどうかを判定する型ガード
+export function isLoadedSkillRef(step: LoadedStep): step is SkillRef {
+  return "skillName" in step && !("decisionPoint" in step) && !("inline" in step);
+}
 
 // LoadedBranch かどうかを判定する型ガード
 export function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
-  return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+  return "decisionPoint" in step && "cases" in step;
 }
 
 // LoadedInlineStep かどうかを判定する型ガード
 export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
-  return (
-    typeof step === "object" && "inline" in step && !("decisionPoint" in step)
-  );
+  return "inline" in step && !("decisionPoint" in step);
 }
 
 // ローダーが返すスキルの共通フィールド
@@ -565,7 +573,7 @@ async function convertImportedStepsAsync(
         if (step.output) loaded.output = step.output;
         return loaded;
       }
-      return step.name;
+      return { skillName: step.name };
     }),
   );
 }
@@ -620,9 +628,9 @@ function collectSkillNamesFromLoadedSteps(steps: LoadedStep[]): string[] {
       // インラインステップはスキル参照ではないのでスキップ
       continue;
     } else {
-      if (!seen.has(step)) {
-        seen.add(step);
-        result.push(step);
+      if (!seen.has(step.skillName)) {
+        seen.add(step.skillName);
+        result.push(step.skillName);
       }
     }
   }
