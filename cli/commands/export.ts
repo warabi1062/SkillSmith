@@ -21,14 +21,14 @@ export function registerExportCommand(): void {
       // --output は必須
       const outputDir = values.output as string | undefined;
       if (!outputDir) {
-        output.error("--output オプションは必須です");
+        output.error({ type: "validation", message: "--output オプションは必須です" });
         return 1;
       }
 
       // positional 引数から plugin-file パスを取得
       const pluginFile = positionals[0];
       if (!pluginFile) {
-        output.error("プラグインファイルのパスを指定してください");
+        output.error({ type: "validation", message: "プラグインファイルのパスを指定してください" });
         return 1;
       }
 
@@ -37,7 +37,7 @@ export function registerExportCommand(): void {
       try {
         await access(resolvedPluginFile);
       } catch {
-        output.error(`ファイルが見つかりません: ${resolvedPluginFile}`);
+        output.error({ type: "io", message: "ファイルが見つかりません", context: resolvedPluginFile });
         return 1;
       }
 
@@ -52,7 +52,9 @@ export function registerExportCommand(): void {
         });
 
         if (!result.success) {
-          output.error(result.errors.join("\n"));
+          output.error(
+            result.errors.map((e) => ({ type: "execution" as const, message: e })),
+          );
           return 1;
         }
 
@@ -65,7 +67,7 @@ export function registerExportCommand(): void {
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "予期しないエラーが発生しました";
-        output.error(message);
+        output.error({ type: "execution", message });
         return 1;
       }
     },

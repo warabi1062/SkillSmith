@@ -26,14 +26,14 @@ export function registerMarketplaceExportCommand(): void {
       // --output は必須
       const outputDir = values.output as string | undefined;
       if (!outputDir) {
-        output.error("--output オプションは必須です");
+        output.error({ type: "validation", message: "--output オプションは必須です" });
         return 1;
       }
 
       // positional 引数で marketplace ディレクトリのパスを取得
       const marketplaceDir = positionals[0];
       if (!marketplaceDir) {
-        output.error("marketplaceディレクトリのパスを指定してください");
+        output.error({ type: "validation", message: "marketplaceディレクトリのパスを指定してください" });
         return 1;
       }
 
@@ -49,7 +49,7 @@ export function registerMarketplaceExportCommand(): void {
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "予期しないエラーが発生しました";
-        output.error(message);
+        output.error({ type: "execution", message });
         return 1;
       }
 
@@ -88,9 +88,13 @@ export function registerMarketplaceExportCommand(): void {
 
       const failed = results.filter((r) => !r.success);
       if (failed.length > 0) {
-        for (const f of failed) {
-          output.error(`${f.name}: ${f.error}`);
-        }
+        output.error(
+          failed.map((f) => ({
+            type: "execution" as const,
+            message: f.error ?? "不明なエラー",
+            context: f.name,
+          })),
+        );
         return 1;
       }
 
@@ -103,9 +107,13 @@ export function registerMarketplaceExportCommand(): void {
         (e) => e.severity === "error",
       );
       if (fatalErrors.length > 0) {
-        for (const e of fatalErrors) {
-          output.error(`marketplace.json: ${e.message}`);
-        }
+        output.error(
+          fatalErrors.map((e) => ({
+            type: "validation" as const,
+            message: e.message,
+            context: "marketplace.json",
+          })),
+        );
         return 1;
       }
 
@@ -124,7 +132,11 @@ export function registerMarketplaceExportCommand(): void {
           err instanceof Error
             ? err.message
             : "予期しないエラーが発生しました";
-        output.error(`marketplace.json の書き出しに失敗しました: ${message}`);
+        output.error({
+          type: "io",
+          message: `marketplace.json の書き出しに失敗しました: ${message}`,
+          context: marketplaceJsonPath,
+        });
         return 1;
       }
 
