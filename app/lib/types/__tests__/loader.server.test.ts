@@ -424,7 +424,7 @@ describe("loadPluginDefinition", () => {
     }
   });
 
-  it("WORKER_WITH_AGENT_TEAM スキルの agentTeamMembers を正しく読み込むこと", async () => {
+  it("WORKER_WITH_AGENT_TEAM スキルの teammates を正しく読み込むこと", async () => {
     await createPluginStructure({
       pluginTs: `
         const plugin = {
@@ -433,14 +433,13 @@ describe("loadPluginDefinition", () => {
             {
               skillType: "WORKER_WITH_AGENT_TEAM",
               name: "team-skill",
-              content: "# Team Skill",
-              agentTeamMembers: [
-                { skillName: "member-a", sortOrder: 0 },
-                { skillName: "member-b", sortOrder: 1 },
+              teamPrefix: "test",
+              teammates: [
+                { name: "member-a", role: "役割A", steps: [{ id: "S1", title: "ステップ1", body: "本文" }], sortOrder: 0 },
+                { name: "member-b", role: "役割B", steps: [{ id: "S1", title: "ステップ1", body: "本文" }], sortOrder: 1 },
               ],
             },
           ],
-
         };
         export default plugin;
       `,
@@ -450,10 +449,11 @@ describe("loadPluginDefinition", () => {
     const skill = result.skills[0];
 
     expect(skill.skillType).toBe("WORKER_WITH_AGENT_TEAM");
-    expect("agentTeamMembers" in skill).toBe(true);
-    if ("agentTeamMembers" in skill) {
-      expect(skill.agentTeamMembers).toHaveLength(2);
-      expect(skill.agentTeamMembers[0].skillName).toBe("member-a");
+    expect("teammates" in skill).toBe(true);
+    if ("teammates" in skill) {
+      expect(skill.teammates).toHaveLength(2);
+      expect(skill.teammates![0].name).toBe("member-a");
+      expect(skill.teammates![1].name).toBe("member-b");
     }
   });
 });

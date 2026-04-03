@@ -8,7 +8,6 @@ import type {
   ToolRef,
   SupportFileRole,
   AgentConfig,
-  AgentTeamMember,
   SupportFile,
   TeammateStep,
   OrchestratorSection,
@@ -88,12 +87,11 @@ interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
   workerSections?: OrchestratorSection[];
 }
 
-// WORKER_WITH_AGENT_TEAM の場合は agentTeamMembers / teammates を保持
+// WORKER_WITH_AGENT_TEAM の場合は teammates を保持
 interface ImportedWorkerWithAgentTeamSkill extends ImportedSkillBase {
   skillType: "WORKER_WITH_AGENT_TEAM";
-  agentTeamMembers?: AgentTeamMember[];
-  teammates?: ImportedTeammate[];
-  teamPrefix?: string;
+  teammates: ImportedTeammate[];
+  teamPrefix: string;
   additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
@@ -241,12 +239,11 @@ export interface LoadedTeammate {
   communicationPattern?: CommunicationPattern;
 }
 
-// WORKER_WITH_AGENT_TEAM の場合は agentTeamMembers を保持
+// WORKER_WITH_AGENT_TEAM の場合は teammates を保持
 export interface LoadedWorkerWithAgentTeamSkill extends LoadedSkillBase {
   skillType: "WORKER_WITH_AGENT_TEAM";
-  agentTeamMembers: AgentTeamMember[];
-  teammates?: LoadedTeammate[];
-  teamPrefix?: string;
+  teammates: LoadedTeammate[];
+  teamPrefix: string;
   additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
@@ -411,41 +408,23 @@ export async function loadPluginDefinition(
       }
 
       if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
-        // teammates がある場合は teammates から agentTeamMembers を導出
-        if (skill.teammates) {
-          const loadedTeammates: LoadedTeammate[] = await Promise.all(
-            skill.teammates.map(async (t) => ({
-              name: t.name,
-              role: t.role,
-              steps: await resolveBodyFiles(skillDir, t.steps),
-              sortOrder: t.sortOrder,
-              communicationPattern: t.communicationPattern,
-            })),
-          );
-          const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(
-            (t) => ({
-              skillName: t.name,
-              sortOrder: t.sortOrder,
-            }),
-          );
-          return {
-            ...base,
-            skillType: "WORKER_WITH_AGENT_TEAM" as const,
-            agentTeamMembers,
-            teammates: loadedTeammates,
-            teamPrefix: skill.teamPrefix,
-            additionalLeaderSteps: skill.additionalLeaderSteps,
-            requiresUserApproval: skill.requiresUserApproval,
-          } satisfies LoadedWorkerWithAgentTeamSkill;
-        }
-        // 後方互換: agentTeamMembers を直接使用
-        if (skill.agentTeamMembers) {
-          return {
-            ...base,
-            skillType: "WORKER_WITH_AGENT_TEAM" as const,
-            agentTeamMembers: skill.agentTeamMembers,
-          } satisfies LoadedWorkerWithAgentTeamSkill;
-        }
+        const loadedTeammates: LoadedTeammate[] = await Promise.all(
+          skill.teammates.map(async (t) => ({
+            name: t.name,
+            role: t.role,
+            steps: await resolveBodyFiles(skillDir, t.steps),
+            sortOrder: t.sortOrder,
+            communicationPattern: t.communicationPattern,
+          })),
+        );
+        return {
+          ...base,
+          skillType: "WORKER_WITH_AGENT_TEAM" as const,
+          teammates: loadedTeammates,
+          teamPrefix: skill.teamPrefix,
+          additionalLeaderSteps: skill.additionalLeaderSteps,
+          requiresUserApproval: skill.requiresUserApproval,
+        } satisfies LoadedWorkerWithAgentTeamSkill;
       }
 
       return {
