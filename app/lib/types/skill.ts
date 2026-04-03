@@ -158,12 +158,6 @@ export interface AgentConfig {
   sections?: AgentConfigSection[]; // 構造化時: 追加セクション
 }
 
-// Agent Teamメンバー（WorkerWithAgentTeam用）
-export interface AgentTeamMember {
-  skillName: string; // メンバースキル名の参照
-  sortOrder?: number;
-}
-
 // チームメンバーの手順ステップ
 export interface TeammateStep {
   id: string; // ステップID（例: "I1", "V1"）
@@ -184,14 +178,6 @@ export interface Teammate {
   steps: TeammateStep[]; // 手順ステップの配列
   sortOrder?: number;
   communicationPattern?: CommunicationPattern; // コミュニケーションパターン
-}
-
-// Teammate → AgentTeamMember への変換
-export function toAgentTeamMember(teammate: Teammate): AgentTeamMember {
-  return {
-    skillName: teammate.name,
-    sortOrder: teammate.sortOrder,
-  };
 }
 
 // SkillType の文字列リテラル型
@@ -333,58 +319,33 @@ export class WorkerWithSubAgent extends Skill {
 }
 
 // WorkerWithAgentTeam スキル: Agent Team を管理する Worker スキル
-// teammates がある場合は content を自動生成するため、content は不要
+// teammates から content を自動生成するため、content は不要
 export class WorkerWithAgentTeam extends Skill {
   readonly skillType = "WORKER_WITH_AGENT_TEAM" as const;
   readonly name: string;
   readonly content: string;
-  readonly teammates?: Teammate[];
-  readonly teamPrefix?: string; // チーム名のプレフィックス（例: "impl", "plan", "triage"）
+  readonly teammates: Teammate[];
+  readonly teamPrefix: string; // チーム名のプレフィックス（例: "impl", "plan", "triage"）
   readonly additionalLeaderSteps?: string[]; // リーダーの手順（箇条書き）
   readonly requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 
-  // 後方互換: teammates から AgentTeamMember[] を導出、なければ直接指定
-  get agentTeamMembers(): AgentTeamMember[] {
-    if (this.teammates) {
-      return this.teammates.map(toAgentTeamMember);
-    }
-    return this._agentTeamMembers ?? [];
-  }
-  private readonly _agentTeamMembers?: AgentTeamMember[];
-
   constructor(
-    init: (
-      | {
-          name: string;
-          teammates: Teammate[];
-          teamPrefix: string;
-          additionalLeaderSteps?: string[];
-          requiresUserApproval?: boolean;
-          content?: string;
-          agentTeamMembers?: never;
-        }
-      | {
-          name: string;
-          content: string;
-          agentTeamMembers: AgentTeamMember[];
-          teammates?: never;
-          teamPrefix?: never;
-          requiresUserApproval?: never;
-        }
-    ) &
-      Partial<SkillOptionalFields>,
+    init: {
+      name: string;
+      teammates: Teammate[];
+      teamPrefix: string;
+      additionalLeaderSteps?: string[];
+      requiresUserApproval?: boolean;
+      content?: string;
+    } & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
     this.content = init.content ?? "";
-    if ("teammates" in init && init.teammates) {
-      this.teammates = init.teammates;
-      this.teamPrefix = init.teamPrefix;
-      this.additionalLeaderSteps = init.additionalLeaderSteps;
-      this.requiresUserApproval = init.requiresUserApproval;
-    } else if ("agentTeamMembers" in init && init.agentTeamMembers) {
-      this._agentTeamMembers = init.agentTeamMembers;
-    }
+    this.teammates = init.teammates;
+    this.teamPrefix = init.teamPrefix;
+    this.additionalLeaderSteps = init.additionalLeaderSteps;
+    this.requiresUserApproval = init.requiresUserApproval;
     this.assignOptionalFields(init);
   }
 }
