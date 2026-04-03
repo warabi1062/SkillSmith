@@ -11,6 +11,7 @@ import type {
   LoadedInlineStep,
   LoadedOrchestratorSection,
 } from "../lib/types/loader.server";
+import { isLoadedSkillRef } from "../lib/types/loader.server";
 
 // --- 型定義 ---
 
@@ -76,8 +77,8 @@ export interface SectionFields extends BodyFields {
 
 // LoadedStep -> StepFields 変換（型ガードはランタイム判定）
 export function convertStep(step: LoadedStep): StepFields {
-  if (typeof step === "string") {
-    return { type: "skill", label: step };
+  if (isLoadedSkillRef(step)) {
+    return { type: "skill", label: step.skillName };
   }
   if ("decisionPoint" in step && "cases" in step) {
     const branch = step as LoadedBranch;
