@@ -29,46 +29,55 @@ function h(level: number): string {
   return "#".repeat(level);
 }
 
-// step間セクションを含むステップ列をレンダリングする
-function renderStepsWithSections(
+// ステップ列をレンダリングする（トップレベル・Branch内ネスト兼用）
+function renderSteps(
   steps: LoadedStep[],
-  sections: LoadedOrchestratorSection[],
-  skillMetas?: Map<string, SkillMeta>,
+  options: {
+    prefix?: string;
+    headingLevel: number;
+    sections?: LoadedOrchestratorSection[];
+    skillMetas?: Map<string, SkillMeta>;
+  },
 ): string {
+  const { prefix, headingLevel, sections, skillMetas } = options;
   const lines: string[] = [];
-  const stepCount = steps.length;
+  const hasSections = sections != null && sections.length > 0;
 
-  for (let i = 0; i < stepCount; i++) {
+  for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
-    const stepNumber = `${i + 1}`;
+    const stepNumber = prefix ? `${prefix}-${i + 1}` : `${i + 1}`;
 
-    // before-step:{i} セクション
-    const beforeStepSections = sections.filter((s) => {
-      const parsed = parseStepPosition(s.position);
-      return parsed?.type === "before-step" && parsed.index === i;
-    });
-    lines.push(...renderSections(beforeStepSections));
-
-    // ステップ本体
-    if (i > 0) lines.push("");
-    // トップレベルのステップは h3（「## 作業詳細」の直下）
-    if (isLoadedBranch(step)) {
-      lines.push(renderBranch(step, stepNumber, 3, skillMetas));
-    } else if (isLoadedInlineStep(step)) {
-      lines.push(renderInlineStep(step, stepNumber, 3));
-    } else {
-      lines.push(renderSkillRef(step.skillName, stepNumber, 3, skillMetas));
+    // before-step セクション（sectionsがある場合のみ）
+    if (hasSections) {
+      const beforeStepSections = sections.filter((s) => {
+        const parsed = parseStepPosition(s.position);
+        return parsed?.type === "before-step" && parsed.index === i;
+      });
+      lines.push(...renderSections(beforeStepSections));
     }
 
-    // after-step:{i} セクション
-    const afterStepSections = sections.filter((s) => {
-      const parsed = parseStepPosition(s.position);
-      return parsed?.type === "after-step" && parsed.index === i;
-    });
-    lines.push(...renderSections(afterStepSections));
+    // ステップ間の空行
+    if (i > 0) lines.push("");
+
+    // ステップ本体
+    if (isLoadedBranch(step)) {
+      lines.push(renderBranch(step, stepNumber, headingLevel, skillMetas));
+    } else if (isLoadedInlineStep(step)) {
+      lines.push(renderInlineStep(step, stepNumber, headingLevel));
+    } else {
+      lines.push(renderSkillRef(step.skillName, stepNumber, headingLevel, skillMetas));
+    }
+
+    // after-step セクション（sectionsがある場合のみ）
+    if (hasSections) {
+      const afterStepSections = sections.filter((s) => {
+        const parsed = parseStepPosition(s.position);
+        return parsed?.type === "after-step" && parsed.index === i;
+      });
+      lines.push(...renderSections(afterStepSections));
+    }
   }
 
-  // 範囲外indexのセクションはafter-stepsにフォールバック（呼び出し元で処理）
   return lines.join("\n");
 }
 
@@ -112,11 +121,11 @@ export function generateOrchestratorContent(
         return parsed !== null;
       }) ?? [];
 
-    const stepLines = renderStepsWithSections(
-      input.steps,
-      stepSections,
-      input.skillMetas,
-    );
+    const stepLines = renderSteps(input.steps, {
+      headingLevel: 3,
+      sections: stepSections,
+      skillMetas: input.skillMetas,
+    });
     lines.push(stepLines);
   }
 
@@ -140,31 +149,6 @@ export function generateOrchestratorContent(
   }
 
   return lines.join("\n");
-}
-
-// ステップを再帰的にレンダリングする（headingLevel: ステップ見出しのレベル）
-function renderSteps(
-  steps: LoadedStep[],
-  prefix: string,
-  headingLevel: number,
-  skillMetas?: Map<string, SkillMeta>,
-): string {
-  const lines: string[] = [];
-
-  for (let i = 0; i < steps.length; i++) {
-    const step = steps[i];
-    const stepNumber = prefix ? `${prefix}-${i + 1}` : `${i + 1}`;
-
-    if (isLoadedBranch(step)) {
-      lines.push(renderBranch(step, stepNumber, headingLevel, skillMetas));
-    } else if (isLoadedInlineStep(step)) {
-      lines.push(renderInlineStep(step, stepNumber, headingLevel));
-    } else {
-      lines.push(renderSkillRef(step.skillName, stepNumber, headingLevel, skillMetas));
-    }
-  }
-
-  return lines.join("\n\n");
 }
 
 // スキル参照ステップのレンダリング
@@ -264,12 +248,11 @@ function renderBranch(
       lines.push("");
       // ケース内のステップはケース見出し+1のレベル
       lines.push(
-        renderSteps(
-          caseSteps,
-          `${stepNumber}${caseSuffix}`,
-          headingLevel + 2,
+        renderSteps(caseSteps, {
+          prefix: `${stepNumber}${caseSuffix}`,
+          headingLevel: headingLevel + 2,
           skillMetas,
-        ),
+        }),
       );
     }
   }
