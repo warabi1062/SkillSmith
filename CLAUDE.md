@@ -73,7 +73,7 @@ GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
 
 1. **Orchestrator（Entry-point skill）** がワークフロー全体を管理し、各ステップでSub Agentを `Task(subagent_type: ...)` で起動
 2. **Worker skill** が専門タスクを担当。必ず対応する Agent を作成し、Agent の `skills:` でプリロード
-3. **Sub Agent** の成果物はワークフローファイル（`~/.claude/workflows/{task-id}/`）に保存し、**ファイルパスのみ**をOrchestratorに返す
+3. **Sub Agent** の成果物はワークフローファイル（`~/claude-code-data/workflows/{task-id}/`）に保存し、**ファイルパスのみ**をOrchestratorに返す
 4. Orchestratorがパスを中継し、次のAgentに渡す（読み込む側はファイル名を知らない）
 
 **重要な制約**: Sub Agentは更にSub Agentを生成できない。そのためオーケストレーター型Entry-pointは必ずSkillとして作成する（Agentにしない）。

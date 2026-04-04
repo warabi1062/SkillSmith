@@ -104,7 +104,7 @@ ComponentDependency には sourceId, targetId, order のみを持ち、依存の
 
 ### 9. ワークフロー出力スキーマの定義
 
-**課題**: Worker skill がワークフローファイル（`~/.claude/workflows/{task-id}/`）に書き出す成果物（例: `implement-result.md`）のフォーマットは `template-result.md` で定義されているが、SkillSmith のデータモデル上でこの「出力スキーマ」をどう表現するかが未定義だった。
+**課題**: Worker skill がワークフローファイル（`~/claude-code-data/workflows/{task-id}/`）に書き出す成果物（例: `implement-result.md`）のフォーマットは `template-result.md` で定義されているが、SkillSmith のデータモデル上でこの「出力スキーマ」をどう表現するかが未定義だった。
 
 **検討した選択肢**:
 
@@ -138,7 +138,7 @@ OUTPUT_SCHEMA はこれらすべてを満たす。TEMPLATE との違いは「誰
 
 **パス乖離について**:
 
-reference.md では `~/.claude/workflows/{task-id}/` をワークフローファイルの保存先としているが、実際の dev プラグインでは `~/claude-code-data/workflows/{task-id}/` を使用している。この乖離は WAR-20 の対応範囲外であり、別チケットで統一を検討する。SkillSmith のデータモデルとしてはパスの規約に依存せず、ComponentFile のコンテンツとして出力テンプレートを管理するため、パスの統一はデータモデルに影響しない。
+ワークフローファイルの保存先は `~/claude-code-data/workflows/{task-id}/` に統一されている。SkillSmith のデータモデルとしてはパスの規約に依存せず、ComponentFile のコンテンツとして出力テンプレートを管理するため、パスの変更はデータモデルに影響しない。
 
 **dev プラグインのデータフロー対応例**:
 
@@ -146,12 +146,12 @@ reference.md では `~/.claude/workflows/{task-id}/` をワークフローファ
 implement-team skill
   ├── ComponentFile(role: MAIN)           -> SKILL.md
   ├── ComponentFile(role: OUTPUT_SCHEMA)  -> template-result.md
-  └── 実行時: template-result.md の形式で ~/.claude/workflows/{id}/implement-result.md に書き出す
+  └── 実行時: template-result.md の形式で ~/claude-code-data/workflows/{id}/implement-result.md に書き出す
 
 plan-team skill
   ├── ComponentFile(role: MAIN)           -> SKILL.md
   ├── ComponentFile(role: TEMPLATE)       -> template.md (計画書の出力フォーマット)
-  └── 実行時: template.md の形式で ~/.claude/workflows/{id}/plan.md に書き出す
+  └── 実行時: template.md の形式で ~/claude-code-data/workflows/{id}/plan.md に書き出す
 ```
 
 この例では、plan-team の `template.md` は TEMPLATE ロール（スキル自身の出力フォーマット）、implement-team の `template-result.md` は OUTPUT_SCHEMA ロール（後続ステップへの成果物フォーマット）として区別される。ただし、plan-team の `template.md` も後続ステップ（implement-team）に渡される中間成果物であるため、OUTPUT_SCHEMA として扱うべきかは議論の余地がある。初期運用では「明確にワークフロー受け渡し専用のテンプレート（`*-result.md` パターン）」を OUTPUT_SCHEMA とし、それ以外は TEMPLATE とする。
