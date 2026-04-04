@@ -1,38 +1,20 @@
-import { data, Link } from "react-router";
-import { loadPluginDefinition } from "../lib/types/loader.server";
+import { Link, useOutletContext } from "react-router";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id._index";
+import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import PluginActionsSection from "../components/PluginActionsSection";
 import { getSkillTypeBadge } from "../lib/utils/skill-type";
-import * as path from "node:path";
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
-  const name = loaderData?.plugin?.name ?? "Plugin";
+export function meta({ matches }: Route.MetaArgs) {
+  const parentData = matches.find(
+    (m) => m?.id === "routes/marketplaces.$marketplaceId.plugins.$id",
+  )?.data as { plugin: { name: string } } | undefined;
+  const name = parentData?.plugin?.name ?? "Plugin";
   return [{ title: `${name} - SkillSmith` }];
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const dirPath = path.join(
-    process.cwd(),
-    "marketplaces",
-    params.marketplaceId,
-    "plugins",
-    params.id,
-  );
-
-  try {
-    const plugin = await loadPluginDefinition(dirPath);
-    return {
-      plugin,
-      pluginId: params.id,
-      marketplaceId: params.marketplaceId,
-    };
-  } catch {
-    throw data("Plugin not found", { status: 404 });
-  }
-}
-
-export default function PluginDetail({ loaderData }: Route.ComponentProps) {
-  const { plugin, pluginId, marketplaceId } = loaderData;
+export default function PluginDetail() {
+  const { plugin, pluginId, marketplaceId } =
+    useOutletContext<PluginOutletContext>();
   const orchestrators = plugin.skills.filter(
     (s) => s.skillType === "ENTRY_POINT",
   );
