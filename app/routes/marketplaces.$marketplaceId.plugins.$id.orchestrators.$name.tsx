@@ -1,7 +1,7 @@
 import { data } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.orchestrators.$name";
-import { OrchestratorView } from "../components/OrchestratorStructureView";
+import { OrchestratorView } from "../components/orchestrator";
 import * as path from "node:path";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
