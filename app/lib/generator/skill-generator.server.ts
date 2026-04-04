@@ -2,7 +2,7 @@ import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "./frontmatter.server";
 import type { ToolRef } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
-import { SKILL_TYPES } from "../types/constants";
+import { SKILL_TYPES, ERROR_CODES, FILE_PATHS, FRONTMATTER_FIELDS } from "../types/constants";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const SKILL_NAME_MAX_LENGTH = 64;
@@ -40,7 +40,7 @@ export function generateSkillMd(component: SkillComponentData): {
   ) {
     errors.push({
       severity: "error",
-      code: "INVALID_SKILL_NAME",
+      code: ERROR_CODES.INVALID_SKILL_NAME,
       message: `Skill name "${config.name}" must match pattern [a-z0-9][a-z0-9-]* and be at most ${SKILL_NAME_MAX_LENGTH} characters`,
       skillName: component.skillName,
       field: "name",
@@ -52,7 +52,7 @@ export function generateSkillMd(component: SkillComponentData): {
   if (!config.content) {
     errors.push({
       severity: "error",
-      code: "EMPTY_CONTENT",
+      code: ERROR_CODES.EMPTY_CONTENT,
       message: `Skill "${config.name}" has no content`,
       skillName: component.skillName,
     });
@@ -74,19 +74,19 @@ export function generateSkillMd(component: SkillComponentData): {
     frontmatterFields.description = config.description;
   }
   if (config.argumentHint) {
-    frontmatterFields["argument-hint"] = config.argumentHint;
+    frontmatterFields[FRONTMATTER_FIELDS.ARGUMENT_HINT] = config.argumentHint;
   }
   if (config.disableModelInvocation) {
-    frontmatterFields["disable-model-invocation"] = true;
+    frontmatterFields[FRONTMATTER_FIELDS.DISABLE_MODEL_INVOCATION] = true;
   }
   // userInvocable が明示的に設定されていればその値を使う。未設定ならENTRY_POINT以外はfalse
   if (config.userInvocable !== undefined) {
-    frontmatterFields["user-invocable"] = config.userInvocable;
+    frontmatterFields[FRONTMATTER_FIELDS.USER_INVOCABLE] = config.userInvocable;
   } else if (config.skillType !== SKILL_TYPES.ENTRY_POINT) {
-    frontmatterFields["user-invocable"] = false;
+    frontmatterFields[FRONTMATTER_FIELDS.USER_INVOCABLE] = false;
   }
   if (allowedTools && allowedTools.length > 0) {
-    frontmatterFields["allowed-tools"] = allowedTools;
+    frontmatterFields[FRONTMATTER_FIELDS.ALLOWED_TOOLS] = allowedTools;
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
@@ -94,7 +94,7 @@ export function generateSkillMd(component: SkillComponentData): {
 
   return {
     file: {
-      path: `skills/${config.name}/SKILL.md`,
+      path: `${FILE_PATHS.SKILLS_DIR}${config.name}/${FILE_PATHS.SKILL_MD}`,
       content,
       skillName: component.skillName,
     },

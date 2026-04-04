@@ -1,4 +1,5 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
+import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 interface PluginData {
   name: string;
@@ -14,7 +15,7 @@ export function generatePluginJson(plugin: PluginData): {
   if (!plugin.name || plugin.name.trim() === "") {
     errors.push({
       severity: "error",
-      code: "MISSING_PLUGIN_NAME",
+      code: ERROR_CODES.MISSING_PLUGIN_NAME,
       message: "Plugin name is required for plugin.json generation",
     });
     return { file: null, errors };
@@ -29,7 +30,7 @@ export function generatePluginJson(plugin: PluginData): {
 
   return {
     file: {
-      path: ".claude-plugin/plugin.json",
+      path: FILE_PATHS.PLUGIN_JSON,
       content: JSON.stringify(content, null, 2) + "\n",
     },
     errors,

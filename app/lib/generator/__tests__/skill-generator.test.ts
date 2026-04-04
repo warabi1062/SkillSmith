@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateSkillMd } from "../skill-generator.server";
 import { tool } from "../../types/skill";
-import { SKILL_TYPES } from "../../types/constants";
+import { SKILL_TYPES, ERROR_CODES, FILE_PATHS } from "../../types/constants";
 
 function makeSkillComponent(overrides: {
   name?: string;
@@ -32,7 +32,7 @@ describe("generateSkillMd", () => {
   it("generates a valid skill markdown with frontmatter", () => {
     const { file, errors } = generateSkillMd(makeSkillComponent({}));
     expect(file).not.toBeNull();
-    expect(file!.path).toBe("skills/my-skill/SKILL.md");
+    expect(file!.path).toBe(`${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`);
     expect(file!.content).toContain("---\nname: my-skill\n---");
     expect(file!.content).toContain("# Hello");
     expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);
@@ -88,7 +88,7 @@ describe("generateSkillMd", () => {
     );
     expect(file).toBeNull();
     expect(errors).toHaveLength(1);
-    expect(errors[0].code).toBe("INVALID_SKILL_NAME");
+    expect(errors[0].code).toBe(ERROR_CODES.INVALID_SKILL_NAME);
   });
 
   it("returns error when content is empty", () => {
@@ -96,7 +96,7 @@ describe("generateSkillMd", () => {
       makeSkillComponent({ content: "" }),
     );
     expect(file).toBeNull();
-    expect(errors.some((e) => e.code === "EMPTY_CONTENT")).toBe(true);
+    expect(errors.some((e) => e.code === ERROR_CODES.EMPTY_CONTENT)).toBe(true);
   });
 
   it("SKILL.mdのfrontmatterにinput/outputを含めない", () => {

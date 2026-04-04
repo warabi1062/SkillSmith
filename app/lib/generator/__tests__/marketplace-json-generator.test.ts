@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { generateMarketplaceJson } from "../marketplace-json-generator.server";
 import type { MarketplaceDefinition } from "../../types/marketplace";
 import type { PluginDefinition } from "../../types/plugin";
+import { ERROR_CODES, FILE_PATHS } from "../../types/constants";
 
 // テスト用のヘルパー関数
 function makeMarketplace(
@@ -59,7 +60,7 @@ describe("generateMarketplaceJson", () => {
       makeMarketplace({ plugins: [makePlugin()] }),
     );
 
-    expect(result.file.path).toBe(".claude-plugin/marketplace.json");
+    expect(result.file.path).toBe(FILE_PATHS.MARKETPLACE_JSON);
   });
 
   it("categoryがプラグインエントリに反映されること", () => {
@@ -126,7 +127,7 @@ describe("generateMarketplaceJson", () => {
 
     const errors = result.errors.filter((e) => e.severity === "error");
     expect(errors).toHaveLength(1);
-    expect(errors[0].code).toBe("MARKETPLACE_NAME_REQUIRED");
+    expect(errors[0].code).toBe(ERROR_CODES.MARKETPLACE_NAME_REQUIRED);
   });
 
   it("プラグインが0件の場合に警告を返すこと", () => {
@@ -134,7 +135,7 @@ describe("generateMarketplaceJson", () => {
 
     const warnings = result.errors.filter((e) => e.severity === "warning");
     expect(warnings).toHaveLength(1);
-    expect(warnings[0].code).toBe("MARKETPLACE_NO_PLUGINS");
+    expect(warnings[0].code).toBe(ERROR_CODES.MARKETPLACE_NO_PLUGINS);
   });
 
   it("plugins配列の順序が維持されること", () => {
