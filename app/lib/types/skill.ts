@@ -140,14 +140,6 @@ export interface SupportFile {
   sortOrder?: number;
 }
 
-// Agent設定のセクション（OrchestratorSectionと同じ構造）
-export interface AgentConfigSection {
-  heading: string;
-  body?: string; // セクション本文（bodyFile と排他）
-  bodyFile?: string; // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
-  position: SectionPosition;
-}
-
 // Agent設定（WorkerWithSubAgent用）
 // content 直書きまたは description + sections から自動生成
 export interface AgentConfig {
@@ -155,7 +147,7 @@ export interface AgentConfig {
   tools?: ToolRef[];
   content: string; // agent.md 本文（後方互換）
   description?: string; // 構造化時: agentの説明
-  sections?: AgentConfigSection[]; // 構造化時: 追加セクション
+  sections?: OrchestratorSection[]; // 構造化時: 追加セクション
 }
 
 // チームメンバーの手順ステップ

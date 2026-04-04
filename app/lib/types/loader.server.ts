@@ -149,7 +149,6 @@ export type {
   SkillRef,
   LoadedStep,
   LoadedSkill,
-  LoadedAgentConfigSection,
   LoadedDelegateStep,
   LoadedWorkerStep,
   LoadedTeammateStep,

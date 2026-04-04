@@ -93,14 +93,6 @@ export interface LoadedSkill extends LoadedSkillBase {
   skillType: "ENTRY_POINT" | "WORKER";
 }
 
-// ローダー用のAgentConfigセクション型
-export interface LoadedAgentConfigSection {
-  heading: string;
-  body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
-  position: SectionPosition;
-}
-
 // ローダー用の委譲ステップ型（Worker / Teammate 共通）
 export interface LoadedDelegateStep {
   id: string;
