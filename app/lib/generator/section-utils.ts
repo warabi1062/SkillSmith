@@ -1,6 +1,6 @@
 // セクション関連の共有ユーティリティ（orchestrator / worker で共通利用）
 
-import type { LoadedOrchestratorSection } from "../types/loader.server";
+import type { LoadedOrchestratorSection } from "../types/loaded";
 
 // セクションのpositionを解析するヘルパー
 export function parseStepPosition(

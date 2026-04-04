@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { generateOrchestratorContent } from "../orchestrator-content-generator";
-import type { LoadedStep } from "../../types/loader.server";
+import type { LoadedStep } from "../../types/loaded";
 
 
 describe("generateOrchestratorContent", () => {

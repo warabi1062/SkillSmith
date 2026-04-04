@@ -1,6 +1,6 @@
 // AgentConfig の content を description + sections から自動生成する
 
-import type { LoadedAgentConfigSection } from "../types/loader.server";
+import type { LoadedAgentConfigSection } from "../types/loaded";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 export interface AgentContentInput extends ContentGeneratorInput {

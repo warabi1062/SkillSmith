@@ -3,7 +3,7 @@
 import type {
   LoadedWorkerStep,
   LoadedOrchestratorSection,
-} from "../types/loader.server";
+} from "../types/loaded";
 import { parseStepPosition, renderSections } from "./section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 

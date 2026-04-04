@@ -4,7 +4,7 @@ import { BodyContent } from "./BodyContent";
 import { SkillDetail } from "./SkillDetail";
 import { buildSkillDetailData } from "./data";
 import type { StepFields } from "./types";
-import type { LoadedSkillUnion } from "../../lib/types/loader.server";
+import type { LoadedSkillUnion } from "../../lib/types/loaded";
 
 // ステップの再帰的表示コンポーネント
 export function StepItem({

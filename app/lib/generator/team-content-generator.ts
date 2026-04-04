@@ -1,6 +1,6 @@
 // チームスキル（WorkerWithAgentTeam）の content を teammates 定義から自動生成する
 
-import type { LoadedTeammate } from "../types/loader.server";
+import type { LoadedTeammate } from "../types/loaded";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 export interface TeamContentInput extends ContentGeneratorInput {

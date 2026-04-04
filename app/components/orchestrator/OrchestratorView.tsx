@@ -2,7 +2,7 @@ import { SectionItems } from "./SectionItems";
 import { StepItem } from "./StepItem";
 import { getStepSections, getOutOfRangeSections } from "./helpers";
 import { convertStep, convertSections } from "./data";
-import type { LoadedSkillUnion, LoadedOrchestratorSection } from "../../lib/types/loader.server";
+import type { LoadedSkillUnion, LoadedOrchestratorSection } from "../../lib/types/loaded";
 
 // オーケストレーター単体の構造表示
 export function OrchestratorView({

@@ -1,7 +1,7 @@
 import type {
   LoadedPluginDefinition,
   LoadedSkillUnion,
-} from "../types/loader.server";
+} from "../types/loaded";
 import type {
   GeneratedPlugin,
   GeneratedFile,
