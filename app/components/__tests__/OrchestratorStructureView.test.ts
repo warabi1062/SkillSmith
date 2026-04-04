@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { convertStep, convertSections } from "../OrchestratorStructureView";
+import { convertStep, convertSections } from "../orchestrator";
 
 import type {
   LoadedStep,

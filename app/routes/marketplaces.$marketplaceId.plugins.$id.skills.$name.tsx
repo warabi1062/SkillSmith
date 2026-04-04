@@ -4,7 +4,7 @@ import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.ski
 import {
   buildSkillDetailData,
   SkillDetail,
-} from "../components/OrchestratorStructureView";
+} from "../components/orchestrator";
 import { getSkillTypeBadge } from "../lib/utils/skill-type";
 import * as path from "node:path";
 
