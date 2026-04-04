@@ -22,7 +22,7 @@ export const createBranch: InlineStep = {
     {
       id: "1",
       title: "ベースブランチ判定",
-      body: "`git branch -a` で `develop` ブランチが存在するか確認する。存在する場合 → `develop`（git flow）、存在しない場合 → `main` または `master`（github flow）をベースブランチとする。",
+      body: "ユーザーから明示的な指定がある、またはこれまでの会話から特定ブランチをベースにすべきと判断できる場合はそのブランチを使う。それ以外は `gh repo view --json defaultBranchRef` でリポジトリのデフォルトブランチを取得する。",
     },
     {
       id: "2",
