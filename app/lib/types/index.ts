@@ -13,7 +13,7 @@ export type {
   SupportFileRole,
   SupportFile,
   AgentConfig,
-  TeammateStep,
+  DelegateStep,
   Teammate,
   SkillType,
   Branch,
@@ -57,7 +57,6 @@ export type {
   LoadedOrchestratorSection,
   LoadedTeammate,
   LoadedDelegateStep,
-  LoadedTeammateStep,
   LoadedWorkerStep,
   SkillRef,
 } from "./loaded";
