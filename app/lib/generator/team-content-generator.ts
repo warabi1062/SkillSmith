@@ -1,6 +1,7 @@
 // チームスキル（WorkerWithAgentTeam）の content を teammates 定義から自動生成する
 
 import type { LoadedTeammate } from "../types/loaded";
+import { COMMUNICATION_PATTERNS } from "../types/constants";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 export interface TeamContentInput extends ContentGeneratorInput {
@@ -58,7 +59,7 @@ export function generateTeamContent(input: TeamContentInput): string {
 
   if (input.requiresUserApproval) {
     const worker = sortedTeammates.find(
-      (t) => t.communicationPattern?.type === "responder",
+      (t) => t.communicationPattern?.type === COMMUNICATION_PATTERNS.RESPONDER,
     );
     const workerName = worker?.name ?? memberNames[0];
     lines.push("- レビューPASS後、成果物をユーザーに提示して承認を得る");

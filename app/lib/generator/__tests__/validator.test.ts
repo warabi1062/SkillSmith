@@ -4,6 +4,7 @@ import {
   type ValidatorSkillData,
 } from "../validator.server";
 import type { GeneratedPlugin } from "../types";
+import { SKILL_TYPES } from "../../types/constants";
 
 function makePlugin(
   files: { path: string; content: string; skillName?: string }[],
@@ -20,7 +21,7 @@ function makeSkillData(
 ): ValidatorSkillData {
   return {
     name: overrides.name ?? "my-skill",
-    skillType: overrides.skillType ?? "WORKER",
+    skillType: overrides.skillType ?? SKILL_TYPES.WORKER,
     dependencies: overrides.dependencies,
   };
 }

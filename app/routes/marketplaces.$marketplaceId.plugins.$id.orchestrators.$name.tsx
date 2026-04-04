@@ -2,6 +2,7 @@ import { useOutletContext, useParams } from "react-router";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.orchestrators.$name";
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import { OrchestratorView } from "../components/orchestrator";
+import { SKILL_TYPES } from "../lib/types/constants";
 
 export function meta({ matches, params }: Route.MetaArgs) {
   const parentData = matches.find(
@@ -25,7 +26,7 @@ export default function OrchestratorDetail() {
   const { plugin } = useOutletContext<PluginOutletContext>();
   const { name } = useParams();
   const orchestrator = plugin.skills.find(
-    (s) => s.skillType === "ENTRY_POINT" && s.name === name,
+    (s) => s.skillType === SKILL_TYPES.ENTRY_POINT && s.name === name,
   );
 
   if (!orchestrator) {

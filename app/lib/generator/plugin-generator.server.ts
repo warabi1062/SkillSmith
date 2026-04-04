@@ -2,6 +2,7 @@ import type {
   LoadedPluginDefinition,
   LoadedSkillUnion,
 } from "../types/loaded";
+import { SKILL_TYPES } from "../types/constants";
 import type {
   GeneratedPlugin,
   GeneratedFile,
@@ -46,11 +47,11 @@ export function generatePlugin(
     { input?: string[]; output?: string[]; hasAgent?: boolean }
   >();
   for (const skill of pluginDef.skills) {
-    if (skill.input || skill.output || skill.skillType === "WORKER_WITH_SUB_AGENT") {
+    if (skill.input || skill.output || skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
       skillMetas.set(skill.name, {
         input: skill.input,
         output: skill.output,
-        hasAgent: skill.skillType === "WORKER_WITH_SUB_AGENT",
+        hasAgent: skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT,
       });
     }
   }
@@ -85,7 +86,7 @@ function generateSkillComponent(
 ): void {
   // EntryPoint スキルの場合は steps + sections + メタデータから content を自動生成する
   let content = skill.content;
-  if (skill.skillType === "ENTRY_POINT" && skill.steps) {
+  if (skill.skillType === SKILL_TYPES.ENTRY_POINT && skill.steps) {
     content = generateOrchestratorContent({
       steps: skill.steps,
       sections: skill.sections,
@@ -94,7 +95,7 @@ function generateSkillComponent(
   }
 
   // WorkerWithSubAgent の場合は workerSteps + workerSections から content を自動生成する
-  if (skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSteps) {
+  if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSteps) {
     content = generateWorkerContent({
       input: skill.input,
       output: skill.output,
@@ -105,7 +106,7 @@ function generateSkillComponent(
 
   // WorkerWithAgentTeam の場合は teammates から content を自動生成する
   if (
-    skill.skillType === "WORKER_WITH_AGENT_TEAM" &&
+    skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
     skill.teammates &&
     skill.teamPrefix
   ) {
@@ -150,7 +151,7 @@ function generateSkillComponent(
   }
 
   // WORKER_WITH_SUB_AGENT の場合はagent.mdも生成
-  if (skill.skillType === "WORKER_WITH_SUB_AGENT") {
+  if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
     const agentResult = generateAgentMd({
       skillName: skill.name,
       agentConfig: {

@@ -1,6 +1,7 @@
 // セクション関連の共有ユーティリティ（orchestrator / worker で共通利用）
 
 import type { LoadedOrchestratorSection } from "../types/loaded";
+import { SECTION_POSITIONS } from "../types/constants";
 
 // セクションのpositionを解析するヘルパー
 export function parseStepPosition(
@@ -32,14 +33,14 @@ export function renderSections(
 export function filterBeforeStepsSections(
   sections: LoadedOrchestratorSection[],
 ): LoadedOrchestratorSection[] {
-  return sections.filter((s) => s.position === "before-steps");
+  return sections.filter((s) => s.position === SECTION_POSITIONS.BEFORE_STEPS);
 }
 
 // after-steps ポジションのセクションをフィルタリングする
 export function filterAfterStepsSections(
   sections: LoadedOrchestratorSection[],
 ): LoadedOrchestratorSection[] {
-  return sections.filter((s) => s.position === "after-steps");
+  return sections.filter((s) => s.position === SECTION_POSITIONS.AFTER_STEPS);
 }
 
 // before-steps と before-step:* の両方をフィルタリングする（Agent用: stepsがないためまとめて配置）
@@ -48,7 +49,7 @@ export function filterAllBeforeSections(
 ): LoadedOrchestratorSection[] {
   return sections.filter(
     (s) =>
-      s.position === "before-steps" || s.position.startsWith("before-step:"),
+      s.position === SECTION_POSITIONS.BEFORE_STEPS || s.position.startsWith(SECTION_POSITIONS.BEFORE_STEP_PREFIX),
   );
 }
 
@@ -58,7 +59,7 @@ export function filterAllAfterSections(
 ): LoadedOrchestratorSection[] {
   return sections.filter(
     (s) =>
-      s.position === "after-steps" || s.position.startsWith("after-step:"),
+      s.position === SECTION_POSITIONS.AFTER_STEPS || s.position.startsWith(SECTION_POSITIONS.AFTER_STEP_PREFIX),
   );
 }
 

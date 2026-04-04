@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateSkillMd } from "../skill-generator.server";
 import { tool } from "../../types/skill";
+import { SKILL_TYPES } from "../../types/constants";
 
 function makeSkillComponent(overrides: {
   name?: string;
@@ -17,7 +18,7 @@ function makeSkillComponent(overrides: {
     skillConfig: {
       name: overrides.name ?? "my-skill",
       description: overrides.description,
-      skillType: overrides.skillType ?? "ENTRY_POINT",
+      skillType: overrides.skillType ?? SKILL_TYPES.ENTRY_POINT,
       argumentHint: overrides.argumentHint,
       allowedTools: overrides.allowedTools,
       content: overrides.content ?? "# Hello",
@@ -53,21 +54,21 @@ describe("generateSkillMd", () => {
 
   it("includes user-invocable: false for WORKER skillType", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ skillType: "WORKER" }),
+      makeSkillComponent({ skillType: SKILL_TYPES.WORKER }),
     );
     expect(file!.content).toContain("user-invocable: false");
   });
 
   it("includes user-invocable: false for WORKER_WITH_SUB_AGENT skillType", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ skillType: "WORKER_WITH_SUB_AGENT" }),
+      makeSkillComponent({ skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT }),
     );
     expect(file!.content).toContain("user-invocable: false");
   });
 
   it("omits user-invocable for ENTRY_POINT skillType", () => {
     const { file } = generateSkillMd(
-      makeSkillComponent({ skillType: "ENTRY_POINT" }),
+      makeSkillComponent({ skillType: SKILL_TYPES.ENTRY_POINT }),
     );
     expect(file!.content).not.toContain("user-invocable");
   });

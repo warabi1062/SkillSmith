@@ -3,6 +3,7 @@ import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id._in
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import PluginActionsSection from "../components/PluginActionsSection";
 import { getSkillTypeBadge } from "../lib/utils/skill-type";
+import { SKILL_TYPES } from "../lib/types/constants";
 
 export function meta({ matches }: Route.MetaArgs) {
   const parentData = matches.find(
@@ -16,9 +17,9 @@ export default function PluginDetail() {
   const { plugin, pluginId, marketplaceId } =
     useOutletContext<PluginOutletContext>();
   const orchestrators = plugin.skills.filter(
-    (s) => s.skillType === "ENTRY_POINT",
+    (s) => s.skillType === SKILL_TYPES.ENTRY_POINT,
   );
-  const workers = plugin.skills.filter((s) => s.skillType !== "ENTRY_POINT");
+  const workers = plugin.skills.filter((s) => s.skillType !== SKILL_TYPES.ENTRY_POINT);
 
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">

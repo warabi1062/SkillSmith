@@ -1,26 +1,34 @@
 // スキル型定義: abstract class とサブクラス
 
+import {
+  SKILL_TYPES,
+  TOOL_REF_TYPES,
+  COMMUNICATION_PATTERNS,
+  SECTION_POSITIONS,
+  SUPPORT_FILE_ROLES,
+} from "./constants";
+
 // ツール参照の構造化型（string ではなく型安全にツールを指定する）
 export type ToolRef =
-  | { type: "tool"; name: string; pattern?: string } // 組み込みツール: "Read", "Bash(git *)"
-  | { type: "mcp"; server: string; method: string }; // MCPツール: "mcp__server__method"
+  | { type: typeof TOOL_REF_TYPES.TOOL; name: string; pattern?: string } // 組み込みツール: "Read", "Bash(git *)"
+  | { type: typeof TOOL_REF_TYPES.MCP; server: string; method: string }; // MCPツール: "mcp__server__method"
 
 // ファクトリ関数
 export function tool(name: string): ToolRef {
-  return { type: "tool", name };
+  return { type: TOOL_REF_TYPES.TOOL, name };
 }
 
 export function bash(pattern: string): ToolRef {
-  return { type: "tool", name: "Bash", pattern };
+  return { type: TOOL_REF_TYPES.TOOL, name: "Bash", pattern };
 }
 
 export function mcp(server: string, method: string): ToolRef {
-  return { type: "mcp", server, method };
+  return { type: TOOL_REF_TYPES.MCP, server, method };
 }
 
 // ToolRef → YAML出力用文字列に変換
 export function serializeToolRef(ref: ToolRef): string {
-  if (ref.type === "mcp") {
+  if (ref.type === TOOL_REF_TYPES.MCP) {
     return `mcp__${ref.server}__${ref.method}`;
   }
   if (ref.pattern) {
@@ -37,7 +45,7 @@ export function parseToolRef(str: string): ToolRef {
     const idx = rest.indexOf("__");
     if (idx >= 0) {
       return {
-        type: "mcp",
+        type: TOOL_REF_TYPES.MCP,
         server: rest.slice(0, idx),
         method: rest.slice(idx + 2),
       };
@@ -46,10 +54,10 @@ export function parseToolRef(str: string): ToolRef {
   // パターン付きツール: Name(pattern)
   const match = str.match(/^([A-Za-z]+)\((.+)\)$/);
   if (match) {
-    return { type: "tool", name: match[1], pattern: match[2] };
+    return { type: TOOL_REF_TYPES.TOOL, name: match[1], pattern: match[2] };
   }
   // 単純ツール
-  return { type: "tool", name: str };
+  return { type: TOOL_REF_TYPES.TOOL, name: str };
 }
 
 // 分岐ステップ（再帰的にネスト可能）
@@ -117,10 +125,10 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
 
 // セクションの配置位置（before-steps/after-stepsに加え、特定ステップの前後に配置可能）
 export type SectionPosition =
-  | "before-steps"
-  | "after-steps"
-  | `before-step:${number}`
-  | `after-step:${number}`;
+  | typeof SECTION_POSITIONS.BEFORE_STEPS
+  | typeof SECTION_POSITIONS.AFTER_STEPS
+  | `${typeof SECTION_POSITIONS.BEFORE_STEP_PREFIX}${number}`
+  | `${typeof SECTION_POSITIONS.AFTER_STEP_PREFIX}${number}`;
 
 // オーケストレーターのセクション（steps前後またはstep間に配置する追加コンテンツ）
 export interface OrchestratorSection {
@@ -131,7 +139,7 @@ export interface OrchestratorSection {
 }
 
 // サポートファイルの役割
-export type SupportFileRole = "TEMPLATE" | "REFERENCE" | "EXAMPLE";
+export type SupportFileRole = (typeof SUPPORT_FILE_ROLES)[keyof typeof SUPPORT_FILE_ROLES];
 
 // サポートファイルの参照宣言（定義ファイル上の型）
 export interface SupportFile {
@@ -152,8 +160,8 @@ export interface AgentConfig {
 
 // チームメンバーのコミュニケーションパターン（discriminated union）
 export type CommunicationPattern =
-  | { type: "poller"; target: string } // このメンバーが target をポーリング
-  | { type: "responder" }; // status_check に応答する側
+  | { type: typeof COMMUNICATION_PATTERNS.POLLER; target: string } // このメンバーが target をポーリング
+  | { type: typeof COMMUNICATION_PATTERNS.RESPONDER }; // status_check に応答する側
 
 // チームメンバーの構造化定義
 export interface Teammate {
@@ -165,11 +173,7 @@ export interface Teammate {
 }
 
 // SkillType の文字列リテラル型
-export type SkillType =
-  | "ENTRY_POINT"
-  | "WORKER"
-  | "WORKER_WITH_SUB_AGENT"
-  | "WORKER_WITH_AGENT_TEAM";
+export type SkillType = (typeof SKILL_TYPES)[keyof typeof SKILL_TYPES];
 
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
@@ -227,7 +231,7 @@ export abstract class Skill {
 // EntryPoint スキル: ユーザーが /skill-name で直接呼び出すスキル
 // content は plugin-generator が steps + sections + メタデータから自動生成する
 export class EntryPointSkill extends Skill {
-  readonly skillType = "ENTRY_POINT" as const;
+  readonly skillType = SKILL_TYPES.ENTRY_POINT;
   readonly name: string;
   readonly content: string = "";
 
@@ -248,7 +252,7 @@ export class EntryPointSkill extends Skill {
 
 // Worker スキル: オーケストレーターの1ステップを担当するスキル
 export class WorkerSkill extends Skill {
-  readonly skillType = "WORKER" as const;
+  readonly skillType = SKILL_TYPES.WORKER;
   readonly name: string;
   readonly content: string;
 
@@ -265,7 +269,7 @@ export class WorkerSkill extends Skill {
 // WorkerWithSubAgent スキル: Sub Agent を伴う Worker スキル
 // content 直書きまたは workerSteps + workerSections から自動生成
 export class WorkerWithSubAgent extends Skill {
-  readonly skillType = "WORKER_WITH_SUB_AGENT" as const;
+  readonly skillType = SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   readonly name: string;
   readonly content: string;
   readonly agentConfig: AgentConfig;
@@ -305,7 +309,7 @@ export class WorkerWithSubAgent extends Skill {
 // WorkerWithAgentTeam スキル: Agent Team を管理する Worker スキル
 // teammates から content を自動生成するため、content は不要
 export class WorkerWithAgentTeam extends Skill {
-  readonly skillType = "WORKER_WITH_AGENT_TEAM" as const;
+  readonly skillType = SKILL_TYPES.WORKER_WITH_AGENT_TEAM;
   readonly name: string;
   readonly content: string;
   readonly teammates: Teammate[];

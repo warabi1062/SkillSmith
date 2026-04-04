@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 import { loadPluginDefinition } from "../loader.server";
+import { SKILL_TYPES } from "../constants";
 
 let tmpDir: string;
 
@@ -74,7 +75,7 @@ describe("loadPluginDefinition", () => {
 
     const greet = result.skills.find((s) => s.name === "greet");
     expect(greet).toBeDefined();
-    expect(greet!.skillType).toBe("ENTRY_POINT");
+    expect(greet!.skillType).toBe(SKILL_TYPES.ENTRY_POINT);
     expect(greet!.content).toBe("# Greet");
     expect(greet!.description).toBe("挨拶スキル");
     // ローダーが Skill[] から string[] に変換していることを検証
@@ -82,7 +83,7 @@ describe("loadPluginDefinition", () => {
 
     const worker = result.skills.find((s) => s.name === "worker-a");
     expect(worker).toBeDefined();
-    expect(worker!.skillType).toBe("WORKER");
+    expect(worker!.skillType).toBe(SKILL_TYPES.WORKER);
   });
 
   it("SupportFile の content を読み込むこと", async () => {
@@ -187,7 +188,7 @@ describe("loadPluginDefinition", () => {
     const result = await loadPluginDefinition(tmpDir);
     const skill = result.skills[0];
 
-    expect(skill.skillType).toBe("WORKER_WITH_SUB_AGENT");
+    expect(skill.skillType).toBe(SKILL_TYPES.WORKER_WITH_SUB_AGENT);
     expect("agentConfig" in skill).toBe(true);
     if ("agentConfig" in skill) {
       expect(skill.agentConfig.model).toBe("sonnet");
@@ -413,7 +414,7 @@ describe("loadPluginDefinition", () => {
 
     const result = await loadPluginDefinition(tmpDir);
     const skill = result.skills[0];
-    expect(skill.skillType).toBe("WORKER_WITH_SUB_AGENT");
+    expect(skill.skillType).toBe(SKILL_TYPES.WORKER_WITH_SUB_AGENT);
     if ("workerSteps" in skill) {
       expect(skill.workerSteps).toBeDefined();
       expect(skill.workerSteps).toHaveLength(1);
@@ -448,7 +449,7 @@ describe("loadPluginDefinition", () => {
     const result = await loadPluginDefinition(tmpDir);
     const skill = result.skills[0];
 
-    expect(skill.skillType).toBe("WORKER_WITH_AGENT_TEAM");
+    expect(skill.skillType).toBe(SKILL_TYPES.WORKER_WITH_AGENT_TEAM);
     expect("teammates" in skill).toBe(true);
     if ("teammates" in skill) {
       expect(skill.teammates).toHaveLength(2);

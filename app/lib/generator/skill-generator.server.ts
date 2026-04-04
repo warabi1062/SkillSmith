@@ -2,6 +2,7 @@ import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "./frontmatter.server";
 import type { ToolRef } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
+import { SKILL_TYPES } from "../types/constants";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const SKILL_NAME_MAX_LENGTH = 64;
@@ -81,7 +82,7 @@ export function generateSkillMd(component: SkillComponentData): {
   // userInvocable が明示的に設定されていればその値を使う。未設定ならENTRY_POINT以外はfalse
   if (config.userInvocable !== undefined) {
     frontmatterFields["user-invocable"] = config.userInvocable;
-  } else if (config.skillType !== "ENTRY_POINT") {
+  } else if (config.skillType !== SKILL_TYPES.ENTRY_POINT) {
     frontmatterFields["user-invocable"] = false;
   }
   if (allowedTools && allowedTools.length > 0) {

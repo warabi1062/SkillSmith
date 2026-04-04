@@ -3,18 +3,19 @@ import remarkGfm from "remark-gfm";
 import { SectionItems } from "./SectionItems";
 import { BodyContent } from "./BodyContent";
 import { getStepSections, getOutOfRangeSections } from "./helpers";
+import { COMMUNICATION_PATTERNS, SKILL_TYPES } from "../../lib/types/constants";
 import type { SkillDetailData } from "./types";
 
 // スキル詳細のインライン展開
 export function SkillDetail({ data }: { data: SkillDetailData }) {
   const showAgentConfig =
-    data.skillType === "WORKER_WITH_SUB_AGENT" && data.agentConfig;
+    data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && data.agentConfig;
   const showWorkerSteps =
-    data.skillType === "WORKER_WITH_SUB_AGENT" &&
+    data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT &&
     data.workerSteps &&
     data.workerSteps.length > 0;
   const showTeammates =
-    data.skillType === "WORKER_WITH_AGENT_TEAM" &&
+    data.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
     data.teammates &&
     data.teammates.length > 0;
 
@@ -244,12 +245,12 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
                 <span className="text-sm text-text-secondary">{mate.role}</span>
               </div>
               <div className="pb-2">
-                {mate.communicationPattern?.type === "poller" && (
+                {mate.communicationPattern?.type === COMMUNICATION_PATTERNS.POLLER && (
                   <div className="text-sm text-text-tertiary py-0.5 font-mono">
                     polling &rarr; {mate.communicationPattern.target}
                   </div>
                 )}
-                {mate.communicationPattern?.type === "responder" && (
+                {mate.communicationPattern?.type === COMMUNICATION_PATTERNS.RESPONDER && (
                   <div className="text-sm text-text-tertiary py-0.5 font-mono">
                     status_check responder
                   </div>
