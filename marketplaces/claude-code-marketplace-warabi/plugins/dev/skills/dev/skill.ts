@@ -37,8 +37,22 @@ const devSkill = new EntryPointSkill({
       },
     },
     createBranch,
-    planTeamSkill,
-    implementTeamSkill,
+    {
+      decisionPoint: "ワークフロー選択",
+      description: `plan要否（PLAN_REQUIRED / PLAN_SKIP）に基づいて自動で分岐する。
+
+- Linearモード: Step 1 の triage チームが出力した plan要否をそのまま使う
+- Quickモード: ユーザーの入力テキストから判定する。判定基準:
+  - PLAN_SKIP: 指示が具体的で実装方針が明確（例: 「ファイルAをBに分割して」「テストを追加して」「関数XをYにリネームして」等）
+  - PLAN_REQUIRED: 要件が曖昧、設計判断を伴う、複数の実装アプローチが考えられる
+
+- **PLAN_REQUIRED**: plan-team で実装計画を作成・レビューしてから実装に進む
+- **PLAN_SKIP**: triage計画の技術メモ（Linearモード）またはユーザーの指示（Quickモード）を実装計画として直接 implement-team に渡す`,
+      cases: {
+        PLAN_REQUIRED: [planTeamSkill, implementTeamSkill],
+        PLAN_SKIP: [implementTeamSkill],
+      },
+    },
   ],
   sections: [
     {

@@ -142,7 +142,11 @@ const reviewer: Teammate = {
     {
       id: "R5",
       title: "通知",
-      body: `triager と リーダー（team lead）の両方に判定結果（PASS / NEEDS_REVISION）とファイルパスを伝える。`,
+      body: `triager と リーダー（team lead）の両方に判定結果（PASS / NEEDS_REVISION）とファイルパスを伝える。
+
+PASS の場合、plan要否も合わせてリーダーに伝える:
+- PLAN_SKIP: triage計画の技術メモに具体的な変更対象ファイル・関数・実装方針が記載されており、かつタスクが単純（ファイル分割、テスト追加、ユーティリティ抽出、importパス変更等）
+- PLAN_REQUIRED: 設計判断を伴う（新機能追加、アーキテクチャ変更、複数コンポーネントにまたがる仕様変更等）、またはtriage計画の技術メモが抽象的で実装に直接使えない`,
     },
     {
       id: "R6",
@@ -196,7 +200,11 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
   description:
     "Agent Teamでtriager/reviewer/executorを編成し、Linearチケットの調査・計画作成・レビュー・実行を行う。ワークフローの一部として使用される。",
   input: ["チケットID"],
-  output: ["triage計画のファイルパス", "triage結果のファイルパス"],
+  output: [
+    "triage計画のファイルパス",
+    "triage結果のファイルパス",
+    "plan要否（PLAN_REQUIRED / PLAN_SKIP）: triage計画の技術メモの詳細度とタスクの複雑度から判定。PLAN_SKIP の場合、triage計画の技術メモを実装計画として直接 implement-team に渡せる",
+  ],
   allowedTools: [
     tool("Read"),
     tool("Write"),
@@ -216,6 +224,7 @@ const linearTriageTeamSkill = new WorkerWithAgentTeam({
     "ユーザー承認後、executor に実行を指示する（計画ファイルのファイルパスを伝える）",
     "executor から完了通知を受け取り、triage結果のファイルパスを記録する",
     "分割が発生した場合、ユーザーにどのサブチケットから着手するか確認を取る",
+    "reviewer から PASS 通知に含まれるplan要否（PLAN_REQUIRED / PLAN_SKIP）を呼び出し元に返す",
   ],
   requiresUserApproval: true,
 });
