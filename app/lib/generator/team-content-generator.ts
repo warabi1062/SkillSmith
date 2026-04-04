@@ -14,8 +14,7 @@ export function generateTeamContent(input: TeamContentInput): string {
   const lines: string[] = [];
 
   const sortedTeammates = input.teammates
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    .toSorted((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   const memberNames = sortedTeammates.map((t) => t.name);
 
   // 概要
