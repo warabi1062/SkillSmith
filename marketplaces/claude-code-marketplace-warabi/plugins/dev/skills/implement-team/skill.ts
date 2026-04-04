@@ -17,7 +17,7 @@ const reviewResultFormat: SupportFile = {
 
 const implementer: Teammate = {
   name: "implementer",
-  role: "実装計画に従ってコードを実装し、テストを書く。",
+  role: "実装計画に従ってコードを実装し、テストを書く。リーダーから指示されたタスクのみに集中し、他のタスクやチケットの作業は行わないこと。",
   sortOrder: 1,
   steps: [
     {
@@ -78,7 +78,7 @@ const implementer: Teammate = {
 
 const reviewer: Teammate = {
   name: "reviewer",
-  role: "実装の経緯を知らない第三者の視点で、コードレビューを行う。問題点や理由を曖昧にせず具体的に指摘する。セキュアな情報を出力に含めない。",
+  role: "実装の経緯を知らない第三者の視点で、コードレビューを行う。問題点や理由を曖昧にせず具体的に指摘する。セキュアな情報を出力に含めない。リーダーから指示されたタスクのみに集中し、他のタスクやチケットの作業は行わないこと。",
   sortOrder: 2,
   steps: [
     {
