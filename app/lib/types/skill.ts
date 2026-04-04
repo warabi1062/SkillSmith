@@ -59,9 +59,9 @@ export interface Branch {
   cases: Record<string, Step[]>; // case名 → ステップ列
 }
 
-// インラインステップのサブステップ（構造化された手順記述）
-export interface InlineSubStep {
-  id: string; // ステップID（例: "1", "2a"）
+// 委譲ステップ（InlineStep / Teammate 共通の構造化された手順記述）
+export interface DelegateStep {
+  id: string; // ステップID（例: "1", "2a", "I1"）
   title: string; // ステップ名（例: "ベースブランチ判定"）
   body?: string; // ステップの説明本文（bodyFile と排他）
   bodyFile?: string; // 説明本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
@@ -70,7 +70,7 @@ export interface InlineSubStep {
 // インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
 export interface InlineStep {
   inline: string; // 表示名（例: "ブランチ作成"）
-  steps: InlineSubStep[]; // 構造化された手順ステップ
+  steps: DelegateStep[]; // 構造化された手順ステップ
   input?: string[]; // 入力の説明
   output?: string[]; // 出力の説明
 }
@@ -140,14 +140,6 @@ export interface SupportFile {
   sortOrder?: number;
 }
 
-// Agent設定のセクション（OrchestratorSectionと同じ構造）
-export interface AgentConfigSection {
-  heading: string;
-  body?: string; // セクション本文（bodyFile と排他）
-  bodyFile?: string; // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
-  position: SectionPosition;
-}
-
 // Agent設定（WorkerWithSubAgent用）
 // content 直書きまたは description + sections から自動生成
 export interface AgentConfig {
@@ -155,15 +147,7 @@ export interface AgentConfig {
   tools?: ToolRef[];
   content: string; // agent.md 本文（後方互換）
   description?: string; // 構造化時: agentの説明
-  sections?: AgentConfigSection[]; // 構造化時: 追加セクション
-}
-
-// チームメンバーの手順ステップ
-export interface TeammateStep {
-  id: string; // ステップID（例: "I1", "V1"）
-  title: string; // ステップ名（例: "実装計画の読み込み"）
-  body?: string; // ステップの説明本文（bodyFile と排他）
-  bodyFile?: string; // 説明本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
+  sections?: OrchestratorSection[]; // 構造化時: 追加セクション
 }
 
 // チームメンバーのコミュニケーションパターン（discriminated union）
@@ -175,7 +159,7 @@ export type CommunicationPattern =
 export interface Teammate {
   name: string; // メンバー名（例: "implementer"）
   role: string; // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
-  steps: TeammateStep[]; // 手順ステップの配列
+  steps: DelegateStep[]; // 手順ステップの配列
   sortOrder?: number;
   communicationPattern?: CommunicationPattern; // コミュニケーションパターン
 }
@@ -285,7 +269,7 @@ export class WorkerWithSubAgent extends Skill {
   readonly name: string;
   readonly content: string;
   readonly agentConfig: AgentConfig;
-  readonly workerSteps?: TeammateStep[]; // 構造化時: Workerの手順ステップ
+  readonly workerSteps?: DelegateStep[]; // 構造化時: Workerの手順ステップ
   readonly workerSections?: OrchestratorSection[]; // 構造化時: steps前後の追加セクション
 
   constructor(
@@ -298,7 +282,7 @@ export class WorkerWithSubAgent extends Skill {
         }
       | {
           name: string;
-          workerSteps: TeammateStep[];
+          workerSteps: DelegateStep[];
           workerSections?: OrchestratorSection[];
           content?: string;
         }

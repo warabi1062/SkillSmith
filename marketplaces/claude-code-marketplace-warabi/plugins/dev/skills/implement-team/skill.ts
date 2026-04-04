@@ -17,7 +17,7 @@ const reviewResultFormat: SupportFile = {
 
 const implementer: Teammate = {
   name: "implementer",
-  role: "実装計画に従ってコードを実装し、テストを書く。",
+  role: "実装計画に従ってコードを実装し、テストを書く。親チケットや関連チケットを自主的に調べて追加実装しないこと。実装範囲はリーダーから渡された実装計画に記載された内容のみとする。",
   sortOrder: 1,
   steps: [
     {

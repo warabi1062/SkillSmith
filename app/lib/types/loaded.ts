@@ -24,18 +24,10 @@ export interface LoadedBranch {
   cases: Record<string, LoadedStep[]>;
 }
 
-// ローダー用のインラインサブステップ型
-export interface LoadedInlineSubStep {
-  id: string;
-  title: string;
-  body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
-}
-
 // ローダー用のインラインステップ型
 export interface LoadedInlineStep {
   inline: string;
-  steps: LoadedInlineSubStep[];
+  steps: LoadedDelegateStep[];
   input?: string[];
   output?: string[];
 }
@@ -93,14 +85,6 @@ export interface LoadedSkill extends LoadedSkillBase {
   skillType: "ENTRY_POINT" | "WORKER";
 }
 
-// ローダー用のAgentConfigセクション型
-export interface LoadedAgentConfigSection {
-  heading: string;
-  body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
-  position: SectionPosition;
-}
-
 // ローダー用の委譲ステップ型（Worker / Teammate 共通）
 export interface LoadedDelegateStep {
   id: string;
@@ -111,7 +95,6 @@ export interface LoadedDelegateStep {
 
 // LoadedDelegateStep の用途別エイリアス
 export type LoadedWorkerStep = LoadedDelegateStep;
-export type LoadedTeammateStep = LoadedDelegateStep;
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
 export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
@@ -125,7 +108,7 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
 export interface LoadedTeammate {
   name: string;
   role: string;
-  steps: LoadedTeammateStep[];
+  steps: LoadedDelegateStep[];
   sortOrder?: number;
   communicationPattern?: CommunicationPattern;
 }

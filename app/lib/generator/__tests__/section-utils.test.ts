@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { LoadedOrchestratorSection } from "../../types/loaded";
 import {
   filterAfterStepsSections,
+  filterAllAfterSections,
+  filterAllBeforeSections,
   filterBeforeStepsSections,
   filterOutOfRangeStepSections,
 } from "../section-utils";
@@ -71,6 +73,76 @@ describe("filterAfterStepsSections", () => {
 
   it("空配列を渡した場合は空配列を返す", () => {
     expect(filterAfterStepsSections([])).toEqual([]);
+  });
+});
+
+describe("filterAllBeforeSections", () => {
+  it("before-stepsとbefore-step:*の両方を返す", () => {
+    const sections = [
+      section("概要", "before-steps"),
+      section("ステップ前", "before-step:0"),
+      section("手順後の補足", "after-steps"),
+      section("前提条件", "before-steps"),
+      section("ステップ2前", "before-step:2"),
+    ];
+
+    const result = filterAllBeforeSections(sections);
+
+    expect(result).toHaveLength(4);
+    expect(result.map((s) => s.heading)).toEqual([
+      "概要",
+      "ステップ前",
+      "前提条件",
+      "ステップ2前",
+    ]);
+  });
+
+  it("該当するセクションがない場合は空配列を返す", () => {
+    const sections = [
+      section("手順後の補足", "after-steps"),
+      section("ステップ後", "after-step:0"),
+    ];
+
+    expect(filterAllBeforeSections(sections)).toEqual([]);
+  });
+
+  it("空配列を渡した場合は空配列を返す", () => {
+    expect(filterAllBeforeSections([])).toEqual([]);
+  });
+});
+
+describe("filterAllAfterSections", () => {
+  it("after-stepsとafter-step:*の両方を返す", () => {
+    const sections = [
+      section("概要", "before-steps"),
+      section("注意事項", "after-steps"),
+      section("ステップ後", "after-step:1"),
+      section("まとめ", "after-steps"),
+      section("ステップ3後", "after-step:3"),
+    ];
+
+    const result = filterAllAfterSections(sections);
+
+    expect(result).toHaveLength(4);
+    expect(result.map((s) => s.heading)).toEqual([
+      "注意事項",
+      "ステップ後",
+      "まとめ",
+      "ステップ3後",
+    ]);
+  });
+
+  it("該当するセクションがない場合は空配列を返す", () => {
+    const sections = [
+      section("概要", "before-steps"),
+      section("ステップ前", "before-step:0"),
+    ];
+
+    expect(filterAllAfterSections(sections)).toEqual([]);
+  });
+
+  it("空配列を渡した場合は空配列を返す", () => {
+    expect(filterAllAfterSections([])).toEqual([]);
   });
 });
 

@@ -8,7 +8,7 @@ import type {
   ToolRef,
   AgentConfig,
   SupportFile,
-  TeammateStep,
+  DelegateStep,
   OrchestratorSection,
   SectionPosition,
   CommunicationPattern,
@@ -36,8 +36,8 @@ interface ImportedBranch {
   cases: Record<string, ImportedStep[]>;
 }
 
-// import 用のインラインサブステップ型
-interface ImportedInlineSubStep {
+// import 用の委譲ステップ型（InlineStep / Teammate 共通）
+interface ImportedDelegateStep {
   id: string;
   title: string;
   body?: string;
@@ -47,7 +47,7 @@ interface ImportedInlineSubStep {
 // import 用のインラインステップ型
 interface ImportedInlineStep {
   inline: string;
-  steps: ImportedInlineSubStep[];
+  steps: ImportedDelegateStep[];
   input?: string[];
   output?: string[];
 }
@@ -96,7 +96,7 @@ interface ImportedSimpleSkill extends ImportedSkillBase {
 interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
   skillType: "WORKER_WITH_SUB_AGENT";
   agentConfig: AgentConfig;
-  workerSteps?: TeammateStep[];
+  workerSteps?: DelegateStep[];
   workerSections?: OrchestratorSection[];
 }
 
@@ -115,19 +115,11 @@ type ImportedSkill =
   | ImportedWorkerWithSubAgentSkill
   | ImportedWorkerWithAgentTeamSkill;
 
-// import 用のチームメンバーステップ型
-interface ImportedTeammateStep {
-  id: string;
-  title: string;
-  body?: string;
-  bodyFile?: string;
-}
-
 // import 用のチームメンバー型
 interface ImportedTeammate {
   name: string;
   role: string;
-  steps: ImportedTeammateStep[];
+  steps: ImportedDelegateStep[];
   sortOrder?: number;
   communicationPattern?: CommunicationPattern;
 }
@@ -139,29 +131,6 @@ interface ImportedPluginDefinition {
   skills: ImportedSkill[];
 }
 
-// Loaded系型・型ガードは loaded.ts からre-export
-export type {
-  LoadedSupportFile,
-  LoadedBranch,
-  LoadedInlineSubStep,
-  LoadedInlineStep,
-  LoadedOrchestratorSection,
-  SkillRef,
-  LoadedStep,
-  LoadedSkill,
-  LoadedAgentConfigSection,
-  LoadedDelegateStep,
-  LoadedWorkerStep,
-  LoadedTeammateStep,
-  LoadedWorkerWithSubAgentSkill,
-  LoadedTeammate,
-  LoadedWorkerWithAgentTeamSkill,
-  LoadedSkillUnion,
-  LoadedPluginDefinition,
-} from "./loaded";
-export { isLoadedSkillRef } from "./loaded";
-// isLoadedBranch, isLoadedInlineStep はファイル内で使用するため import + re-export
-export { isLoadedBranch, isLoadedInlineStep };
 
 // bodyFile を解決してbodyに設定するヘルパー
 // bodyFile が指定されている場合、スキルディレクトリから相対パスでファイルを読み込む
