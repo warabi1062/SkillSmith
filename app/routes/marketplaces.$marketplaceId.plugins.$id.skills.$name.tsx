@@ -1,51 +1,33 @@
-import { data } from "react-router";
-import { loadPluginDefinition } from "../lib/types/loader.server";
+import { useOutletContext, useParams } from "react-router";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.skills.$name";
+import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import {
   buildSkillDetailData,
   SkillDetail,
-} from "../components/OrchestratorStructureView";
+} from "../components/orchestrator";
 import { getSkillTypeBadge } from "../lib/utils/skill-type";
-import * as path from "node:path";
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
-  const name = loaderData?.skillName ?? "Skill";
-  const pluginName = loaderData?.plugin?.name ?? "Plugin";
+export function meta({ matches, params }: Route.MetaArgs) {
+  const parentData = matches.find(
+    (m) => m?.id === "routes/marketplaces.$marketplaceId.plugins.$id",
+  )?.data as { plugin: { name: string } } | undefined;
+  const pluginName = parentData?.plugin?.name ?? "Plugin";
+  const name = params.name ?? "Skill";
   return [{ title: `${name} - ${pluginName} - SkillSmith` }];
-}
-
-export async function loader({ params }: Route.LoaderArgs) {
-  const dirPath = path.join(
-    process.cwd(),
-    "marketplaces",
-    params.marketplaceId,
-    "plugins",
-    params.id,
-  );
-
-  try {
-    const plugin = await loadPluginDefinition(dirPath);
-    const skill = plugin.skills.find(
-      (s) => s.skillType !== "ENTRY_POINT" && s.name === params.name,
-    );
-    if (!skill) {
-      throw new Error("Skill not found");
-    }
-    return { plugin, skillName: params.name };
-  } catch {
-    throw data("Skill not found", { status: 404 });
-  }
 }
 
 // ブレッドクラム: スキル名を表示
 export const handle = {
-  breadcrumb: ({ data: loaderData }: { data: { skillName: string } }) => ({
-    label: loaderData.skillName,
+  breadcrumb: ({
+    params,
+  }: { params: Record<string, string | undefined> }) => ({
+    label: params.name ?? "",
   }),
 };
 
-export default function SkillDetailPage({ loaderData }: Route.ComponentProps) {
-  const { plugin, skillName } = loaderData;
+export default function SkillDetailPage() {
+  const { plugin } = useOutletContext<PluginOutletContext>();
+  const { name: skillName } = useParams();
   const skill = plugin.skills.find(
     (s) => s.skillType !== "ENTRY_POINT" && s.name === skillName,
   );

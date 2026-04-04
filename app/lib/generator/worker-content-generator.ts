@@ -3,8 +3,14 @@
 import type {
   LoadedWorkerStep,
   LoadedOrchestratorSection,
-} from "../types/loader.server";
-import { parseStepPosition, renderSections } from "./section-utils";
+} from "../types/loaded";
+import {
+  filterAfterStepsSections,
+  filterBeforeStepsSections,
+  filterOutOfRangeStepSections,
+  parseStepPosition,
+  renderSections,
+} from "./section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 export interface WorkerContentInput extends ContentGeneratorInput {
@@ -24,8 +30,9 @@ export function generateWorkerContent(input: WorkerContentInput): string {
   }
 
   // before-steps セクション
-  const beforeSections =
-    input.workerSections?.filter((s) => s.position === "before-steps") ?? [];
+  const beforeSections = filterBeforeStepsSections(
+    input.workerSections ?? [],
+  );
   for (const section of beforeSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);
@@ -66,14 +73,13 @@ export function generateWorkerContent(input: WorkerContentInput): string {
   }
 
   // after-steps セクション + 範囲外indexのフォールバック
-  const afterSections =
-    input.workerSections?.filter((s) => s.position === "after-steps") ?? [];
-  const outOfRange =
-    input.workerSections?.filter((s) => {
-      const parsed = parseStepPosition(s.position);
-      if (!parsed) return false;
-      return parsed.index < 0 || parsed.index >= stepCount;
-    }) ?? [];
+  const afterSections = filterAfterStepsSections(
+    input.workerSections ?? [],
+  );
+  const outOfRange = filterOutOfRangeStepSections(
+    input.workerSections ?? [],
+    stepCount,
+  );
   for (const section of [...afterSections, ...outOfRange]) {
     lines.push("");
     lines.push(`## ${section.heading}`);

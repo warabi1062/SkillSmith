@@ -4,7 +4,10 @@ import { Link, useMatches } from "react-router";
 // 静的ラベルの場合はオブジェクト、動的ラベルの場合はloaderDataを受け取る関数
 type BreadcrumbDef =
   | { label: string }
-  | ((args: { data: unknown }) => { label: string });
+  | ((args: {
+      data: unknown;
+      params: Record<string, string | undefined>;
+    }) => { label: string });
 
 interface BreadcrumbItem {
   label: string;
@@ -21,7 +24,10 @@ function useBreadcrumbs(): BreadcrumbItem[] {
     if (!handle?.breadcrumb) continue;
 
     const def = handle.breadcrumb;
-    const resolved = typeof def === "function" ? def({ data: match.data }) : def;
+    const resolved =
+      typeof def === "function"
+        ? def({ data: match.data, params: match.params })
+        : def;
 
     items.push({
       label: resolved.label,

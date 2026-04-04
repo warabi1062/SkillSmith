@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { convertStep, convertSections } from "../OrchestratorStructureView";
+import { convertStep, convertSections } from "../orchestrator";
 
 import type {
   LoadedStep,
   LoadedOrchestratorSection,
-} from "../../lib/types/loader.server";
+} from "../../lib/types/loaded";
 
 describe("convertStep", () => {
   it("SkillRefステップをskill型に変換する", () => {

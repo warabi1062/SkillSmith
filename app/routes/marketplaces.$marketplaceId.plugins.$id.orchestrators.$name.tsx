@@ -1,53 +1,31 @@
-import { data } from "react-router";
-import { loadPluginDefinition } from "../lib/types/loader.server";
+import { useOutletContext, useParams } from "react-router";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.orchestrators.$name";
-import { OrchestratorView } from "../components/OrchestratorStructureView";
-import * as path from "node:path";
+import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
+import { OrchestratorView } from "../components/orchestrator";
 
-export function meta({ data: loaderData }: Route.MetaArgs) {
-  const name = loaderData?.orchestratorName ?? "Orchestrator";
-  const pluginName = loaderData?.plugin?.name ?? "Plugin";
+export function meta({ matches, params }: Route.MetaArgs) {
+  const parentData = matches.find(
+    (m) => m?.id === "routes/marketplaces.$marketplaceId.plugins.$id",
+  )?.data as { plugin: { name: string } } | undefined;
+  const pluginName = parentData?.plugin?.name ?? "Plugin";
+  const name = params.name ?? "Orchestrator";
   return [{ title: `${name} - ${pluginName} - SkillSmith` }];
-}
-
-export async function loader({ params }: Route.LoaderArgs) {
-  const dirPath = path.join(
-    process.cwd(),
-    "marketplaces",
-    params.marketplaceId,
-    "plugins",
-    params.id,
-  );
-
-  try {
-    const plugin = await loadPluginDefinition(dirPath);
-    const orchestrator = plugin.skills.find(
-      (s) => s.skillType === "ENTRY_POINT" && s.name === params.name,
-    );
-    if (!orchestrator) {
-      throw new Error("Orchestrator not found");
-    }
-    return { plugin, orchestratorName: params.name };
-  } catch {
-    throw data("Orchestrator not found", { status: 404 });
-  }
 }
 
 // ブレッドクラム: オーケストレーター名を表示
 export const handle = {
   breadcrumb: ({
-    data: loaderData,
-  }: { data: { orchestratorName: string } }) => ({
-    label: loaderData.orchestratorName,
+    params,
+  }: { params: Record<string, string | undefined> }) => ({
+    label: params.name ?? "",
   }),
 };
 
-export default function OrchestratorDetail({
-  loaderData,
-}: Route.ComponentProps) {
-  const { plugin, orchestratorName } = loaderData;
+export default function OrchestratorDetail() {
+  const { plugin } = useOutletContext<PluginOutletContext>();
+  const { name } = useParams();
   const orchestrator = plugin.skills.find(
-    (s) => s.skillType === "ENTRY_POINT" && s.name === orchestratorName,
+    (s) => s.skillType === "ENTRY_POINT" && s.name === name,
   );
 
   if (!orchestrator) {

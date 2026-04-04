@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { generateTeamContent } from "../team-content-generator";
 import type { TeamContentInput } from "../team-content-generator";
-import type { LoadedTeammate } from "../../types/loader.server";
+import type { LoadedTeammate } from "../../types/loaded";
 
 // テスト用ヘルパー: 最小のteammate定義
 function makeWorker(name: string): LoadedTeammate {

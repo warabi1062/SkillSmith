@@ -1,6 +1,6 @@
 // セクション関連の共有ユーティリティ（orchestrator / worker で共通利用）
 
-import type { LoadedOrchestratorSection } from "../types/loader.server";
+import type { LoadedOrchestratorSection } from "../types/loaded";
 
 // セクションのpositionを解析するヘルパー
 export function parseStepPosition(
@@ -26,4 +26,30 @@ export function renderSections(
     lines.push(section.body);
   }
   return lines;
+}
+
+// before-steps ポジションのセクションをフィルタリングする
+export function filterBeforeStepsSections(
+  sections: LoadedOrchestratorSection[],
+): LoadedOrchestratorSection[] {
+  return sections.filter((s) => s.position === "before-steps");
+}
+
+// after-steps ポジションのセクションをフィルタリングする
+export function filterAfterStepsSections(
+  sections: LoadedOrchestratorSection[],
+): LoadedOrchestratorSection[] {
+  return sections.filter((s) => s.position === "after-steps");
+}
+
+// ステップ数の範囲外のindexを持つstep間セクションをフィルタリングする
+export function filterOutOfRangeStepSections(
+  sections: LoadedOrchestratorSection[],
+  stepCount: number,
+): LoadedOrchestratorSection[] {
+  return sections.filter((s) => {
+    const parsed = parseStepPosition(s.position);
+    if (!parsed) return false;
+    return parsed.index < 0 || parsed.index >= stepCount;
+  });
 }

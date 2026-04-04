@@ -3,10 +3,16 @@
 import type {
   LoadedStep,
   LoadedOrchestratorSection,
-} from "../types/loader.server";
-import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
-import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
-import { parseStepPosition, renderSections } from "./section-utils";
+} from "../types/loaded";
+import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
+import type { LoadedBranch, LoadedInlineStep } from "../types/loaded";
+import {
+  filterAfterStepsSections,
+  filterBeforeStepsSections,
+  filterOutOfRangeStepSections,
+  parseStepPosition,
+  renderSections,
+} from "./section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 
@@ -81,26 +87,13 @@ function renderSteps(
   return lines.join("\n");
 }
 
-// 範囲外indexのstep間セクションを収集するヘルパー
-function getOutOfRangeStepSections(
-  sections: LoadedOrchestratorSection[],
-  stepCount: number,
-): LoadedOrchestratorSection[] {
-  return sections.filter((s) => {
-    const parsed = parseStepPosition(s.position);
-    if (!parsed) return false;
-    return parsed.index < 0 || parsed.index >= stepCount;
-  });
-}
-
 export function generateOrchestratorContent(
   input: OrchestratorContentInput,
 ): string {
   const lines: string[] = [];
 
   // before-steps セクション
-  const beforeSections =
-    input.sections?.filter((s) => s.position === "before-steps") ?? [];
+  const beforeSections = filterBeforeStepsSections(input.sections ?? []);
   for (const section of beforeSections) {
     lines.push("");
     lines.push(`## ${section.heading}`);
@@ -130,9 +123,8 @@ export function generateOrchestratorContent(
   }
 
   // after-steps セクション + 範囲外indexのフォールバック → 「## 補足説明」の下にまとめる
-  const afterSections =
-    input.sections?.filter((s) => s.position === "after-steps") ?? [];
-  const outOfRange = getOutOfRangeStepSections(
+  const afterSections = filterAfterStepsSections(input.sections ?? []);
+  const outOfRange = filterOutOfRangeStepSections(
     input.sections ?? [],
     input.steps.length,
   );
