@@ -18,7 +18,6 @@ import type {
   LoadedSupportFile,
   LoadedBranch,
   LoadedInlineStep,
-  LoadedOrchestratorSection,
   LoadedStep,
   LoadedSkill,
   LoadedWorkerWithSubAgentSkill,
