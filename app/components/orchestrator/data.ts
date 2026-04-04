@@ -4,8 +4,8 @@ import type {
   LoadedBranch,
   LoadedInlineStep,
   LoadedOrchestratorSection,
-} from "../../lib/types/loader.server";
-import { isLoadedSkillRef } from "../../lib/types/loader.server";
+} from "../../lib/types/loaded";
+import { isLoadedSkillRef } from "../../lib/types/loaded";
 import { serializeToolRef } from "../../lib/types/skill";
 import type {
   StepFields,

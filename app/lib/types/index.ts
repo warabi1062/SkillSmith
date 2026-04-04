@@ -43,14 +43,7 @@ export type {
   MarketplaceJson,
 } from "./marketplace";
 
-// Loader 関連
-export {
-  loadPluginDefinition,
-  loadPluginMeta,
-  loadAllMarketplaceMeta,
-  loadAllPluginMetaInMarketplace,
-  loadMarketplaceDefinition,
-} from "./loader.server";
+// Loaded系型・型ガード
 export type {
   LoadedSupportFile,
   LoadedSkill,
@@ -58,8 +51,6 @@ export type {
   LoadedWorkerWithAgentTeamSkill,
   LoadedSkillUnion,
   LoadedPluginDefinition,
-  PluginMeta,
-  MarketplaceMeta,
   LoadedBranch,
   LoadedInlineStep,
   LoadedStep,
@@ -69,5 +60,18 @@ export type {
   LoadedTeammateStep,
   LoadedWorkerStep,
   SkillRef,
+} from "./loaded";
+export { isLoadedBranch, isLoadedInlineStep, isLoadedSkillRef } from "./loaded";
+
+// Loader 関連
+export {
+  loadPluginDefinition,
+  loadPluginMeta,
+  loadAllMarketplaceMeta,
+  loadAllPluginMetaInMarketplace,
+  loadMarketplaceDefinition,
 } from "./loader.server";
-export { isLoadedBranch, isLoadedInlineStep, isLoadedSkillRef } from "./loader.server";
+export type {
+  PluginMeta,
+  MarketplaceMeta,
+} from "./loader.server";

@@ -3,9 +3,9 @@
 import type {
   LoadedStep,
   LoadedOrchestratorSection,
-} from "../types/loader.server";
-import { isLoadedBranch, isLoadedInlineStep } from "../types/loader.server";
-import type { LoadedBranch, LoadedInlineStep } from "../types/loader.server";
+} from "../types/loaded";
+import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
+import type { LoadedBranch, LoadedInlineStep } from "../types/loaded";
 import { parseStepPosition, renderSections } from "./section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 

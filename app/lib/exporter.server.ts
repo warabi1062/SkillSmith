@@ -8,7 +8,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
-import type { LoadedPluginDefinition } from "./types/loader.server";
+import type { LoadedPluginDefinition } from "./types/loaded";
 import { generatePlugin } from "./generator/index";
 import { isWithinDirectory } from "./path-validation.server";
 
