@@ -131,26 +131,6 @@ interface ImportedPluginDefinition {
   skills: ImportedSkill[];
 }
 
-// Loaded系型・型ガードは loaded.ts からre-export
-export type {
-  LoadedSupportFile,
-  LoadedBranch,
-  LoadedInlineStep,
-  LoadedOrchestratorSection,
-  SkillRef,
-  LoadedStep,
-  LoadedSkill,
-  LoadedDelegateStep,
-  LoadedWorkerStep,
-  LoadedWorkerWithSubAgentSkill,
-  LoadedTeammate,
-  LoadedWorkerWithAgentTeamSkill,
-  LoadedSkillUnion,
-  LoadedPluginDefinition,
-} from "./loaded";
-export { isLoadedSkillRef } from "./loaded";
-// isLoadedBranch, isLoadedInlineStep はファイル内で使用するため import + re-export
-export { isLoadedBranch, isLoadedInlineStep };
 
 // bodyFile を解決してbodyに設定するヘルパー
 // bodyFile が指定されている場合、スキルディレクトリから相対パスでファイルを読み込む
