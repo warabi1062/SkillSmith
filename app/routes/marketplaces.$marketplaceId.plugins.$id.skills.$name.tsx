@@ -6,6 +6,7 @@ import {
   SkillDetail,
 } from "../components/orchestrator";
 import { getSkillTypeBadge } from "../lib/utils/skill-type";
+import { SKILL_TYPES } from "../lib/types/constants";
 
 export function meta({ matches, params }: Route.MetaArgs) {
   const parentData = matches.find(
@@ -29,7 +30,7 @@ export default function SkillDetailPage() {
   const { plugin } = useOutletContext<PluginOutletContext>();
   const { name: skillName } = useParams();
   const skill = plugin.skills.find(
-    (s) => s.skillType !== "ENTRY_POINT" && s.name === skillName,
+    (s) => s.skillType !== SKILL_TYPES.ENTRY_POINT && s.name === skillName,
   );
 
   if (!skill) {

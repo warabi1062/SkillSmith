@@ -7,6 +7,7 @@ import type {
 } from "../../lib/types/loaded";
 import { isLoadedSkillRef } from "../../lib/types/loaded";
 import { serializeToolRef } from "../../lib/types/skill";
+import { SKILL_TYPES } from "../../lib/types/constants";
 import type {
   StepFields,
   SectionFields,
@@ -60,10 +61,10 @@ export function convertSections(
 
 export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
   const agentConfigData =
-    skill.skillType === "WORKER_WITH_SUB_AGENT" ? skill.agentConfig : null;
+    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ? skill.agentConfig : null;
 
   const workerStepsData =
-    skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSteps
+    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSteps
       ? skill.workerSteps.map((s) => ({
           id: s.id,
           title: s.title,
@@ -73,7 +74,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       : null;
 
   const workerSectionsData =
-    skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.workerSections
+    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSections
       ? skill.workerSections.map((s) => ({
           heading: s.heading,
           body: s.body,
@@ -83,7 +84,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       : null;
 
   const teammatesData =
-    skill.skillType === "WORKER_WITH_AGENT_TEAM" && skill.teammates
+    skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM && skill.teammates
       ? skill.teammates.map((t) => ({
           name: t.name,
           role: t.role,

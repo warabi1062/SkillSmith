@@ -7,6 +7,7 @@ import type {
   MarketplacePluginEntry,
 } from "../types/marketplace";
 import type { GeneratedFile, GenerationValidationError } from "./types";
+import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 // ジェネレータの結果型
 export interface GenerateMarketplaceJsonResult {
@@ -27,7 +28,7 @@ export function generateMarketplaceJson(
   if (!marketplace.name) {
     errors.push({
       severity: "error",
-      code: "MARKETPLACE_NAME_REQUIRED",
+      code: ERROR_CODES.MARKETPLACE_NAME_REQUIRED,
       message: "marketplace の name は必須です",
     });
   }
@@ -36,7 +37,7 @@ export function generateMarketplaceJson(
   if (marketplace.plugins.length === 0) {
     errors.push({
       severity: "warning",
-      code: "MARKETPLACE_NO_PLUGINS",
+      code: ERROR_CODES.MARKETPLACE_NO_PLUGINS,
       message: "marketplace にプラグインが含まれていません",
     });
   }
@@ -61,7 +62,7 @@ export function generateMarketplaceJson(
   };
 
   const file: GeneratedFile = {
-    path: ".claude-plugin/marketplace.json",
+    path: FILE_PATHS.MARKETPLACE_JSON,
     content: `${JSON.stringify(json, null, 2)}\n`,
   };
 

@@ -3,6 +3,7 @@ import { serializeFrontmatter } from "./frontmatter.server";
 import { generateAgentContent } from "./agent-content-generator";
 import type { ToolRef, SectionPosition } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
+import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 // --- Agent Team MD生成 ---
 
@@ -32,7 +33,7 @@ export function generateAgentTeamMd(component: AgentTeamComponentData): {
   if (component.memberSkillNames.length === 0) {
     errors.push({
       severity: "warning",
-      code: "NO_TEAM_MEMBERS",
+      code: ERROR_CODES.NO_TEAM_MEMBERS,
       message: `Agent Team "${skillConfig.name}" has no members`,
       skillName: component.skillName,
     });
@@ -65,7 +66,7 @@ export function generateAgentTeamMd(component: AgentTeamComponentData): {
 
   return {
     file: {
-      path: `agents/${agentName}.md`,
+      path: `${FILE_PATHS.AGENTS_DIR}${agentName}.md`,
       content,
       skillName: component.skillName,
     },
@@ -127,7 +128,7 @@ export function generateAgentMd(component: AgentComponentData): {
   if (!agentContent) {
     errors.push({
       severity: "error",
-      code: "EMPTY_CONTENT",
+      code: ERROR_CODES.EMPTY_CONTENT,
       message: `Agent "${agentName}" has no content`,
       skillName: component.skillName,
     });
@@ -160,7 +161,7 @@ export function generateAgentMd(component: AgentComponentData): {
 
   return {
     file: {
-      path: `agents/${agentName}.md`,
+      path: `${FILE_PATHS.AGENTS_DIR}${agentName}.md`,
       content,
       skillName: component.skillName,
     },

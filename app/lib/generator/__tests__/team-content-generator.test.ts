@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { generateTeamContent } from "../team-content-generator";
 import type { TeamContentInput } from "../team-content-generator";
 import type { LoadedTeammate } from "../../types/loaded";
+import { COMMUNICATION_PATTERNS } from "../../types/constants";
 
 // テスト用ヘルパー: 最小のteammate定義
 function makeWorker(name: string): LoadedTeammate {
@@ -10,7 +11,7 @@ function makeWorker(name: string): LoadedTeammate {
     role: `${name}の役割説明`,
     steps: [{ id: "W1", title: "作業開始", body: "作業を開始する。" }],
     sortOrder: 1,
-    communicationPattern: { type: "responder" },
+    communicationPattern: { type: COMMUNICATION_PATTERNS.RESPONDER },
   };
 }
 
@@ -23,7 +24,7 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
       { id: "R2", title: "レビュー実行", body: "レビューを行う。" },
     ],
     sortOrder: 2,
-    communicationPattern: { type: "poller", target: pollingTarget },
+    communicationPattern: { type: COMMUNICATION_PATTERNS.POLLER, target: pollingTarget },
   };
 }
 

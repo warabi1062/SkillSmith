@@ -1,4 +1,5 @@
 import type { GeneratedPlugin, GenerationValidationError } from "./types";
+import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 /**
  * バリデーション用のスキルデータ。
@@ -24,18 +25,18 @@ export function validateGeneratedPlugin(
   if (skills && skills.length === 0) {
     errors.push({
       severity: "error",
-      code: "EMPTY_PLUGIN",
+      code: ERROR_CODES.EMPTY_PLUGIN,
       message: "Plugin must have at least one component (skill or agent)",
     });
   } else {
     // Only check file-level emptiness when skill-level check didn't fire
     const contentFiles = plugin.files.filter(
-      (f) => f.path !== ".claude-plugin/plugin.json",
+      (f) => f.path !== FILE_PATHS.PLUGIN_JSON,
     );
     if (contentFiles.length === 0) {
       errors.push({
         severity: "error",
-        code: "EMPTY_PLUGIN",
+        code: ERROR_CODES.EMPTY_PLUGIN,
         message: "Plugin must have at least one component (skill or agent)",
       });
     }
@@ -62,21 +63,21 @@ function validateDirectoryStructure(
   const paths = plugin.files.map((f) => f.path);
 
   // Must have plugin.json
-  if (!paths.includes(".claude-plugin/plugin.json")) {
+  if (!paths.includes(FILE_PATHS.PLUGIN_JSON)) {
     errors.push({
       severity: "error",
-      code: "DIRECTORY_STRUCTURE_MISMATCH",
-      message: "Missing .claude-plugin/plugin.json",
+      code: ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH,
+      message: `Missing ${FILE_PATHS.PLUGIN_JSON}`,
     });
   }
 
   // Skills must be under skills/ directory
   for (const file of plugin.files) {
-    if (file.path.endsWith("SKILL.md") && !file.path.startsWith("skills/")) {
+    if (file.path.endsWith(FILE_PATHS.SKILL_MD) && !file.path.startsWith(FILE_PATHS.SKILLS_DIR)) {
       errors.push({
         severity: "warning",
-        code: "DIRECTORY_STRUCTURE_MISMATCH",
-        message: `SKILL.md file at unexpected path: ${file.path}`,
+        code: ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH,
+        message: `${FILE_PATHS.SKILL_MD} file at unexpected path: ${file.path}`,
         skillName: file.skillName,
       });
     }
@@ -99,7 +100,7 @@ function validateFilePathUniqueness(
     if (count > 1) {
       errors.push({
         severity: "error",
-        code: "DUPLICATE_FILE_PATH",
+        code: ERROR_CODES.DUPLICATE_FILE_PATH,
         message: `Duplicate file path: ${path} (${count} files)`,
       });
     }
@@ -123,7 +124,7 @@ function validateDependencyTargets(
         if (!skillNames.has(target)) {
           errors.push({
             severity: "warning",
-            code: "MISSING_DEPENDENCY_TARGET",
+            code: ERROR_CODES.MISSING_DEPENDENCY_TARGET,
             message: `Skill "${skill.name}" depends on "${target}" which is not in the same plugin`,
             skillName: skill.name,
           });

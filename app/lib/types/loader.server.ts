@@ -13,6 +13,7 @@ import type {
   SectionPosition,
   CommunicationPattern,
 } from "./skill";
+import { SKILL_TYPES } from "./constants";
 import type { MarketplaceDefinition } from "./marketplace";
 import type {
   LoadedSupportFile,
@@ -88,12 +89,12 @@ interface ImportedSkillBase {
 
 // ENTRY_POINT / WORKER の場合
 interface ImportedSimpleSkill extends ImportedSkillBase {
-  skillType: "ENTRY_POINT" | "WORKER";
+  skillType: typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER;
 }
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
 interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
-  skillType: "WORKER_WITH_SUB_AGENT";
+  skillType: typeof SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   agentConfig: AgentConfig;
   workerSteps?: DelegateStep[];
   workerSections?: OrchestratorSection[];
@@ -101,7 +102,7 @@ interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
 
 // WORKER_WITH_AGENT_TEAM の場合は teammates を保持
 interface ImportedWorkerWithAgentTeamSkill extends ImportedSkillBase {
-  skillType: "WORKER_WITH_AGENT_TEAM";
+  skillType: typeof SKILL_TYPES.WORKER_WITH_AGENT_TEAM;
   teammates: ImportedTeammate[];
   teamPrefix: string;
   additionalLeaderSteps?: string[];
@@ -256,10 +257,10 @@ export async function loadPluginDefinition(
       };
 
       // skillType に応じた拡張
-      if (skill.skillType === "WORKER_WITH_SUB_AGENT") {
+      if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
         const loaded: LoadedWorkerWithSubAgentSkill = {
           ...base,
-          skillType: "WORKER_WITH_SUB_AGENT" as const,
+          skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
           agentConfig: skill.agentConfig,
         };
         if (skill.workerSteps) {
@@ -277,7 +278,7 @@ export async function loadPluginDefinition(
         return loaded;
       }
 
-      if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
+      if (skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM) {
         const loadedTeammates: LoadedTeammate[] = await Promise.all(
           skill.teammates.map(async (t) => ({
             name: t.name,
@@ -289,7 +290,7 @@ export async function loadPluginDefinition(
         );
         return {
           ...base,
-          skillType: "WORKER_WITH_AGENT_TEAM" as const,
+          skillType: SKILL_TYPES.WORKER_WITH_AGENT_TEAM,
           teammates: loadedTeammates,
           teamPrefix: skill.teamPrefix,
           additionalLeaderSteps: skill.additionalLeaderSteps,
@@ -299,7 +300,7 @@ export async function loadPluginDefinition(
 
       return {
         ...base,
-        skillType: skill.skillType as "ENTRY_POINT" | "WORKER",
+        skillType: skill.skillType as typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER,
       } satisfies LoadedSkill;
     }),
   );

@@ -5,6 +5,7 @@ import {
 } from "../agent-generator.server";
 import { tool } from "../../types/skill";
 import type { ToolRef } from "../../types/skill";
+import { ERROR_CODES, FILE_PATHS } from "../../types/constants";
 
 function makeAgentComponent(overrides: {
   skillName?: string;
@@ -35,7 +36,7 @@ describe("generateAgentMd", () => {
   it("SkillConfigからagent名を導出する（{name}-agent形式）", () => {
     const { file, errors } = generateAgentMd(makeAgentComponent({}));
     expect(file).not.toBeNull();
-    expect(file!.path).toBe("agents/my-skill-agent.md");
+    expect(file!.path).toBe(`${FILE_PATHS.AGENTS_DIR}my-skill-agent.md`);
     expect(file!.content).toContain("name: my-skill-agent");
     expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);
   });
@@ -60,7 +61,7 @@ describe("generateAgentMd", () => {
       makeAgentComponent({ content: "" }),
     );
     expect(file).toBeNull();
-    expect(errors.some((e) => e.code === "EMPTY_CONTENT")).toBe(true);
+    expect(errors.some((e) => e.code === ERROR_CODES.EMPTY_CONTENT)).toBe(true);
   });
 
   it("modelをfrontmatterに含める", () => {
@@ -107,7 +108,7 @@ describe("generateAgentTeamMd", () => {
     });
 
     expect(file).not.toBeNull();
-    expect(file!.path).toBe("agents/review-team-agent.md");
+    expect(file!.path).toBe(`${FILE_PATHS.AGENTS_DIR}review-team-agent.md`);
     expect(file!.content).toContain("name: review-team-agent");
     expect(file!.content).toContain("description: A review team");
     expect(file!.content).toContain("skills:");
@@ -132,7 +133,7 @@ describe("generateAgentTeamMd", () => {
     });
 
     expect(file).not.toBeNull();
-    expect(errors.some((e) => e.code === "NO_TEAM_MEMBERS")).toBe(true);
+    expect(errors.some((e) => e.code === ERROR_CODES.NO_TEAM_MEMBERS)).toBe(true);
   });
 
   it("agent名は{name}-agent形式になる", () => {
@@ -147,7 +148,7 @@ describe("generateAgentTeamMd", () => {
       memberSkillNames: ["deploy-worker"],
     });
 
-    expect(file!.path).toBe("agents/deploy-team-agent.md");
+    expect(file!.path).toBe(`${FILE_PATHS.AGENTS_DIR}deploy-team-agent.md`);
     expect(file!.content).toContain("name: deploy-team-agent");
   });
 });

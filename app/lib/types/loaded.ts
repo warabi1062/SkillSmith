@@ -8,6 +8,7 @@ import type {
   SectionPosition,
   CommunicationPattern,
 } from "./skill";
+import { SKILL_TYPES } from "./constants";
 
 // ローダーが返す型: SupportFile + 読み込んだ content
 export interface LoadedSupportFile {
@@ -82,7 +83,7 @@ interface LoadedSkillBase {
 
 // ENTRY_POINT / WORKER の場合
 export interface LoadedSkill extends LoadedSkillBase {
-  skillType: "ENTRY_POINT" | "WORKER";
+  skillType: typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER;
 }
 
 // ローダー用の委譲ステップ型（Worker / Teammate 共通）
@@ -98,7 +99,7 @@ export type LoadedWorkerStep = LoadedDelegateStep;
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
 export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
-  skillType: "WORKER_WITH_SUB_AGENT";
+  skillType: typeof SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   agentConfig: AgentConfig;
   workerSteps?: LoadedWorkerStep[];
   workerSections?: LoadedOrchestratorSection[];
@@ -115,7 +116,7 @@ export interface LoadedTeammate {
 
 // WORKER_WITH_AGENT_TEAM の場合は teammates を保持
 export interface LoadedWorkerWithAgentTeamSkill extends LoadedSkillBase {
-  skillType: "WORKER_WITH_AGENT_TEAM";
+  skillType: typeof SKILL_TYPES.WORKER_WITH_AGENT_TEAM;
   teammates: LoadedTeammate[];
   teamPrefix: string;
   additionalLeaderSteps?: string[];
