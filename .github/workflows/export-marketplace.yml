@@ -1,0 +1,80 @@
+name: Export Marketplace
+
+on:
+  push:
+    branches: [main]
+
+# 同時実行を防止（最新のみ実行）
+concurrency:
+  group: export-marketplace
+  cancel-in-progress: true
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # SkillSmithリポジトリをcheckout
+      - name: Checkout SkillSmith
+        uses: actions/checkout@v4
+
+      # Node.js 22 LTSをセットアップ
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # corepackでpnpmを有効化
+      - name: Enable corepack
+        run: corepack enable
+
+      # 依存関係をインストール
+      - name: Install dependencies
+        run: pnpm install
+
+      # マーケットプレースをエクスポート
+      - name: Export marketplace
+        run: pnpm cli marketplace export marketplaces/claude-code-marketplace-warabi --output /tmp/marketplace-output
+
+      # ターゲットリポジトリをcheckout
+      - name: Checkout marketplace repository
+        uses: actions/checkout@v4
+        with:
+          repository: warabi1062/claude-code-marketplace-warabi
+          token: ${{ secrets.MARKETPLACE_PAT }}
+          path: marketplace-repo
+
+      # エクスポート結果を同期
+      - name: Sync exported files
+        run: rsync -av --delete /tmp/marketplace-output/ marketplace-repo/
+
+      # 変更がある場合のみPRを作成
+      - name: Create PR if changes exist
+        working-directory: marketplace-repo
+        env:
+          GH_TOKEN: ${{ secrets.MARKETPLACE_PAT }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 変更がなければ終了
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "変更なし。PRの作成をスキップします。"
+            exit 0
+          fi
+
+          # ブランチを作成してコミット
+          BRANCH="auto-export/$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "chore: SkillSmithからマーケットプレースを自動エクスポート"
+          git push origin "$BRANCH"
+
+          # PRを作成
+          gh pr create \
+            --title "chore: マーケットプレース自動エクスポート" \
+            --body "SkillSmithリポジトリのmainブランチへのマージにより自動生成されたPRです。" \
+            --base main \
+            --head "$BRANCH"
