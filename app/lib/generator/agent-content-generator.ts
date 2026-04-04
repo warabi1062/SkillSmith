@@ -1,12 +1,17 @@
 // AgentConfig の content を description + sections から自動生成する
 
-import type { LoadedAgentConfigSection } from "../types/loaded";
+import type { LoadedOrchestratorSection } from "../types/loaded";
+import {
+  filterAllAfterSections,
+  filterAllBeforeSections,
+  renderSections,
+} from "./section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 export interface AgentContentInput extends ContentGeneratorInput {
   skillName: string; // 対応するスキル名
   description?: string; // agentの説明
-  sections?: LoadedAgentConfigSection[]; // 追加セクション
+  sections?: LoadedOrchestratorSection[]; // 追加セクション
 }
 
 export function generateAgentContent(input: AgentContentInput): string {
@@ -40,30 +45,12 @@ export function generateAgentContent(input: AgentContentInput): string {
   lines.push(`${input.skillName} skill の手順に従って実行する。`);
 
   // before-steps セクション（before-step:* もbefore-stepsと同じ位置に配置）
-  const beforeSections =
-    input.sections?.filter(
-      (s) =>
-        s.position === "before-steps" || s.position.startsWith("before-step:"),
-    ) ?? [];
-  for (const section of beforeSections) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
-  }
+  const beforeSections = filterAllBeforeSections(input.sections ?? []);
+  lines.push(...renderSections(beforeSections));
 
   // after-steps セクション（after-step:* もafter-stepsと同じ位置に配置）
-  const afterSections =
-    input.sections?.filter(
-      (s) =>
-        s.position === "after-steps" || s.position.startsWith("after-step:"),
-    ) ?? [];
-  for (const section of afterSections) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
-  }
+  const afterSections = filterAllAfterSections(input.sections ?? []);
+  lines.push(...renderSections(afterSections));
 
   return lines.join("\n");
 }

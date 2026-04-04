@@ -42,6 +42,26 @@ export function filterAfterStepsSections(
   return sections.filter((s) => s.position === "after-steps");
 }
 
+// before-steps と before-step:* の両方をフィルタリングする（Agent用: stepsがないためまとめて配置）
+export function filterAllBeforeSections(
+  sections: LoadedOrchestratorSection[],
+): LoadedOrchestratorSection[] {
+  return sections.filter(
+    (s) =>
+      s.position === "before-steps" || s.position.startsWith("before-step:"),
+  );
+}
+
+// after-steps と after-step:* の両方をフィルタリングする（Agent用: stepsがないためまとめて配置）
+export function filterAllAfterSections(
+  sections: LoadedOrchestratorSection[],
+): LoadedOrchestratorSection[] {
+  return sections.filter(
+    (s) =>
+      s.position === "after-steps" || s.position.startsWith("after-step:"),
+  );
+}
+
 // ステップ数の範囲外のindexを持つstep間セクションをフィルタリングする
 export function filterOutOfRangeStepSections(
   sections: LoadedOrchestratorSection[],
