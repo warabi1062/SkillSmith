@@ -22,6 +22,8 @@ SkillSmith は、Claude Code のスキル設計パターンをスキーマとし
 - `pnpm lint` - Lint実行（oxlint）
 - `pnpm format` - フォーマット（Biome）
 - `pnpm cli` - CLIの直接実行（`tsx cli/index.ts`）
+- `pnpm cli plugin export {plugin-dir}` - 単一プラグインのエクスポート
+- `pnpm cli marketplace export {marketplace-dir} --output {output-dir}` - マーケットプレース一括エクスポート
 
 ## アーキテクチャ
 
@@ -61,9 +63,11 @@ GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
 | `WorkerWithSubAgent` | `WORKER_WITH_SUB_AGENT` | SKILL.md + agent.md |
 | `WorkerWithAgentTeam` | `WORKER_WITH_AGENT_TEAM` | SKILL.md + TeamCreate指示 |
 
-### プラグイン定義の書き方
+### マーケットプレースとプラグイン定義の書き方
 
-プラグインは `plugins/{name}/plugin.ts` に `PluginDefinition` を default export する。各スキルは上記4型のいずれかのインスタンスで、`steps[]`・`sections[]`・`bodyFile`（外部markdown参照）・`ToolRef`（`tool()`, `bash()`, `mcp()`）を組み合わせて定義する。実例は `plugins/dev/` を参照。
+プラグインは `marketplaces/{marketplace}/plugins/{name}/plugin.ts` に `PluginDefinition` を default export する。各スキルは上記4型のいずれかのインスタンスで、`steps[]`・`sections[]`・`bodyFile`（外部markdown参照）・`ToolRef`（`tool()`, `bash()`, `mcp()`）を組み合わせて定義する。実例は `marketplaces/claude-code-marketplace-warabi/plugins/dev/` を参照。
+
+マーケットプレースは複数のプラグインをまとめた配布単位で、`marketplace export` コマンドで外部リポジトリに一括出力する。
 
 ### コア設計パターン: Orchestrator中心 + ファイルベース契約
 
