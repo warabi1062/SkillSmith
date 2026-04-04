@@ -57,7 +57,6 @@ export type {
   LoadedOrchestratorSection,
   LoadedTeammate,
   LoadedDelegateStep,
-  LoadedTeammateStep,
   LoadedWorkerStep,
   SkillRef,
 } from "./loaded";
