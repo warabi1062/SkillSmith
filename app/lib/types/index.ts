@@ -13,7 +13,7 @@ export type {
   SupportFileRole,
   SupportFile,
   AgentConfig,
-  TeammateStep,
+  DelegateStep,
   Teammate,
   SkillType,
   Branch,

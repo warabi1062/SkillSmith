@@ -8,7 +8,7 @@ import type {
   ToolRef,
   AgentConfig,
   SupportFile,
-  TeammateStep,
+  DelegateStep,
   OrchestratorSection,
   SectionPosition,
   CommunicationPattern,
@@ -96,7 +96,7 @@ interface ImportedSimpleSkill extends ImportedSkillBase {
 interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
   skillType: "WORKER_WITH_SUB_AGENT";
   agentConfig: AgentConfig;
-  workerSteps?: TeammateStep[];
+  workerSteps?: DelegateStep[];
   workerSections?: OrchestratorSection[];
 }
 
