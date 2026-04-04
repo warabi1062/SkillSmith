@@ -72,6 +72,12 @@ describe("generateTeamContent", () => {
     expect(result).toContain("implementer / reviewer の進捗監視");
   });
 
+  it("リーダーセクションにメンバー名の厳守指示が含まれる", () => {
+    const result = generateTeamContent(makeInput());
+
+    expect(result).toContain("定義された名前（implementer, reviewer）と完全一致する name でスポーンすること");
+  });
+
   it("requiresUserApproval が true の場合、ユーザー承認フローが含まれる", () => {
     const result = generateTeamContent(
       makeInput({ requiresUserApproval: true }),
