@@ -1,12 +1,11 @@
 // AgentConfig の content を description + sections から自動生成する
 
 import type { LoadedAgentConfigSection } from "../types/loader.server";
+import type { ContentGeneratorInput } from "./content-generator-types";
 
-export interface AgentContentInput {
+export interface AgentContentInput extends ContentGeneratorInput {
   skillName: string; // 対応するスキル名
   description?: string; // agentの説明
-  input?: string[]; // 入力の説明
-  output?: string[]; // 出力の説明
   sections?: LoadedAgentConfigSection[]; // 追加セクション
 }
 

@@ -106,7 +106,9 @@ describe("export コマンド", () => {
 
       // Assert
       expect(exitCode).toBe(1);
-      expect(stderrData.join("")).toContain("--output");
+      const errorOutput = stderrData.join("");
+      expect(errorOutput).toContain("[validation]");
+      expect(errorOutput).toContain("--output");
     } finally {
       cleanup();
     }
@@ -126,7 +128,9 @@ describe("export コマンド", () => {
 
       // Assert
       expect(exitCode).toBe(1);
-      expect(stderrData.join("")).toContain("プラグインファイル");
+      const errorOutput = stderrData.join("");
+      expect(errorOutput).toContain("[validation]");
+      expect(errorOutput).toContain("プラグインファイル");
     } finally {
       cleanup();
     }
@@ -242,7 +246,9 @@ describe("export コマンド", () => {
 
       // Assert
       expect(exitCode).toBe(1);
-      expect(stderrData.join("")).toContain("Write failed");
+      const errorOutput = stderrData.join("");
+      expect(errorOutput).toContain("[execution]");
+      expect(errorOutput).toContain("Write failed");
     } finally {
       cleanup();
     }
@@ -264,7 +270,9 @@ describe("export コマンド", () => {
 
       // Assert
       expect(exitCode).toBe(1);
-      expect(stderrData.join("")).toContain("ファイルが見つかりません");
+      const errorOutput = stderrData.join("");
+      expect(errorOutput).toContain("[io]");
+      expect(errorOutput).toContain("ファイルが見つかりません");
     } finally {
       cleanup();
     }

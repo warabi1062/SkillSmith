@@ -7,9 +7,7 @@ import { createJiti } from "jiti";
 import type {
   ToolRef,
   SupportFileRole,
-  SkillType,
   AgentConfig,
-  AgentTeamMember,
   SupportFile,
   TeammateStep,
   OrchestratorSection,
@@ -53,9 +51,8 @@ function isImportedInlineStep(step: ImportedStep): step is ImportedInlineStep {
   return "inline" in step && !("decisionPoint" in step);
 }
 
-// 動的importで読み込まれるスキルの型（サブクラス固有フィールドを含む）
-interface ImportedSkill {
-  skillType: SkillType;
+// 動的importで読み込まれるスキルの共通フィールド
+interface ImportedSkillBase {
   name: string;
   displayName?: string;
   content?: string;
@@ -75,15 +72,35 @@ interface ImportedSkill {
     bodyFile?: string;
     position: SectionPosition;
   }[];
-  agentConfig?: AgentConfig;
+}
+
+// ENTRY_POINT / WORKER の場合
+interface ImportedSimpleSkill extends ImportedSkillBase {
+  skillType: "ENTRY_POINT" | "WORKER";
+}
+
+// WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
+interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
+  skillType: "WORKER_WITH_SUB_AGENT";
+  agentConfig: AgentConfig;
   workerSteps?: TeammateStep[];
   workerSections?: OrchestratorSection[];
-  agentTeamMembers?: AgentTeamMember[];
-  teammates?: ImportedTeammate[];
-  teamPrefix?: string;
+}
+
+// WORKER_WITH_AGENT_TEAM の場合は teammates を保持
+interface ImportedWorkerWithAgentTeamSkill extends ImportedSkillBase {
+  skillType: "WORKER_WITH_AGENT_TEAM";
+  teammates: ImportedTeammate[];
+  teamPrefix: string;
   additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
+
+// discriminated union: skillType で型が絞り込まれる
+type ImportedSkill =
+  | ImportedSimpleSkill
+  | ImportedWorkerWithSubAgentSkill
+  | ImportedWorkerWithAgentTeamSkill;
 
 // import 用のチームメンバーステップ型
 interface ImportedTeammateStep {
@@ -148,18 +165,26 @@ export interface LoadedOrchestratorSection {
   position: SectionPosition;
 }
 
-export type LoadedStep = string | LoadedBranch | LoadedInlineStep;
+// スキル参照（オーケストレーターのステップからWorkerスキルを参照する）
+export interface SkillRef {
+  skillName: string;
+}
+
+export type LoadedStep = SkillRef | LoadedBranch | LoadedInlineStep;
+
+// SkillRef かどうかを判定する型ガード
+export function isLoadedSkillRef(step: LoadedStep): step is SkillRef {
+  return "skillName" in step && !("decisionPoint" in step) && !("inline" in step);
+}
 
 // LoadedBranch かどうかを判定する型ガード
 export function isLoadedBranch(step: LoadedStep): step is LoadedBranch {
-  return typeof step === "object" && "decisionPoint" in step && "cases" in step;
+  return "decisionPoint" in step && "cases" in step;
 }
 
 // LoadedInlineStep かどうかを判定する型ガード
 export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
-  return (
-    typeof step === "object" && "inline" in step && !("decisionPoint" in step)
-  );
+  return "inline" in step && !("decisionPoint" in step);
 }
 
 // ローダーが返すスキルの共通フィールド
@@ -193,13 +218,17 @@ export interface LoadedAgentConfigSection {
   position: SectionPosition;
 }
 
-// ローダー用のWorkerステップ型（TeammateStepと同じ構造）
-export interface LoadedWorkerStep {
+// ローダー用の委譲ステップ型（Worker / Teammate 共通）
+export interface LoadedDelegateStep {
   id: string;
   title: string;
   body: string;
   bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
+
+// LoadedDelegateStep の用途別エイリアス
+export type LoadedWorkerStep = LoadedDelegateStep;
+export type LoadedTeammateStep = LoadedDelegateStep;
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
 export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
@@ -207,14 +236,6 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
   agentConfig: AgentConfig;
   workerSteps?: LoadedWorkerStep[];
   workerSections?: LoadedOrchestratorSection[];
-}
-
-// ローダー用のチームメンバーステップ型
-export interface LoadedTeammateStep {
-  id: string;
-  title: string;
-  body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // ローダー用のチームメンバー型
@@ -226,12 +247,11 @@ export interface LoadedTeammate {
   communicationPattern?: CommunicationPattern;
 }
 
-// WORKER_WITH_AGENT_TEAM の場合は agentTeamMembers を保持
+// WORKER_WITH_AGENT_TEAM の場合は teammates を保持
 export interface LoadedWorkerWithAgentTeamSkill extends LoadedSkillBase {
   skillType: "WORKER_WITH_AGENT_TEAM";
-  agentTeamMembers: AgentTeamMember[];
-  teammates?: LoadedTeammate[];
-  teamPrefix?: string;
+  teammates: LoadedTeammate[];
+  teamPrefix: string;
   additionalLeaderSteps?: string[];
   requiresUserApproval?: boolean;
 }
@@ -267,33 +287,16 @@ async function resolveBodyFile(
   return { body: item.body ?? "" };
 }
 
-// TeammateStep / InlineSubStep 配列の bodyFile を一括解決
-async function resolveStepBodyFiles(
+// bodyFile を含む任意のオブジェクト配列の bodyFile を一括解決するジェネリックヘルパー
+async function resolveBodyFiles<T extends { body?: string; bodyFile?: string }>(
   skillDir: string,
-  steps: { id: string; title: string; body?: string; bodyFile?: string }[],
-): Promise<{ id: string; title: string; body: string; bodyFile?: string }[]> {
+  items: T[],
+): Promise<(Omit<T, "body" | "bodyFile"> & { body: string; bodyFile?: string })[]> {
   return Promise.all(
-    steps.map(async (s) => {
-      const resolved = await resolveBodyFile(skillDir, s);
-      return { id: s.id, title: s.title, ...resolved };
-    }),
-  );
-}
-
-// OrchestratorSection 配列の bodyFile を一括解決
-async function resolveSectionBodyFiles(
-  skillDir: string,
-  sections: {
-    heading: string;
-    body?: string;
-    bodyFile?: string;
-    position: SectionPosition;
-  }[],
-): Promise<LoadedOrchestratorSection[]> {
-  return Promise.all(
-    sections.map(async (s) => {
-      const resolved = await resolveBodyFile(skillDir, s);
-      return { heading: s.heading, ...resolved, position: s.position };
+    items.map(async (item) => {
+      const { body: _body, bodyFile: _bodyFile, ...rest } = item;
+      const resolved = await resolveBodyFile(skillDir, item);
+      return { ...rest, ...resolved } as Omit<T, "body" | "bodyFile"> & { body: string; bodyFile?: string };
     }),
   );
 }
@@ -386,25 +389,25 @@ export async function loadPluginDefinition(
         dependencies,
         steps: loadedSteps,
         sections: skill.sections
-          ? await resolveSectionBodyFiles(skillDir, skill.sections)
+          ? await resolveBodyFiles(skillDir, skill.sections)
           : undefined,
       };
 
       // skillType に応じた拡張
-      if (skill.skillType === "WORKER_WITH_SUB_AGENT" && skill.agentConfig) {
+      if (skill.skillType === "WORKER_WITH_SUB_AGENT") {
         const loaded: LoadedWorkerWithSubAgentSkill = {
           ...base,
           skillType: "WORKER_WITH_SUB_AGENT" as const,
           agentConfig: skill.agentConfig,
         };
         if (skill.workerSteps) {
-          loaded.workerSteps = await resolveStepBodyFiles(
+          loaded.workerSteps = await resolveBodyFiles(
             skillDir,
             skill.workerSteps,
           );
         }
         if (skill.workerSections) {
-          loaded.workerSections = await resolveSectionBodyFiles(
+          loaded.workerSections = await resolveBodyFiles(
             skillDir,
             skill.workerSections,
           );
@@ -413,41 +416,23 @@ export async function loadPluginDefinition(
       }
 
       if (skill.skillType === "WORKER_WITH_AGENT_TEAM") {
-        // teammates がある場合は teammates から agentTeamMembers を導出
-        if (skill.teammates) {
-          const loadedTeammates: LoadedTeammate[] = await Promise.all(
-            skill.teammates.map(async (t) => ({
-              name: t.name,
-              role: t.role,
-              steps: await resolveStepBodyFiles(skillDir, t.steps),
-              sortOrder: t.sortOrder,
-              communicationPattern: t.communicationPattern,
-            })),
-          );
-          const agentTeamMembers: AgentTeamMember[] = loadedTeammates.map(
-            (t) => ({
-              skillName: t.name,
-              sortOrder: t.sortOrder,
-            }),
-          );
-          return {
-            ...base,
-            skillType: "WORKER_WITH_AGENT_TEAM" as const,
-            agentTeamMembers,
-            teammates: loadedTeammates,
-            teamPrefix: skill.teamPrefix,
-            additionalLeaderSteps: skill.additionalLeaderSteps,
-            requiresUserApproval: skill.requiresUserApproval,
-          } satisfies LoadedWorkerWithAgentTeamSkill;
-        }
-        // 後方互換: agentTeamMembers を直接使用
-        if (skill.agentTeamMembers) {
-          return {
-            ...base,
-            skillType: "WORKER_WITH_AGENT_TEAM" as const,
-            agentTeamMembers: skill.agentTeamMembers,
-          } satisfies LoadedWorkerWithAgentTeamSkill;
-        }
+        const loadedTeammates: LoadedTeammate[] = await Promise.all(
+          skill.teammates.map(async (t) => ({
+            name: t.name,
+            role: t.role,
+            steps: await resolveBodyFiles(skillDir, t.steps),
+            sortOrder: t.sortOrder,
+            communicationPattern: t.communicationPattern,
+          })),
+        );
+        return {
+          ...base,
+          skillType: "WORKER_WITH_AGENT_TEAM" as const,
+          teammates: loadedTeammates,
+          teamPrefix: skill.teamPrefix,
+          additionalLeaderSteps: skill.additionalLeaderSteps,
+          requiresUserApproval: skill.requiresUserApproval,
+        } satisfies LoadedWorkerWithAgentTeamSkill;
       }
 
       return {
@@ -582,13 +567,13 @@ async function convertImportedStepsAsync(
       if (isImportedInlineStep(step)) {
         const loaded: LoadedInlineStep = {
           inline: step.inline,
-          steps: await resolveStepBodyFiles(skillDir, step.steps),
+          steps: await resolveBodyFiles(skillDir, step.steps),
         };
         if (step.input) loaded.input = step.input;
         if (step.output) loaded.output = step.output;
         return loaded;
       }
-      return step.name;
+      return { skillName: step.name };
     }),
   );
 }
@@ -643,9 +628,9 @@ function collectSkillNamesFromLoadedSteps(steps: LoadedStep[]): string[] {
       // インラインステップはスキル参照ではないのでスキップ
       continue;
     } else {
-      if (!seen.has(step)) {
-        seen.add(step);
-        result.push(step);
+      if (!seen.has(step.skillName)) {
+        seen.add(step.skillName);
+        result.push(step.skillName);
       }
     }
   }

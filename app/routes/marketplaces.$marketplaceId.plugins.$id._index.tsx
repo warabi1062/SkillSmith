@@ -2,6 +2,7 @@ import { data, Link } from "react-router";
 import { loadPluginDefinition } from "../lib/types/loader.server";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id._index";
 import PluginActionsSection from "../components/PluginActionsSection";
+import { getSkillTypeBadge } from "../lib/utils/skill-type";
 import * as path from "node:path";
 
 export function meta({ data: loaderData }: Route.MetaArgs) {
@@ -27,20 +28,6 @@ export async function loader({ params }: Route.LoaderArgs) {
     };
   } catch {
     throw data("Plugin not found", { status: 404 });
-  }
-}
-
-// スキルタイプに対応するバッジ表示ラベルを返す
-function getSkillTypeBadge(skillType: string): string {
-  switch (skillType) {
-    case "WORKER":
-      return "WORKER";
-    case "WORKER_WITH_SUB_AGENT":
-      return "WORKER + SUB AGENT";
-    case "WORKER_WITH_AGENT_TEAM":
-      return "WORKER + AGENT TEAM";
-    default:
-      return skillType;
   }
 }
 

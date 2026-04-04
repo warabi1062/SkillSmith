@@ -1,11 +1,12 @@
+import type { CliError } from "./errors";
 import type { GlobalOptions } from "./types";
 
 // 出力インターフェース
 export interface Output {
   // 成功時の出力。json モードなら { ok: true, data } を JSON 出力、通常モードなら人間向け出力
   success(data: unknown): void;
-  // エラー時の出力。json モードなら { ok: false, error } を JSON 出力、通常モードなら stderr 出力
-  error(message: string): void;
+  // エラー時の出力。json モードなら { ok: false, errors } を JSON 出力、通常モードなら stderr 出力
+  error(errors: CliError | CliError[]): void;
 }
 
 // 出力先を差し替え可能にするための依存注入用インターフェース
@@ -30,9 +31,10 @@ export function createOutput(
       success(data: unknown) {
         streams.stdout.write(`${JSON.stringify({ ok: true, data })}\n`);
       },
-      error(message: string) {
+      error(errors: CliError | CliError[]) {
+        const errorArray = Array.isArray(errors) ? errors : [errors];
         streams.stdout.write(
-          `${JSON.stringify({ ok: false, error: message })}\n`,
+          `${JSON.stringify({ ok: false, errors: errorArray })}\n`,
         );
       },
     };
@@ -44,8 +46,14 @@ export function createOutput(
         typeof data === "string" ? data : JSON.stringify(data, null, 2);
       streams.stdout.write(`${text}\n`);
     },
-    error(message: string) {
-      streams.stderr.write(`Error: ${message}\n`);
+    error(errors: CliError | CliError[]) {
+      const errorArray = Array.isArray(errors) ? errors : [errors];
+      for (const err of errorArray) {
+        const contextSuffix = err.context ? ` (${err.context})` : "";
+        streams.stderr.write(
+          `Error [${err.type}]: ${err.message}${contextSuffix}\n`,
+        );
+      }
     },
   };
 }

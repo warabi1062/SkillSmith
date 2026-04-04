@@ -13,7 +13,6 @@ export type {
   SupportFileRole,
   SupportFile,
   AgentConfig,
-  AgentTeamMember,
   TeammateStep,
   Teammate,
   SkillType,
@@ -32,7 +31,6 @@ export {
   isBranch,
   isInlineStep,
   collectSkillsFromSteps,
-  toAgentTeamMember,
 } from "./skill";
 
 // Plugin 関連
@@ -67,6 +65,9 @@ export type {
   LoadedStep,
   LoadedOrchestratorSection,
   LoadedTeammate,
+  LoadedDelegateStep,
   LoadedTeammateStep,
+  LoadedWorkerStep,
+  SkillRef,
 } from "./loader.server";
-export { isLoadedBranch, isLoadedInlineStep } from "./loader.server";
+export { isLoadedBranch, isLoadedInlineStep, isLoadedSkillRef } from "./loader.server";
