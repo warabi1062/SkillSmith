@@ -7,6 +7,14 @@
   "bin": {
     "skillsmith": "./cli/bin.cjs"
   },
+  "exports": {
+    "./types": "./app/lib/types/index.ts",
+    "./types/constants": "./app/lib/types/constants.ts",
+    "./generator": "./app/lib/generator/index.ts",
+    "./generator/types": "./app/lib/generator/types.ts",
+    "./exporter": "./app/lib/exporter.server.ts",
+    "./cli": "./cli/index.ts"
+  },
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build",
