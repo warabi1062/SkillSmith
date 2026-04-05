@@ -1,4 +1,4 @@
-import { isSafeFilename } from "../path-validation.server";
+import { isSafeFilename } from "../core/path-validation.server";
 import type { GeneratedFile } from "./types";
 
 // サポートファイルの入力データ

@@ -10,7 +10,7 @@ import path from "node:path";
 import { tmpdir } from "node:os";
 import type { LoadedPluginDefinition } from "./types/loaded";
 import { generatePlugin } from "./generator/index";
-import { isWithinDirectory } from "./path-validation.server";
+import { isWithinDirectory } from "./core/path-validation.server";
 
 export interface ExportOptions {
   targetDir: string;

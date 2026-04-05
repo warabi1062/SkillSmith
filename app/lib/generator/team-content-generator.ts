@@ -3,7 +3,7 @@
 import type { LoadedTeammate } from "../types/loaded";
 import { COMMUNICATION_PATTERNS } from "../types/constants";
 import type { ContentGeneratorInput } from "./content-generator-types";
-import { renderListSection } from "./section-utils";
+import { renderListSection } from "../core/section-utils";
 
 export interface TeamContentInput extends ContentGeneratorInput {
   teammates: LoadedTeammate[]; // チームメンバー定義

@@ -1,4 +1,4 @@
-import { parseStepPosition } from "../../lib/generator/section-utils";
+import { parseStepPosition } from "../../lib/core/section-utils";
 import type { SectionFields } from "./types";
 
 // --- ヘルパー関数 ---

@@ -11,7 +11,7 @@ import {
   parseStepPosition,
   renderListSection,
   renderSections,
-} from "./section-utils";
+} from "../core/section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 export interface WorkerContentInput extends ContentGeneratorInput {
