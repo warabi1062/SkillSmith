@@ -7,14 +7,6 @@
   "bin": {
     "skillsmith": "./cli/bin.cjs"
   },
-  "exports": {
-    "./types": "./app/lib/types/index.ts",
-    "./types/constants": "./app/lib/types/constants.ts",
-    "./generator": "./app/lib/generator/index.ts",
-    "./generator/types": "./app/lib/generator/types.ts",
-    "./exporter": "./app/lib/exporter.server.ts",
-    "./cli": "./cli/index.ts"
-  },
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build",
@@ -24,7 +16,6 @@
     "format": "biome format --write .",
     "format:check": "biome check --formatter-enabled=true --linter-enabled=false .",
     "cli": "tsx cli/index.ts",
-    "export": "rm -rf output && tsx cli/index.ts marketplace export marketplaces/claude-code-marketplace-warabi --output output",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
