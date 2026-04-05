@@ -14,6 +14,7 @@ import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
 import { resolveSkillContent } from "./content-resolver.server";
+import { generateHooks } from "./hooks-generator.server";
 
 export interface SkillComponentResult {
   files: GeneratedFile[];
@@ -74,6 +75,13 @@ export function generatePlugin(
     const result = generateSkillComponent(skill, skillMetas);
     files.push(...result.files);
     validationErrors.push(...result.errors);
+  }
+
+  // Generate hooks files
+  if (pluginDef.hooks) {
+    const hooksResult = generateHooks(pluginDef.hooks);
+    files.push(...hooksResult.files);
+    validationErrors.push(...hooksResult.errors);
   }
 
   // Build skill data for validator

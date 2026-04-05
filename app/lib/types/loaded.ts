@@ -129,9 +129,23 @@ export type LoadedSkillUnion =
   | LoadedWorkerWithSubAgentSkill
   | LoadedWorkerWithAgentTeamSkill;
 
+// ローダーが返すフックスクリプト型（content解決済み）
+export interface LoadedHookScript {
+  filename: string;
+  content: string;
+}
+
+// ローダーが返すフック定義型
+export interface LoadedHookDefinition {
+  description?: string;
+  hooks: Record<string, import("./plugin").HookEntry[]>;
+  scripts?: LoadedHookScript[];
+}
+
 // ローダーが返すプラグイン定義型
 export interface LoadedPluginDefinition {
   name: string;
   description?: string;
   skills: LoadedSkillUnion[];
+  hooks?: LoadedHookDefinition;
 }

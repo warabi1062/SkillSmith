@@ -26,7 +26,10 @@ import type {
   LoadedSkillUnion,
   LoadedPluginDefinition,
   LoadedTeammate,
+  LoadedHookDefinition,
+  LoadedHookScript,
 } from "../types/loaded";
+import type { HookDefinition, HookEntry, HookScript } from "../types/plugin";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
 
 // import 用の分岐ステップ型
@@ -129,6 +132,7 @@ interface ImportedPluginDefinition {
   name: string;
   description?: string;
   skills: ImportedSkill[];
+  hooks?: HookDefinition;
 }
 
 
@@ -305,10 +309,17 @@ export async function loadPluginDefinition(
     }),
   );
 
+  // hooks の読み込み（スクリプトファイルの内容を解決）
+  let loadedHooks: LoadedHookDefinition | undefined;
+  if (pluginDef.hooks) {
+    loadedHooks = await loadHookDefinition(dirPath, pluginDef.hooks);
+  }
+
   return {
     name: pluginDef.name,
     description: pluginDef.description,
     skills,
+    hooks: loadedHooks,
   };
 }
 
@@ -480,6 +491,41 @@ export async function loadMarketplaceDefinition(
   }
 
   return def;
+}
+
+// フック定義を読み込み、スクリプトファイルの内容を解決する
+async function loadHookDefinition(
+  pluginDir: string,
+  hookDef: HookDefinition,
+): Promise<LoadedHookDefinition> {
+  const loadedScripts: LoadedHookScript[] = [];
+
+  if (hookDef.scripts) {
+    for (const script of hookDef.scripts) {
+      let content: string;
+      if (script.contentFile) {
+        const filePath = path.join(pluginDir, script.contentFile);
+        try {
+          content = await fs.readFile(filePath, "utf-8");
+        } catch {
+          throw new Error(`フックスクリプトが見つかりません: ${filePath}`);
+        }
+      } else if (script.content) {
+        content = script.content;
+      } else {
+        throw new Error(
+          `フックスクリプト "${script.filename}" に content または contentFile が必要です`,
+        );
+      }
+      loadedScripts.push({ filename: script.filename, content });
+    }
+  }
+
+  return {
+    description: hookDef.description,
+    hooks: hookDef.hooks,
+    scripts: loadedScripts.length > 0 ? loadedScripts : undefined,
+  };
 }
 
 // LoadedStep[] から全スキル名を再帰的にフラット収集する（重複除去）
