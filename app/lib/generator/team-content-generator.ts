@@ -3,6 +3,7 @@
 import type { LoadedTeammate } from "../types/loaded";
 import { COMMUNICATION_PATTERNS } from "../types/constants";
 import type { ContentGeneratorInput } from "./content-generator-types";
+import { renderListSection } from "./section-utils";
 
 export interface TeamContentInput extends ContentGeneratorInput {
   teammates: LoadedTeammate[]; // チームメンバー定義
@@ -25,20 +26,10 @@ export function generateTeamContent(input: TeamContentInput): string {
   );
 
   // 入力セクション
-  if (input.input?.length) {
-    lines.push("");
-    lines.push("## 入力");
-    lines.push("");
-    lines.push(...input.input.map((item) => `- ${item}`));
-  }
+  lines.push(...renderListSection("入力", input.input));
 
   // 出力セクション
-  if (input.output?.length) {
-    lines.push("");
-    lines.push("## 出力");
-    lines.push("");
-    lines.push(...input.output.map((item) => `- ${item}`));
-  }
+  lines.push(...renderListSection("出力", input.output));
 
   // Teammate セクション
   lines.push("");

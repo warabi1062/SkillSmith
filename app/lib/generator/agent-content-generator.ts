@@ -4,6 +4,7 @@ import type { LoadedOrchestratorSection } from "../types/loaded";
 import {
   filterAllAfterSections,
   filterAllBeforeSections,
+  renderListSection,
   renderSections,
 } from "./section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
@@ -23,20 +24,10 @@ export function generateAgentContent(input: AgentContentInput): string {
   }
 
   // 入力セクション
-  if (input.input?.length) {
-    if (lines.length > 0) lines.push("");
-    lines.push("## 入力");
-    lines.push("");
-    lines.push(...input.input.map((item) => `- ${item}`));
-  }
+  lines.push(...renderListSection("入力", input.input));
 
   // 出力セクション
-  if (input.output?.length) {
-    if (lines.length > 0) lines.push("");
-    lines.push("## 出力");
-    lines.push("");
-    lines.push(...input.output.map((item) => `- ${item}`));
-  }
+  lines.push(...renderListSection("出力", input.output));
 
   // 実行セクション（対応するスキルへの委譲）
   if (lines.length > 0) lines.push("");
@@ -51,6 +42,11 @@ export function generateAgentContent(input: AgentContentInput): string {
   // after-steps セクション（after-step:* もafter-stepsと同じ位置に配置）
   const afterSections = filterAllAfterSections(input.sections ?? []);
   lines.push(...renderSections(afterSections));
+
+  // description がない場合、先頭の空行を除去する
+  while (lines.length > 0 && lines[0] === "") {
+    lines.shift();
+  }
 
   return lines.join("\n");
 }
