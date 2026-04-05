@@ -130,9 +130,11 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
           <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
             Input
           </label>
-          <div className="text-sm text-text-secondary leading-normal">
-            {data.input.map((item) => `- ${item}`).join("\n")}
-          </div>
+          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
+            {data.input.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -142,9 +144,11 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
           <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
             Output
           </label>
-          <div className="text-sm text-text-secondary leading-normal">
-            {data.output.map((item) => `- ${item}`).join("\n")}
-          </div>
+          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
+            {data.output.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       )}
 
