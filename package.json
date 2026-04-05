@@ -4,6 +4,14 @@
   "version": "1.0.0",
   "type": "module",
   "description": "",
+  "exports": {
+    "./types": "./app/lib/types/index.ts",
+    "./types/constants": "./app/lib/types/constants.ts",
+    "./generator": "./app/lib/generator/index.ts",
+    "./generator/types": "./app/lib/generator/types.ts",
+    "./exporter": "./app/lib/exporter.server.ts",
+    "./cli": "./cli/index.ts"
+  },
   "bin": {
     "skillsmith": "./cli/bin.cjs"
   },
