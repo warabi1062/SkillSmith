@@ -70,6 +70,7 @@ describe("generateTeamContent", () => {
 
     expect(result).toContain("### リーダー");
     expect(result).toContain("implementer / reviewer の進捗監視");
+    expect(result).toContain("全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す");
   });
 
   it("リーダーセクションにメンバー名の厳守指示が含まれる", () => {

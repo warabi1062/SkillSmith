@@ -48,6 +48,7 @@ export function generateTeamContent(input: TeamContentInput): string {
     `- 各メンバーは定義された名前（${memberNames.join(", ")}）と完全一致する name でスポーンすること。手順内のメンバー間通知はこの名前を前提としており、変更するとメッセージが届かなくなる`,
   );
   lines.push(`- ${memberNames.join(" / ")} の進捗監視`);
+  lines.push("- 定期的にメンバーの稼働状況を確認し、全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す");
   lines.push("- レビューサイクルが最大3回で打ち切られることの管理");
   lines.push("- 3回で解決しない場合はユーザーに報告して判断を仰ぐ");
 
