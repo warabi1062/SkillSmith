@@ -6,6 +6,7 @@ import {
   filterAllBeforeSections,
   filterBeforeStepsSections,
   filterOutOfRangeStepSections,
+  renderListSection,
 } from "../section-utils";
 
 // テスト用のセクションを生成するヘルパー
@@ -143,6 +144,22 @@ describe("filterAllAfterSections", () => {
 
   it("空配列を渡した場合は空配列を返す", () => {
     expect(filterAllAfterSections([])).toEqual([]);
+  });
+});
+
+describe("renderListSection", () => {
+  it("items が指定されている場合、先頭に空行を含むセクションを返す", () => {
+    const result = renderListSection("入力", ["タスクID", "ブランチ名"]);
+
+    expect(result).toEqual(["", "## 入力", "", "- タスクID", "- ブランチ名"]);
+  });
+
+  it("items が空配列の場合は空配列を返す", () => {
+    expect(renderListSection("入力", [])).toEqual([]);
+  });
+
+  it("items が undefined の場合は空配列を返す", () => {
+    expect(renderListSection("入力", undefined)).toEqual([]);
   });
 });
 

@@ -63,6 +63,16 @@ export function filterAllAfterSections(
   );
 }
 
+// リスト形式のセクションをレンダリングするヘルパー（入力・出力セクション等の共通処理）
+// items が空または undefined の場合は空配列を返す
+export function renderListSection(
+  heading: string,
+  items: string[] | undefined,
+): string[] {
+  if (!items?.length) return [];
+  return ["", `## ${heading}`, "", ...items.map((item) => `- ${item}`)];
+}
+
 // ステップ数の範囲外のindexを持つstep間セクションをフィルタリングする
 export function filterOutOfRangeStepSections(
   sections: LoadedOrchestratorSection[],
