@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveSkillContent } from "../content-resolver";
+import { resolveSkillContent } from "../content-resolver.server";
 import type { LoadedSkillUnion } from "../../types/loaded";
 import { SKILL_TYPES } from "../../types/constants";
 

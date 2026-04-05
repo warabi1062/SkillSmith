@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { generateTeamContent } from "../team-content-generator";
-import type { TeamContentInput } from "../team-content-generator";
+import { generateTeamContent } from "../team-content-generator.server";
+import type { TeamContentInput } from "../team-content-generator.server";
 import type { LoadedTeammate } from "../../types/loaded";
 import { COMMUNICATION_PATTERNS } from "../../types/constants";
 

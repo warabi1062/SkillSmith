@@ -1,6 +1,6 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "../core/frontmatter.server";
-import { generateAgentContent } from "./agent-content-generator";
+import { generateAgentContent } from "./agent-content-generator.server";
 import type { ToolRef, SectionPosition } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
 import { ERROR_CODES, FILE_PATHS } from "../types/constants";

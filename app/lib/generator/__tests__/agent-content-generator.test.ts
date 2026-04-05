@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { generateAgentContent } from "../agent-content-generator";
-import type { AgentContentInput } from "../agent-content-generator";
+import { generateAgentContent } from "../agent-content-generator.server";
+import type { AgentContentInput } from "../agent-content-generator.server";
 
 function makeInput(overrides?: Partial<AgentContentInput>): AgentContentInput {
   return {

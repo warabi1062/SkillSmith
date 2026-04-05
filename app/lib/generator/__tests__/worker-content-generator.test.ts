@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { generateWorkerContent } from "../worker-content-generator";
-import type { WorkerContentInput } from "../worker-content-generator";
+import { generateWorkerContent } from "../worker-content-generator.server";
+import type { WorkerContentInput } from "../worker-content-generator.server";
 
 function makeInput(
   overrides?: Partial<WorkerContentInput>,
