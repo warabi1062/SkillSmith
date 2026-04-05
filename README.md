@@ -18,6 +18,38 @@ TypeScript でスキル定義（`marketplaces/{marketplace}/plugins/{name}/plugi
 | `WorkerWithSubAgent` | Sub Agent を持つワーカー（SKILL.md + agent.md） |
 | `WorkerWithAgentTeam` | Agent Team を持つワーカー（SKILL.md + TeamCreate指示） |
 
+## アーキテクチャ
+
+### レイヤード構造
+
+`app/lib/` は依存方向を制御した4層構造:
+
+```
+app/lib/
+├── types/       # Layer 0: 型定義・定数（依存なし）
+├── core/        # Layer 1: 共通ロジック（types にのみ依存）
+├── loader/      # Layer 2a: プラグイン定義の動的読み込み
+├── generator/   # Layer 2b: Markdown ファイル生成パイプライン
+├── exporter/    # Layer 3: ファイルシステムへの書き出し
+└── utils/       # 横断: UI用ユーティリティ
+```
+
+依存ルール: 上位レイヤーのみが下位レイヤーに依存する。loader と generator は相互依存しない。
+
+### 生成パイプライン（generator/）
+
+generator/ 内は2つの責務に分かれる:
+
+- **Content Generator**: スキル型ごとに Markdown 本文を組み立てる純粋関数（orchestrator / worker / agent / team）
+- **Serializer**: frontmatter + content を結合し GeneratedFile を生成する（skill-generator / agent-generator 等）
+
+`content-resolver.server.ts` がスキル型に応じた content 生成の分岐を一元管理し、`plugin-generator.server.ts` が全体のオーケストレーションを担当する。
+
+### ファイル命名規約
+
+- `.server.ts`: サーバー専用モジュール（React Router がクライアントバンドルから除外）
+- `.ts`: クライアント/サーバー両用（型定義、UI から参照されるロジック）
+
 ## セットアップ
 
 ```bash
