@@ -7,7 +7,7 @@ vi.mock("../../../app/lib/loader", () => ({
   loadMarketplaceDefinition: vi.fn(),
 }));
 
-vi.mock("../../../app/lib/exporter.server", () => ({
+vi.mock("../../../app/lib/exporter/exporter.server", () => ({
   exportPlugin: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ import {
   loadPluginDefinition,
   loadMarketplaceDefinition,
 } from "../../../app/lib/loader";
-import { exportPlugin } from "../../../app/lib/exporter.server";
+import { exportPlugin } from "../../../app/lib/exporter/exporter.server";
 import { generateMarketplaceJson } from "../../../app/lib/generator/marketplace-json-generator.server";
 import { mkdir, writeFile } from "node:fs/promises";
 

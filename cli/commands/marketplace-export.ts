@@ -7,7 +7,7 @@ import {
   loadPluginDefinition,
   loadMarketplaceDefinition,
 } from "../../app/lib/loader";
-import { exportPlugin } from "../../app/lib/exporter.server";
+import { exportPlugin } from "../../app/lib/exporter/exporter.server";
 import { generateMarketplaceJson } from "../../app/lib/generator/marketplace-json-generator.server";
 
 export function registerMarketplaceExportCommand(): void {
