@@ -1,5 +1,8 @@
 import { data, Outlet } from "react-router";
-import { loadPluginDefinition } from "../lib/types/loader.server";
+import {
+  loadPluginDefinition,
+  getMarketplacesBaseDir,
+} from "../lib/types/loader.server";
 import type { LoadedPluginDefinition } from "../lib/types/loaded";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id";
 import * as path from "node:path";
@@ -13,8 +16,7 @@ export type PluginOutletContext = {
 
 export async function loader({ params }: Route.LoaderArgs) {
   const dirPath = path.join(
-    process.cwd(),
-    "marketplaces",
+    getMarketplacesBaseDir(),
     params.marketplaceId,
     "plugins",
     params.id,

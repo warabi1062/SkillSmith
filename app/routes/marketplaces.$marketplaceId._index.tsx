@@ -1,5 +1,8 @@
 import { Link } from "react-router";
-import { loadAllPluginMetaInMarketplace } from "../lib/types/loader.server";
+import {
+  loadAllPluginMetaInMarketplace,
+  getMarketplacesBaseDir,
+} from "../lib/types/loader.server";
 import type { Route } from "./+types/marketplaces.$marketplaceId._index";
 import * as path from "node:path";
 
@@ -9,8 +12,7 @@ export function meta({ params }: Route.MetaArgs) {
 
 export async function loader({ params }: Route.LoaderArgs) {
   const marketplaceDirPath = path.join(
-    process.cwd(),
-    "marketplaces",
+    getMarketplacesBaseDir(),
     params.marketplaceId,
   );
   const plugins = await loadAllPluginMetaInMarketplace(marketplaceDirPath);

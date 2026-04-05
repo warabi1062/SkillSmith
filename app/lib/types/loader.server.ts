@@ -365,12 +365,18 @@ async function loadMarketplaceMeta(
   }
 }
 
-// 全 marketplace のメタデータを取得する（一覧表示用）
-// SKILLSMITH_MARKETPLACES_DIR 環境変数で探索ディレクトリを上書き可能
-export async function loadAllMarketplaceMeta(): Promise<MarketplaceMeta[]> {
-  const marketplacesDir =
+// マーケットプレース探索ベースディレクトリを取得する
+// SKILLSMITH_MARKETPLACES_DIR 環境変数で上書き可能
+export function getMarketplacesBaseDir(): string {
+  return (
     process.env.SKILLSMITH_MARKETPLACES_DIR ??
-    path.join(process.cwd(), "marketplaces");
+    path.join(process.cwd(), "marketplaces")
+  );
+}
+
+// 全 marketplace のメタデータを取得する（一覧表示用）
+export async function loadAllMarketplaceMeta(): Promise<MarketplaceMeta[]> {
+  const marketplacesDir = getMarketplacesBaseDir();
   let dirEntries: string[] = [];
   try {
     const entries = await fs.readdir(marketplacesDir, { withFileTypes: true });
