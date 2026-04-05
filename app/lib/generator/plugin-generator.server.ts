@@ -17,9 +17,37 @@ import { generateOrchestratorContent } from "./orchestrator-content-generator";
 import { generateTeamContent } from "./team-content-generator";
 import { generateWorkerContent } from "./worker-content-generator";
 
+export interface SkillComponentResult {
+  files: GeneratedFile[];
+  errors: GenerationValidationError[];
+}
+
 export interface GeneratePluginResult {
   plugin: GeneratedPlugin;
   skills: ValidatorSkillData[];
+}
+
+/**
+ * スキル一覧からメタ情報マップを構築する。
+ * オーケストレーターのスキル参照ステップで入出力を表示するために使う。
+ */
+export function buildSkillMetas(
+  skills: LoadedSkillUnion[],
+): Map<string, { input?: string[]; output?: string[]; hasAgent?: boolean }> {
+  const skillMetas = new Map<
+    string,
+    { input?: string[]; output?: string[]; hasAgent?: boolean }
+  >();
+  for (const skill of skills) {
+    if (skill.input || skill.output || skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
+      skillMetas.set(skill.name, {
+        input: skill.input,
+        output: skill.output,
+        hasAgent: skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT,
+      });
+    }
+  }
+  return skillMetas;
 }
 
 /**
@@ -41,24 +69,13 @@ export function generatePlugin(
     files.push(pluginJson.file);
   }
 
-  // skillMetas マップを構築（オーケストレーターのスキル参照ステップで入出力を表示するため）
-  const skillMetas = new Map<
-    string,
-    { input?: string[]; output?: string[]; hasAgent?: boolean }
-  >();
-  for (const skill of pluginDef.skills) {
-    if (skill.input || skill.output || skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
-      skillMetas.set(skill.name, {
-        input: skill.input,
-        output: skill.output,
-        hasAgent: skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT,
-      });
-    }
-  }
+  const skillMetas = buildSkillMetas(pluginDef.skills);
 
   // Generate skill files
   for (const skill of pluginDef.skills) {
-    generateSkillComponent(skill, files, validationErrors, skillMetas);
+    const result = generateSkillComponent(skill, skillMetas);
+    files.push(...result.files);
+    validationErrors.push(...result.errors);
   }
 
   // Build skill data for validator
@@ -78,12 +95,12 @@ export function generatePlugin(
   };
 }
 
-function generateSkillComponent(
+export function generateSkillComponent(
   skill: LoadedSkillUnion,
-  files: GeneratedFile[],
-  errors: GenerationValidationError[],
   skillMetas: Map<string, { input?: string[]; output?: string[] }>,
-): void {
+): SkillComponentResult {
+  const files: GeneratedFile[] = [];
+  const errors: GenerationValidationError[] = [];
   // EntryPoint スキルの場合は steps + sections + メタデータから content を自動生成する
   let content = skill.content;
   if (skill.skillType === SKILL_TYPES.ENTRY_POINT && skill.steps) {
@@ -175,4 +192,5 @@ function generateSkillComponent(
     }
   }
 
+  return { files, errors };
 }
