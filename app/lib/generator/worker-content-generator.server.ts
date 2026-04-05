@@ -12,7 +12,7 @@ import {
   renderListSection,
   renderSections,
 } from "../core/section-utils";
-import type { ContentGeneratorInput } from "./content-generator-types";
+import type { ContentGeneratorInput } from "./types";
 
 export interface WorkerContentInput extends ContentGeneratorInput {
   workerSteps: LoadedWorkerStep[]; // 手順ステップ

@@ -13,7 +13,7 @@ import {
   parseStepPosition,
   renderSections,
 } from "../core/section-utils";
-import type { ContentGeneratorInput } from "./content-generator-types";
+import type { ContentGeneratorInput } from "./types";
 
 
 // スキル参照ステップで表示するメタ情報
