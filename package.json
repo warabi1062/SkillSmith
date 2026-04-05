@@ -16,7 +16,7 @@
     "skillsmith": "./cli/bin.cjs"
   },
   "scripts": {
-    "dev": "react-router dev",
+    "dev": "tsx scripts/dev.ts",
     "build": "react-router build",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "tsc --noEmit",
