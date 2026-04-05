@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  generateAgentMd,
-  generateAgentTeamMd,
-} from "../agent-generator.server";
+import { generateAgentMd } from "../agent-generator.server";
+import { generateAgentTeamMd } from "../agent-team-generator.server";
 import { tool } from "../../types/skill";
 import type { ToolRef } from "../../types/skill";
 import { ERROR_CODES, FILE_PATHS } from "../../types/constants";
