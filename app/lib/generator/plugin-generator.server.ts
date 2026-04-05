@@ -13,9 +13,7 @@ import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
-import { generateOrchestratorContent } from "./orchestrator-content-generator";
-import { generateTeamContent } from "./team-content-generator";
-import { generateWorkerContent } from "./worker-content-generator";
+import { resolveSkillContent } from "./content-resolver";
 
 export interface SkillComponentResult {
   files: GeneratedFile[];
@@ -101,41 +99,7 @@ export function generateSkillComponent(
 ): SkillComponentResult {
   const files: GeneratedFile[] = [];
   const errors: GenerationValidationError[] = [];
-  // EntryPoint スキルの場合は steps + sections + メタデータから content を自動生成する
-  let content = skill.content;
-  if (skill.skillType === SKILL_TYPES.ENTRY_POINT && skill.steps) {
-    content = generateOrchestratorContent({
-      steps: skill.steps,
-      sections: skill.sections,
-      skillMetas,
-    });
-  }
-
-  // WorkerWithSubAgent の場合は workerSteps + workerSections から content を自動生成する
-  if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSteps) {
-    content = generateWorkerContent({
-      input: skill.input,
-      output: skill.output,
-      workerSteps: skill.workerSteps,
-      workerSections: skill.workerSections,
-    });
-  }
-
-  // WorkerWithAgentTeam の場合は teammates から content を自動生成する
-  if (
-    skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
-    skill.teammates &&
-    skill.teamPrefix
-  ) {
-    content = generateTeamContent({
-      input: skill.input,
-      output: skill.output,
-      teammates: skill.teammates,
-      teamPrefix: skill.teamPrefix,
-      additionalLeaderSteps: skill.additionalLeaderSteps,
-      requiresUserApproval: skill.requiresUserApproval,
-    });
-  }
+  const content = resolveSkillContent(skill, skillMetas);
 
   const result = generateSkillMd({
     skillName: skill.name,

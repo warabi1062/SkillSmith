@@ -1,0 +1,52 @@
+// スキル種別に応じた content 生成分岐を一元化するリゾルバ
+
+import type { LoadedSkillUnion } from "../types/loaded";
+import { SKILL_TYPES } from "../types/constants";
+import { generateOrchestratorContent } from "./orchestrator-content-generator";
+import type { SkillMeta } from "./orchestrator-content-generator";
+import { generateWorkerContent } from "./worker-content-generator";
+import { generateTeamContent } from "./team-content-generator";
+
+/**
+ * スキル種別に応じて content を解決する。
+ * 構造化定義（steps, workerSteps, teammates）がある場合は自動生成し、
+ * なければスキル定義の content をそのまま返す。
+ */
+export function resolveSkillContent(
+  skill: LoadedSkillUnion,
+  skillMetas?: Map<string, SkillMeta>,
+): string {
+  if (skill.skillType === SKILL_TYPES.ENTRY_POINT && skill.steps) {
+    return generateOrchestratorContent({
+      steps: skill.steps,
+      sections: skill.sections,
+      skillMetas,
+    });
+  }
+
+  if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSteps) {
+    return generateWorkerContent({
+      input: skill.input,
+      output: skill.output,
+      workerSteps: skill.workerSteps,
+      workerSections: skill.workerSections,
+    });
+  }
+
+  if (
+    skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
+    skill.teammates &&
+    skill.teamPrefix
+  ) {
+    return generateTeamContent({
+      input: skill.input,
+      output: skill.output,
+      teammates: skill.teammates,
+      teamPrefix: skill.teamPrefix,
+      additionalLeaderSteps: skill.additionalLeaderSteps,
+      requiresUserApproval: skill.requiresUserApproval,
+    });
+  }
+
+  return skill.content;
+}
