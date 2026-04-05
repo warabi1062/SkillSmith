@@ -1,5 +1,5 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
-import { serializeFrontmatter } from "./frontmatter.server";
+import { serializeFrontmatter } from "../core/frontmatter.server";
 import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 // --- Agent Team MD生成 ---

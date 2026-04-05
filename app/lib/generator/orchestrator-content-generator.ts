@@ -12,7 +12,7 @@ import {
   filterOutOfRangeStepSections,
   parseStepPosition,
   renderSections,
-} from "./section-utils";
+} from "../core/section-utils";
 import type { ContentGeneratorInput } from "./content-generator-types";
 
 

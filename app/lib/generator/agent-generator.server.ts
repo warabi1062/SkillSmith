@@ -1,5 +1,5 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
-import { serializeFrontmatter } from "./frontmatter.server";
+import { serializeFrontmatter } from "../core/frontmatter.server";
 import { generateAgentContent } from "./agent-content-generator";
 import type { ToolRef, SectionPosition } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
