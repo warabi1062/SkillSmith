@@ -1,7 +1,7 @@
 // --- 生成パイプライン ---
 export { generatePlugin, buildSkillMetas } from "./plugin-generator.server";
 export type { GeneratePluginResult, SkillComponentResult } from "./plugin-generator.server";
-export { resolveSkillContent } from "./content-resolver";
+export { resolveSkillContent } from "./content-resolver.server";
 export { generateMarketplaceJson } from "./marketplace-json-generator.server";
 export type { GenerateMarketplaceJsonResult } from "./marketplace-json-generator.server";
 

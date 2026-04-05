@@ -2,10 +2,10 @@
 
 import type { LoadedSkillUnion } from "../types/loaded";
 import { SKILL_TYPES } from "../types/constants";
-import { generateOrchestratorContent } from "./orchestrator-content-generator";
-import type { SkillMeta } from "./orchestrator-content-generator";
-import { generateWorkerContent } from "./worker-content-generator";
-import { generateTeamContent } from "./team-content-generator";
+import { generateOrchestratorContent } from "./orchestrator-content-generator.server";
+import type { SkillMeta } from "./orchestrator-content-generator.server";
+import { generateWorkerContent } from "./worker-content-generator.server";
+import { generateTeamContent } from "./team-content-generator.server";
 
 /**
  * スキル種別に応じて content を解決する。

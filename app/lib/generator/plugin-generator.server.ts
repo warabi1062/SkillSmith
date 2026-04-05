@@ -13,7 +13,7 @@ import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd } from "./agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
-import { resolveSkillContent } from "./content-resolver";
+import { resolveSkillContent } from "./content-resolver.server";
 
 export interface SkillComponentResult {
   files: GeneratedFile[];
