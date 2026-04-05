@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-const { execFileSync } = require("child_process");
+const { execSync } = require("child_process");
 const path = require("path");
 
-const tsxBin = path.resolve(__dirname, "..", "node_modules", ".bin", "tsx");
 const entry = path.resolve(__dirname, "index.ts");
+const args = process.argv.slice(2).join(" ");
 
 try {
-  execFileSync(tsxBin, [entry, ...process.argv.slice(2)], {
-    cwd: path.resolve(__dirname, ".."),
+  execSync(`npx tsx ${entry} ${args}`, {
     stdio: "inherit",
   });
 } catch (e) {
