@@ -3,7 +3,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 import { loadPluginDefinition } from "../loader.server";
-import { SKILL_TYPES } from "../constants";
+import { SKILL_TYPES } from "../../types/constants";
 
 let tmpDir: string;
 

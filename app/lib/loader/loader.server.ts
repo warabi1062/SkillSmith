@@ -12,9 +12,9 @@ import type {
   OrchestratorSection,
   SectionPosition,
   CommunicationPattern,
-} from "./skill";
-import { SKILL_TYPES } from "./constants";
-import type { MarketplaceDefinition } from "./marketplace";
+} from "../types/skill";
+import { SKILL_TYPES } from "../types/constants";
+import type { MarketplaceDefinition } from "../types/marketplace";
 import type {
   LoadedSupportFile,
   LoadedBranch,
@@ -26,8 +26,8 @@ import type {
   LoadedSkillUnion,
   LoadedPluginDefinition,
   LoadedTeammate,
-} from "./loaded";
-import { isLoadedBranch, isLoadedInlineStep } from "./loaded";
+} from "../types/loaded";
+import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
 
 // import 用の分岐ステップ型
 interface ImportedBranch {

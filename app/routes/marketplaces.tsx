@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { loadAllMarketplaceMeta } from "../lib/types/loader.server";
+import { loadAllMarketplaceMeta } from "../lib/loader";
 import type { Route } from "./+types/marketplaces";
 
 export function meta(_args: Route.MetaArgs) {

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, route } from "../../router";
 
 // モック設定
-vi.mock("../../../app/lib/types/loader.server", () => ({
+vi.mock("../../../app/lib/loader", () => ({
   loadPluginDefinition: vi.fn(),
   loadMarketplaceDefinition: vi.fn(),
 }));
@@ -24,7 +24,7 @@ import { registerMarketplaceExportCommand } from "../marketplace-export";
 import {
   loadPluginDefinition,
   loadMarketplaceDefinition,
-} from "../../../app/lib/types/loader.server";
+} from "../../../app/lib/loader";
 import { exportPlugin } from "../../../app/lib/exporter.server";
 import { generateMarketplaceJson } from "../../../app/lib/generator/marketplace-json-generator.server";
 import { mkdir, writeFile } from "node:fs/promises";

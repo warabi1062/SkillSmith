@@ -6,7 +6,7 @@ import { parseCommandArgs } from "../command-utils";
 import {
   loadPluginDefinition,
   loadMarketplaceDefinition,
-} from "../../app/lib/types/loader.server";
+} from "../../app/lib/loader";
 import { exportPlugin } from "../../app/lib/exporter.server";
 import { generateMarketplaceJson } from "../../app/lib/generator/marketplace-json-generator.server";
 

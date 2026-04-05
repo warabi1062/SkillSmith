@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, route } from "../../router";
 
 // モック設定
-vi.mock("../../../app/lib/types/loader.server", () => ({
+vi.mock("../../../app/lib/loader", () => ({
   loadPluginDefinition: vi.fn(),
 }));
 
@@ -15,7 +15,7 @@ vi.mock("node:fs/promises", () => ({
 }));
 
 import { registerExportCommand } from "../export";
-import { loadPluginDefinition } from "../../../app/lib/types/loader.server";
+import { loadPluginDefinition } from "../../../app/lib/loader";
 import { exportPlugin } from "../../../app/lib/exporter.server";
 import { access } from "node:fs/promises";
 
