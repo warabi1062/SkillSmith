@@ -18,11 +18,11 @@ function makeEntryPointSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkill
 function makeWorkerWithSubAgentSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkillUnion {
   return {
     name: "my-worker",
-    content: "# Worker",
     files: [],
     skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
     input: ["task ID"],
     output: ["result file"],
+    workerSteps: [{ id: "1", title: "実行", body: "実行する" }],
     agentConfig: {
       tools: [tool("Read")],
       content: "Agent content",

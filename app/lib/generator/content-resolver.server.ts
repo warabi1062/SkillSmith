@@ -24,7 +24,7 @@ export function resolveSkillContent(
     });
   }
 
-  if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSteps) {
+  if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
     return generateWorkerContent({
       input: skill.input,
       output: skill.output,

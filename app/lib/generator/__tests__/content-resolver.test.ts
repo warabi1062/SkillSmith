@@ -20,8 +20,10 @@ function makeWorkerSkill(overrides?: Record<string, unknown>): LoadedSkillUnion 
   return {
     name: "my-worker",
     skillType: SKILL_TYPES.WORKER,
-    content: "Worker content",
     files: [],
+    input: ["タスクID"],
+    output: ["結果ファイル"],
+    workerSteps: [{ id: "1", title: "実行", body: "実行する" }],
     ...overrides,
   } as LoadedSkillUnion;
 }
@@ -70,40 +72,19 @@ describe("resolveSkillContent", () => {
     expect(result).toBe("手動content");
   });
 
-  it("WorkerSkill で workerSteps がある場合はworker contentを自動生成する", () => {
-    const result = resolveSkillContent(
-      makeWorkerSkill({
-        input: ["タスクID"],
-        output: ["結果ファイル"],
-        workerSteps: [{ id: "1", title: "実行", body: "実行する" }],
-      }),
-    );
+  it("WorkerSkill で workerSteps からworker contentを自動生成する", () => {
+    const result = resolveSkillContent(makeWorkerSkill());
 
     expect(result).toContain("## 手順");
     expect(result).toContain("## 入力");
-    expect(result).not.toBe("Worker content");
   });
 
-  it("WorkerSkill で workerSteps がない場合はスキル定義の content をそのまま返す", () => {
-    const result = resolveSkillContent(makeWorkerSkill());
-
-    expect(result).toBe("Worker content");
-  });
-
-  it("WorkerWithSubAgent で workerSteps がある場合はworker contentを自動生成する", () => {
+  it("WorkerWithSubAgent で workerSteps からworker contentを自動生成する", () => {
     const result = resolveSkillContent(makeWorkerWithSubAgent());
 
     expect(result).toContain("## 手順");
     expect(result).toContain("## 入力");
     expect(result).not.toBe("手動content");
-  });
-
-  it("WorkerWithSubAgent で workerSteps がない場合はスキル定義の content をそのまま返す", () => {
-    const result = resolveSkillContent(
-      makeWorkerWithSubAgent({ workerSteps: undefined }),
-    );
-
-    expect(result).toBe("手動content");
   });
 
   it("WorkerWithAgentTeam で teammates と teamPrefix がある場合はteam contentを自動生成する", () => {
