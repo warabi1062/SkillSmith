@@ -18,13 +18,6 @@ export const COMMUNICATION_PATTERNS = {
   RESPONDER: "responder",
 } as const;
 
-export const SECTION_POSITIONS = {
-  BEFORE_STEPS: "before-steps",
-  AFTER_STEPS: "after-steps",
-  BEFORE_STEP_PREFIX: "before-step:",
-  AFTER_STEP_PREFIX: "after-step:",
-} as const;
-
 export const SUPPORT_FILE_ROLES = {
   TEMPLATE: "TEMPLATE",
   REFERENCE: "REFERENCE",

@@ -4,7 +4,6 @@ import {
   SKILL_TYPES,
   TOOL_REF_TYPES,
   COMMUNICATION_PATTERNS,
-  SECTION_POSITIONS,
   SUPPORT_FILE_ROLES,
 } from "./constants";
 
@@ -122,18 +121,10 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
   return result;
 }
 
-// セクションの配置位置（before-steps/after-stepsに加え、特定ステップの前後に配置可能）
-export type SectionPosition =
-  | typeof SECTION_POSITIONS.BEFORE_STEPS
-  | typeof SECTION_POSITIONS.AFTER_STEPS
-  | `${typeof SECTION_POSITIONS.BEFORE_STEP_PREFIX}${number}`
-  | `${typeof SECTION_POSITIONS.AFTER_STEP_PREFIX}${number}`;
-
-// オーケストレーターのセクション（steps前後またはstep間に配置する追加コンテンツ）
-export interface OrchestratorSection {
+// セクション（heading + body のシンプル構造）
+export interface Section {
   heading: string;
-  body?: string; // セクション本文
-  position: SectionPosition;
+  body?: string;
 }
 
 // サポートファイルの役割
@@ -147,13 +138,14 @@ export interface SupportFile {
 }
 
 // Agent設定（WorkerWithSubAgent用）
-// content 直書きまたは description + sections から自動生成
+// content 直書きまたは description + beforeSections/afterSections から自動生成
 export interface AgentConfig {
   model?: string;
   tools?: ToolRef[];
   content: string; // agent.md 本文（後方互換）
   description?: string; // 構造化時: agentの説明
-  sections?: OrchestratorSection[]; // 構造化時: 追加セクション
+  beforeSections?: Section[]; // 実行セクション前の追加セクション
+  afterSections?: Section[]; // 実行セクション後の追加セクション
 }
 
 // チームメンバーのコミュニケーションパターン（discriminated union）
@@ -187,7 +179,8 @@ type SkillOptionalFields = Pick<
   | "files"
   | "dependencies"
   | "steps"
-  | "sections"
+  | "beforeSections"
+  | "afterSections"
 >;
 
 // 基底クラス
@@ -207,7 +200,8 @@ export abstract class Skill {
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
   steps?: Step[]; // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
-  sections?: OrchestratorSection[]; // オーケストレーター用: steps前後の追加セクション
+  beforeSections?: Section[]; // steps/手順の前に配置する追加セクション
+  afterSections?: Section[]; // steps/手順の後に配置する追加セクション
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(init: Partial<SkillOptionalFields>): void {
@@ -222,7 +216,8 @@ export abstract class Skill {
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
     if (init.steps !== undefined) this.steps = init.steps;
-    if (init.sections !== undefined) this.sections = init.sections;
+    if (init.beforeSections !== undefined) this.beforeSections = init.beforeSections;
+    if (init.afterSections !== undefined) this.afterSections = init.afterSections;
   }
 }
 
@@ -249,44 +244,39 @@ export class EntryPointSkill extends Skill {
 }
 
 // Worker スキル: オーケストレーターの1ステップを担当するスキル
-// workerSteps + workerSections から content を自動生成
+// workerSteps + beforeSections/afterSections から content を自動生成
 export class WorkerSkill extends Skill {
   readonly skillType = SKILL_TYPES.WORKER;
   readonly name: string;
   readonly content: string = "";
   readonly workerSteps: DelegateStep[];
-  readonly workerSections?: OrchestratorSection[];
 
   constructor(
     init: {
       name: string;
       workerSteps: DelegateStep[];
-      workerSections?: OrchestratorSection[];
     } & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
     this.workerSteps = init.workerSteps;
-    this.workerSections = init.workerSections;
     this.assignOptionalFields(init);
   }
 }
 
 // WorkerWithSubAgent スキル: Sub Agent を伴う Worker スキル
-// workerSteps + workerSections から content を自動生成
+// workerSteps + beforeSections/afterSections から content を自動生成
 export class WorkerWithSubAgent extends Skill {
   readonly skillType = SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   readonly name: string;
   readonly content: string = "";
   readonly agentConfig: AgentConfig;
   readonly workerSteps: DelegateStep[];
-  readonly workerSections?: OrchestratorSection[];
 
   constructor(
     init: {
       name: string;
       workerSteps: DelegateStep[];
-      workerSections?: OrchestratorSection[];
     } & {
       agentConfig: AgentConfig;
     } & Partial<SkillOptionalFields>,
@@ -295,7 +285,6 @@ export class WorkerWithSubAgent extends Skill {
     this.name = init.name;
     this.agentConfig = init.agentConfig;
     this.workerSteps = init.workerSteps;
-    this.workerSections = init.workerSections;
     this.assignOptionalFields(init);
   }
 }

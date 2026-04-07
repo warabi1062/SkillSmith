@@ -19,7 +19,7 @@ export type {
   Branch,
   InlineStep,
   Step,
-  OrchestratorSection,
+  Section,
   CommunicationPattern,
 } from "./skill";
 export {
@@ -54,7 +54,7 @@ export type {
   LoadedBranch,
   LoadedInlineStep,
   LoadedStep,
-  LoadedOrchestratorSection,
+  LoadedSection,
   LoadedTeammate,
   LoadedDelegateStep,
   LoadedWorkerStep,
