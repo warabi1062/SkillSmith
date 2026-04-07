@@ -1,5 +1,5 @@
 // EntryPointSkill サンプル: Branch, ネストBranch, InlineStep, InlineStep input/output,
-// セクション全位置, SupportFile全ロール
+// beforeSections/afterSections, SupportFile全ロール
 import { EntryPointSkill } from "../../../../../../app/lib/types";
 import { SUPPORT_FILE_ROLES } from "../../../../../../app/lib/types/constants";
 import analyzeDiffSkill from "../analyze-diff/skill";
@@ -32,27 +32,18 @@ const reviewPrSkill = new EntryPointSkill({
       sortOrder: 3,
     },
   ],
-  // [5] セクション位置バリエーション: before-steps, after-steps, before-step:N, after-step:N
-  sections: [
+  // beforeSections: 作業詳細の前に配置
+  beforeSections: [
     {
       heading: "レビュー基準",
       body: "コードの品質・セキュリティ・パフォーマンスの3軸でレビューを行う。",
-      position: "before-steps",
     },
-    {
-      heading: "分析後の補足",
-      body: "差分分析の結果を踏まえ、以下の分岐判定に進む。",
-      position: "after-step:0",
-    },
-    {
-      heading: "分岐前の確認事項",
-      body: "深刻度判定が正しいことを確認してから分岐に進むこと。",
-      position: "before-step:1",
-    },
+  ],
+  // afterSections: 補足説明として配置
+  afterSections: [
     {
       heading: "エスカレーションポリシー",
       body: "- セキュリティ脆弱性が発見された場合、即座にセキュリティチームに報告する\n- パフォーマンス劣化が予測される変更は、ベンチマーク結果を添えてレビューを依頼する\n- 破壊的変更（breaking change）は、マイグレーションガイドの作成を必須とする",
-      position: "after-steps",
     },
   ],
   steps: [

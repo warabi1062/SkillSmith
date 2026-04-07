@@ -1,4 +1,4 @@
-// WorkerWithSubAgent サンプル: AgentConfig description + sections（自動生成モード）, model
+// WorkerWithSubAgent サンプル: AgentConfig description + beforeSections（自動生成モード）, model
 import {
   WorkerWithSubAgent,
   tool,
@@ -24,7 +24,7 @@ const suggestFixSkill = new WorkerWithSubAgent({
       body: "各指摘に対して具体的なコード修正案を作成する。修正前後の差分を明示すること。",
     },
   ],
-  // [7] AgentConfig description + sections による自動生成モード
+  // [7] AgentConfig description + beforeSections による自動生成モード
   // [15] AgentConfig.model
   agentConfig: {
     content: "",
@@ -32,11 +32,10 @@ const suggestFixSkill = new WorkerWithSubAgent({
       "コードレビューの指摘に基づいて修正案を提案する専門Agent。コードの品質を維持しつつ、最小限の変更で問題を解決する。",
     model: "sonnet",
     tools: [tool("Read"), tool("Write"), tool("Edit"), bash("git diff *")],
-    sections: [
+    beforeSections: [
       {
         heading: "修正パターン",
         body: "- バグ修正: 根本原因を特定し、副作用のない修正を提案する\n- リファクタリング: 既存の動作を変えずに構造を改善する\n- セキュリティ修正: OWASP Top 10 に準拠した対策を提案する",
-        position: "before-steps",
       },
     ],
   },
