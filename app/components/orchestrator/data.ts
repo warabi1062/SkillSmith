@@ -64,7 +64,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ? skill.agentConfig : null;
 
   const workerStepsData =
-    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSteps
+    (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT || skill.skillType === SKILL_TYPES.WORKER) && skill.workerSteps
       ? skill.workerSteps.map((s) => ({
           id: s.id,
           title: s.title,
@@ -74,7 +74,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       : null;
 
   const workerSectionsData =
-    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && skill.workerSections
+    (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT || skill.skillType === SKILL_TYPES.WORKER) && skill.workerSections
       ? skill.workerSections.map((s) => ({
           heading: s.heading,
           body: s.body,

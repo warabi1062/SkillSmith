@@ -11,7 +11,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
   const showAgentConfig =
     data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && data.agentConfig;
   const showWorkerSteps =
-    data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT &&
+    (data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT || data.skillType === SKILL_TYPES.WORKER) &&
     data.workerSteps &&
     data.workerSteps.length > 0;
   const showTeammates =
