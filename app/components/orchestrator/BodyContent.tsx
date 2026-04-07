@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { BodyFilePanel } from "./BodyFilePanel";
+import { SupportFilePanel } from "./SupportFilePanel";
 import type { SupportFileMap } from "./types";
 
 // body テキスト内をMarkdownレンダリングするコンポーネント
@@ -44,7 +44,7 @@ export function BodyContent({
         </Markdown>
       </div>
       {openFile && supportFiles?.[openFile] !== undefined && (
-        <BodyFilePanel
+        <SupportFilePanel
           filename={openFile}
           content={supportFiles[openFile]}
           onClose={() => setOpenFile(null)}

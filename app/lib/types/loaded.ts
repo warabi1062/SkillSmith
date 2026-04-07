@@ -37,7 +37,6 @@ export interface LoadedInlineStep {
 export interface LoadedOrchestratorSection {
   heading: string;
   body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
   position: SectionPosition;
 }
 
@@ -93,7 +92,6 @@ export interface LoadedDelegateStep {
   id: string;
   title: string;
   body: string;
-  bodyFile?: string; // 外部ファイル由来の場合にファイル名を保持（UI表示用）
 }
 
 // LoadedDelegateStep の用途別エイリアス

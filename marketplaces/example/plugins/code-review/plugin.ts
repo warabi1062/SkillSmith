@@ -8,7 +8,7 @@ import fixTeamSkill from "./skills/fix-team/skill";
 const plugin: PluginDefinition = {
   name: "code-review",
   description:
-    "PRレビューの自動化プラグイン（Branch・InlineStep・bodyFile・SupportFile・Hooks等の動作確認用）",
+    "PRレビューの自動化プラグイン（Branch・InlineStep・SupportFile・Hooks等の動作確認用）",
   category: "example",
   skills: [reviewPrSkill, analyzeDiffSkill, suggestFixSkill, fixTeamSkill],
   // [10] Hooks（HookDefinition + scripts）

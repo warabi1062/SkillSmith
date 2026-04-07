@@ -2,8 +2,8 @@ import { createPortal } from "react-dom";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-// bodyFile の内容をサイドパネルで表示するコンポーネント（Portalで body 直下にレンダリング）
-export function BodyFilePanel({
+// サポートファイルの内容をサイドパネルで表示するコンポーネント（Portalで body 直下にレンダリング）
+export function SupportFilePanel({
   filename,
   content,
   onClose,

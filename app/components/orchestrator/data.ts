@@ -41,7 +41,6 @@ export function convertStep(step: LoadedStep): StepFields {
       id: s.id,
       title: s.title,
       body: s.body,
-      bodyFile: s.bodyFile,
     })),
   };
 }
@@ -52,7 +51,6 @@ export function convertSections(
   return sections.map((s) => ({
     heading: s.heading,
     body: s.body,
-    bodyFile: s.bodyFile,
     position: s.position,
   }));
 }
@@ -69,7 +67,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
           id: s.id,
           title: s.title,
           body: s.body,
-          bodyFile: s.bodyFile,
         }))
       : null;
 
@@ -78,7 +75,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? skill.workerSections.map((s) => ({
           heading: s.heading,
           body: s.body,
-          bodyFile: s.bodyFile,
           position: s.position,
         }))
       : null;
@@ -92,7 +88,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
             id: s.id,
             title: s.title,
             body: s.body,
-            bodyFile: s.bodyFile,
           })),
           communicationPattern: t.communicationPattern,
         }))

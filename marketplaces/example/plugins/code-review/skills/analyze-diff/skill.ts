@@ -1,4 +1,4 @@
-// WorkerSkill サンプル: workerSections, bodyFile, mcp(), disableModelInvocation, userInvocable オーバーライド
+// WorkerSkill サンプル: workerSections, mcp(), disableModelInvocation, userInvocable オーバーライド
 import { WorkerSkill, tool, mcp } from "../../../../../../app/lib/types";
 
 const analyzeDiffSkill = new WorkerSkill({
@@ -30,8 +30,7 @@ const analyzeDiffSkill = new WorkerSkill({
     {
       id: "2",
       title: "詳細分析",
-      // [9] bodyFile による外部ファイル読み込み
-      bodyFile: "diff-analysis-guide.md",
+      body: "変更されたファイルごとに以下の観点で分析する:\n\n1. **変更の意図**: コミットメッセージとコードの整合性\n2. **影響範囲**: 変更が他のモジュールに与える影響\n3. **リスク評価**: セキュリティ・パフォーマンス・互換性の観点",
     },
     {
       id: "3",

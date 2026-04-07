@@ -17,19 +17,14 @@ export interface AgentConfigFields {
   sections?: AgentConfigSectionFields[];
 }
 
-// ステップの共通bodyフィールド
-interface BodyFields {
-  body: string;
-  bodyFile?: string;
-}
-
 // サポートファイルの内容マップ（filename → content）
 export type SupportFileMap = Record<string, string>;
 
 // Workerのステップ（構造化表示用）
-export interface WorkerStepFields extends BodyFields {
+export interface WorkerStepFields {
   id: string;
   title: string;
+  body: string;
 }
 
 export interface TeammateFields {
@@ -40,9 +35,10 @@ export interface TeammateFields {
 }
 
 // インラインステップのサブステップ（構造化表示用）
-interface InlineSubStepFields extends BodyFields {
+interface InlineSubStepFields {
   id: string;
   title: string;
+  body: string;
 }
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
@@ -55,8 +51,9 @@ export interface StepFields {
 }
 
 // オーケストレーターのセクション
-export interface SectionFields extends BodyFields {
+export interface SectionFields {
   heading: string;
+  body: string;
   position: SectionPosition;
 }
 

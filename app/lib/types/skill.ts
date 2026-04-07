@@ -71,8 +71,7 @@ export interface Branch {
 export interface DelegateStep {
   id: string; // ステップID（例: "1", "2a", "I1"）
   title: string; // ステップ名（例: "ベースブランチ判定"）
-  body?: string; // ステップの説明本文（bodyFile と排他）
-  bodyFile?: string; // 説明本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
+  body?: string; // ステップの説明本文
 }
 
 // インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
@@ -133,8 +132,7 @@ export type SectionPosition =
 // オーケストレーターのセクション（steps前後またはstep間に配置する追加コンテンツ）
 export interface OrchestratorSection {
   heading: string;
-  body?: string; // セクション本文（bodyFile と排他）
-  bodyFile?: string; // 本文を外部mdファイルから読み込む（スキルディレクトリからの相対パス）
+  body?: string; // セクション本文
   position: SectionPosition;
 }
 
