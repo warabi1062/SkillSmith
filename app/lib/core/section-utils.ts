@@ -1,23 +1,10 @@
 // セクション関連の共有ユーティリティ（orchestrator / worker で共通利用）
 
-import type { LoadedOrchestratorSection } from "../types/loaded";
-import { SECTION_POSITIONS } from "../types/constants";
-
-// セクションのpositionを解析するヘルパー
-export function parseStepPosition(
-  position: string,
-): { type: "before-step" | "after-step"; index: number } | null {
-  const match = position.match(/^(before-step|after-step):(\d+)$/);
-  if (!match) return null;
-  return {
-    type: match[1] as "before-step" | "after-step",
-    index: Number(match[2]),
-  };
-}
+import type { LoadedSection } from "../types/loaded";
 
 // セクションをレンダリングするヘルパー
 export function renderSections(
-  sections: LoadedOrchestratorSection[],
+  sections: LoadedSection[],
 ): string[] {
   const lines: string[] = [];
   for (const section of sections) {
@@ -29,40 +16,6 @@ export function renderSections(
   return lines;
 }
 
-// before-steps ポジションのセクションをフィルタリングする
-export function filterBeforeStepsSections(
-  sections: LoadedOrchestratorSection[],
-): LoadedOrchestratorSection[] {
-  return sections.filter((s) => s.position === SECTION_POSITIONS.BEFORE_STEPS);
-}
-
-// after-steps ポジションのセクションをフィルタリングする
-export function filterAfterStepsSections(
-  sections: LoadedOrchestratorSection[],
-): LoadedOrchestratorSection[] {
-  return sections.filter((s) => s.position === SECTION_POSITIONS.AFTER_STEPS);
-}
-
-// before-steps と before-step:* の両方をフィルタリングする（Agent用: stepsがないためまとめて配置）
-export function filterAllBeforeSections(
-  sections: LoadedOrchestratorSection[],
-): LoadedOrchestratorSection[] {
-  return sections.filter(
-    (s) =>
-      s.position === SECTION_POSITIONS.BEFORE_STEPS || s.position.startsWith(SECTION_POSITIONS.BEFORE_STEP_PREFIX),
-  );
-}
-
-// after-steps と after-step:* の両方をフィルタリングする（Agent用: stepsがないためまとめて配置）
-export function filterAllAfterSections(
-  sections: LoadedOrchestratorSection[],
-): LoadedOrchestratorSection[] {
-  return sections.filter(
-    (s) =>
-      s.position === SECTION_POSITIONS.AFTER_STEPS || s.position.startsWith(SECTION_POSITIONS.AFTER_STEP_PREFIX),
-  );
-}
-
 // リスト形式のセクションをレンダリングするヘルパー（入力・出力セクション等の共通処理）
 // items が空または undefined の場合は空配列を返す
 export function renderListSection(
@@ -71,16 +24,4 @@ export function renderListSection(
 ): string[] {
   if (!items?.length) return [];
   return ["", `## ${heading}`, "", ...items.map((item) => `- ${item}`)];
-}
-
-// ステップ数の範囲外のindexを持つstep間セクションをフィルタリングする
-export function filterOutOfRangeStepSections(
-  sections: LoadedOrchestratorSection[],
-  stepCount: number,
-): LoadedOrchestratorSection[] {
-  return sections.filter((s) => {
-    const parsed = parseStepPosition(s.position);
-    if (!parsed) return false;
-    return parsed.index < 0 || parsed.index >= stepCount;
-  });
 }
