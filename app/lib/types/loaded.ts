@@ -84,6 +84,8 @@ interface LoadedSkillBase {
 // ENTRY_POINT / WORKER の場合
 export interface LoadedSkill extends LoadedSkillBase {
   skillType: typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER;
+  workerSteps?: LoadedWorkerStep[];
+  workerSections?: LoadedOrchestratorSection[];
 }
 
 // ローダー用の委譲ステップ型（Worker / Teammate 共通）

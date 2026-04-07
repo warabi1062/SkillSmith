@@ -93,6 +93,8 @@ interface ImportedSkillBase {
 // ENTRY_POINT / WORKER の場合
 interface ImportedSimpleSkill extends ImportedSkillBase {
   skillType: typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER;
+  workerSteps?: DelegateStep[];
+  workerSections?: OrchestratorSection[];
 }
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
@@ -302,10 +304,17 @@ export async function loadPluginDefinition(
         } satisfies LoadedWorkerWithAgentTeamSkill;
       }
 
-      return {
+      const loaded: LoadedSkill = {
         ...base,
         skillType: skill.skillType as typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER,
-      } satisfies LoadedSkill;
+      };
+      if (skill.workerSteps) {
+        loaded.workerSteps = await resolveBodyFiles(skillDir, skill.workerSteps);
+      }
+      if (skill.workerSections) {
+        loaded.workerSections = await resolveBodyFiles(skillDir, skill.workerSections);
+      }
+      return loaded satisfies LoadedSkill;
     }),
   );
 
