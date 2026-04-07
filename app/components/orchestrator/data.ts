@@ -3,7 +3,7 @@ import type {
   LoadedStep,
   LoadedBranch,
   LoadedInlineStep,
-  LoadedOrchestratorSection,
+  LoadedSection,
 } from "../../lib/types/loaded";
 import { isLoadedSkillRef } from "../../lib/types/loaded";
 import { serializeToolRef } from "../../lib/types/skill";
@@ -46,12 +46,11 @@ export function convertStep(step: LoadedStep): StepFields {
 }
 
 export function convertSections(
-  sections: LoadedOrchestratorSection[],
+  sections: LoadedSection[],
 ): SectionFields[] {
   return sections.map((s) => ({
     heading: s.heading,
     body: s.body,
-    position: s.position,
   }));
 }
 
@@ -67,15 +66,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
           id: s.id,
           title: s.title,
           body: s.body,
-        }))
-      : null;
-
-  const workerSectionsData =
-    (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT || skill.skillType === SKILL_TYPES.WORKER) && skill.workerSections
-      ? skill.workerSections.map((s) => ({
-          heading: s.heading,
-          body: s.body,
-          position: s.position,
         }))
       : null;
 
@@ -104,8 +94,11 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? skill.allowedTools.map(serializeToolRef)
       : null,
     steps: skill.steps ? skill.steps.map(convertStep) : null,
-    sections: skill.sections
-      ? convertSections(skill.sections as LoadedOrchestratorSection[])
+    beforeSections: skill.beforeSections
+      ? convertSections(skill.beforeSections)
+      : null,
+    afterSections: skill.afterSections
+      ? convertSections(skill.afterSections)
       : null,
     agentConfig: agentConfigData
       ? {
@@ -113,15 +106,17 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
           tools: (agentConfigData.tools ?? []).map(serializeToolRef),
           agentContent: agentConfigData.content ?? "",
           description: agentConfigData.description,
-          sections: agentConfigData.sections?.map((s) => ({
+          beforeSections: agentConfigData.beforeSections?.map((s) => ({
             heading: s.heading,
             body: s.body ?? "",
-            position: s.position,
+          })),
+          afterSections: agentConfigData.afterSections?.map((s) => ({
+            heading: s.heading,
+            body: s.body ?? "",
           })),
         }
       : null,
     workerSteps: workerStepsData,
-    workerSections: workerSectionsData,
     teammates: teammatesData,
     supportFiles: Object.fromEntries(
       (skill.files ?? []).map((f) => [f.filename, f.content]),
