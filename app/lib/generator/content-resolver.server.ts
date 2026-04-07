@@ -33,6 +33,15 @@ export function resolveSkillContent(
     });
   }
 
+  if (skill.skillType === SKILL_TYPES.WORKER && skill.workerSteps) {
+    return generateWorkerContent({
+      input: skill.input,
+      output: skill.output,
+      workerSteps: skill.workerSteps,
+      workerSections: skill.workerSections,
+    });
+  }
+
   if (
     skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
     skill.teammates &&

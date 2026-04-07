@@ -16,12 +16,13 @@ function makeEntryPointSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkill
   } as LoadedSkillUnion;
 }
 
-function makeWorkerSkill(): LoadedSkillUnion {
+function makeWorkerSkill(overrides?: Record<string, unknown>): LoadedSkillUnion {
   return {
     name: "my-worker",
     skillType: SKILL_TYPES.WORKER,
     content: "Worker content",
     files: [],
+    ...overrides,
   } as LoadedSkillUnion;
 }
 
@@ -69,7 +70,21 @@ describe("resolveSkillContent", () => {
     expect(result).toBe("手動content");
   });
 
-  it("Worker の場合はスキル定義の content をそのまま返す", () => {
+  it("WorkerSkill で workerSteps がある場合はworker contentを自動生成する", () => {
+    const result = resolveSkillContent(
+      makeWorkerSkill({
+        input: ["タスクID"],
+        output: ["結果ファイル"],
+        workerSteps: [{ id: "1", title: "実行", body: "実行する" }],
+      }),
+    );
+
+    expect(result).toContain("## 手順");
+    expect(result).toContain("## 入力");
+    expect(result).not.toBe("Worker content");
+  });
+
+  it("WorkerSkill で workerSteps がない場合はスキル定義の content をそのまま返す", () => {
     const result = resolveSkillContent(makeWorkerSkill());
 
     expect(result).toBe("Worker content");
