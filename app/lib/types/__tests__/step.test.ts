@@ -9,7 +9,7 @@ import type { Branch, InlineStep, Step } from "../skill";
 
 // テスト用ヘルパー: 最小の WorkerSkill を作成
 function worker(name: string): WorkerSkill {
-  return new WorkerSkill({ name, content: `# ${name}` });
+  return new WorkerSkill({ name, workerSteps: [{ id: "1", title: name }] });
 }
 
 describe("isBranch", () => {

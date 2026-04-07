@@ -57,5 +57,5 @@ export function resolveSkillContent(
     });
   }
 
-  return skill.content;
+  return skill.content ?? "";
 }

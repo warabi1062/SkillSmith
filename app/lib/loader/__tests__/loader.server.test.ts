@@ -171,7 +171,7 @@ describe("loadPluginDefinition", () => {
             {
               skillType: "WORKER_WITH_SUB_AGENT",
               name: "agent-skill",
-              content: "# Agent Skill",
+              workerSteps: [{ id: "1", title: "テスト手順" }],
               agentConfig: {
                 model: "sonnet",
                 tools: ["Read", "Write"],

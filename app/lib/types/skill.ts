@@ -251,77 +251,53 @@ export class EntryPointSkill extends Skill {
 }
 
 // Worker スキル: オーケストレーターの1ステップを担当するスキル
-// content 直書きまたは workerSteps + workerSections から自動生成
+// workerSteps + workerSections から content を自動生成
 export class WorkerSkill extends Skill {
   readonly skillType = SKILL_TYPES.WORKER;
   readonly name: string;
-  readonly content: string;
-  readonly workerSteps?: DelegateStep[];
+  readonly content: string = "";
+  readonly workerSteps: DelegateStep[];
   readonly workerSections?: OrchestratorSection[];
 
   constructor(
-    init: (
-      | {
-          name: string;
-          content: string;
-          workerSteps?: never;
-          workerSections?: never;
-        }
-      | {
-          name: string;
-          workerSteps: DelegateStep[];
-          workerSections?: OrchestratorSection[];
-          content?: string;
-        }
-    ) & Partial<SkillOptionalFields>,
+    init: {
+      name: string;
+      workerSteps: DelegateStep[];
+      workerSections?: OrchestratorSection[];
+    } & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
-    this.content = init.content ?? "";
-    if ("workerSteps" in init && init.workerSteps) {
-      this.workerSteps = init.workerSteps;
-      this.workerSections = init.workerSections;
-    }
+    this.workerSteps = init.workerSteps;
+    this.workerSections = init.workerSections;
     this.assignOptionalFields(init);
   }
 }
 
 // WorkerWithSubAgent スキル: Sub Agent を伴う Worker スキル
-// content 直書きまたは workerSteps + workerSections から自動生成
+// workerSteps + workerSections から content を自動生成
 export class WorkerWithSubAgent extends Skill {
   readonly skillType = SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   readonly name: string;
-  readonly content: string;
+  readonly content: string = "";
   readonly agentConfig: AgentConfig;
-  readonly workerSteps?: DelegateStep[]; // 構造化時: Workerの手順ステップ
-  readonly workerSections?: OrchestratorSection[]; // 構造化時: steps前後の追加セクション
+  readonly workerSteps: DelegateStep[];
+  readonly workerSections?: OrchestratorSection[];
 
   constructor(
-    init: (
-      | {
-          name: string;
-          content: string;
-          workerSteps?: never;
-          workerSections?: never;
-        }
-      | {
-          name: string;
-          workerSteps: DelegateStep[];
-          workerSections?: OrchestratorSection[];
-          content?: string;
-        }
-    ) & {
+    init: {
+      name: string;
+      workerSteps: DelegateStep[];
+      workerSections?: OrchestratorSection[];
+    } & {
       agentConfig: AgentConfig;
     } & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
-    this.content = init.content ?? "";
     this.agentConfig = init.agentConfig;
-    if ("workerSteps" in init && init.workerSteps) {
-      this.workerSteps = init.workerSteps;
-      this.workerSections = init.workerSections;
-    }
+    this.workerSteps = init.workerSteps;
+    this.workerSections = init.workerSections;
     this.assignOptionalFields(init);
   }
 }

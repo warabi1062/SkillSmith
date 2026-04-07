@@ -67,7 +67,7 @@ export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
 interface LoadedSkillBase {
   name: string;
   displayName?: string;
-  content: string;
+  content?: string; // EntryPointとAgentTeamで使用。Worker系はworkerStepsから自動生成
   description?: string;
   input?: string[];
   output?: string[];
@@ -103,7 +103,7 @@ export type LoadedWorkerStep = LoadedDelegateStep;
 export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
   skillType: typeof SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   agentConfig: AgentConfig;
-  workerSteps?: LoadedWorkerStep[];
+  workerSteps: LoadedWorkerStep[];
   workerSections?: LoadedOrchestratorSection[];
 }
 

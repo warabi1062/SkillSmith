@@ -101,7 +101,7 @@ interface ImportedSimpleSkill extends ImportedSkillBase {
 interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
   skillType: typeof SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   agentConfig: AgentConfig;
-  workerSteps?: DelegateStep[];
+  workerSteps: DelegateStep[];
   workerSections?: OrchestratorSection[];
 }
 
@@ -268,13 +268,8 @@ export async function loadPluginDefinition(
           ...base,
           skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
           agentConfig: skill.agentConfig,
+          workerSteps: await resolveBodyFiles(skillDir, skill.workerSteps),
         };
-        if (skill.workerSteps) {
-          loaded.workerSteps = await resolveBodyFiles(
-            skillDir,
-            skill.workerSteps,
-          );
-        }
         if (skill.workerSections) {
           loaded.workerSections = await resolveBodyFiles(
             skillDir,
