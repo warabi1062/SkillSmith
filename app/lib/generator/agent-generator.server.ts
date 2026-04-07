@@ -1,7 +1,7 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "../core/frontmatter.server";
 import { generateAgentContent } from "./agent-content-generator.server";
-import type { ToolRef, SectionPosition } from "../types/skill";
+import type { ToolRef, Section } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
 import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
@@ -11,7 +11,8 @@ interface AgentConfigData {
   tools?: ToolRef[];
   content: string;
   description?: string;
-  sections?: { heading: string; body?: string; position: SectionPosition }[];
+  beforeSections?: Section[];
+  afterSections?: Section[];
 }
 
 // スキル設定の情報
@@ -39,18 +40,21 @@ export function generateAgentMd(component: AgentComponentData): {
   // Agent名はskillConfig.nameから導出: "{name}-agent"
   const agentName = `${skillConfig.name}-agent`;
 
-  // AgentConfig に description または sections がある場合は content を自動生成
+  // AgentConfig に description または beforeSections/afterSections がある場合は content を自動生成
   let agentContent = config.content;
-  if (config.description || config.sections) {
+  if (config.description || config.beforeSections || config.afterSections) {
     agentContent = generateAgentContent({
       skillName: skillConfig.name,
       description: config.description,
       input: skillConfig.input,
       output: skillConfig.output,
-      sections: config.sections?.map((s) => ({
+      beforeSections: config.beforeSections?.map((s) => ({
         heading: s.heading,
         body: s.body ?? "",
-        position: s.position,
+      })),
+      afterSections: config.afterSections?.map((s) => ({
+        heading: s.heading,
+        body: s.body ?? "",
       })),
     });
   }

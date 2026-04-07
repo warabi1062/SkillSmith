@@ -1,14 +1,10 @@
-// WorkerWithSubAgent の content を workerSteps + workerSections から自動生成する
+// Worker の content を workerSteps + beforeSections/afterSections から自動生成する
 
 import type {
   LoadedWorkerStep,
-  LoadedOrchestratorSection,
+  LoadedSection,
 } from "../types/loaded";
 import {
-  filterAfterStepsSections,
-  filterBeforeStepsSections,
-  filterOutOfRangeStepSections,
-  parseStepPosition,
   renderListSection,
   renderSections,
 } from "../core/section-utils";
@@ -16,7 +12,8 @@ import type { ContentGeneratorInput } from "./types";
 
 export interface WorkerContentInput extends ContentGeneratorInput {
   workerSteps: LoadedWorkerStep[]; // 手順ステップ
-  workerSections?: LoadedOrchestratorSection[]; // steps前後の追加セクション
+  beforeSections?: LoadedSection[]; // 手順前の追加セクション
+  afterSections?: LoadedSection[]; // 手順後の追加セクション
 }
 
 export function generateWorkerContent(input: WorkerContentInput): string {
@@ -25,18 +22,12 @@ export function generateWorkerContent(input: WorkerContentInput): string {
   // 入力セクション
   lines.push(...renderListSection("入力", input.input));
 
-  // before-steps セクション
-  const beforeSections = filterBeforeStepsSections(
-    input.workerSections ?? [],
-  );
-  for (const section of beforeSections) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
+  // beforeSections
+  if (input.beforeSections && input.beforeSections.length > 0) {
+    lines.push(...renderSections(input.beforeSections));
   }
 
-  // 手順セクション（step間セクション含む）
+  // 手順セクション
   const stepCount = input.workerSteps.length;
   if (stepCount > 0) {
     lines.push("");
@@ -44,43 +35,21 @@ export function generateWorkerContent(input: WorkerContentInput): string {
 
     for (let i = 0; i < stepCount; i++) {
       const step = input.workerSteps[i];
-
-      // before-step:{i} セクション
-      const beforeStepSections =
-        input.workerSections?.filter((s) => {
-          const parsed = parseStepPosition(s.position);
-          return parsed?.type === "before-step" && parsed.index === i;
-        }) ?? [];
-      lines.push(...renderSections(beforeStepSections));
-
       lines.push("");
       lines.push(`### ${step.id}. ${step.title}`);
       lines.push("");
       lines.push(step.body);
-
-      // after-step:{i} セクション
-      const afterStepSections =
-        input.workerSections?.filter((s) => {
-          const parsed = parseStepPosition(s.position);
-          return parsed?.type === "after-step" && parsed.index === i;
-        }) ?? [];
-      lines.push(...renderSections(afterStepSections));
     }
   }
 
-  // after-steps セクション + 範囲外indexのフォールバック
-  const afterSections = filterAfterStepsSections(
-    input.workerSections ?? [],
-  );
-  const outOfRange = filterOutOfRangeStepSections(
-    input.workerSections ?? [],
-    stepCount,
-  );
-  for (const section of [...afterSections, ...outOfRange]) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
+  // afterSections
+  if (input.afterSections && input.afterSections.length > 0) {
+    for (const section of input.afterSections) {
+      lines.push("");
+      lines.push(`## ${section.heading}`);
+      lines.push("");
+      lines.push(section.body);
+    }
   }
 
   // 出力セクション

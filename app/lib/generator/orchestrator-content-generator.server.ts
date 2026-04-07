@@ -1,16 +1,12 @@
-// オーケストレーター（EntryPointSkill）の content を steps + sections + メタデータから自動生成する
+// オーケストレーター（EntryPointSkill）の content を steps + beforeSections/afterSections + メタデータから自動生成する
 
 import type {
   LoadedStep,
-  LoadedOrchestratorSection,
+  LoadedSection,
 } from "../types/loaded";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loaded";
 import {
-  filterAfterStepsSections,
-  filterBeforeStepsSections,
-  filterOutOfRangeStepSections,
-  parseStepPosition,
   renderSections,
 } from "../core/section-utils";
 import type { ContentGeneratorInput } from "./types";
@@ -25,7 +21,8 @@ export interface SkillMeta {
 
 export interface OrchestratorContentInput extends ContentGeneratorInput {
   steps: LoadedStep[];
-  sections?: LoadedOrchestratorSection[];
+  beforeSections?: LoadedSection[];
+  afterSections?: LoadedSection[];
   // スキル名 → メタ情報のマップ（スキル参照ステップの入出力表示用）
   skillMetas?: Map<string, SkillMeta>;
 }
@@ -41,26 +38,15 @@ function renderSteps(
   options: {
     prefix?: string;
     headingLevel: number;
-    sections?: LoadedOrchestratorSection[];
     skillMetas?: Map<string, SkillMeta>;
   },
 ): string {
-  const { prefix, headingLevel, sections, skillMetas } = options;
+  const { prefix, headingLevel, skillMetas } = options;
   const lines: string[] = [];
-  const hasSections = sections != null && sections.length > 0;
 
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i];
     const stepNumber = prefix ? `${prefix}-${i + 1}` : `${i + 1}`;
-
-    // before-step セクション（sectionsがある場合のみ）
-    if (hasSections) {
-      const beforeStepSections = sections.filter((s) => {
-        const parsed = parseStepPosition(s.position);
-        return parsed?.type === "before-step" && parsed.index === i;
-      });
-      lines.push(...renderSections(beforeStepSections));
-    }
 
     // ステップ間の空行
     if (i > 0) lines.push("");
@@ -73,15 +59,6 @@ function renderSteps(
     } else {
       lines.push(renderSkillRef(step.skillName, stepNumber, headingLevel, skillMetas));
     }
-
-    // after-step セクション（sectionsがある場合のみ）
-    if (hasSections) {
-      const afterStepSections = sections.filter((s) => {
-        const parsed = parseStepPosition(s.position);
-        return parsed?.type === "after-step" && parsed.index === i;
-      });
-      lines.push(...renderSections(afterStepSections));
-    }
   }
 
   return lines.join("\n");
@@ -92,47 +69,29 @@ export function generateOrchestratorContent(
 ): string {
   const lines: string[] = [];
 
-  // before-steps セクション
-  const beforeSections = filterBeforeStepsSections(input.sections ?? []);
-  for (const section of beforeSections) {
-    lines.push("");
-    lines.push(`## ${section.heading}`);
-    lines.push("");
-    lines.push(section.body);
+  // beforeSections
+  if (input.beforeSections && input.beforeSections.length > 0) {
+    lines.push(...renderSections(input.beforeSections));
   }
 
-  // ステップ（step間セクション含む）
+  // ステップ
   if (input.steps.length > 0) {
     lines.push("");
     lines.push("## 作業詳細");
     lines.push("");
 
-    // step間セクションを抽出
-    const stepSections =
-      input.sections?.filter((s) => {
-        const parsed = parseStepPosition(s.position);
-        return parsed !== null;
-      }) ?? [];
-
     const stepLines = renderSteps(input.steps, {
       headingLevel: 3,
-      sections: stepSections,
       skillMetas: input.skillMetas,
     });
     lines.push(stepLines);
   }
 
-  // after-steps セクション + 範囲外indexのフォールバック → 「## 補足説明」の下にまとめる
-  const afterSections = filterAfterStepsSections(input.sections ?? []);
-  const outOfRange = filterOutOfRangeStepSections(
-    input.sections ?? [],
-    input.steps.length,
-  );
-  const supplementSections = [...afterSections, ...outOfRange];
-  if (supplementSections.length > 0) {
+  // afterSections → 「## 補足説明」の下にまとめる
+  if (input.afterSections && input.afterSections.length > 0) {
     lines.push("");
     lines.push("## 補足説明");
-    for (const section of supplementSections) {
+    for (const section of input.afterSections) {
       lines.push("");
       lines.push(`### ${section.heading}`);
       lines.push("");
@@ -188,7 +147,7 @@ function renderInlineStep(
 
   // 構造化された手順ステップ（説明が先）
   if (step.steps.length === 1) {
-    // ステップが1つだけの場合はフラットに展開
+    // ステップが1つだけの場合はフラットに展開される
     lines.push("");
     lines.push(step.steps[0].body);
   } else if (step.steps.length > 1) {
