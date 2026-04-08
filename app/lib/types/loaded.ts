@@ -64,7 +64,6 @@ export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
 interface LoadedSkillBase {
   name: string;
   displayName?: string;
-  content?: string; // EntryPointとAgentTeamで使用。Worker系はworkerStepsから自動生成
   description?: string;
   input?: string[];
   output?: string[];

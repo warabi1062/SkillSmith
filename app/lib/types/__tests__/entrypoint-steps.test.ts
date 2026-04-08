@@ -44,14 +44,4 @@ describe("EntryPointSkill の steps → dependencies 自動導出", () => {
     expect(skill.dependencies?.map((d) => d.name)).toEqual(["s1"]);
   });
 
-  it("content はデフォルトで空文字になる", () => {
-    const s1 = worker("s1");
-
-    const skill = new EntryPointSkill({
-      name: "test",
-      steps: [s1],
-    });
-
-    expect(skill.content).toBe("");
-  });
 });

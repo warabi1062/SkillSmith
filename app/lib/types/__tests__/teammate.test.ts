@@ -24,7 +24,6 @@ describe("WorkerWithAgentTeam", () => {
     expect(skill.teammates[0].name).toBe("worker");
     expect(skill.teammates[1].name).toBe("reviewer");
     expect(skill.teamPrefix).toBe("test");
-    expect(skill.content).toBe("");
   });
 
   it("requiresUserApproval フラグが設定される", () => {

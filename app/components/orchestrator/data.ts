@@ -87,7 +87,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     name: skill.name,
     description: skill.description ?? null,
     skillType: skill.skillType,
-    content: skill.content ?? "",
     input: skill.input ?? [],
     output: skill.output ?? [],
     allowedTools: skill.allowedTools

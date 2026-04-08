@@ -76,7 +76,6 @@ describe("loadPluginDefinition", () => {
     const greet = result.skills.find((s) => s.name === "greet");
     expect(greet).toBeDefined();
     expect(greet!.skillType).toBe(SKILL_TYPES.ENTRY_POINT);
-    expect(greet!.content).toBe("# Greet");
     expect(greet!.description).toBe("挨拶スキル");
     // ローダーが Skill[] から string[] に変換していることを検証
     expect(greet!.dependencies).toEqual(["worker-a"]);
@@ -257,29 +256,6 @@ describe("loadPluginDefinition", () => {
 
     // dependencies が steps から自動導出されていること
     expect(orch!.dependencies).toEqual(["worker-a", "worker-b", "worker-c"]);
-  });
-
-  it("ENTRY_POINT スキルの content 未指定時に空文字に補完されること", async () => {
-    await createPluginStructure({
-      pluginTs: `
-        const plugin = {
-          name: "test-plugin",
-          skills: [
-            {
-              skillType: "ENTRY_POINT",
-              name: "no-content",
-              steps: [],
-            },
-          ],
-        };
-        export default plugin;
-      `,
-    });
-
-    const result = await loadPluginDefinition(tmpDir);
-    const skill = result.skills.find((s) => s.name === "no-content");
-    expect(skill).toBeDefined();
-    expect(skill!.content).toBe("");
   });
 
   it("WORKER_WITH_AGENT_TEAM スキルの teammates を正しく読み込むこと", async () => {
