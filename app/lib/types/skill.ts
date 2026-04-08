@@ -36,29 +36,6 @@ export function serializeToolRef(ref: ToolRef): string {
   return ref.name;
 }
 
-// 文字列 → ToolRef にパース
-export function parseToolRef(str: string): ToolRef {
-  // MCPツール: mcp__server__method
-  if (str.startsWith("mcp__")) {
-    const rest = str.slice(5); // "mcp__" を除去
-    const idx = rest.indexOf("__");
-    if (idx >= 0) {
-      return {
-        type: TOOL_REF_TYPES.MCP,
-        server: rest.slice(0, idx),
-        method: rest.slice(idx + 2),
-      };
-    }
-  }
-  // パターン付きツール: Name(pattern)
-  const match = str.match(/^([A-Za-z]+)\((.+)\)$/);
-  if (match) {
-    return { type: TOOL_REF_TYPES.TOOL, name: match[1], pattern: match[2] };
-  }
-  // 単純ツール
-  return { type: TOOL_REF_TYPES.TOOL, name: str };
-}
-
 // 分岐ステップ（再帰的にネスト可能）
 export interface Branch {
   decisionPoint: string; // 分岐判定名（例: "入力判定"）

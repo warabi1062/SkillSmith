@@ -42,7 +42,6 @@ export const FILE_PATHS = {
   MARKETPLACE_JSON: ".claude-plugin/marketplace.json",
   SKILLS_DIR: "skills/",
   AGENTS_DIR: "agents/",
-  HOOKS_DIR: "hooks/",
   SCRIPTS_DIR: "scripts/",
   HOOKS_JSON: "hooks/hooks.json",
   SKILL_MD: "SKILL.md",
