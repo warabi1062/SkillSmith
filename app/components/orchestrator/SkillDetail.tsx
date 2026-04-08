@@ -1,5 +1,3 @@
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { SectionItems } from "./SectionItems";
 import { BodyContent } from "./BodyContent";
 import { COMMUNICATION_PATTERNS, SKILL_TYPES } from "../../lib/types/constants";
@@ -142,41 +140,24 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
                 : "(not set)"}
             </div>
           </div>
-          {data.agentConfig.description ||
-          (data.agentConfig.beforeSections &&
-            data.agentConfig.beforeSections.length > 0) ||
-          (data.agentConfig.afterSections &&
-            data.agentConfig.afterSections.length > 0) ? (
-            <div className="flex flex-col gap-2">
-              {data.agentConfig.description && (
-                <div className="mb-3">
-                  <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-                    Agent Description
-                  </label>
-                  <div className="text-sm text-text-secondary leading-normal">
-                    {data.agentConfig.description}
-                  </div>
-                </div>
-              )}
-              <SectionItems
-                sections={data.agentConfig.beforeSections ?? []}
-              />
-              <SectionItems
-                sections={data.agentConfig.afterSections ?? []}
-              />
-            </div>
-          ) : (
-            data.agentConfig.agentContent && (
+          <div className="flex flex-col gap-2">
+            {data.agentConfig.description && (
               <div className="mb-3">
                 <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-                  Agent Content
+                  Agent Description
                 </label>
-                <div className="m-0 p-3 bg-bg-deep border border-border-subtle rounded-sm font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
-                  <Markdown remarkPlugins={[remarkGfm]}>{data.agentConfig.agentContent}</Markdown>
+                <div className="text-sm text-text-secondary leading-normal">
+                  {data.agentConfig.description}
                 </div>
               </div>
-            )
-          )}
+            )}
+            <SectionItems
+              sections={data.agentConfig.beforeSections ?? []}
+            />
+            <SectionItems
+              sections={data.agentConfig.afterSections ?? []}
+            />
+          </div>
         </div>
       )}
 

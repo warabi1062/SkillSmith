@@ -27,7 +27,7 @@ function makeWorkerWithSubAgentSkill(overrides?: Partial<LoadedSkillUnion>): Loa
     workerSteps: [{ id: "1", title: "実行", body: "実行する" }],
     agentConfig: {
       tools: [tool("Read")],
-      content: "Agent content",
+      description: "テスト用エージェント",
     },
     ...overrides,
   } as LoadedSkillUnion;

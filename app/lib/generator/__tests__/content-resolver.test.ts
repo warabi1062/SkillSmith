@@ -35,7 +35,7 @@ function makeWorkerWithSubAgent(overrides?: Record<string, unknown>): LoadedSkil
     input: ["タスクID"],
     output: ["結果ファイル"],
     workerSteps: [{ id: "1", title: "実行", body: "実行する" }],
-    agentConfig: { content: "agent body" },
+    agentConfig: { description: "テスト用エージェント" },
     ...overrides,
   } as LoadedSkillUnion;
 }

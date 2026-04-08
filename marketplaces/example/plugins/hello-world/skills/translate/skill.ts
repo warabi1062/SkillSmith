@@ -30,7 +30,7 @@ const translateSkill = new WorkerWithSubAgent({
     },
   ],
   agentConfig: {
-    content:
+    description:
       "翻訳専門のSub Agent。原文のニュアンスを保ちつつ、ターゲット言語で自然な表現に翻訳する。",
     tools: [tool("Read"), tool("Write")],
   },

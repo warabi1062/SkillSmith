@@ -10,7 +10,7 @@ function makeAgentComponent(overrides: {
   skillDescription?: string;
   skillInput?: string[];
   skillOutput?: string[];
-  content?: string;
+  description?: string;
   model?: string;
   tools?: ToolRef[];
 }) {
@@ -19,7 +19,7 @@ function makeAgentComponent(overrides: {
     agentConfig: {
       model: overrides.model,
       tools: overrides.tools,
-      content: overrides.content ?? "# Agent body",
+      description: overrides.description ?? "テスト用エージェント",
     },
     skillConfig: {
       name: overrides.skillName ?? "my-skill",
@@ -39,11 +39,18 @@ describe("generateAgentMd", () => {
     expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);
   });
 
-  it("SkillConfigのdescriptionをfrontmatterに出力する", () => {
+  it("AgentConfigのdescriptionをfrontmatterに出力する", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ skillDescription: "Skill desc" }),
+      makeAgentComponent({ description: "Agent専用説明" }),
     );
-    expect(file!.content).toContain("description: Skill desc");
+    expect(file!.content).toContain("description: Agent専用説明");
+  });
+
+  it("AgentConfigのdescriptionがSkillConfigのdescriptionより優先される", () => {
+    const { file } = generateAgentMd(
+      makeAgentComponent({ description: "Agent説明", skillDescription: "Skill説明" }),
+    );
+    expect(file!.content).toContain("description: Agent説明");
   });
 
   it("skillsフィールドにskillConfig.nameを出力する", () => {
@@ -54,12 +61,13 @@ describe("generateAgentMd", () => {
     expect(file!.content).toContain("  - implement");
   });
 
-  it("contentが空の場合はエラーを返す", () => {
+  it("descriptionが空でも実行セクションが生成される", () => {
     const { file, errors } = generateAgentMd(
-      makeAgentComponent({ content: "" }),
+      makeAgentComponent({ description: "" }),
     );
-    expect(file).toBeNull();
-    expect(errors.some((e) => e.code === ERROR_CODES.EMPTY_CONTENT)).toBe(true);
+    expect(file).not.toBeNull();
+    expect(file!.content).toContain("## 実行");
+    expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);
   });
 
   it("modelをfrontmatterに含める", () => {
@@ -84,11 +92,11 @@ describe("generateAgentMd", () => {
     expect(file!.content).not.toContain("output:");
   });
 
-  it("contentを本文に含める", () => {
+  it("descriptionを本文に含める", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ content: "# Agent body" }),
+      makeAgentComponent({ description: "Agent専用の説明文" }),
     );
-    expect(file!.content).toContain("# Agent body");
+    expect(file!.content).toContain("Agent専用の説明文");
   });
 });
 
