@@ -9,9 +9,6 @@ import type { LoadedBranch, LoadedInlineStep } from "../types/loaded";
 import {
   renderSections,
 } from "../core/section-utils";
-import type { ContentGeneratorInput } from "./types";
-
-
 // スキル参照ステップで表示するメタ情報
 export interface SkillMeta {
   input?: string[];
@@ -19,7 +16,7 @@ export interface SkillMeta {
   hasAgent?: boolean; // WorkerWithSubAgent の場合 true
 }
 
-export interface OrchestratorContentInput extends ContentGeneratorInput {
+export interface OrchestratorContentInput {
   steps: LoadedStep[];
   beforeSections?: LoadedSection[];
   afterSections?: LoadedSection[];

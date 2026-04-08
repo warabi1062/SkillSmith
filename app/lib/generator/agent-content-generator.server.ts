@@ -5,9 +5,9 @@ import {
   renderListSection,
   renderSections,
 } from "../core/section-utils";
-import type { ContentGeneratorInput } from "./types";
-
-export interface AgentContentInput extends ContentGeneratorInput {
+export interface AgentContentInput {
+  input?: string[]; // 入力の説明
+  output?: string[]; // 出力の説明
   skillName: string; // 対応するスキル名
   description?: string; // agentの説明
   beforeSections?: LoadedSection[]; // 実行セクション前の追加セクション

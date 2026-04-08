@@ -84,13 +84,13 @@ export interface InlineStep {
 // ステップ型（Skill / Branch / InlineStep の union）
 export type Step = Skill | Branch | InlineStep;
 
-// Branch かどうかを判定する型ガード
-export function isBranch(step: Step): step is Branch {
+// Branch かどうかを判定する型ガード（collectSkillsFromSteps 内部で使用）
+function isBranch(step: Step): step is Branch {
   return "decisionPoint" in step && "cases" in step;
 }
 
-// InlineStep かどうかを判定する型ガード
-export function isInlineStep(step: Step): step is InlineStep {
+// InlineStep かどうかを判定する型ガード（collectSkillsFromSteps 内部で使用）
+function isInlineStep(step: Step): step is InlineStep {
   return "inline" in step && !("decisionPoint" in step);
 }
 

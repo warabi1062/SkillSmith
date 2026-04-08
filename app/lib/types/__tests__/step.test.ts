@@ -1,52 +1,14 @@
 import { describe, it, expect } from "vitest";
 import {
-  isBranch,
-  isInlineStep,
   collectSkillsFromSteps,
   WorkerSkill,
 } from "../skill";
-import type { Branch, InlineStep, Step } from "../skill";
+import type { Step } from "../skill";
 
 // テスト用ヘルパー: 最小の WorkerSkill を作成
 function worker(name: string): WorkerSkill {
   return new WorkerSkill({ name, workerSteps: [{ id: "1", title: name, body: "" }] });
 }
-
-describe("isBranch", () => {
-  it("Branch オブジェクトに対して true を返す", () => {
-    const branch: Branch = {
-      decisionPoint: "入力判定",
-      cases: { A: [], B: [] },
-    };
-    expect(isBranch(branch)).toBe(true);
-  });
-
-  it("Skill インスタンスに対して false を返す", () => {
-    const skill = worker("test");
-    expect(isBranch(skill)).toBe(false);
-  });
-
-  it("InlineStep に対して false を返す", () => {
-    const inline: InlineStep = { inline: "ブランチ作成", steps: [] };
-    expect(isBranch(inline)).toBe(false);
-  });
-});
-
-describe("isInlineStep", () => {
-  it("InlineStep オブジェクトに対して true を返す", () => {
-    const inline: InlineStep = { inline: "ブランチ作成", steps: [] };
-    expect(isInlineStep(inline)).toBe(true);
-  });
-
-  it("Skill インスタンスに対して false を返す", () => {
-    expect(isInlineStep(worker("test"))).toBe(false);
-  });
-
-  it("Branch オブジェクトに対して false を返す", () => {
-    const branch: Branch = { decisionPoint: "判定", cases: {} };
-    expect(isInlineStep(branch)).toBe(false);
-  });
-});
 
 describe("collectSkillsFromSteps", () => {
   it("フラットな Skill 配列を収集する", () => {

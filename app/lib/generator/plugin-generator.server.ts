@@ -120,8 +120,6 @@ export function generateSkillComponent(
       disableModelInvocation: skill.disableModelInvocation,
       allowedTools: skill.allowedTools,
       content,
-      input: skill.input,
-      output: skill.output,
     },
   });
 

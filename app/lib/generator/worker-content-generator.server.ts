@@ -8,9 +8,9 @@ import {
   renderListSection,
   renderSections,
 } from "../core/section-utils";
-import type { ContentGeneratorInput } from "./types";
-
-export interface WorkerContentInput extends ContentGeneratorInput {
+export interface WorkerContentInput {
+  input?: string[]; // 入力の説明
+  output?: string[]; // 出力の説明
   workerSteps: LoadedWorkerStep[]; // 手順ステップ
   beforeSections?: LoadedSection[]; // 手順前の追加セクション
   afterSections?: LoadedSection[]; // 手順後の追加セクション

@@ -28,7 +28,7 @@ import type {
   LoadedHookDefinition,
   LoadedHookScript,
 } from "../types/loaded";
-import type { HookDefinition, HookEntry, HookScript } from "../types/plugin";
+import type { HookDefinition } from "../types/plugin";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
 
 // import 用の分岐ステップ型
