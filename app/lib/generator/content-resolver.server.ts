@@ -19,7 +19,8 @@ export function resolveSkillContent(
   if (skill.skillType === SKILL_TYPES.ENTRY_POINT && skill.steps) {
     return generateOrchestratorContent({
       steps: skill.steps,
-      sections: skill.sections,
+      beforeSections: skill.beforeSections,
+      afterSections: skill.afterSections,
       skillMetas,
     });
   }
@@ -29,7 +30,8 @@ export function resolveSkillContent(
       input: skill.input,
       output: skill.output,
       workerSteps: skill.workerSteps,
-      workerSections: skill.workerSections,
+      beforeSections: skill.beforeSections,
+      afterSections: skill.afterSections,
     });
   }
 
@@ -38,7 +40,8 @@ export function resolveSkillContent(
       input: skill.input,
       output: skill.output,
       workerSteps: skill.workerSteps,
-      workerSections: skill.workerSections,
+      beforeSections: skill.beforeSections,
+      afterSections: skill.afterSections,
     });
   }
 

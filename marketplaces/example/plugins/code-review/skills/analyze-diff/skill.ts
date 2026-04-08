@@ -1,4 +1,4 @@
-// WorkerSkill サンプル: workerSections, mcp(), disableModelInvocation, userInvocable オーバーライド
+// WorkerSkill サンプル: beforeSections, mcp(), disableModelInvocation, userInvocable オーバーライド
 import { WorkerSkill, tool, mcp } from "../../../../../../app/lib/types";
 
 const analyzeDiffSkill = new WorkerSkill({
@@ -13,12 +13,11 @@ const analyzeDiffSkill = new WorkerSkill({
   userInvocable: true,
   input: ["PR番号またはブランチ名"],
   output: ["差分分析レポート", "深刻度判定（critical / normal / trivial）"],
-  // [6] workerSections
-  workerSections: [
+  // beforeSections
+  beforeSections: [
     {
       heading: "分析方針",
       body: "変更の意図・影響範囲・リスクの3軸で分析を行う。セキュリティ関連の変更は必ず critical と判定すること。",
-      position: "before-steps",
     },
   ],
   workerSteps: [

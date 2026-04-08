@@ -2,7 +2,6 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { SectionItems } from "./SectionItems";
 import { BodyContent } from "./BodyContent";
-import { getStepSections, getOutOfRangeSections } from "./helpers";
 import { COMMUNICATION_PATTERNS, SKILL_TYPES } from "../../lib/types/constants";
 import type { SkillDetailData } from "./types";
 
@@ -56,27 +55,15 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
       {showWorkerSteps && data.workerSteps ? (
         <div className="flex flex-col gap-2">
           <SectionItems
-            sections={
-              data.workerSections?.filter(
-                (s) => s.position === "before-steps",
-              ) ?? []
-            }
+            sections={data.beforeSections ?? []}
             supportFiles={data.supportFiles}
           />
           <label className="font-display font-semibold text-sm text-text-primary mt-1">
             Worker Steps
           </label>
           <div className="flex flex-col gap-2">
-            {data.workerSteps.map((step, i) => (
+            {data.workerSteps.map((step) => (
               <div key={step.id}>
-                <SectionItems
-                  sections={getStepSections(
-                    data.workerSections,
-                    "before-step",
-                    i,
-                  )}
-                  supportFiles={data.supportFiles}
-                />
                 <div className="mb-2">
                   <div className="font-display text-sm font-medium text-text-primary py-1">
                     {step.id}. {step.title}
@@ -86,27 +73,11 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
                     supportFiles={data.supportFiles}
                   />
                 </div>
-                <SectionItems
-                  sections={getStepSections(
-                    data.workerSections,
-                    "after-step",
-                    i,
-                  )}
-                  supportFiles={data.supportFiles}
-                />
               </div>
             ))}
           </div>
           <SectionItems
-            sections={[
-              ...(data.workerSections?.filter(
-                (s) => s.position === "after-steps",
-              ) ?? []),
-              ...getOutOfRangeSections(
-                data.workerSections,
-                data.workerSteps.length,
-              ),
-            ]}
+            sections={data.afterSections ?? []}
             supportFiles={data.supportFiles}
           />
         </div>
@@ -184,8 +155,10 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             </div>
           </div>
           {data.agentConfig.description ||
-          (data.agentConfig.sections &&
-            data.agentConfig.sections.length > 0) ? (
+          (data.agentConfig.beforeSections &&
+            data.agentConfig.beforeSections.length > 0) ||
+          (data.agentConfig.afterSections &&
+            data.agentConfig.afterSections.length > 0) ? (
             <div className="flex flex-col gap-2">
               {data.agentConfig.description && (
                 <div className="mb-3">
@@ -198,22 +171,10 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
                 </div>
               )}
               <SectionItems
-                sections={
-                  data.agentConfig.sections?.filter(
-                    (s) =>
-                      s.position === "before-steps" ||
-                      s.position.startsWith("before-step:"),
-                  ) ?? []
-                }
+                sections={data.agentConfig.beforeSections ?? []}
               />
               <SectionItems
-                sections={
-                  data.agentConfig.sections?.filter(
-                    (s) =>
-                      s.position === "after-steps" ||
-                      s.position.startsWith("after-step:"),
-                  ) ?? []
-                }
+                sections={data.agentConfig.afterSections ?? []}
               />
             </div>
           ) : (

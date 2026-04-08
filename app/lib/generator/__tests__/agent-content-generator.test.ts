@@ -58,84 +58,55 @@ describe("generateAgentContent", () => {
     expect(result).not.toMatch(/^\n/);
   });
 
-  it("before-stepsセクションが実行セクションの後に配置される", () => {
+  it("beforeSectionsが実行セクションの前に配置される", () => {
     const result = generateAgentContent(
       makeInput({
-        sections: [
-          {
-            heading: "前提条件",
-            body: "必要な前提条件。",
-            position: "before-steps",
-          },
+        beforeSections: [
+          { heading: "前提条件", body: "必要な前提条件。" },
+        ],
+      }),
+    );
+
+    const beforeIdx = result.indexOf("## 前提条件");
+    const execIdx = result.indexOf("## 実行");
+    expect(beforeIdx).toBeGreaterThan(-1);
+    expect(execIdx).toBeGreaterThan(-1);
+    expect(beforeIdx).toBeLessThan(execIdx);
+  });
+
+  it("afterSectionsが実行セクションの後に配置される", () => {
+    const result = generateAgentContent(
+      makeInput({
+        afterSections: [
+          { heading: "セキュリティ", body: "セキュリティ要件。" },
         ],
       }),
     );
 
     const execIdx = result.indexOf("## 実行");
-    const beforeIdx = result.indexOf("## 前提条件");
-    expect(execIdx).toBeGreaterThan(-1);
-    expect(beforeIdx).toBeGreaterThan(-1);
-    expect(beforeIdx).toBeGreaterThan(execIdx);
-  });
-
-  it("after-stepsセクションがbefore-stepsの後に配置される", () => {
-    const result = generateAgentContent(
-      makeInput({
-        sections: [
-          { heading: "前提条件", body: "前提条件。", position: "before-steps" },
-          {
-            heading: "セキュリティ",
-            body: "セキュリティ要件。",
-            position: "after-steps",
-          },
-        ],
-      }),
-    );
-
-    const beforeIdx = result.indexOf("## 前提条件");
     const afterIdx = result.indexOf("## セキュリティ");
-    expect(beforeIdx).toBeGreaterThan(-1);
-    expect(afterIdx).toBeGreaterThan(-1);
-    expect(afterIdx).toBeGreaterThan(beforeIdx);
-  });
-
-  it("before-step:*セクションがbefore-stepsと同じ位置に配置される", () => {
-    const result = generateAgentContent(
-      makeInput({
-        sections: [
-          {
-            heading: "ステップ間メモ",
-            body: "メモ内容",
-            position: "before-step:0",
-          },
-        ],
-      }),
-    );
-
-    const execIdx = result.indexOf("## 実行");
-    const sectionIdx = result.indexOf("## ステップ間メモ");
     expect(execIdx).toBeGreaterThan(-1);
-    expect(sectionIdx).toBeGreaterThan(-1);
-    expect(sectionIdx).toBeGreaterThan(execIdx);
+    expect(afterIdx).toBeGreaterThan(-1);
+    expect(afterIdx).toBeGreaterThan(execIdx);
   });
 
-  it("after-step:*セクションがafter-stepsと同じ位置に配置される", () => {
+  it("beforeSectionsとafterSectionsの両方がある場合の順序が正しい", () => {
     const result = generateAgentContent(
       makeInput({
-        sections: [
-          { heading: "前提", body: "前提内容", position: "before-steps" },
-          {
-            heading: "ステップ後メモ",
-            body: "メモ内容",
-            position: "after-step:0",
-          },
+        beforeSections: [
+          { heading: "前提条件", body: "前提条件。" },
+        ],
+        afterSections: [
+          { heading: "セキュリティ", body: "セキュリティ要件。" },
         ],
       }),
     );
 
-    const beforeIdx = result.indexOf("## 前提");
-    const afterStepIdx = result.indexOf("## ステップ後メモ");
-    expect(beforeIdx).toBeLessThan(afterStepIdx);
+    const beforeIdx = result.indexOf("## 前提条件");
+    const execIdx = result.indexOf("## 実行");
+    const afterIdx = result.indexOf("## セキュリティ");
+    expect(beforeIdx).toBeLessThan(execIdx);
+    expect(execIdx).toBeLessThan(afterIdx);
   });
 
   it("sectionsがない場合はdescription+実行のみ生成される", () => {
@@ -143,7 +114,8 @@ describe("generateAgentContent", () => {
       makeInput({
         input: undefined,
         output: undefined,
-        sections: undefined,
+        beforeSections: undefined,
+        afterSections: undefined,
       }),
     );
 

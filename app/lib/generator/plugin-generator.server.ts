@@ -148,7 +148,8 @@ export function generateSkillComponent(
         tools: skill.agentConfig.tools,
         content: skill.agentConfig.content,
         description: skill.agentConfig.description,
-        sections: skill.agentConfig.sections,
+        beforeSections: skill.agentConfig.beforeSections,
+        afterSections: skill.agentConfig.afterSections,
       },
       skillConfig: {
         name: skill.name,

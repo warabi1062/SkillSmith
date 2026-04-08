@@ -3,7 +3,7 @@ import { convertStep, convertSections } from "../orchestrator";
 
 import type {
   LoadedStep,
-  LoadedOrchestratorSection,
+  LoadedSection,
 } from "../../lib/types/loaded";
 
 describe("convertStep", () => {
@@ -87,16 +87,14 @@ describe("convertStep", () => {
 
 describe("convertSections", () => {
   it("セクション配列を正しく変換する", () => {
-    const sections: LoadedOrchestratorSection[] = [
-      { heading: "前提条件", body: "条件A", position: "before-steps" },
-      { heading: "後処理", body: "処理B", position: "after-steps" },
-      { heading: "Step 1の前", body: "注意事項", position: "before-step:0" },
+    const sections: LoadedSection[] = [
+      { heading: "前提条件", body: "条件A" },
+      { heading: "後処理", body: "処理B" },
     ];
     const result = convertSections(sections);
     expect(result).toEqual([
-      { heading: "前提条件", body: "条件A", position: "before-steps" },
-      { heading: "後処理", body: "処理B", position: "after-steps" },
-      { heading: "Step 1の前", body: "注意事項", position: "before-step:0" },
+      { heading: "前提条件", body: "条件A" },
+      { heading: "後処理", body: "処理B" },
     ]);
   });
 

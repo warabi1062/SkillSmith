@@ -10,11 +10,10 @@ const greetSkill = new EntryPointSkill({
   argumentHint: "<name>",
   input: ["挨拶対象の名前"],
   output: ["フォーマット済み挨拶メッセージ"],
-  sections: [
+  beforeSections: [
     {
       heading: "基本方針",
       body: "常にフレンドリーなトーンで挨拶すること。",
-      position: "before-steps",
     },
   ],
   steps: [formatSkill],

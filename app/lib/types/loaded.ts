@@ -5,7 +5,6 @@ import type {
   ToolRef,
   SupportFileRole,
   AgentConfig,
-  SectionPosition,
   CommunicationPattern,
 } from "./skill";
 import { SKILL_TYPES } from "./constants";
@@ -33,11 +32,10 @@ export interface LoadedInlineStep {
   output?: string[];
 }
 
-// ローダー用のオーケストレーターセクション型
-export interface LoadedOrchestratorSection {
+// ローダー用のセクション型（body は正規化済み）
+export interface LoadedSection {
   heading: string;
   body: string;
-  position: SectionPosition;
 }
 
 // スキル参照（オーケストレーターのステップからWorkerスキルを参照する）
@@ -77,14 +75,14 @@ interface LoadedSkillBase {
   files: LoadedSupportFile[];
   dependencies?: string[];
   steps?: LoadedStep[];
-  sections?: LoadedOrchestratorSection[];
+  beforeSections?: LoadedSection[];
+  afterSections?: LoadedSection[];
 }
 
 // ENTRY_POINT / WORKER の場合
 export interface LoadedSkill extends LoadedSkillBase {
   skillType: typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER;
   workerSteps?: LoadedWorkerStep[];
-  workerSections?: LoadedOrchestratorSection[];
 }
 
 // ローダー用の委譲ステップ型（Worker / Teammate 共通）
@@ -102,7 +100,6 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
   skillType: typeof SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   agentConfig: AgentConfig;
   workerSteps: LoadedWorkerStep[];
-  workerSections?: LoadedOrchestratorSection[];
 }
 
 // ローダー用のチームメンバー型

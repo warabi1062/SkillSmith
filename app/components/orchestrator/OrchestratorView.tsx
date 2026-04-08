@@ -1,8 +1,7 @@
 import { SectionItems } from "./SectionItems";
 import { StepItem } from "./StepItem";
-import { getStepSections, getOutOfRangeSections } from "./helpers";
 import { convertStep, convertSections } from "./data";
-import type { LoadedSkillUnion, LoadedOrchestratorSection } from "../../lib/types/loaded";
+import type { LoadedSkillUnion, LoadedSection } from "../../lib/types/loaded";
 
 // オーケストレーター単体の構造表示
 export function OrchestratorView({
@@ -13,8 +12,11 @@ export function OrchestratorView({
   allSkills: LoadedSkillUnion[];
 }) {
   const steps = skill.steps ? skill.steps.map(convertStep) : [];
-  const sections = skill.sections
-    ? convertSections(skill.sections as LoadedOrchestratorSection[])
+  const beforeSections = skill.beforeSections
+    ? convertSections(skill.beforeSections)
+    : [];
+  const afterSections = skill.afterSections
+    ? convertSections(skill.afterSections)
     : [];
 
   return (
@@ -28,34 +30,19 @@ export function OrchestratorView({
         </p>
       )}
 
-      {/* before-steps セクション */}
-      <SectionItems
-        sections={sections.filter((s) => s.position === "before-steps")}
-      />
+      {/* beforeSections */}
+      <SectionItems sections={beforeSections} />
 
       <div className="flex flex-col gap-2">
         {steps.map((step, i) => (
           <div key={`${step.label}-${i}`} className="mb-2">
-            <SectionItems
-              sections={getStepSections(sections, "before-step", i)}
-            />
-
             <StepItem step={step} index={i + 1} allSkills={allSkills} />
-
-            <SectionItems
-              sections={getStepSections(sections, "after-step", i)}
-            />
           </div>
         ))}
       </div>
 
-      {/* after-steps セクション + 範囲外フォールバック */}
-      <SectionItems
-        sections={[
-          ...sections.filter((s) => s.position === "after-steps"),
-          ...getOutOfRangeSections(sections, steps.length),
-        ]}
-      />
+      {/* afterSections */}
+      <SectionItems sections={afterSections} />
     </div>
   );
 }

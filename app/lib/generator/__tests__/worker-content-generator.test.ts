@@ -53,15 +53,11 @@ describe("generateWorkerContent", () => {
     expect(result).not.toContain("## 出力");
   });
 
-  it("before-stepsセクションがstepsの前に配置される", () => {
+  it("beforeSectionsがstepsの前に配置される", () => {
     const result = generateWorkerContent(
       makeInput({
-        workerSections: [
-          {
-            heading: "前提条件",
-            body: "必要な前提条件の説明。",
-            position: "before-steps",
-          },
+        beforeSections: [
+          { heading: "前提条件", body: "必要な前提条件の説明。" },
         ],
       }),
     );
@@ -73,15 +69,11 @@ describe("generateWorkerContent", () => {
     expect(beforeIdx).toBeLessThan(stepsIdx);
   });
 
-  it("after-stepsセクションがstepsの後に配置される", () => {
+  it("afterSectionsがstepsの後に配置される", () => {
     const result = generateWorkerContent(
       makeInput({
-        workerSections: [
-          {
-            heading: "注意事項",
-            body: "注意事項の説明。",
-            position: "after-steps",
-          },
+        afterSections: [
+          { heading: "注意事項", body: "注意事項の説明。" },
         ],
       }),
     );
@@ -91,64 +83,6 @@ describe("generateWorkerContent", () => {
     expect(stepsIdx).toBeGreaterThan(-1);
     expect(afterIdx).toBeGreaterThan(-1);
     expect(afterIdx).toBeGreaterThan(stepsIdx);
-  });
-
-  it("before-step:0 を指定したセクションが最初のステップの直前に表示される", () => {
-    const result = generateWorkerContent(
-      makeInput({
-        workerSections: [
-          {
-            heading: "ステップ前メモ",
-            body: "メモ内容",
-            position: "before-step:0",
-          },
-        ],
-      }),
-    );
-
-    const sectionIdx = result.indexOf("## ステップ前メモ");
-    const step1Idx = result.indexOf("### 1. 計画の読み込み");
-    expect(sectionIdx).toBeGreaterThan(-1);
-    expect(step1Idx).toBeGreaterThan(-1);
-    expect(sectionIdx).toBeLessThan(step1Idx);
-  });
-
-  it("after-step:0 を指定したセクションが最初のステップの直後に表示される", () => {
-    const result = generateWorkerContent(
-      makeInput({
-        workerSections: [
-          {
-            heading: "ステップ間メモ",
-            body: "メモ内容",
-            position: "after-step:0",
-          },
-        ],
-      }),
-    );
-
-    const step1Idx = result.indexOf("### 1. 計画の読み込み");
-    const sectionIdx = result.indexOf("## ステップ間メモ");
-    const step2Idx = result.indexOf("### 2. 実行");
-    expect(step1Idx).toBeLessThan(sectionIdx);
-    expect(sectionIdx).toBeLessThan(step2Idx);
-  });
-
-  it("範囲外indexのstep間セクションはafter-stepsにフォールバックする", () => {
-    const result = generateWorkerContent(
-      makeInput({
-        workerSections: [
-          {
-            heading: "範囲外",
-            body: "フォールバック",
-            position: "after-step:99",
-          },
-        ],
-      }),
-    );
-
-    const step2Idx = result.indexOf("### 2. 実行");
-    const sectionIdx = result.indexOf("## 範囲外");
-    expect(step2Idx).toBeLessThan(sectionIdx);
   });
 
   it("ステップが空の場合は手順セクションが省略される", () => {

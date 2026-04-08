@@ -1,4 +1,4 @@
-import type { SectionPosition, CommunicationPattern } from "../../lib/types/skill";
+import type { CommunicationPattern } from "../../lib/types/skill";
 
 // --- 型定義 ---
 
@@ -6,7 +6,6 @@ import type { SectionPosition, CommunicationPattern } from "../../lib/types/skil
 interface AgentConfigSectionFields {
   heading: string;
   body: string;
-  position: SectionPosition;
 }
 
 export interface AgentConfigFields {
@@ -14,7 +13,8 @@ export interface AgentConfigFields {
   tools: string[];
   agentContent: string;
   description?: string;
-  sections?: AgentConfigSectionFields[];
+  beforeSections?: AgentConfigSectionFields[];
+  afterSections?: AgentConfigSectionFields[];
 }
 
 // サポートファイルの内容マップ（filename → content）
@@ -50,11 +50,10 @@ export interface StepFields {
   inlineSteps?: InlineSubStepFields[];
 }
 
-// オーケストレーターのセクション
+// セクション（位置なしのシンプル構造）
 export interface SectionFields {
   heading: string;
   body: string;
-  position: SectionPosition;
 }
 
 // スキル詳細データ
@@ -67,10 +66,10 @@ export interface SkillDetailData {
   output: string[];
   allowedTools: string[] | null;
   steps: StepFields[] | null;
-  sections: SectionFields[] | null;
+  beforeSections: SectionFields[] | null;
+  afterSections: SectionFields[] | null;
   agentConfig: AgentConfigFields | null;
   workerSteps: WorkerStepFields[] | null;
-  workerSections: SectionFields[] | null;
   teammates: TeammateFields[] | null;
   supportFiles: SupportFileMap;
 }

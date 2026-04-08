@@ -9,8 +9,7 @@ import type {
   AgentConfig,
   SupportFile,
   DelegateStep,
-  OrchestratorSection,
-  SectionPosition,
+  Section,
   CommunicationPattern,
 } from "../types/skill";
 import { SKILL_TYPES } from "../types/constants";
@@ -81,18 +80,14 @@ interface ImportedSkillBase {
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
-  sections?: {
-    heading: string;
-    body?: string;
-    position: SectionPosition;
-  }[];
+  beforeSections?: Section[];
+  afterSections?: Section[];
 }
 
 // ENTRY_POINT / WORKER の場合
 interface ImportedSimpleSkill extends ImportedSkillBase {
   skillType: typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER;
   workerSteps?: DelegateStep[];
-  workerSections?: OrchestratorSection[];
 }
 
 // WORKER_WITH_SUB_AGENT の場合は agentConfig を保持
@@ -100,7 +95,6 @@ interface ImportedWorkerWithSubAgentSkill extends ImportedSkillBase {
   skillType: typeof SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   agentConfig: AgentConfig;
   workerSteps: DelegateStep[];
-  workerSections?: OrchestratorSection[];
 }
 
 // WORKER_WITH_AGENT_TEAM の場合は teammates を保持
@@ -230,23 +224,22 @@ export async function loadPluginDefinition(
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,
-        sections: skill.sections
-          ? normalizeBodies(skill.sections)
+        beforeSections: skill.beforeSections
+          ? normalizeBodies(skill.beforeSections)
+          : undefined,
+        afterSections: skill.afterSections
+          ? normalizeBodies(skill.afterSections)
           : undefined,
       };
 
       // skillType に応じた拡張
       if (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
-        const loaded: LoadedWorkerWithSubAgentSkill = {
+        return {
           ...base,
           skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
           agentConfig: skill.agentConfig,
           workerSteps: normalizeBodies(skill.workerSteps),
-        };
-        if (skill.workerSections) {
-          loaded.workerSections = normalizeBodies(skill.workerSections);
-        }
-        return loaded;
+        } satisfies LoadedWorkerWithSubAgentSkill;
       }
 
       if (skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM) {
@@ -273,9 +266,6 @@ export async function loadPluginDefinition(
       };
       if (skill.workerSteps) {
         loaded.workerSteps = normalizeBodies(skill.workerSteps);
-      }
-      if (skill.workerSections) {
-        loaded.workerSections = normalizeBodies(skill.workerSections);
       }
       return loaded satisfies LoadedSkill;
     }),
