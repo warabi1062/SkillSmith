@@ -2,10 +2,11 @@
 
 import type { LoadedTeammate } from "../types/loaded";
 import { COMMUNICATION_PATTERNS } from "../types/constants";
-import type { ContentGeneratorInput } from "./types";
 import { renderListSection } from "../core/section-utils";
 
-export interface TeamContentInput extends ContentGeneratorInput {
+export interface TeamContentInput {
+  input?: string[]; // 入力の説明
+  output?: string[]; // 出力の説明
   teammates: LoadedTeammate[]; // チームメンバー定義
   teamPrefix: string; // チーム名のプレフィックス
   additionalLeaderSteps?: string[]; // リーダーの追加手順（デフォルト手順に追記）
