@@ -3,7 +3,6 @@ import { WorkerSkill, tool, mcp } from "../../../../../../app/lib/types";
 
 const analyzeDiffSkill = new WorkerSkill({
   name: "analyze-diff",
-  displayName: "Analyze Diff",
   description: "PRの差分を分析し、深刻度を判定するワーカースキル",
   // [11] mcp() ツール参照
   allowedTools: [tool("Read"), tool("Grep"), mcp("github", "get_pull_request")],

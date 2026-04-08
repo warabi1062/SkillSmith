@@ -8,7 +8,6 @@ import fixTeamSkill from "../fix-team/skill";
 
 const reviewPrSkill = new EntryPointSkill({
   name: "review-pr",
-  displayName: "Review PR",
   description: "PRをレビューし、深刻度に応じた対応を行うオーケストレータースキル",
   userInvocable: true,
   argumentHint: "<pr-number>",

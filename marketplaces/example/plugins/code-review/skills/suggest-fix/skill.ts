@@ -7,7 +7,6 @@ import {
 
 const suggestFixSkill = new WorkerWithSubAgent({
   name: "suggest-fix",
-  displayName: "Suggest Fix",
   description: "レビュー指摘に対する修正案を提案するスキル（Sub Agent付き）",
   allowedTools: [tool("Read"), tool("Write"), tool("Edit")],
   input: ["レビュー指摘一覧", "対象ファイルパス"],

@@ -3,7 +3,6 @@ import { WorkerWithAgentTeam, tool } from "../../../../../../app/lib/types";
 
 const fixTeamSkill = new WorkerWithAgentTeam({
   name: "fix-team",
-  displayName: "Fix Team",
   description: "チームで重大な問題の修正を行うスキル",
   allowedTools: [tool("Read"), tool("Write"), tool("Edit")],
   input: ["深刻な指摘一覧", "対象ファイルパス"],

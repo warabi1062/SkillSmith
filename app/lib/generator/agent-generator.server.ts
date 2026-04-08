@@ -47,11 +47,11 @@ export function generateAgentMd(component: AgentComponentData): {
     output: skillConfig.output,
     beforeSections: config.beforeSections?.map((s) => ({
       heading: s.heading,
-      body: s.body ?? "",
+      body: s.body,
     })),
     afterSections: config.afterSections?.map((s) => ({
       heading: s.heading,
-      body: s.body ?? "",
+      body: s.body,
     })),
   });
 

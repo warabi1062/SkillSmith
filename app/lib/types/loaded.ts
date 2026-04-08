@@ -63,7 +63,6 @@ export function isLoadedInlineStep(step: LoadedStep): step is LoadedInlineStep {
 // ローダーが返すスキルの共通フィールド
 interface LoadedSkillBase {
   name: string;
-  displayName?: string;
   description?: string;
   input?: string[];
   output?: string[];

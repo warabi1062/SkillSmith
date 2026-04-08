@@ -3,7 +3,7 @@ import { EntryPointSkill, WorkerSkill } from "../skill";
 
 // テスト用ヘルパー
 function worker(name: string): WorkerSkill {
-  return new WorkerSkill({ name, workerSteps: [{ id: "1", title: name }] });
+  return new WorkerSkill({ name, workerSteps: [{ id: "1", title: name, body: "" }] });
 }
 
 describe("EntryPointSkill の steps → dependencies 自動導出", () => {

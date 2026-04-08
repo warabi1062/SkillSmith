@@ -7,7 +7,6 @@ import {
 
 const translateSkill = new WorkerWithSubAgent({
   name: "translate",
-  displayName: "Translate Message",
   description: "メッセージを指定言語に翻訳するワーカースキル（Sub Agent付き）",
   allowedTools: [tool("Read"), tool("Write"), bash("echo *")],
   input: ["翻訳対象のメッセージ", "ターゲット言語"],
