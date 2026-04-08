@@ -4,7 +4,6 @@ import formatSkill from "../format/skill";
 
 const greetSkill = new EntryPointSkill({
   name: "greet",
-  displayName: "Greet",
   description: "ユーザーに挨拶するオーケストレータースキル",
   userInvocable: true,
   argumentHint: "<name>",

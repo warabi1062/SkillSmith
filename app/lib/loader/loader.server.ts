@@ -42,7 +42,7 @@ interface ImportedBranch {
 interface ImportedDelegateStep {
   id: string;
   title: string;
-  body?: string;
+  body: string;
 }
 
 // import 用のインラインステップ型
@@ -68,7 +68,6 @@ function isImportedInlineStep(step: ImportedStep): step is ImportedInlineStep {
 // 動的importで読み込まれるスキルの共通フィールド
 interface ImportedSkillBase {
   name: string;
-  displayName?: string;
   description?: string;
   input?: string[];
   output?: string[];
@@ -128,16 +127,6 @@ interface ImportedPluginDefinition {
   hooks?: HookDefinition;
 }
 
-
-// body?: string の配列を body: string（デフォルト空文字）の配列に正規化するヘルパー
-function normalizeBodies<T extends { body?: string }>(
-  items: T[],
-): (Omit<T, "body"> & { body: string })[] {
-  return items.map(({ body, ...rest }) => ({
-    ...rest,
-    body: body ?? "",
-  })) as (Omit<T, "body"> & { body: string })[];
-}
 
 // プラグイン定義をディレクトリから読み込む
 export async function loadPluginDefinition(
@@ -211,7 +200,6 @@ export async function loadPluginDefinition(
       const base = {
         skillType: skill.skillType,
         name: skill.name,
-        displayName: skill.displayName,
         description: skill.description,
         input: skill.input,
         output: skill.output,
@@ -223,10 +211,10 @@ export async function loadPluginDefinition(
         dependencies,
         steps: loadedSteps,
         beforeSections: skill.beforeSections
-          ? normalizeBodies(skill.beforeSections)
+          ? (skill.beforeSections)
           : undefined,
         afterSections: skill.afterSections
-          ? normalizeBodies(skill.afterSections)
+          ? (skill.afterSections)
           : undefined,
       };
 
@@ -236,7 +224,7 @@ export async function loadPluginDefinition(
           ...base,
           skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
           agentConfig: skill.agentConfig,
-          workerSteps: normalizeBodies(skill.workerSteps),
+          workerSteps: (skill.workerSteps),
         } satisfies LoadedWorkerWithSubAgentSkill;
       }
 
@@ -244,7 +232,7 @@ export async function loadPluginDefinition(
         const loadedTeammates: LoadedTeammate[] = skill.teammates.map((t) => ({
           name: t.name,
           role: t.role,
-          steps: normalizeBodies(t.steps),
+          steps: (t.steps),
           sortOrder: t.sortOrder,
           communicationPattern: t.communicationPattern,
         }));
@@ -263,7 +251,7 @@ export async function loadPluginDefinition(
         skillType: skill.skillType as typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER,
       };
       if (skill.workerSteps) {
-        loaded.workerSteps = normalizeBodies(skill.workerSteps);
+        loaded.workerSteps = (skill.workerSteps);
       }
       return loaded satisfies LoadedSkill;
     }),
@@ -403,7 +391,7 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
     if (isImportedInlineStep(step)) {
       const loaded: LoadedInlineStep = {
         inline: step.inline,
-        steps: normalizeBodies(step.steps),
+        steps: (step.steps),
       };
       if (step.input) loaded.input = step.input;
       if (step.output) loaded.output = step.output;

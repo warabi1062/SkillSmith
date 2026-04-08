@@ -70,7 +70,7 @@ export interface Branch {
 export interface DelegateStep {
   id: string; // ステップID（例: "1", "2a", "I1"）
   title: string; // ステップ名（例: "ベースブランチ判定"）
-  body?: string; // ステップの説明本文
+  body: string; // ステップの説明本文
 }
 
 // インラインステップ（スキル委譲せずオーケストレーター自身が行う処理）
@@ -124,7 +124,7 @@ export function collectSkillsFromSteps(steps: Step[]): Skill[] {
 // セクション（heading + body のシンプル構造）
 export interface Section {
   heading: string;
-  body?: string;
+  body: string;
 }
 
 // サポートファイルの役割
@@ -167,7 +167,6 @@ export type SkillType = (typeof SKILL_TYPES)[keyof typeof SKILL_TYPES];
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
-  | "displayName"
   | "description"
   | "input"
   | "output"
@@ -187,7 +186,6 @@ export abstract class Skill {
   abstract readonly skillType: SkillType;
   abstract readonly name: string;
 
-  displayName?: string; // SKILL.md の見出しに使う表示名（例: "Create PR"）
   description?: string;
   input?: string[];
   output?: string[];
@@ -203,7 +201,6 @@ export abstract class Skill {
 
   // サブクラスから共通オプショナルフィールドを設定するヘルパー
   protected assignOptionalFields(init: Partial<SkillOptionalFields>): void {
-    if (init.displayName !== undefined) this.displayName = init.displayName;
     if (init.description !== undefined) this.description = init.description;
     if (init.input !== undefined) this.input = init.input;
     if (init.output !== undefined) this.output = init.output;

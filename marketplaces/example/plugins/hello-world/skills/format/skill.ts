@@ -3,7 +3,6 @@ import { WorkerSkill, tool } from "../../../../../../app/lib/types";
 
 const formatSkill = new WorkerSkill({
   name: "format",
-  displayName: "Format Message",
   description: "挨拶メッセージを整形するワーカースキル",
   allowedTools: [tool("Read"), tool("Write")],
   input: ["生の挨拶テキスト"],

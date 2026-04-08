@@ -3,7 +3,6 @@ import { WorkerWithAgentTeam, tool } from "../../../../../../app/lib/types";
 
 const reviewTeamSkill = new WorkerWithAgentTeam({
   name: "review-team",
-  displayName: "Review Team",
   description: "チームでメッセージの品質をレビューするスキル",
   allowedTools: [tool("Read"), tool("Write")],
   teamPrefix: "review",

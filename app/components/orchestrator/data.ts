@@ -106,11 +106,11 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
           description: agentConfigData.description,
           beforeSections: agentConfigData.beforeSections?.map((s) => ({
             heading: s.heading,
-            body: s.body ?? "",
+            body: s.body,
           })),
           afterSections: agentConfigData.afterSections?.map((s) => ({
             heading: s.heading,
-            body: s.body ?? "",
+            body: s.body,
           })),
         }
       : null,
