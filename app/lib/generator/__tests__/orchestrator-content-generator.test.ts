@@ -78,9 +78,9 @@ describe("generateOrchestratorContent", () => {
 
     expect(result).toContain("### Step 1: 入力判定");
     expect(result).toContain("入力パターンに応じて分岐する");
-    expect(result).toContain("#### モードA");
+    expect(result).toContain("#### Step 1A: モードA");
     expect(result).toContain("##### Step 1A-1: worker-a");
-    expect(result).toContain("#### モードB");
+    expect(result).toContain("#### Step 1B: モードB");
     expect(result).toContain("##### Step 1B-1: 手動処理");
   });
 

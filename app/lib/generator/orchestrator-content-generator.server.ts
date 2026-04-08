@@ -191,7 +191,7 @@ function renderBranch(
     // ケースにA, B, C...のサフィックスを付ける（例: Step 1A-1, Step 1B-1）
     const caseSuffix = String.fromCharCode(65 + ci); // A, B, C...
     lines.push("");
-    lines.push(`${h(headingLevel + 1)} ${caseName}`);
+    lines.push(`${h(headingLevel + 1)} Step ${stepNumber}${caseSuffix}: ${caseName}`);
     if (caseSteps.length > 0) {
       lines.push("");
       // ケース内のステップはケース見出し+1のレベル
