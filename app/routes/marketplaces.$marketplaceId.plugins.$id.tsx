@@ -38,8 +38,13 @@ export async function loader({ params }: Route.LoaderArgs) {
 export const handle = {
   breadcrumb: ({
     data: loaderData,
-  }: { data: { plugin: { name: string } } }) => ({
+    params,
+  }: {
+    data: { plugin: { name: string } };
+    params: Record<string, string | undefined>;
+  }) => ({
     label: loaderData.plugin.name,
+    to: `/marketplaces/${params.marketplaceId}/plugins/${params.id}`,
   }),
 };
 

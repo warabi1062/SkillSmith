@@ -12,6 +12,7 @@ export const handle = {
     data: loaderData,
   }: { data: { marketplaceId: string } }) => ({
     label: loaderData.marketplaceId,
+    to: `/marketplaces/${loaderData.marketplaceId}`,
   }),
 };
 

@@ -2,17 +2,13 @@ import { Link, useMatches } from "react-router";
 
 // handleに設定するブレッドクラム定義の型
 // 静的ラベルの場合はオブジェクト、動的ラベルの場合はloaderDataを受け取る関数
+type BreadcrumbItem = { label: string; to: string };
 type BreadcrumbDef =
-  | { label: string }
+  | BreadcrumbItem
   | ((args: {
       data: unknown;
       params: Record<string, string | undefined>;
-    }) => { label: string });
-
-interface BreadcrumbItem {
-  label: string;
-  to: string;
-}
+    }) => BreadcrumbItem);
 
 // ルート階層からブレッドクラムアイテムを構築する
 function useBreadcrumbs(): BreadcrumbItem[] {
@@ -29,10 +25,7 @@ function useBreadcrumbs(): BreadcrumbItem[] {
         ? def({ data: match.data, params: match.params })
         : def;
 
-    items.push({
-      label: resolved.label,
-      to: match.pathname,
-    });
+    items.push(resolved);
   }
 
   return items;

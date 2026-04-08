@@ -19,6 +19,7 @@ export const handle = {
     params,
   }: { params: Record<string, string | undefined> }) => ({
     label: params.name ?? "",
+    to: `/marketplaces/${params.marketplaceId}/plugins/${params.id}/orchestrators/${params.name}`,
   }),
 };
 
