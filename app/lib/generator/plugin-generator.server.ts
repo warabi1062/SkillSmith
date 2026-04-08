@@ -146,7 +146,6 @@ export function generateSkillComponent(
       agentConfig: {
         model: skill.agentConfig.model,
         tools: skill.agentConfig.tools,
-        content: skill.agentConfig.content,
         description: skill.agentConfig.description,
         beforeSections: skill.agentConfig.beforeSections,
         afterSections: skill.agentConfig.afterSections,

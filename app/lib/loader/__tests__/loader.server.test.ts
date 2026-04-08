@@ -174,7 +174,7 @@ describe("loadPluginDefinition", () => {
               agentConfig: {
                 model: "sonnet",
                 tools: ["Read", "Write"],
-                content: "# Agent body",
+                description: "テスト用エージェント",
               },
             },
           ],
@@ -192,7 +192,7 @@ describe("loadPluginDefinition", () => {
     if ("agentConfig" in skill) {
       expect(skill.agentConfig.model).toBe("sonnet");
       expect(skill.agentConfig.tools).toEqual(["Read", "Write"]);
-      expect(skill.agentConfig.content).toBe("# Agent body");
+      expect(skill.agentConfig.description).toBe("テスト用エージェント");
     }
   });
 

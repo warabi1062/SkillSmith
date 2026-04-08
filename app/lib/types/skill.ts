@@ -138,12 +138,11 @@ export interface SupportFile {
 }
 
 // Agent設定（WorkerWithSubAgent用）
-// content 直書きまたは description + beforeSections/afterSections から自動生成
+// description + beforeSections/afterSections から content を自動生成
 export interface AgentConfig {
   model?: string;
   tools?: ToolRef[];
-  content: string; // agent.md 本文（後方互換）
-  description?: string; // 構造化時: agentの説明
+  description: string; // agentの説明
   beforeSections?: Section[]; // 実行セクション前の追加セクション
   afterSections?: Section[]; // 実行セクション後の追加セクション
 }

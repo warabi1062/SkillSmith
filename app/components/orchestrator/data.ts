@@ -103,7 +103,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? {
           model: agentConfigData.model ?? "",
           tools: (agentConfigData.tools ?? []).map(serializeToolRef),
-          agentContent: agentConfigData.content ?? "",
           description: agentConfigData.description,
           beforeSections: agentConfigData.beforeSections?.map((s) => ({
             heading: s.heading,

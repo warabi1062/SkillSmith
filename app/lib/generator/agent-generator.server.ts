@@ -9,8 +9,7 @@ import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 interface AgentConfigData {
   model?: string;
   tools?: ToolRef[];
-  content: string;
-  description?: string;
+  description: string;
   beforeSections?: Section[];
   afterSections?: Section[];
 }
@@ -40,24 +39,21 @@ export function generateAgentMd(component: AgentComponentData): {
   // Agent名はskillConfig.nameから導出: "{name}-agent"
   const agentName = `${skillConfig.name}-agent`;
 
-  // AgentConfig に description または beforeSections/afterSections がある場合は content を自動生成
-  let agentContent = config.content;
-  if (config.description || config.beforeSections || config.afterSections) {
-    agentContent = generateAgentContent({
-      skillName: skillConfig.name,
-      description: config.description,
-      input: skillConfig.input,
-      output: skillConfig.output,
-      beforeSections: config.beforeSections?.map((s) => ({
-        heading: s.heading,
-        body: s.body ?? "",
-      })),
-      afterSections: config.afterSections?.map((s) => ({
-        heading: s.heading,
-        body: s.body ?? "",
-      })),
-    });
-  }
+  // description + beforeSections/afterSections から content を自動生成
+  const agentContent = generateAgentContent({
+    skillName: skillConfig.name,
+    description: config.description,
+    input: skillConfig.input,
+    output: skillConfig.output,
+    beforeSections: config.beforeSections?.map((s) => ({
+      heading: s.heading,
+      body: s.body ?? "",
+    })),
+    afterSections: config.afterSections?.map((s) => ({
+      heading: s.heading,
+      body: s.body ?? "",
+    })),
+  });
 
   // contentが空の場合はエラー
   if (!agentContent) {

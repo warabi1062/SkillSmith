@@ -11,8 +11,7 @@ interface AgentConfigSectionFields {
 export interface AgentConfigFields {
   model: string;
   tools: string[];
-  agentContent: string;
-  description?: string;
+  description: string;
   beforeSections?: AgentConfigSectionFields[];
   afterSections?: AgentConfigSectionFields[];
 }

@@ -27,7 +27,6 @@ const suggestFixSkill = new WorkerWithSubAgent({
   // [7] AgentConfig description + beforeSections による自動生成モード
   // [15] AgentConfig.model
   agentConfig: {
-    content: "",
     description:
       "コードレビューの指摘に基づいて修正案を提案する専門Agent。コードの品質を維持しつつ、最小限の変更で問題を解決する。",
     model: "sonnet",
