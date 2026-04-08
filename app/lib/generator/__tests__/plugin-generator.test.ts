@@ -8,9 +8,11 @@ import { tool } from "../../types/skill";
 function makeEntryPointSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkillUnion {
   return {
     name: "my-skill",
-    content: "# My Skill",
     files: [],
     skillType: SKILL_TYPES.ENTRY_POINT,
+    steps: [
+      { inline: "タスク実行", steps: [{ id: "1", title: "実行", body: "実行する" }] },
+    ],
     ...overrides,
   } as LoadedSkillUnion;
 }
@@ -95,7 +97,7 @@ describe("generateSkillComponent", () => {
     expect(result.files.length).toBeGreaterThanOrEqual(1);
     const skillMd = result.files.find((f) => f.path.endsWith(FILE_PATHS.SKILL_MD));
     expect(skillMd).toBeDefined();
-    expect(skillMd!.content).toContain("# My Skill");
+    expect(skillMd!.content).toContain("## 作業詳細");
     expect(result.errors.filter((e) => e.severity === "error")).toHaveLength(0);
   });
 
@@ -148,7 +150,7 @@ describe("generatePlugin", () => {
     // Arrange
     const pluginDef = makePluginDef([
       makeEntryPointSkill({ name: "skill-a" }),
-      makeEntryPointSkill({ name: "skill-b", content: "# B" }),
+      makeEntryPointSkill({ name: "skill-b" }),
     ]);
 
     // Act

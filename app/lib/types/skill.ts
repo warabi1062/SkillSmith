@@ -187,7 +187,6 @@ type SkillOptionalFields = Pick<
 export abstract class Skill {
   abstract readonly skillType: SkillType;
   abstract readonly name: string;
-  abstract readonly content: string;
 
   displayName?: string; // SKILL.md の見出しに使う表示名（例: "Create PR"）
   description?: string;
@@ -226,7 +225,6 @@ export abstract class Skill {
 export class EntryPointSkill extends Skill {
   readonly skillType = SKILL_TYPES.ENTRY_POINT;
   readonly name: string;
-  readonly content: string = "";
 
   constructor(
     init: { name: string; steps: Step[] } & Partial<
@@ -248,7 +246,6 @@ export class EntryPointSkill extends Skill {
 export class WorkerSkill extends Skill {
   readonly skillType = SKILL_TYPES.WORKER;
   readonly name: string;
-  readonly content: string = "";
   readonly workerSteps: DelegateStep[];
 
   constructor(
@@ -269,7 +266,6 @@ export class WorkerSkill extends Skill {
 export class WorkerWithSubAgent extends Skill {
   readonly skillType = SKILL_TYPES.WORKER_WITH_SUB_AGENT;
   readonly name: string;
-  readonly content: string = "";
   readonly agentConfig: AgentConfig;
   readonly workerSteps: DelegateStep[];
 
@@ -294,7 +290,6 @@ export class WorkerWithSubAgent extends Skill {
 export class WorkerWithAgentTeam extends Skill {
   readonly skillType = SKILL_TYPES.WORKER_WITH_AGENT_TEAM;
   readonly name: string;
-  readonly content: string;
   readonly teammates: Teammate[];
   readonly teamPrefix: string; // チーム名のプレフィックス（例: "impl", "plan", "triage"）
   readonly additionalLeaderSteps?: string[]; // リーダーの手順（箇条書き）
@@ -307,12 +302,10 @@ export class WorkerWithAgentTeam extends Skill {
       teamPrefix: string;
       additionalLeaderSteps?: string[];
       requiresUserApproval?: boolean;
-      content?: string;
     } & Partial<SkillOptionalFields>,
   ) {
     super();
     this.name = init.name;
-    this.content = init.content ?? "";
     this.teammates = init.teammates;
     this.teamPrefix = init.teamPrefix;
     this.additionalLeaderSteps = init.additionalLeaderSteps;

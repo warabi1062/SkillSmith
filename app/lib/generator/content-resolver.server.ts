@@ -8,9 +8,8 @@ import { generateWorkerContent } from "./worker-content-generator.server";
 import { generateTeamContent } from "./team-content-generator.server";
 
 /**
- * スキル種別に応じて content を解決する。
- * 構造化定義（steps, workerSteps, teammates）がある場合は自動生成し、
- * なければスキル定義の content をそのまま返す。
+ * スキル種別に応じて content を自動生成する。
+ * 構造化定義（steps, workerSteps, teammates）から生成する。
  */
 export function resolveSkillContent(
   skill: LoadedSkillUnion,
@@ -60,5 +59,5 @@ export function resolveSkillContent(
     });
   }
 
-  return skill.content ?? "";
+  return "";
 }

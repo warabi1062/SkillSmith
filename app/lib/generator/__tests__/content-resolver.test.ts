@@ -7,7 +7,6 @@ function makeEntryPointSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkill
   return {
     name: "my-orchestrator",
     skillType: SKILL_TYPES.ENTRY_POINT,
-    content: "手動content",
     files: [],
     steps: [
       { inline: "タスク実行", steps: [{ id: "1", title: "実行", body: "実行する" }] },
@@ -32,7 +31,6 @@ function makeWorkerWithSubAgent(overrides?: Record<string, unknown>): LoadedSkil
   return {
     name: "my-sub-agent",
     skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
-    content: "手動content",
     files: [],
     input: ["タスクID"],
     output: ["結果ファイル"],
@@ -46,7 +44,6 @@ function makeWorkerWithAgentTeam(overrides?: Record<string, unknown>): LoadedSki
   return {
     name: "my-team",
     skillType: SKILL_TYPES.WORKER_WITH_AGENT_TEAM,
-    content: "手動content",
     files: [],
     teammates: [
       { name: "worker", role: "実装担当", steps: [{ id: "1", title: "実装", body: "実装する" }] },
@@ -64,12 +61,12 @@ describe("resolveSkillContent", () => {
     expect(result).not.toBe("手動content");
   });
 
-  it("EntryPoint で steps がない場合はスキル定義の content をそのまま返す", () => {
+  it("EntryPoint で steps がない場合は空文字を返す", () => {
     const result = resolveSkillContent(
       makeEntryPointSkill({ steps: undefined } as unknown as Partial<LoadedSkillUnion>),
     );
 
-    expect(result).toBe("手動content");
+    expect(result).toBe("");
   });
 
   it("WorkerSkill で workerSteps からworker contentを自動生成する", () => {
@@ -94,11 +91,11 @@ describe("resolveSkillContent", () => {
     expect(result).not.toBe("手動content");
   });
 
-  it("WorkerWithAgentTeam で teamPrefix がない場合はスキル定義の content をそのまま返す", () => {
+  it("WorkerWithAgentTeam で teamPrefix がない場合は空文字を返す", () => {
     const result = resolveSkillContent(
       makeWorkerWithAgentTeam({ teamPrefix: undefined }),
     );
 
-    expect(result).toBe("手動content");
+    expect(result).toBe("");
   });
 });

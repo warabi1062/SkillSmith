@@ -81,19 +81,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             supportFiles={data.supportFiles}
           />
         </div>
-      ) : (
-        /* 本文（workerStepsがない場合） */
-        data.content && (
-          <div className="mb-3">
-            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-              Content
-            </label>
-            <div className="m-0 p-3 bg-bg-deep border border-border-subtle rounded-sm font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
-              <Markdown remarkPlugins={[remarkGfm]}>{data.content}</Markdown>
-            </div>
-          </div>
-        )
-      )}
+      ) : null}
 
       {/* 入力 */}
       {data.input.length > 0 && (

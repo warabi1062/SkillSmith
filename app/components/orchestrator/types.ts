@@ -61,7 +61,6 @@ export interface SkillDetailData {
   name: string;
   description: string | null;
   skillType: string;
-  content: string;
   input: string[];
   output: string[];
   allowedTools: string[] | null;
