@@ -15,56 +15,54 @@ export function SkillDetail({
 }) {
   return (
     <div className="px-3.5 py-3 my-1">
-      {/* 説明 */}
-      {data.description && (
-        <div className="mb-3">
-          <div className="text-sm text-text-secondary leading-normal">
-            {data.description}
+      {/* 付属情報: description, input, output, beforeSections, afterSections */}
+      <div className="mb-4 p-4 border border-border-subtle rounded-md bg-bg-surface">
+        {data.description && (
+          <div className="mb-3">
+            <div className="text-sm text-text-secondary leading-normal">
+              {data.description}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 入力 */}
-      {data.input.length > 0 && (
-        <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Input
-          </label>
-          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
-            {data.input.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {data.input.length > 0 && (
+          <div className="mb-3">
+            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+              Input
+            </label>
+            <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
+              {data.input.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-      {/* 出力 */}
-      {data.output.length > 0 && (
-        <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Output
-          </label>
-          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
-            {data.output.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {data.output.length > 0 && (
+          <div className="mb-3">
+            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+              Output
+            </label>
+            <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
+              {data.output.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-      {/* beforeSections */}
-      <SectionItems
-        sections={data.beforeSections ?? []}
-        supportFiles={data.supportFiles}
-      />
+        <SectionItems
+          sections={data.beforeSections ?? []}
+          supportFiles={data.supportFiles}
+        />
 
-      {/* afterSections */}
-      <SectionItems
-        sections={data.afterSections ?? []}
-        supportFiles={data.supportFiles}
-      />
+        <SectionItems
+          sections={data.afterSections ?? []}
+          supportFiles={data.supportFiles}
+        />
+      </div>
 
-      {/* ステップ（全スキルタイプ共通） */}
+      {/* ステップ詳細 */}
       {data.steps && data.steps.length > 0 && (
         <div className="flex flex-col gap-2">
           {data.steps.map((step, i) => (
