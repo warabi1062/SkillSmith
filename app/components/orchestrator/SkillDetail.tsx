@@ -30,25 +30,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
         </div>
       )}
 
-      {/* Allowed Tools */}
-      {data.allowedTools && data.allowedTools.length > 0 && (
-        <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Allowed Tools
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {data.allowedTools.map((tool) => (
-              <span
-                key={tool}
-                className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
-              >
-                {tool}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 構造表示: workerSteps */}
       {showWorkerSteps && data.workerSteps ? (
         <div className="flex flex-col gap-2">
@@ -122,23 +103,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             <span className="inline-block px-2.5 py-0.5 font-mono text-xs font-semibold rounded-full bg-gradient-to-br from-model-purple-from to-model-purple-to text-white shadow-[0_0_12px_var(--color-model-purple-glow)]">
               {data.agentConfig.model || "(not set)"}
             </span>
-          </div>
-          <div className="mb-3">
-            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-              Tools
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {data.agentConfig.tools.length > 0
-                ? data.agentConfig.tools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
-                    >
-                      {tool}
-                    </span>
-                  ))
-                : "(not set)"}
-            </div>
           </div>
           <div className="flex flex-col gap-2">
             {data.agentConfig.description && (
