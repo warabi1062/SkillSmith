@@ -94,20 +94,9 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
           <h5 className="font-display mb-2 text-sm font-semibold text-text-primary tracking-[0.01em]">
             Agent Config
           </h5>
-          <div className="mb-3">
-            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-              Model
-            </label>
-            <span className="inline-block px-2.5 py-0.5 font-mono text-xs font-semibold rounded-full bg-gradient-to-br from-model-purple-from to-model-purple-to text-white shadow-[0_0_12px_var(--color-model-purple-glow)]">
-              {data.agentConfig.model || "(not set)"}
-            </span>
-          </div>
           <div className="flex flex-col gap-2">
             {data.agentConfig.description && (
               <div className="mb-3">
-                <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-                  Agent Description
-                </label>
                 <div className="text-sm text-text-secondary leading-normal">
                   {data.agentConfig.description}
                 </div>
