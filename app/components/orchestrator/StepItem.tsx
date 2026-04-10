@@ -37,7 +37,7 @@ export function StepItem({
           {step.cases?.map((c, caseIndex) => {
             const caseLetter = String.fromCharCode(65 + caseIndex);
             return (
-              <div key={c.name} className="mt-2 ml-4 pl-4">
+              <div key={c.name} className="mt-2 ml-2">
                 <div className="font-display text-sm font-semibold text-text-primary mb-1 tracking-[0.01em]">
                   {caseLetter}: {c.name}
                 </div>

@@ -16,7 +16,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
     data.teammates.length > 0;
 
   return (
-    <div className="ml-6 px-6 py-4 my-1">
+    <div className="px-3.5 py-3 my-1">
       {/* 説明（ラベルは省略） */}
       {data.description && (
         <div className="mb-3">
@@ -93,7 +93,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             Teammates
           </h5>
           {data.teammates.map((mate) => (
-            <div key={mate.name} className="mb-3 pl-4">
+            <div key={mate.name} className="mb-3">
               <div className="flex flex-col gap-0.5">
                 <span className="font-display font-semibold text-accent-teal text-[0.9375rem] tracking-tight">
                   {mate.name}
