@@ -12,16 +12,11 @@ export function SectionItems({
   return (
     <>
       {sections.map((s) => (
-        <div
-          key={s.heading}
-          className="border border-border-subtle rounded-md mb-2 bg-bg-surface transition-all hover:border-border-default"
-        >
-          <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary">
+        <div key={s.heading} className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
             {s.heading}
-          </div>
-          <div className="px-3.5 pb-3.5">
-            <BodyContent body={s.body} supportFiles={supportFiles} />
-          </div>
+          </label>
+          <BodyContent body={s.body} supportFiles={supportFiles} />
         </div>
       ))}
     </>
