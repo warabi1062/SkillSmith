@@ -16,7 +16,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
     data.teammates.length > 0;
 
   return (
-    <div className="ml-6 px-6 py-4 border-l-[3px] border-border-strong my-1 rounded-r-md">
+    <div className="ml-6 px-6 py-4 my-1">
       {/* 説明（ラベルは省略） */}
       {data.description && (
         <div className="mb-3">
