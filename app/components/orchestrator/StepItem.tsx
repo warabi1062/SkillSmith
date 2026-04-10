@@ -22,7 +22,7 @@ export function StepItem({
   if (step.type === "branch") {
     return (
       <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
-        <div className="px-3.5 py-2.5 font-display text-base font-semibold flex items-center gap-2 text-accent-blue">
+        <div className="px-3.5 py-2.5 font-display text-base font-semibold flex items-center gap-2 text-text-primary">
           {stepLabel}. {step.label}
         </div>
         <div className="px-3.5 pb-3.5">
@@ -40,7 +40,7 @@ export function StepItem({
                 key={c.name}
                 className="mt-2 ml-4 border-l-2 border-accent-blue-border pl-4"
               >
-                <div className="font-display text-sm font-semibold text-accent-blue mb-1 tracking-[0.01em]">
+                <div className="font-display text-sm font-semibold text-text-primary mb-1 tracking-[0.01em]">
                   {caseLetter}: {c.name}
                 </div>
                 <div className="flex flex-col gap-1.5">
