@@ -26,6 +26,34 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
         </div>
       )}
 
+      {/* 入力 */}
+      {data.input.length > 0 && (
+        <div className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+            Input
+          </label>
+          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
+            {data.input.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 出力 */}
+      {data.output.length > 0 && (
+        <div className="mb-3">
+          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+            Output
+          </label>
+          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
+            {data.output.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* 構造表示: workerSteps */}
       {showWorkerSteps && data.workerSteps ? (
         <div className="flex flex-col gap-2">
@@ -57,34 +85,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
           />
         </div>
       ) : null}
-
-      {/* 入力 */}
-      {data.input.length > 0 && (
-        <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Input
-          </label>
-          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
-            {data.input.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* 出力 */}
-      {data.output.length > 0 && (
-        <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Output
-          </label>
-          <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
-            {data.output.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Teammates */}
       {showTeammates && data.teammates && (
