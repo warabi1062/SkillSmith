@@ -28,7 +28,7 @@ export function SkillDetail({
         {data.input.length > 0 && (
           <div className="mb-3">
             <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-              Input
+              入力
             </label>
             <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
               {data.input.map((item) => (
@@ -41,7 +41,7 @@ export function SkillDetail({
         {data.output.length > 0 && (
           <div className="mb-3">
             <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-              Output
+              出力
             </label>
             <ul className="list-disc list-inside text-sm text-text-secondary leading-normal space-y-0.5">
               {data.output.map((item) => (
