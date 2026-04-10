@@ -78,10 +78,10 @@ describe("generateOrchestratorContent", () => {
 
     expect(result).toContain("### Step 1: 入力判定");
     expect(result).toContain("入力パターンに応じて分岐する");
-    expect(result).toContain("#### Step 1A: モードA");
-    expect(result).toContain("##### Step 1A-1: worker-a");
-    expect(result).toContain("#### Step 1B: モードB");
-    expect(result).toContain("##### Step 1B-1: 手動処理");
+    expect(result).toContain("#### A: モードA");
+    expect(result).toContain("##### Step 1-A1: worker-a");
+    expect(result).toContain("#### B: モードB");
+    expect(result).toContain("##### Step 1-B1: 手動処理");
   });
 
   it("beforeSections / afterSections が正しい位置に出力される", () => {
@@ -131,9 +131,9 @@ describe("generateOrchestratorContent", () => {
 
     expect(result).toContain("### Step 1: worker-a");
     expect(result).toContain("### Step 2: 分岐1");
-    expect(result).toContain("##### Step 2A-1: worker-b");
-    expect(result).toContain("##### Step 2A-2: 分岐2");
-    expect(result).toContain("####### Step 2A-2A-1: worker-c");
+    expect(result).toContain("##### Step 2-A1: worker-b");
+    expect(result).toContain("##### Step 2-A2: 分岐2");
+    expect(result).toContain("####### Step 2-A2-A1: worker-c");
   });
 
   it("スキル参照ステップに委譲文が出力される", () => {

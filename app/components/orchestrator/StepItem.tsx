@@ -39,7 +39,7 @@ export function StepItem({
                 className="mt-2 ml-4 border-l-2 border-accent-blue-border pl-4"
               >
                 <div className="font-display text-sm font-semibold text-accent-blue mb-1 tracking-[0.01em]">
-                  {c.name}
+                  {caseLetter}: {c.name}
                 </div>
                 <div className="flex flex-col gap-1.5">
                   {c.steps.map((s, i) => (
@@ -48,7 +48,7 @@ export function StepItem({
                       step={s}
                       index={i + 1}
                       allSkills={allSkills}
-                      prefix={`${prefix}${index}${caseLetter}-`}
+                      prefix={`${prefix}${index}-${caseLetter}`}
                     />
                   ))}
                 </div>
