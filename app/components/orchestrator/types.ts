@@ -2,25 +2,11 @@ import type { CommunicationPattern } from "../../lib/types/skill";
 
 // --- 型定義 ---
 
-// AgentConfigのセクション（構造化表示用）
-interface AgentConfigSectionFields {
-  heading: string;
-  body: string;
-}
-
-export interface AgentConfigFields {
-  model: string;
-  tools: string[];
-  description: string;
-  beforeSections?: AgentConfigSectionFields[];
-  afterSections?: AgentConfigSectionFields[];
-}
-
 // サポートファイルの内容マップ（filename → content）
 export type SupportFileMap = Record<string, string>;
 
-// Workerのステップ（構造化表示用）
-export interface WorkerStepFields {
+// インラインステップのサブステップ（構造化表示用）
+export interface InlineSubStepFields {
   id: string;
   title: string;
   body: string;
@@ -29,15 +15,8 @@ export interface WorkerStepFields {
 export interface TeammateFields {
   name: string;
   role: string;
-  steps: WorkerStepFields[];
+  steps: InlineSubStepFields[];
   communicationPattern?: CommunicationPattern;
-}
-
-// インラインステップのサブステップ（構造化表示用）
-interface InlineSubStepFields {
-  id: string;
-  title: string;
-  body: string;
 }
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
@@ -55,19 +34,16 @@ export interface SectionFields {
   body: string;
 }
 
-// スキル詳細データ
+// スキル詳細データ（全スキルタイプ共通）
 export interface SkillDetailData {
   name: string;
   description: string | null;
-  skillType: string;
   input: string[];
   output: string[];
   allowedTools: string[] | null;
   steps: StepFields[] | null;
   beforeSections: SectionFields[] | null;
   afterSections: SectionFields[] | null;
-  agentConfig: AgentConfigFields | null;
-  workerSteps: WorkerStepFields[] | null;
   teammates: TeammateFields[] | null;
   supportFiles: SupportFileMap;
 }

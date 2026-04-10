@@ -1,23 +1,21 @@
 import { SectionItems } from "./SectionItems";
 import { BodyContent } from "./BodyContent";
-import { COMMUNICATION_PATTERNS, SKILL_TYPES } from "../../lib/types/constants";
+import { StepItem } from "./StepItem";
+import { COMMUNICATION_PATTERNS } from "../../lib/types/constants";
 import type { SkillDetailData } from "./types";
+import type { LoadedSkillUnion } from "../../lib/types/loaded";
 
-// スキル詳細のインライン展開
-export function SkillDetail({ data }: { data: SkillDetailData }) {
-  const showWorkerSteps =
-    (data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ||
-      data.skillType === SKILL_TYPES.WORKER) &&
-    data.workerSteps &&
-    data.workerSteps.length > 0;
-  const showTeammates =
-    data.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
-    data.teammates &&
-    data.teammates.length > 0;
-
+// スキル詳細の共通表示コンポーネント（全スキルタイプ対応）
+export function SkillDetail({
+  data,
+  allSkills = [],
+}: {
+  data: SkillDetailData;
+  allSkills?: LoadedSkillUnion[];
+}) {
   return (
     <div className="px-3.5 py-3 my-1">
-      {/* 説明（ラベルは省略） */}
+      {/* 説明 */}
       {data.description && (
         <div className="mb-3">
           <div className="text-sm text-text-secondary leading-normal">
@@ -66,32 +64,19 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
         supportFiles={data.supportFiles}
       />
 
-      {/* 構造表示: workerSteps */}
-      {showWorkerSteps && data.workerSteps ? (
+      {/* ステップ（全スキルタイプ共通） */}
+      {data.steps && data.steps.length > 0 && (
         <div className="flex flex-col gap-2">
-          <label className="font-display font-semibold text-sm text-text-primary mt-1">
-            Worker Steps
-          </label>
-          <div className="flex flex-col gap-2">
-            {data.workerSteps.map((step) => (
-              <div key={step.id}>
-                <div className="mb-2">
-                  <div className="font-display text-sm font-medium text-text-primary py-1">
-                    {step.id}. {step.title}
-                  </div>
-                  <BodyContent
-                    body={step.body}
-                    supportFiles={data.supportFiles}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          {data.steps.map((step, i) => (
+            <div key={`${step.label}-${i}`} className="mb-2">
+              <StepItem step={step} index={i + 1} allSkills={allSkills} />
+            </div>
+          ))}
         </div>
-      ) : null}
+      )}
 
       {/* Teammates */}
-      {showTeammates && data.teammates && (
+      {data.teammates && data.teammates.length > 0 && (
         <div className="border-t border-border-subtle pt-4 mt-4">
           <h5 className="font-display mb-2 text-sm font-semibold text-text-primary">
             Teammates

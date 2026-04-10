@@ -114,7 +114,10 @@ export function StepItem({
         )}
       </div>
       {referencedSkill && (
-        <SkillDetail data={buildSkillDetailData(referencedSkill)} />
+        <SkillDetail
+          data={buildSkillDetailData(referencedSkill)}
+          allSkills={allSkills}
+        />
       )}
     </div>
   );

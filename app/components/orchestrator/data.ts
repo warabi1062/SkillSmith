@@ -51,21 +51,24 @@ export function convertSections(sections: LoadedSection[]): SectionFields[] {
 // --- skill情報の組み立て ---
 
 export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
-  const agentConfigData =
-    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT
-      ? skill.agentConfig
-      : null;
+  // stepsの統合: EntryPointはstepsをそのまま変換、WorkerはworkerStepsをinline StepFieldsに変換
+  let steps: StepFields[] | null = null;
 
-  const workerStepsData =
+  if (skill.steps) {
+    steps = skill.steps.map(convertStep);
+  } else if (
     (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ||
       skill.skillType === SKILL_TYPES.WORKER) &&
-    skill.workerSteps
-      ? skill.workerSteps.map((s) => ({
-          id: s.id,
-          title: s.title,
-          body: s.body,
-        }))
-      : null;
+    skill.workerSteps &&
+    skill.workerSteps.length > 0
+  ) {
+    // workerStepsをinline型のStepFieldsに変換
+    steps = skill.workerSteps.map((ws) => ({
+      type: "inline" as const,
+      label: ws.title,
+      inlineSteps: [{ id: ws.id, title: ws.title, body: ws.body }],
+    }));
+  }
 
   const teammatesData =
     skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM && skill.teammates
@@ -84,35 +87,18 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
   return {
     name: skill.name,
     description: skill.description ?? null,
-    skillType: skill.skillType,
     input: skill.input ?? [],
     output: skill.output ?? [],
     allowedTools: skill.allowedTools
       ? skill.allowedTools.map(serializeToolRef)
       : null,
-    steps: skill.steps ? skill.steps.map(convertStep) : null,
+    steps,
     beforeSections: skill.beforeSections
       ? convertSections(skill.beforeSections)
       : null,
     afterSections: skill.afterSections
       ? convertSections(skill.afterSections)
       : null,
-    agentConfig: agentConfigData
-      ? {
-          model: agentConfigData.model ?? "",
-          tools: (agentConfigData.tools ?? []).map(serializeToolRef),
-          description: agentConfigData.description,
-          beforeSections: agentConfigData.beforeSections?.map((s) => ({
-            heading: s.heading,
-            body: s.body,
-          })),
-          afterSections: agentConfigData.afterSections?.map((s) => ({
-            heading: s.heading,
-            body: s.body,
-          })),
-        }
-      : null,
-    workerSteps: workerStepsData,
     teammates: teammatesData,
     supportFiles: Object.fromEntries(
       (skill.files ?? []).map((f) => [f.filename, f.content]),
