@@ -19,12 +19,9 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
 
   return (
     <div className="ml-6 px-6 py-4 border-l-[3px] border-border-strong my-1 rounded-r-md">
-      {/* 説明 */}
+      {/* 説明（ラベルは省略） */}
       {data.description && (
         <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Description
-          </label>
           <div className="text-sm text-text-secondary leading-normal">
             {data.description}
           </div>
