@@ -5,6 +5,7 @@ import { SkillDetail } from "./SkillDetail";
 import { buildSkillDetailData } from "./data";
 import type { StepFields } from "./types";
 import type { LoadedSkillUnion } from "../../lib/types/loaded";
+import { SKILL_TYPES } from "../../lib/types/constants";
 
 // ステップの再帰的表示コンポーネント
 export function StepItem({
@@ -99,6 +100,11 @@ export function StepItem({
         <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-amber-dim text-accent-amber border border-accent-amber-border">
           SKILL
         </span>
+        {referencedSkill?.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && (
+          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-teal-dim text-accent-teal border border-accent-teal-border">
+            SUB AGENT
+          </span>
+        )}
       </div>
       {referencedSkill && (
         <SkillDetail data={buildSkillDetailData(referencedSkill)} />

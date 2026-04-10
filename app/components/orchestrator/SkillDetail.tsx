@@ -5,8 +5,6 @@ import type { SkillDetailData } from "./types";
 
 // スキル詳細のインライン展開
 export function SkillDetail({ data }: { data: SkillDetailData }) {
-  const showAgentConfig =
-    data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && data.agentConfig;
   const showWorkerSteps =
     (data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ||
       data.skillType === SKILL_TYPES.WORKER) &&
@@ -24,26 +22,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
         <div className="mb-3">
           <div className="text-sm text-text-secondary leading-normal">
             {data.description}
-          </div>
-        </div>
-      )}
-
-      {/* AgentConfig（workerStepsの前に表示） */}
-      {showAgentConfig && data.agentConfig && (
-        <div className="border border-border-subtle rounded-md bg-bg-surface p-4 mb-4">
-          <h5 className="font-display mb-2 text-sm font-semibold text-text-primary tracking-[0.01em]">
-            Agent Config
-          </h5>
-          <div className="flex flex-col gap-2">
-            {data.agentConfig.description && (
-              <div className="mb-3">
-                <div className="text-sm text-text-secondary leading-normal">
-                  {data.agentConfig.description}
-                </div>
-              </div>
-            )}
-            <SectionItems sections={data.agentConfig.beforeSections ?? []} />
-            <SectionItems sections={data.agentConfig.afterSections ?? []} />
           </div>
         </div>
       )}
