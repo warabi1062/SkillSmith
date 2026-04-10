@@ -2,7 +2,12 @@ import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "../core/frontmatter.server";
 import type { ToolRef } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
-import { SKILL_TYPES, ERROR_CODES, FILE_PATHS, FRONTMATTER_FIELDS } from "../types/constants";
+import {
+  SKILL_TYPES,
+  ERROR_CODES,
+  FILE_PATHS,
+  FRONTMATTER_FIELDS,
+} from "../types/constants";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const SKILL_NAME_MAX_LENGTH = 64;

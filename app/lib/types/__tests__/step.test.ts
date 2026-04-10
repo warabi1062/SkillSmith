@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
-import {
-  collectSkillsFromSteps,
-  WorkerSkill,
-} from "../skill";
+import { collectSkillsFromSteps, WorkerSkill } from "../skill";
 import type { Step } from "../skill";
 
 // テスト用ヘルパー: 最小の WorkerSkill を作成
 function worker(name: string): WorkerSkill {
-  return new WorkerSkill({ name, workerSteps: [{ id: "1", title: name, body: "" }] });
+  return new WorkerSkill({
+    name,
+    workerSteps: [{ id: "1", title: name, body: "" }],
+  });
 }
 
 describe("collectSkillsFromSteps", () => {

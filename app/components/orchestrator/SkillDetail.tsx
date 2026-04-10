@@ -8,7 +8,8 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
   const showAgentConfig =
     data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && data.agentConfig;
   const showWorkerSteps =
-    (data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT || data.skillType === SKILL_TYPES.WORKER) &&
+    (data.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ||
+      data.skillType === SKILL_TYPES.WORKER) &&
     data.workerSteps &&
     data.workerSteps.length > 0;
   const showTeammates =
@@ -18,33 +19,11 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
 
   return (
     <div className="ml-6 px-6 py-4 border-l-[3px] border-border-strong my-1 rounded-r-md">
-      {/* 説明 */}
+      {/* 説明（ラベルは省略） */}
       {data.description && (
         <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Description
-          </label>
           <div className="text-sm text-text-secondary leading-normal">
             {data.description}
-          </div>
-        </div>
-      )}
-
-      {/* Allowed Tools */}
-      {data.allowedTools && data.allowedTools.length > 0 && (
-        <div className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-            Allowed Tools
-          </label>
-          <div className="flex flex-wrap gap-1.5">
-            {data.allowedTools.map((tool) => (
-              <span
-                key={tool}
-                className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
-              >
-                {tool}
-              </span>
-            ))}
           </div>
         </div>
       )}
@@ -123,23 +102,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
               {data.agentConfig.model || "(not set)"}
             </span>
           </div>
-          <div className="mb-3">
-            <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
-              Tools
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {data.agentConfig.tools.length > 0
-                ? data.agentConfig.tools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="inline-block px-2 py-0.5 font-mono text-xs font-medium rounded-sm bg-accent-violet-dim text-accent-violet border border-accent-violet-border hover:bg-accent-violet-hover transition-colors"
-                    >
-                      {tool}
-                    </span>
-                  ))
-                : "(not set)"}
-            </div>
-          </div>
           <div className="flex flex-col gap-2">
             {data.agentConfig.description && (
               <div className="mb-3">
@@ -151,12 +113,8 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
                 </div>
               </div>
             )}
-            <SectionItems
-              sections={data.agentConfig.beforeSections ?? []}
-            />
-            <SectionItems
-              sections={data.agentConfig.afterSections ?? []}
-            />
+            <SectionItems sections={data.agentConfig.beforeSections ?? []} />
+            <SectionItems sections={data.agentConfig.afterSections ?? []} />
           </div>
         </div>
       )}
@@ -179,12 +137,14 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
                 <span className="text-sm text-text-secondary">{mate.role}</span>
               </div>
               <div className="pb-2">
-                {mate.communicationPattern?.type === COMMUNICATION_PATTERNS.POLLER && (
+                {mate.communicationPattern?.type ===
+                  COMMUNICATION_PATTERNS.POLLER && (
                   <div className="text-sm text-text-tertiary py-0.5 font-mono">
                     polling &rarr; {mate.communicationPattern.target}
                   </div>
                 )}
-                {mate.communicationPattern?.type === COMMUNICATION_PATTERNS.RESPONDER && (
+                {mate.communicationPattern?.type ===
+                  COMMUNICATION_PATTERNS.RESPONDER && (
                   <div className="text-sm text-text-tertiary py-0.5 font-mono">
                     status_check responder
                   </div>

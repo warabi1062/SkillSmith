@@ -30,7 +30,10 @@ describe("validateGeneratedPlugin", () => {
   it("有効なプラグインでエラーが返らないこと", () => {
     const plugin = makePlugin([
       { path: FILE_PATHS.PLUGIN_JSON, content: "{}" },
-      { path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`, content: "# Skill" },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`,
+        content: "# Skill",
+      },
     ]);
     const errors = validateGeneratedPlugin(plugin);
     expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);
@@ -38,12 +41,15 @@ describe("validateGeneratedPlugin", () => {
 
   it("plugin.jsonが不足している場合にエラーを返すこと", () => {
     const plugin = makePlugin([
-      { path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`, content: "# Skill" },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`,
+        content: "# Skill",
+      },
     ]);
     const errors = validateGeneratedPlugin(plugin);
-    expect(errors.some((e) => e.code === ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH)).toBe(
-      true,
-    );
+    expect(
+      errors.some((e) => e.code === ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH),
+    ).toBe(true);
   });
 
   it("スキルがない場合にエラーを返すこと", () => {
@@ -66,11 +72,19 @@ describe("validateGeneratedPlugin", () => {
   it("重複ファイルパスに対してエラーを返すこと", () => {
     const plugin = makePlugin([
       { path: FILE_PATHS.PLUGIN_JSON, content: "{}" },
-      { path: `${FILE_PATHS.SKILLS_DIR}a/${FILE_PATHS.SKILL_MD}`, content: "# A" },
-      { path: `${FILE_PATHS.SKILLS_DIR}a/${FILE_PATHS.SKILL_MD}`, content: "# A duplicate" },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}a/${FILE_PATHS.SKILL_MD}`,
+        content: "# A",
+      },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}a/${FILE_PATHS.SKILL_MD}`,
+        content: "# A duplicate",
+      },
     ]);
     const errors = validateGeneratedPlugin(plugin);
-    expect(errors.some((e) => e.code === ERROR_CODES.DUPLICATE_FILE_PATH)).toBe(true);
+    expect(errors.some((e) => e.code === ERROR_CODES.DUPLICATE_FILE_PATH)).toBe(
+      true,
+    );
   });
 
   it("SKILL.mdがskills/以外にある場合にwarningを返すこと", () => {
@@ -79,9 +93,9 @@ describe("validateGeneratedPlugin", () => {
       { path: `other/${FILE_PATHS.SKILL_MD}`, content: "# Skill" },
     ]);
     const errors = validateGeneratedPlugin(plugin);
-    expect(errors.some((e) => e.code === ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH)).toBe(
-      true,
-    );
+    expect(
+      errors.some((e) => e.code === ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH),
+    ).toBe(true);
   });
 
   it("依存ターゲットが同一プラグイン内にない場合にwarningを返すこと", () => {
@@ -90,12 +104,15 @@ describe("validateGeneratedPlugin", () => {
     ];
     const plugin = makePlugin([
       { path: FILE_PATHS.PLUGIN_JSON, content: "{}" },
-      { path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`, content: "# Skill" },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`,
+        content: "# Skill",
+      },
     ]);
     const errors = validateGeneratedPlugin(plugin, skills);
-    expect(errors.some((e) => e.code === ERROR_CODES.MISSING_DEPENDENCY_TARGET)).toBe(
-      true,
-    );
+    expect(
+      errors.some((e) => e.code === ERROR_CODES.MISSING_DEPENDENCY_TARGET),
+    ).toBe(true);
   });
 
   it("依存ターゲットが同一プラグイン内にある場合にwarningが返らないこと", () => {
@@ -105,12 +122,18 @@ describe("validateGeneratedPlugin", () => {
     ];
     const plugin = makePlugin([
       { path: FILE_PATHS.PLUGIN_JSON, content: "{}" },
-      { path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`, content: "# Skill" },
-      { path: `${FILE_PATHS.SKILLS_DIR}other-skill/${FILE_PATHS.SKILL_MD}`, content: "# Other" },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`,
+        content: "# Skill",
+      },
+      {
+        path: `${FILE_PATHS.SKILLS_DIR}other-skill/${FILE_PATHS.SKILL_MD}`,
+        content: "# Other",
+      },
     ]);
     const errors = validateGeneratedPlugin(plugin, skills);
-    expect(errors.some((e) => e.code === ERROR_CODES.MISSING_DEPENDENCY_TARGET)).toBe(
-      false,
-    );
+    expect(
+      errors.some((e) => e.code === ERROR_CODES.MISSING_DEPENDENCY_TARGET),
+    ).toBe(false);
   });
 });

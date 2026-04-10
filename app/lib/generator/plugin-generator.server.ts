@@ -1,7 +1,4 @@
-import type {
-  LoadedPluginDefinition,
-  LoadedSkillUnion,
-} from "../types/loaded";
+import type { LoadedPluginDefinition, LoadedSkillUnion } from "../types/loaded";
 import { SKILL_TYPES } from "../types/constants";
 import type {
   GeneratedPlugin,
@@ -38,7 +35,11 @@ export function buildSkillMetas(
     { input?: string[]; output?: string[]; hasAgent?: boolean }
   >();
   for (const skill of skills) {
-    if (skill.input || skill.output || skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT) {
+    if (
+      skill.input ||
+      skill.output ||
+      skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT
+    ) {
       skillMetas.set(skill.name, {
         input: skill.input,
         output: skill.output,

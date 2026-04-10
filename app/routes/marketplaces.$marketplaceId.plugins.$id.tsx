@@ -1,8 +1,5 @@
 import { data, Outlet } from "react-router";
-import {
-  loadPluginDefinition,
-  getMarketplacesBaseDir,
-} from "../lib/loader";
+import { loadPluginDefinition, getMarketplacesBaseDir } from "../lib/loader";
 import type { LoadedPluginDefinition } from "../lib/types/loaded";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id";
 import * as path from "node:path";

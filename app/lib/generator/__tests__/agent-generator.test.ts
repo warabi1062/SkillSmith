@@ -47,7 +47,10 @@ describe("generateAgentMd", () => {
 
   it("AgentConfigのdescriptionがSkillConfigのdescriptionより優先される", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ description: "Agent説明", skillDescription: "Skill説明" }),
+      makeAgentComponent({
+        description: "Agent説明",
+        skillDescription: "Skill説明",
+      }),
     );
     expect(file!.content).toContain("description: Agent説明");
   });
@@ -85,7 +88,10 @@ describe("generateAgentMd", () => {
 
   it("agent mdのfrontmatterにinput/outputを含めない", () => {
     const { file } = generateAgentMd(
-      makeAgentComponent({ skillInput: ["- task ID"], skillOutput: ["- result"] }),
+      makeAgentComponent({
+        skillInput: ["- task ID"],
+        skillOutput: ["- result"],
+      }),
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");

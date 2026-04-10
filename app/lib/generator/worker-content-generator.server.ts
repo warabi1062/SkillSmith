@@ -1,13 +1,7 @@
 // Worker の content を workerSteps + beforeSections/afterSections から自動生成する
 
-import type {
-  LoadedWorkerStep,
-  LoadedSection,
-} from "../types/loaded";
-import {
-  renderListSection,
-  renderSections,
-} from "../core/section-utils";
+import type { LoadedWorkerStep, LoadedSection } from "../types/loaded";
+import { renderListSection, renderSections } from "../core/section-utils";
 export interface WorkerContentInput {
   input?: string[]; // 入力の説明
   output?: string[]; // 出力の説明

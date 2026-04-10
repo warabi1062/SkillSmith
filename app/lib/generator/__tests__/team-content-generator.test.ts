@@ -24,7 +24,10 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
       { id: "R2", title: "レビュー実行", body: "レビューを行う。" },
     ],
     sortOrder: 2,
-    communicationPattern: { type: COMMUNICATION_PATTERNS.POLLER, target: pollingTarget },
+    communicationPattern: {
+      type: COMMUNICATION_PATTERNS.POLLER,
+      target: pollingTarget,
+    },
   };
 }
 
@@ -70,13 +73,17 @@ describe("generateTeamContent", () => {
 
     expect(result).toContain("### リーダー");
     expect(result).toContain("implementer / reviewer の進捗監視");
-    expect(result).toContain("全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す");
+    expect(result).toContain(
+      "全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す",
+    );
   });
 
   it("リーダーセクションにメンバー名の厳守指示が含まれる", () => {
     const result = generateTeamContent(makeInput());
 
-    expect(result).toContain("定義された名前（implementer, reviewer）と完全一致する name でスポーンすること");
+    expect(result).toContain(
+      "定義された名前（implementer, reviewer）と完全一致する name でスポーンすること",
+    );
   });
 
   it("requiresUserApproval が true の場合、ユーザー承認フローが含まれる", () => {

@@ -157,13 +157,7 @@ describe("export コマンド", () => {
     try {
       // Act（--overwrite なしでも overwrite: true になる）
       await route(
-        [
-          "plugin",
-          "export",
-          "./plugin.ts",
-          "--output",
-          "/tmp/output",
-        ],
+        ["plugin", "export", "./plugin.ts", "--output", "/tmp/output"],
         noop,
       );
 

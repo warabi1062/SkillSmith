@@ -105,7 +105,8 @@ export interface Section {
 }
 
 // サポートファイルの役割
-export type SupportFileRole = (typeof SUPPORT_FILE_ROLES)[keyof typeof SUPPORT_FILE_ROLES];
+export type SupportFileRole =
+  (typeof SUPPORT_FILE_ROLES)[keyof typeof SUPPORT_FILE_ROLES];
 
 // サポートファイルの参照宣言（定義ファイル上の型）
 export interface SupportFile {
@@ -183,13 +184,17 @@ export abstract class Skill {
     if (init.output !== undefined) this.output = init.output;
     if (init.allowedTools !== undefined) this.allowedTools = init.allowedTools;
     if (init.argumentHint !== undefined) this.argumentHint = init.argumentHint;
-    if (init.userInvocable !== undefined) this.userInvocable = init.userInvocable;
-    if (init.disableModelInvocation !== undefined) this.disableModelInvocation = init.disableModelInvocation;
+    if (init.userInvocable !== undefined)
+      this.userInvocable = init.userInvocable;
+    if (init.disableModelInvocation !== undefined)
+      this.disableModelInvocation = init.disableModelInvocation;
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
     if (init.steps !== undefined) this.steps = init.steps;
-    if (init.beforeSections !== undefined) this.beforeSections = init.beforeSections;
-    if (init.afterSections !== undefined) this.afterSections = init.afterSections;
+    if (init.beforeSections !== undefined)
+      this.beforeSections = init.beforeSections;
+    if (init.afterSections !== undefined)
+      this.afterSections = init.afterSections;
   }
 }
 

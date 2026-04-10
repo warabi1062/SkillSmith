@@ -62,7 +62,10 @@ describe("createOutput", () => {
       // Arrange
       const streams = createMockStreams();
       const output = createOutput({ json: true }, streams);
-      const error: CliError = { type: "validation", message: "something went wrong" };
+      const error: CliError = {
+        type: "validation",
+        message: "something went wrong",
+      };
 
       // Act
       output.error(error);
@@ -83,7 +86,11 @@ describe("createOutput", () => {
       const output = createOutput({ json: true }, streams);
       const errors: CliError[] = [
         { type: "validation", message: "入力が不正です" },
-        { type: "io", message: "ファイルが見つかりません", context: "/tmp/foo.ts" },
+        {
+          type: "io",
+          message: "ファイルが見つかりません",
+          context: "/tmp/foo.ts",
+        },
       ];
 
       // Act
@@ -95,7 +102,11 @@ describe("createOutput", () => {
         ok: false,
         errors: [
           { type: "validation", message: "入力が不正です" },
-          { type: "io", message: "ファイルが見つかりません", context: "/tmp/foo.ts" },
+          {
+            type: "io",
+            message: "ファイルが見つかりません",
+            context: "/tmp/foo.ts",
+          },
         ],
       });
     });
@@ -148,14 +159,20 @@ describe("createOutput", () => {
       // Arrange
       const streams = createMockStreams();
       const output = createOutput({ json: false }, streams);
-      const error: CliError = { type: "io", message: "ファイルが見つかりません", context: "/tmp/foo.ts" };
+      const error: CliError = {
+        type: "io",
+        message: "ファイルが見つかりません",
+        context: "/tmp/foo.ts",
+      };
 
       // Act
       output.error(error);
 
       // Assert
       expect(streams.stderrData).toHaveLength(1);
-      expect(streams.stderrData[0]).toBe("Error [io]: ファイルが見つかりません (/tmp/foo.ts)\n");
+      expect(streams.stderrData[0]).toBe(
+        "Error [io]: ファイルが見つかりません (/tmp/foo.ts)\n",
+      );
     });
 
     it("error で複数エラーをそれぞれ stderr に出力する", () => {

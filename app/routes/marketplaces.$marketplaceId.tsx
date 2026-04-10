@@ -8,9 +8,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 // ブレッドクラム: 「Top > {marketplace名}」
 export const handle = {
-  breadcrumb: ({
-    data: loaderData,
-  }: { data: { marketplaceId: string } }) => ({
+  breadcrumb: ({ data: loaderData }: { data: { marketplaceId: string } }) => ({
     label: loaderData.marketplaceId,
     to: `/marketplaces/${loaderData.marketplaceId}`,
   }),

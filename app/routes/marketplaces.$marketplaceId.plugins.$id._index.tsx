@@ -19,7 +19,9 @@ export default function PluginDetail() {
   const orchestrators = plugin.skills.filter(
     (s) => s.skillType === SKILL_TYPES.ENTRY_POINT,
   );
-  const workers = plugin.skills.filter((s) => s.skillType !== SKILL_TYPES.ENTRY_POINT);
+  const workers = plugin.skills.filter(
+    (s) => s.skillType !== SKILL_TYPES.ENTRY_POINT,
+  );
 
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">

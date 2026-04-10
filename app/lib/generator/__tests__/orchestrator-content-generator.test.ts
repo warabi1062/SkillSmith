@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { generateOrchestratorContent } from "../orchestrator-content-generator.server";
 import type { LoadedStep } from "../../types/loaded";
 
-
 describe("generateOrchestratorContent", () => {
   it("stepsが空配列の場合は空文字を返す", () => {
     const result = generateOrchestratorContent({
@@ -14,7 +13,6 @@ describe("generateOrchestratorContent", () => {
 
   it("Skill参照ステップのみの場合", () => {
     const result = generateOrchestratorContent({
-
       steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }],
     });
 
@@ -40,7 +38,6 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-
       steps,
     });
 
@@ -72,7 +69,6 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-
       steps,
     });
 
@@ -87,12 +83,8 @@ describe("generateOrchestratorContent", () => {
   it("beforeSections / afterSections が正しい位置に出力される", () => {
     const result = generateOrchestratorContent({
       steps: [{ skillName: "worker-a" }],
-      beforeSections: [
-        { heading: "事前確認", body: "確認事項" },
-      ],
-      afterSections: [
-        { heading: "注意事項", body: "注意内容" },
-      ],
+      beforeSections: [{ heading: "事前確認", body: "確認事項" }],
+      afterSections: [{ heading: "注意事項", body: "注意内容" }],
     });
 
     const beforeIdx = result.indexOf("## 事前確認");
@@ -125,7 +117,6 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-
       steps,
     });
 
@@ -165,7 +156,6 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-
       steps,
     });
 
@@ -188,7 +178,6 @@ describe("generateOrchestratorContent", () => {
     ];
 
     const result = generateOrchestratorContent({
-
       steps,
     });
 
@@ -216,12 +205,8 @@ describe("generateOrchestratorContent", () => {
   it("beforeSections / afterSections が混在する場合", () => {
     const result = generateOrchestratorContent({
       steps: [{ skillName: "worker-a" }, { skillName: "worker-b" }],
-      beforeSections: [
-        { heading: "事前確認", body: "確認事項" },
-      ],
-      afterSections: [
-        { heading: "注意事項", body: "注意内容" },
-      ],
+      beforeSections: [{ heading: "事前確認", body: "確認事項" }],
+      afterSections: [{ heading: "注意事項", body: "注意内容" }],
     });
 
     const beforeIdx = result.indexOf("## 事前確認");

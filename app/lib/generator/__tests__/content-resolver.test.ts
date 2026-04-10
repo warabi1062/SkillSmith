@@ -3,19 +3,26 @@ import { resolveSkillContent } from "../content-resolver.server";
 import type { LoadedSkillUnion } from "../../types/loaded";
 import { SKILL_TYPES } from "../../types/constants";
 
-function makeEntryPointSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkillUnion {
+function makeEntryPointSkill(
+  overrides?: Partial<LoadedSkillUnion>,
+): LoadedSkillUnion {
   return {
     name: "my-orchestrator",
     skillType: SKILL_TYPES.ENTRY_POINT,
     files: [],
     steps: [
-      { inline: "タスク実行", steps: [{ id: "1", title: "実行", body: "実行する" }] },
+      {
+        inline: "タスク実行",
+        steps: [{ id: "1", title: "実行", body: "実行する" }],
+      },
     ],
     ...overrides,
   } as LoadedSkillUnion;
 }
 
-function makeWorkerSkill(overrides?: Record<string, unknown>): LoadedSkillUnion {
+function makeWorkerSkill(
+  overrides?: Record<string, unknown>,
+): LoadedSkillUnion {
   return {
     name: "my-worker",
     skillType: SKILL_TYPES.WORKER,
@@ -27,7 +34,9 @@ function makeWorkerSkill(overrides?: Record<string, unknown>): LoadedSkillUnion 
   } as LoadedSkillUnion;
 }
 
-function makeWorkerWithSubAgent(overrides?: Record<string, unknown>): LoadedSkillUnion {
+function makeWorkerWithSubAgent(
+  overrides?: Record<string, unknown>,
+): LoadedSkillUnion {
   return {
     name: "my-sub-agent",
     skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
@@ -40,13 +49,19 @@ function makeWorkerWithSubAgent(overrides?: Record<string, unknown>): LoadedSkil
   } as LoadedSkillUnion;
 }
 
-function makeWorkerWithAgentTeam(overrides?: Record<string, unknown>): LoadedSkillUnion {
+function makeWorkerWithAgentTeam(
+  overrides?: Record<string, unknown>,
+): LoadedSkillUnion {
   return {
     name: "my-team",
     skillType: SKILL_TYPES.WORKER_WITH_AGENT_TEAM,
     files: [],
     teammates: [
-      { name: "worker", role: "実装担当", steps: [{ id: "1", title: "実装", body: "実装する" }] },
+      {
+        name: "worker",
+        role: "実装担当",
+        steps: [{ id: "1", title: "実装", body: "実装する" }],
+      },
     ],
     teamPrefix: "test",
     ...overrides,
@@ -63,7 +78,9 @@ describe("resolveSkillContent", () => {
 
   it("EntryPoint で steps がない場合は空文字を返す", () => {
     const result = resolveSkillContent(
-      makeEntryPointSkill({ steps: undefined } as unknown as Partial<LoadedSkillUnion>),
+      makeEntryPointSkill({
+        steps: undefined,
+      } as unknown as Partial<LoadedSkillUnion>),
     );
 
     expect(result).toBe("");

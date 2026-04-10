@@ -33,9 +33,7 @@ describe("generateMarketplaceJson", () => {
       name: "my-marketplace",
       description: "テスト用マーケットプレイス",
       owner: { name: "test-user" },
-      plugins: [
-        makePlugin({ name: "plugin-a", description: "プラグインA" }),
-      ],
+      plugins: [makePlugin({ name: "plugin-a", description: "プラグインA" })],
     });
 
     const result = generateMarketplaceJson(marketplace);

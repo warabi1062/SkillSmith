@@ -1,10 +1,7 @@
 import { useOutletContext, useParams } from "react-router";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.skills.$name";
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
-import {
-  buildSkillDetailData,
-  SkillDetail,
-} from "../components/orchestrator";
+import { buildSkillDetailData, SkillDetail } from "../components/orchestrator";
 import { getSkillTypeBadge } from "../lib/utils/skill-type";
 import { SKILL_TYPES } from "../lib/types/constants";
 
@@ -19,9 +16,7 @@ export function meta({ matches, params }: Route.MetaArgs) {
 
 // ブレッドクラム: スキル名を表示
 export const handle = {
-  breadcrumb: ({
-    params,
-  }: { params: Record<string, string | undefined> }) => ({
+  breadcrumb: ({ params }: { params: Record<string, string | undefined> }) => ({
     label: params.name ?? "",
     to: `/marketplaces/${params.marketplaceId}/plugins/${params.id}/skills/${params.name}`,
   }),

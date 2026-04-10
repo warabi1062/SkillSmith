@@ -127,7 +127,6 @@ interface ImportedPluginDefinition {
   hooks?: HookDefinition;
 }
 
-
 // プラグイン定義をディレクトリから読み込む
 export async function loadPluginDefinition(
   dirPath: string,
@@ -210,12 +209,8 @@ export async function loadPluginDefinition(
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,
-        beforeSections: skill.beforeSections
-          ? (skill.beforeSections)
-          : undefined,
-        afterSections: skill.afterSections
-          ? (skill.afterSections)
-          : undefined,
+        beforeSections: skill.beforeSections ? skill.beforeSections : undefined,
+        afterSections: skill.afterSections ? skill.afterSections : undefined,
       };
 
       // skillType に応じた拡張
@@ -224,7 +219,7 @@ export async function loadPluginDefinition(
           ...base,
           skillType: SKILL_TYPES.WORKER_WITH_SUB_AGENT,
           agentConfig: skill.agentConfig,
-          workerSteps: (skill.workerSteps),
+          workerSteps: skill.workerSteps,
         } satisfies LoadedWorkerWithSubAgentSkill;
       }
 
@@ -232,7 +227,7 @@ export async function loadPluginDefinition(
         const loadedTeammates: LoadedTeammate[] = skill.teammates.map((t) => ({
           name: t.name,
           role: t.role,
-          steps: (t.steps),
+          steps: t.steps,
           sortOrder: t.sortOrder,
           communicationPattern: t.communicationPattern,
         }));
@@ -248,10 +243,12 @@ export async function loadPluginDefinition(
 
       const loaded: LoadedSkill = {
         ...base,
-        skillType: skill.skillType as typeof SKILL_TYPES.ENTRY_POINT | typeof SKILL_TYPES.WORKER,
+        skillType: skill.skillType as
+          | typeof SKILL_TYPES.ENTRY_POINT
+          | typeof SKILL_TYPES.WORKER,
       };
       if (skill.workerSteps) {
-        loaded.workerSteps = (skill.workerSteps);
+        loaded.workerSteps = skill.workerSteps;
       }
       return loaded satisfies LoadedSkill;
     }),
@@ -391,7 +388,7 @@ function convertImportedSteps(steps: ImportedStep[]): LoadedStep[] {
     if (isImportedInlineStep(step)) {
       const loaded: LoadedInlineStep = {
         inline: step.inline,
-        steps: (step.steps),
+        steps: step.steps,
       };
       if (step.input) loaded.input = step.input;
       if (step.output) loaded.output = step.output;
@@ -411,17 +408,12 @@ export async function loadMarketplaceDefinition(
   try {
     await fs.access(marketplaceTsPath);
   } catch {
-    throw new Error(
-      `marketplace.ts が見つかりません: ${marketplaceTsPath}`,
-    );
+    throw new Error(`marketplace.ts が見つかりません: ${marketplaceTsPath}`);
   }
 
   // marketplace.ts を動的importで読み込む
   const jiti = createJiti(import.meta.url);
-  const mod = (await jiti.import(marketplaceTsPath)) as Record<
-    string,
-    unknown
-  >;
+  const mod = (await jiti.import(marketplaceTsPath)) as Record<string, unknown>;
   const def = mod.default as MarketplaceDefinition | undefined;
 
   if (!def) {

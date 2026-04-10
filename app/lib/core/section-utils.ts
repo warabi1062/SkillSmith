@@ -3,9 +3,7 @@
 import type { LoadedSection } from "../types/loaded";
 
 // セクションをレンダリングするヘルパー
-export function renderSections(
-  sections: LoadedSection[],
-): string[] {
+export function renderSections(sections: LoadedSection[]): string[] {
   const lines: string[] = [];
   for (const section of sections) {
     lines.push("");

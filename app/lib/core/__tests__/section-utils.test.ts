@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  renderListSection,
-  renderSections,
-} from "../section-utils";
+import { renderListSection, renderSections } from "../section-utils";
 import type { LoadedSection } from "../../types/loaded";
 
 describe("renderSections", () => {

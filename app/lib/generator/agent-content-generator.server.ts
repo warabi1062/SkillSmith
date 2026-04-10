@@ -1,10 +1,7 @@
 // AgentConfig の content を description + beforeSections/afterSections から自動生成する
 
 import type { LoadedSection } from "../types/loaded";
-import {
-  renderListSection,
-  renderSections,
-} from "../core/section-utils";
+import { renderListSection, renderSections } from "../core/section-utils";
 export interface AgentContentInput {
   input?: string[]; // 入力の説明
   output?: string[]; // 出力の説明

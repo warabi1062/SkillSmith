@@ -15,9 +15,7 @@ export function meta({ matches, params }: Route.MetaArgs) {
 
 // ブレッドクラム: オーケストレーター名を表示
 export const handle = {
-  breadcrumb: ({
-    params,
-  }: { params: Record<string, string | undefined> }) => ({
+  breadcrumb: ({ params }: { params: Record<string, string | undefined> }) => ({
     label: params.name ?? "",
     to: `/marketplaces/${params.marketplaceId}/plugins/${params.id}/orchestrators/${params.name}`,
   }),

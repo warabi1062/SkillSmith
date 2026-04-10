@@ -1,14 +1,9 @@
 // オーケストレーター（EntryPointSkill）の content を steps + beforeSections/afterSections + メタデータから自動生成する
 
-import type {
-  LoadedStep,
-  LoadedSection,
-} from "../types/loaded";
+import type { LoadedStep, LoadedSection } from "../types/loaded";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
 import type { LoadedBranch, LoadedInlineStep } from "../types/loaded";
-import {
-  renderSections,
-} from "../core/section-utils";
+import { renderSections } from "../core/section-utils";
 // スキル参照ステップで表示するメタ情報
 export interface SkillMeta {
   input?: string[];
@@ -54,7 +49,9 @@ function renderSteps(
     } else if (isLoadedInlineStep(step)) {
       lines.push(renderInlineStep(step, stepNumber, headingLevel));
     } else {
-      lines.push(renderSkillRef(step.skillName, stepNumber, headingLevel, skillMetas));
+      lines.push(
+        renderSkillRef(step.skillName, stepNumber, headingLevel, skillMetas),
+      );
     }
   }
 
@@ -111,9 +108,7 @@ function renderSkillRef(
   lines.push(`${h(headingLevel)} Step ${stepNumber}: ${skillName}`);
   lines.push("");
   if (meta?.hasAgent) {
-    lines.push(
-      `Task ツールを subagent_type: ${skillName}-agent で呼び出す。`,
-    );
+    lines.push(`Task ツールを subagent_type: ${skillName}-agent で呼び出す。`);
   } else {
     lines.push(`${skillName} skill を実行する。`);
   }
