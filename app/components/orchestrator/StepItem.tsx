@@ -70,9 +70,6 @@ export function StepItem({
       <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
         <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
           {stepLabel}. {step.label}
-          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-bg-hover text-text-secondary border border-border-default">
-            INLINE
-          </span>
         </div>
         <div className="px-3.5 pb-3.5">
           {step.inlineSteps && step.inlineSteps.length > 0 && (
