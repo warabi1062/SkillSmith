@@ -38,20 +38,20 @@ export default function SkillDetailPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">
       <div className="py-6">
-        <div className="flex items-center gap-3 mb-2">
-          <h4 className="font-display text-[1.375rem] font-bold text-text-primary tracking-tight">
-            {skill.name}
-          </h4>
-          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-bg-hover text-text-secondary border border-border-default">
-            {getSkillTypeBadge(skill.skillType)}
-          </span>
-        </div>
-        {skill.description && (
-          <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
-            {skill.description}
-          </p>
-        )}
         <div className="border border-border-subtle rounded-md bg-bg-surface p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <h4 className="font-display text-[1.375rem] font-bold text-text-primary tracking-tight">
+              {skill.name}
+            </h4>
+            <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-bg-hover text-text-secondary border border-border-default">
+              {getSkillTypeBadge(skill.skillType)}
+            </span>
+          </div>
+          {skill.description && (
+            <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
+              {skill.description}
+            </p>
+          )}
           <SkillDetail data={detailData} />
         </div>
       </div>

@@ -37,15 +37,15 @@ export default function OrchestratorDetail() {
   return (
     <div className="flex flex-col flex-1 min-h-0 relative">
       <div className="py-6">
-        <h4 className="font-display text-[1.375rem] font-bold text-text-primary mb-2 tracking-tight">
-          {orchestrator.name}
-        </h4>
-        {orchestrator.description && (
-          <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
-            {orchestrator.description}
-          </p>
-        )}
         <div className="border border-border-subtle rounded-lg bg-bg-surface p-6">
+          <h4 className="font-display text-[1.375rem] font-bold text-text-primary mb-2 tracking-tight">
+            {orchestrator.name}
+          </h4>
+          {orchestrator.description && (
+            <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
+              {orchestrator.description}
+            </p>
+          )}
           <SkillDetail data={detailData} allSkills={plugin.skills} />
         </div>
       </div>
