@@ -21,28 +21,30 @@ export function OrchestratorView({
 
   return (
     <div className="py-6">
-      <h4 className="font-display text-[1.375rem] font-bold text-text-primary mb-2 tracking-tight">
-        {skill.name}
-      </h4>
-      {skill.description && (
-        <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
-          {skill.description}
-        </p>
-      )}
+      <div className="border border-border-subtle rounded-lg bg-bg-surface p-6">
+        <h4 className="font-display text-[1.375rem] font-bold text-text-primary mb-2 tracking-tight">
+          {skill.name}
+        </h4>
+        {skill.description && (
+          <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
+            {skill.description}
+          </p>
+        )}
 
-      {/* beforeSections */}
-      <SectionItems sections={beforeSections} />
+        {/* beforeSections */}
+        <SectionItems sections={beforeSections} />
 
-      <div className="flex flex-col gap-2">
-        {steps.map((step, i) => (
-          <div key={`${step.label}-${i}`} className="mb-2">
-            <StepItem step={step} index={i + 1} allSkills={allSkills} />
-          </div>
-        ))}
+        <div className="flex flex-col gap-2">
+          {steps.map((step, i) => (
+            <div key={`${step.label}-${i}`} className="mb-2">
+              <StepItem step={step} index={i + 1} allSkills={allSkills} />
+            </div>
+          ))}
+        </div>
+
+        {/* afterSections */}
+        <SectionItems sections={afterSections} />
       </div>
-
-      {/* afterSections */}
-      <SectionItems sections={afterSections} />
     </div>
   );
 }

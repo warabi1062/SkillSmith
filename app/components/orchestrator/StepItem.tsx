@@ -22,7 +22,7 @@ export function StepItem({
   if (step.type === "branch") {
     return (
       <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
-        <div className="px-3.5 py-2.5 font-display text-sm font-medium flex items-center gap-2 text-accent-blue font-semibold">
+        <div className="px-3.5 py-2.5 font-display text-base font-semibold flex items-center gap-2 text-accent-blue">
           {stepLabel}. {step.label}
         </div>
         <div className="px-3.5 pb-3.5">
@@ -63,7 +63,7 @@ export function StepItem({
   if (step.type === "inline") {
     return (
       <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
-        <div className="px-3.5 py-2.5 font-display text-sm font-medium text-text-primary flex items-center gap-2">
+        <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
           {stepLabel}. {step.label}
           <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-bg-hover text-text-secondary border border-border-default">
             INLINE
@@ -92,7 +92,7 @@ export function StepItem({
 
   return (
     <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
-      <div className="px-3.5 py-2.5 font-display text-sm font-medium text-text-primary flex items-center gap-2">
+      <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
         {stepLabel}. {step.label}
         <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-amber-dim text-accent-amber border border-accent-amber-border">
           SKILL

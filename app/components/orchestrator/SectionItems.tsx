@@ -14,12 +14,12 @@ export function SectionItems({
       {sections.map((s) => (
         <div
           key={s.heading}
-          className="border border-border-subtle rounded-md mb-2 overflow-hidden bg-bg-surface"
+          className="border border-border-subtle rounded-md mb-2 bg-bg-surface transition-all hover:border-border-default"
         >
-          <div className="px-3.5 py-2 font-display text-sm font-medium text-text-tertiary bg-bg-elevated border-b border-border-subtle">
+          <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary">
             {s.heading}
           </div>
-          <div className="px-3.5 py-2.5">
+          <div className="px-3.5 pb-3.5">
             <BodyContent body={s.body} supportFiles={supportFiles} />
           </div>
         </div>
