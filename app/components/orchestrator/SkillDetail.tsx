@@ -28,6 +28,26 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
         </div>
       )}
 
+      {/* AgentConfig（workerStepsの前に表示） */}
+      {showAgentConfig && data.agentConfig && (
+        <div className="border border-border-subtle rounded-md bg-bg-surface p-4 mb-4">
+          <h5 className="font-display mb-2 text-sm font-semibold text-text-primary tracking-[0.01em]">
+            Agent Config
+          </h5>
+          <div className="flex flex-col gap-2">
+            {data.agentConfig.description && (
+              <div className="mb-3">
+                <div className="text-sm text-text-secondary leading-normal">
+                  {data.agentConfig.description}
+                </div>
+              </div>
+            )}
+            <SectionItems sections={data.agentConfig.beforeSections ?? []} />
+            <SectionItems sections={data.agentConfig.afterSections ?? []} />
+          </div>
+        </div>
+      )}
+
       {/* 構造表示: workerSteps */}
       {showWorkerSteps && data.workerSteps ? (
         <div className="flex flex-col gap-2">
@@ -85,26 +105,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
               <li key={item}>{item}</li>
             ))}
           </ul>
-        </div>
-      )}
-
-      {/* AgentConfig */}
-      {showAgentConfig && data.agentConfig && (
-        <div className="border-t border-border-subtle pt-4 mt-4">
-          <h5 className="font-display mb-2 text-sm font-semibold text-text-primary tracking-[0.01em]">
-            Agent Config
-          </h5>
-          <div className="flex flex-col gap-2">
-            {data.agentConfig.description && (
-              <div className="mb-3">
-                <div className="text-sm text-text-secondary leading-normal">
-                  {data.agentConfig.description}
-                </div>
-              </div>
-            )}
-            <SectionItems sections={data.agentConfig.beforeSections ?? []} />
-            <SectionItems sections={data.agentConfig.afterSections ?? []} />
-          </div>
         </div>
       )}
 
