@@ -34,6 +34,9 @@ export function OrchestratorView({
         {/* beforeSections */}
         <SectionItems sections={beforeSections} />
 
+        {/* afterSections */}
+        <SectionItems sections={afterSections} />
+
         <div className="flex flex-col gap-2">
           {steps.map((step, i) => (
             <div key={`${step.label}-${i}`} className="mb-2">
@@ -41,9 +44,6 @@ export function OrchestratorView({
             </div>
           ))}
         </div>
-
-        {/* afterSections */}
-        <SectionItems sections={afterSections} />
       </div>
     </div>
   );

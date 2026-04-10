@@ -54,13 +54,21 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
         </div>
       )}
 
+      {/* beforeSections */}
+      <SectionItems
+        sections={data.beforeSections ?? []}
+        supportFiles={data.supportFiles}
+      />
+
+      {/* afterSections */}
+      <SectionItems
+        sections={data.afterSections ?? []}
+        supportFiles={data.supportFiles}
+      />
+
       {/* 構造表示: workerSteps */}
       {showWorkerSteps && data.workerSteps ? (
         <div className="flex flex-col gap-2">
-          <SectionItems
-            sections={data.beforeSections ?? []}
-            supportFiles={data.supportFiles}
-          />
           <label className="font-display font-semibold text-sm text-text-primary mt-1">
             Worker Steps
           </label>
@@ -79,10 +87,6 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
               </div>
             ))}
           </div>
-          <SectionItems
-            sections={data.afterSections ?? []}
-            supportFiles={data.supportFiles}
-          />
         </div>
       ) : null}
 
