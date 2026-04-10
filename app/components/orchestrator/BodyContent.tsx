@@ -23,6 +23,7 @@ export function BodyContent({
         <Markdown
           remarkPlugins={[remarkGfm]}
           components={{
+            strong: ({ children }) => <span>{children}</span>,
             a: ({ href, children }) => {
               const filename = href?.replace(/^\.\//, "") ?? "";
               const fileContent = supportFiles?.[filename];
