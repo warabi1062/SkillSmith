@@ -101,8 +101,13 @@ export function StepItem({
           SKILL
         </span>
         {referencedSkill?.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT && (
-          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-teal-dim text-accent-teal border border-accent-teal-border">
+          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-violet-dim text-accent-violet border border-accent-violet-border">
             SUB AGENT
+          </span>
+        )}
+        {referencedSkill?.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM && (
+          <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-teal-dim text-accent-teal border border-accent-teal-border">
+            AGENT TEAM
           </span>
         )}
       </div>
