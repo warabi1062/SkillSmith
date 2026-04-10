@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pnpm biome format --write . && pnpm oxlint && pnpm typecheck 2>/dev/null || true",
+            "command": "pnpm biome format --write . && pnpm oxlint && pnpm typecheck",
             "timeout": 30
           }
         ]
