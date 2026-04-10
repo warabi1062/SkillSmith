@@ -93,10 +93,7 @@ export function SkillDetail({ data }: { data: SkillDetailData }) {
             Teammates
           </h5>
           {data.teammates.map((mate) => (
-            <div
-              key={mate.name}
-              className="border-l-[3px] border-accent-teal mb-3 pl-4"
-            >
+            <div key={mate.name} className="mb-3 pl-4">
               <div className="flex flex-col gap-0.5">
                 <span className="font-display font-semibold text-accent-teal text-[0.9375rem] tracking-tight">
                   {mate.name}
