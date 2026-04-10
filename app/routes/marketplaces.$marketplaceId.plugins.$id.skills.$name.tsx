@@ -47,11 +47,6 @@ export default function SkillDetailPage() {
               {getSkillTypeBadge(skill.skillType)}
             </span>
           </div>
-          {skill.description && (
-            <p className="text-[0.9rem] text-text-secondary mb-6 leading-relaxed">
-              {skill.description}
-            </p>
-          )}
           <SkillDetail data={detailData} />
         </div>
       </div>
