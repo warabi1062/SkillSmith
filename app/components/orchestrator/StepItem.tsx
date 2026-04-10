@@ -22,11 +22,11 @@ export function StepItem({
   const stepLabel = `Step${prefix}${index}`;
   if (step.type === "branch") {
     return (
-      <div>
-        <div className="py-2.5 font-display text-base font-semibold flex items-center gap-2 text-text-primary">
+      <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
+        <div className="px-3.5 py-2.5 font-display text-base font-semibold flex items-center gap-2 text-text-primary">
           {stepLabel}. {step.label}
         </div>
-        <div className="pb-3.5">
+        <div className="px-3.5 pb-3.5">
           {step.description && (
             <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
               <Markdown
@@ -67,11 +67,11 @@ export function StepItem({
 
   if (step.type === "inline") {
     return (
-      <div>
-        <div className="py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
+      <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
+        <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
           {stepLabel}. {step.label}
         </div>
-        <div className="pb-3.5">
+        <div className="px-3.5 pb-3.5">
           {step.inlineSteps && step.inlineSteps.length > 0 && (
             <div>
               {step.inlineSteps.map((subStep) => (
@@ -93,8 +93,8 @@ export function StepItem({
   const referencedSkill = allSkills.find((s) => s.name === step.label) ?? null;
 
   return (
-    <div>
-      <div className="py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
+    <div className="border border-border-subtle rounded-md bg-bg-surface transition-all hover:border-border-default">
+      <div className="px-3.5 py-2.5 font-display text-base font-semibold text-text-primary flex items-center gap-2">
         {stepLabel}. {step.label}
         <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-accent-amber-dim text-accent-amber border border-accent-amber-border">
           SKILL
