@@ -28,7 +28,9 @@ export function StepItem({
         <div className="px-3.5 pb-3.5">
           {step.description && (
             <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
-              <Markdown remarkPlugins={[remarkGfm]}>{step.description}</Markdown>
+              <Markdown remarkPlugins={[remarkGfm]}>
+                {step.description}
+              </Markdown>
             </div>
           )}
           {step.cases?.map((c, caseIndex) => {

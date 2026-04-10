@@ -32,7 +32,9 @@ describe("generateSkillMd", () => {
   it("generates a valid skill markdown with frontmatter", () => {
     const { file, errors } = generateSkillMd(makeSkillComponent({}));
     expect(file).not.toBeNull();
-    expect(file!.path).toBe(`${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`);
+    expect(file!.path).toBe(
+      `${FILE_PATHS.SKILLS_DIR}my-skill/${FILE_PATHS.SKILL_MD}`,
+    );
     expect(file!.content).toContain("---\nname: my-skill\n---");
     expect(file!.content).toContain("# Hello");
     expect(errors.filter((e) => e.severity === "error")).toHaveLength(0);

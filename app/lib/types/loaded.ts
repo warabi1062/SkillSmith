@@ -47,7 +47,9 @@ export type LoadedStep = SkillRef | LoadedBranch | LoadedInlineStep;
 
 // SkillRef かどうかを判定する型ガード
 export function isLoadedSkillRef(step: LoadedStep): step is SkillRef {
-  return "skillName" in step && !("decisionPoint" in step) && !("inline" in step);
+  return (
+    "skillName" in step && !("decisionPoint" in step) && !("inline" in step)
+  );
 }
 
 // LoadedBranch かどうかを判定する型ガード

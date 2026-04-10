@@ -72,9 +72,7 @@ describe("generateWorkerContent", () => {
   it("afterSectionsがstepsの後に配置される", () => {
     const result = generateWorkerContent(
       makeInput({
-        afterSections: [
-          { heading: "注意事項", body: "注意事項の説明。" },
-        ],
+        afterSections: [{ heading: "注意事項", body: "注意事項の説明。" }],
       }),
     );
 

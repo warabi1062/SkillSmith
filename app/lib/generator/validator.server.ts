@@ -73,7 +73,10 @@ function validateDirectoryStructure(
 
   // Skills must be under skills/ directory
   for (const file of plugin.files) {
-    if (file.path.endsWith(FILE_PATHS.SKILL_MD) && !file.path.startsWith(FILE_PATHS.SKILLS_DIR)) {
+    if (
+      file.path.endsWith(FILE_PATHS.SKILL_MD) &&
+      !file.path.startsWith(FILE_PATHS.SKILLS_DIR)
+    ) {
       errors.push({
         severity: "warning",
         code: ERROR_CODES.DIRECTORY_STRUCTURE_MISMATCH,

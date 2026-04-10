@@ -1,23 +1,37 @@
 import { describe, expect, it } from "vitest";
-import { generatePlugin, buildSkillMetas, generateSkillComponent } from "../plugin-generator.server";
-import type { LoadedPluginDefinition, LoadedSkillUnion } from "../../types/loaded";
+import {
+  generatePlugin,
+  buildSkillMetas,
+  generateSkillComponent,
+} from "../plugin-generator.server";
+import type {
+  LoadedPluginDefinition,
+  LoadedSkillUnion,
+} from "../../types/loaded";
 import { SKILL_TYPES, FILE_PATHS } from "../../types/constants";
 import { tool } from "../../types/skill";
 
 // テスト用のスキルを作成するヘルパー
-function makeEntryPointSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkillUnion {
+function makeEntryPointSkill(
+  overrides?: Partial<LoadedSkillUnion>,
+): LoadedSkillUnion {
   return {
     name: "my-skill",
     files: [],
     skillType: SKILL_TYPES.ENTRY_POINT,
     steps: [
-      { inline: "タスク実行", steps: [{ id: "1", title: "実行", body: "実行する" }] },
+      {
+        inline: "タスク実行",
+        steps: [{ id: "1", title: "実行", body: "実行する" }],
+      },
     ],
     ...overrides,
   } as LoadedSkillUnion;
 }
 
-function makeWorkerWithSubAgentSkill(overrides?: Partial<LoadedSkillUnion>): LoadedSkillUnion {
+function makeWorkerWithSubAgentSkill(
+  overrides?: Partial<LoadedSkillUnion>,
+): LoadedSkillUnion {
   return {
     name: "my-worker",
     files: [],
@@ -46,7 +60,11 @@ describe("buildSkillMetas", () => {
     // Arrange
     const skills: LoadedSkillUnion[] = [
       makeEntryPointSkill({ name: "orchestrator" }),
-      makeEntryPointSkill({ name: "with-io", input: ["task ID"], output: ["result"] }),
+      makeEntryPointSkill({
+        name: "with-io",
+        input: ["task ID"],
+        output: ["result"],
+      }),
     ];
 
     // Act
@@ -95,7 +113,9 @@ describe("generateSkillComponent", () => {
 
     // Assert
     expect(result.files.length).toBeGreaterThanOrEqual(1);
-    const skillMd = result.files.find((f) => f.path.endsWith(FILE_PATHS.SKILL_MD));
+    const skillMd = result.files.find((f) =>
+      f.path.endsWith(FILE_PATHS.SKILL_MD),
+    );
     expect(skillMd).toBeDefined();
     expect(skillMd!.content).toContain("## 作業詳細");
     expect(result.errors.filter((e) => e.severity === "error")).toHaveLength(0);
@@ -110,7 +130,9 @@ describe("generateSkillComponent", () => {
     const result = generateSkillComponent(skill, metas);
 
     // Assert
-    const skillMd = result.files.find((f) => f.path.endsWith(FILE_PATHS.SKILL_MD));
+    const skillMd = result.files.find((f) =>
+      f.path.endsWith(FILE_PATHS.SKILL_MD),
+    );
     const agentMd = result.files.find((f) => f.path.includes("agents/"));
     expect(skillMd).toBeDefined();
     expect(agentMd).toBeDefined();
@@ -139,7 +161,9 @@ describe("generatePlugin", () => {
     const { plugin, skills } = generatePlugin(pluginDef);
 
     // Assert
-    const pluginJson = plugin.files.find((f) => f.path === FILE_PATHS.PLUGIN_JSON);
+    const pluginJson = plugin.files.find(
+      (f) => f.path === FILE_PATHS.PLUGIN_JSON,
+    );
     expect(pluginJson).toBeDefined();
     expect(plugin.files.length).toBeGreaterThan(1);
     expect(skills).toHaveLength(1);
@@ -157,16 +181,16 @@ describe("generatePlugin", () => {
     const { plugin, skills } = generatePlugin(pluginDef);
 
     // Assert
-    const skillFiles = plugin.files.filter((f) => f.path.endsWith(FILE_PATHS.SKILL_MD));
+    const skillFiles = plugin.files.filter((f) =>
+      f.path.endsWith(FILE_PATHS.SKILL_MD),
+    );
     expect(skillFiles).toHaveLength(2);
     expect(skills).toHaveLength(2);
   });
 
   it("スキルのバリデーションエラーをプラグインのvalidationErrorsに集約する", () => {
     // Arrange
-    const pluginDef = makePluginDef([
-      makeEntryPointSkill({ name: "INVALID" }),
-    ]);
+    const pluginDef = makePluginDef([makeEntryPointSkill({ name: "INVALID" })]);
 
     // Act
     const { plugin } = generatePlugin(pluginDef);

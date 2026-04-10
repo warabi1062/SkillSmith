@@ -3,7 +3,10 @@ import { EntryPointSkill, WorkerSkill } from "../skill";
 
 // テスト用ヘルパー
 function worker(name: string): WorkerSkill {
-  return new WorkerSkill({ name, workerSteps: [{ id: "1", title: name, body: "" }] });
+  return new WorkerSkill({
+    name,
+    workerSteps: [{ id: "1", title: name, body: "" }],
+  });
 }
 
 describe("EntryPointSkill の steps → dependencies 自動導出", () => {
@@ -43,5 +46,4 @@ describe("EntryPointSkill の steps → dependencies 自動導出", () => {
 
     expect(skill.dependencies?.map((d) => d.name)).toEqual(["s1"]);
   });
-
 });

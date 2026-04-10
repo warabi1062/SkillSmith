@@ -64,7 +64,9 @@ function captureProcessOutput(): {
 const noop = () => {};
 
 // テスト用のマーケットプレイス定義
-function createMarketplaceDef(pluginNames: string[] = ["plugin-a", "plugin-b"]) {
+function createMarketplaceDef(
+  pluginNames: string[] = ["plugin-a", "plugin-b"],
+) {
   return {
     name: "test-marketplace",
     description: "テスト用マーケットプレイス",
@@ -153,7 +155,14 @@ describe("marketplace export コマンド", () => {
     try {
       // Act
       const exitCode = await route(
-        ["marketplace", "export", "./marketplace", "--output", "/tmp/output", "--json"],
+        [
+          "marketplace",
+          "export",
+          "./marketplace",
+          "--output",
+          "/tmp/output",
+          "--json",
+        ],
         noop,
       );
 

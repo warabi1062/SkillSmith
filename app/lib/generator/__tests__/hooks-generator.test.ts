@@ -139,7 +139,9 @@ describe("generateHooks", () => {
 
   it("出力 JSON が末尾改行を含むこと", () => {
     const hookDef: LoadedHookDefinition = {
-      hooks: { TeammateIdle: [{ hooks: [{ type: "command", command: "echo" }] }] },
+      hooks: {
+        TeammateIdle: [{ hooks: [{ type: "command", command: "echo" }] }],
+      },
     };
 
     const result = generateHooks(hookDef);

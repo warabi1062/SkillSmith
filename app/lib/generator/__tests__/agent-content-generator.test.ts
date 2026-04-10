@@ -61,9 +61,7 @@ describe("generateAgentContent", () => {
   it("beforeSectionsが実行セクションの前に配置される", () => {
     const result = generateAgentContent(
       makeInput({
-        beforeSections: [
-          { heading: "前提条件", body: "必要な前提条件。" },
-        ],
+        beforeSections: [{ heading: "前提条件", body: "必要な前提条件。" }],
       }),
     );
 
@@ -93,9 +91,7 @@ describe("generateAgentContent", () => {
   it("beforeSectionsとafterSectionsの両方がある場合の順序が正しい", () => {
     const result = generateAgentContent(
       makeInput({
-        beforeSections: [
-          { heading: "前提条件", body: "前提条件。" },
-        ],
+        beforeSections: [{ heading: "前提条件", body: "前提条件。" }],
         afterSections: [
           { heading: "セキュリティ", body: "セキュリティ要件。" },
         ],

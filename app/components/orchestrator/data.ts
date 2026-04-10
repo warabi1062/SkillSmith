@@ -8,11 +8,7 @@ import type {
 import { isLoadedSkillRef } from "../../lib/types/loaded";
 import { serializeToolRef } from "../../lib/types/skill";
 import { SKILL_TYPES } from "../../lib/types/constants";
-import type {
-  StepFields,
-  SectionFields,
-  SkillDetailData,
-} from "./types";
+import type { StepFields, SectionFields, SkillDetailData } from "./types";
 
 // --- データ変換関数 ---
 
@@ -45,9 +41,7 @@ export function convertStep(step: LoadedStep): StepFields {
   };
 }
 
-export function convertSections(
-  sections: LoadedSection[],
-): SectionFields[] {
+export function convertSections(sections: LoadedSection[]): SectionFields[] {
   return sections.map((s) => ({
     heading: s.heading,
     body: s.body,
@@ -58,10 +52,14 @@ export function convertSections(
 
 export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
   const agentConfigData =
-    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ? skill.agentConfig : null;
+    skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT
+      ? skill.agentConfig
+      : null;
 
   const workerStepsData =
-    (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT || skill.skillType === SKILL_TYPES.WORKER) && skill.workerSteps
+    (skill.skillType === SKILL_TYPES.WORKER_WITH_SUB_AGENT ||
+      skill.skillType === SKILL_TYPES.WORKER) &&
+    skill.workerSteps
       ? skill.workerSteps.map((s) => ({
           id: s.id,
           title: s.title,
