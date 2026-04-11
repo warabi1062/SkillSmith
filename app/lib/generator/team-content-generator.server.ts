@@ -52,7 +52,7 @@ export function generateTeamContent(input: TeamContentInput): string {
   // 概要
   lines.push("");
   lines.push(
-    `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、下記Teammateセクションの各メンバーの役割・手順をプロンプトとして渡して起動する。メインエージェントはリーダーとして参加する。`,
+    `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、下記Teammateセクションの共通ルールと各メンバーの役割・手順をプロンプトとして渡して起動する。メインエージェントはリーダーとして参加する。`,
   );
 
   // 入力セクション
