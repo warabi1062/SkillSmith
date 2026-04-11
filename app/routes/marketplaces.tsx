@@ -17,17 +17,17 @@ export default function Marketplaces({ loaderData }: Route.ComponentProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-[1.375rem] font-semibold text-text-primary">
+        <h2 className="font-display text-xl font-semibold text-on-surface">
           Marketplaces
         </h2>
-        <span className="font-mono text-xs text-text-tertiary bg-bg-surface px-4 py-1 rounded-full border border-border-subtle">
+        <span className="font-mono text-xs text-on-surface-variant bg-surface-container px-4 py-1 rounded-full">
           {marketplaces.length} marketplace
           {marketplaces.length !== 1 ? "s" : ""}
         </span>
       </div>
 
       {marketplaces.length === 0 ? (
-        <div className="text-center py-16 px-4 text-text-tertiary">
+        <div className="text-center py-16 px-4 text-on-surface-variant">
           <p>No marketplaces yet.</p>
         </div>
       ) : (
@@ -36,14 +36,14 @@ export default function Marketplaces({ loaderData }: Route.ComponentProps) {
             <Link
               key={marketplace.dirName}
               to={`/marketplaces/${marketplace.dirName}`}
-              className="block bg-bg-surface border border-border-subtle rounded-lg px-6 py-6 transition-all relative overflow-hidden hover:border-border-strong hover:bg-bg-elevated hover:-translate-y-0.5 hover:shadow-md"
+              className="block bg-surface-container-low rounded-md p-6 no-underline hover:no-underline hover:shadow-level1 hover:bg-surface-container"
             >
-              <div className="font-display text-base font-semibold text-text-primary tracking-tight mb-1">
+              <div className="font-display text-base font-semibold text-on-surface tracking-tight mb-1">
                 {marketplace.dirName}
               </div>
-              <div className="flex items-center gap-2 mt-4 pt-2 border-t border-border-subtle">
-                <span className="font-mono text-xs text-text-tertiary flex items-center gap-1">
-                  <span className="w-3.5 h-3.5 inline-flex items-center justify-center bg-accent-teal-dim rounded-[3px] text-[0.6rem] text-accent-teal">
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-outline-variant">
+                <span className="font-mono text-xs text-on-surface-variant flex items-center gap-1.5">
+                  <span className="w-5 h-5 inline-flex items-center justify-center bg-primary-container rounded-sm text-[0.625rem] font-semibold text-on-primary-container">
                     P
                   </span>
                   {marketplace.pluginCount} plugin

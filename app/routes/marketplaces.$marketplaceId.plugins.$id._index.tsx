@@ -30,55 +30,59 @@ export default function PluginDetail() {
       />
 
       {orchestrators.length > 0 && (
-        <div className="mt-2 flex-1 flex flex-col min-h-0 overflow-y-auto ov-scrollbar">
-          <div className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-2 pb-1 border-b border-border-subtle">
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto ov-scrollbar">
+          <div className="font-display text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-3 pb-2 border-b border-outline-variant">
             Orchestrators
           </div>
-          {orchestrators.map((orch) => (
-            <Link
-              key={orch.name}
-              to={`/marketplaces/${marketplaceId}/plugins/${pluginId}/orchestrators/${orch.name}`}
-              className="block bg-bg-surface border border-border-subtle rounded-lg px-6 py-6 transition-all relative overflow-hidden hover:border-border-strong hover:bg-bg-elevated hover:-translate-y-0.5 hover:shadow-md mt-3 first:mt-0"
-            >
-              <div className="font-display text-base font-semibold text-text-primary tracking-tight mb-1">
-                {orch.name}
-              </div>
-              {orch.description && (
-                <div className="text-sm text-text-secondary leading-normal">
-                  {orch.description}
+          <div className="flex flex-col gap-3">
+            {orchestrators.map((orch) => (
+              <Link
+                key={orch.name}
+                to={`/marketplaces/${marketplaceId}/plugins/${pluginId}/orchestrators/${orch.name}`}
+                className="block bg-surface-container-low rounded-md p-5 no-underline hover:no-underline hover:shadow-level1 hover:bg-surface-container"
+              >
+                <div className="font-display text-base font-semibold text-on-surface tracking-tight mb-1">
+                  {orch.name}
                 </div>
-              )}
-            </Link>
-          ))}
+                {orch.description && (
+                  <div className="text-sm text-on-surface-variant leading-relaxed">
+                    {orch.description}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
       {workers.length > 0 && (
         <div className="mt-6 flex-1 flex flex-col min-h-0 overflow-y-auto ov-scrollbar">
-          <div className="font-display text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-2 pb-1 border-b border-border-subtle">
+          <div className="font-display text-xs font-semibold text-on-surface-variant uppercase tracking-widest mb-3 pb-2 border-b border-outline-variant">
             Skills
           </div>
-          {workers.map((worker) => (
-            <Link
-              key={worker.name}
-              to={`/marketplaces/${marketplaceId}/plugins/${pluginId}/skills/${worker.name}`}
-              className="block bg-bg-surface border border-border-subtle rounded-lg px-6 py-6 transition-all relative overflow-hidden hover:border-border-strong hover:bg-bg-elevated hover:-translate-y-0.5 hover:shadow-md mt-3 first:mt-0"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div className="font-display text-base font-semibold text-text-primary tracking-tight">
-                  {worker.name}
+          <div className="flex flex-col gap-3">
+            {workers.map((worker) => (
+              <Link
+                key={worker.name}
+                to={`/marketplaces/${marketplaceId}/plugins/${pluginId}/skills/${worker.name}`}
+                className="block bg-surface-container-low rounded-md p-5 no-underline hover:no-underline hover:shadow-level1 hover:bg-surface-container"
+              >
+                <div className="flex items-center gap-2.5 mb-1">
+                  <div className="font-display text-base font-semibold text-on-surface tracking-tight">
+                    {worker.name}
+                  </div>
+                  <span className="inline-block px-2.5 py-0.5 font-mono text-[0.625rem] font-semibold rounded-full leading-relaxed tracking-wider uppercase bg-secondary-container text-on-secondary-container">
+                    {getSkillTypeBadge(worker.skillType)}
+                  </span>
                 </div>
-                <span className="inline-block px-2 py-px font-mono text-[0.625rem] font-semibold rounded-sm leading-relaxed tracking-wider uppercase bg-bg-hover text-text-secondary border border-border-default">
-                  {getSkillTypeBadge(worker.skillType)}
-                </span>
-              </div>
-              {worker.description && (
-                <div className="text-sm text-text-secondary leading-normal">
-                  {worker.description}
-                </div>
-              )}
-            </Link>
-          ))}
+                {worker.description && (
+                  <div className="text-sm text-on-surface-variant leading-relaxed">
+                    {worker.description}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

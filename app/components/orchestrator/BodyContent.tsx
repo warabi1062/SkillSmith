@@ -19,7 +19,7 @@ export function BodyContent({
 
   return (
     <>
-      <div className="my-1 mb-2 font-body text-sm break-words text-text-secondary leading-relaxed ov-markdown">
+      <div className="my-1 mb-2 font-body text-sm break-words text-on-surface leading-relaxed ov-markdown">
         <Markdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -30,7 +30,7 @@ export function BodyContent({
               if (fileContent !== undefined) {
                 return (
                   <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 mt-1 font-mono text-[0.8rem] text-accent-teal bg-bg-elevated border border-border-subtle rounded-sm cursor-pointer hover:border-accent-teal hover:bg-accent-teal-dim transition-all before:content-['📄'] before:text-xs"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 mt-1 font-mono text-[0.8rem] text-primary bg-surface-container-low border border-outline-variant rounded-md cursor-pointer hover:bg-primary-container hover:text-on-primary-container before:content-['📄'] before:text-xs"
                     onClick={() => setOpenFile(filename)}
                   >
                     {children}

@@ -40,28 +40,25 @@ export default function Breadcrumb() {
 
   return (
     <nav aria-label="breadcrumb" className="mb-4">
-      <ol className="flex items-center gap-1 text-sm font-body">
-        <li className="flex items-center gap-1">
-          <Link
-            to="/"
-            className="text-text-tertiary hover:text-accent-teal transition-colors"
-          >
+      <ol className="flex items-center gap-1.5 text-sm font-body">
+        <li className="flex items-center gap-1.5">
+          <Link to="/" className="text-on-surface-variant hover:text-primary">
             Top
           </Link>
         </li>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={item.to} className="flex items-center gap-1">
-              <span className="text-text-tertiary select-none">/</span>
+            <li key={item.to} className="flex items-center gap-1.5">
+              <span className="text-outline select-none text-xs">/</span>
               {isLast ? (
-                <span className="font-medium text-text-primary">
+                <span className="font-medium text-on-surface">
                   {item.label}
                 </span>
               ) : (
                 <Link
                   to={item.to}
-                  className="text-text-tertiary hover:text-accent-teal transition-colors"
+                  className="text-on-surface-variant hover:text-primary"
                 >
                   {item.label}
                 </Link>

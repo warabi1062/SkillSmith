@@ -13,7 +13,7 @@ export function SectionItems({
     <>
       {sections.map((s) => (
         <div key={s.heading} className="mb-3">
-          <label className="block font-display text-xs font-semibold mb-1 text-text-tertiary uppercase tracking-widest">
+          <label className="block font-display text-[0.6875rem] font-semibold mb-1.5 text-on-surface-variant uppercase tracking-widest">
             {s.heading}
           </label>
           <BodyContent body={s.body} supportFiles={supportFiles} />

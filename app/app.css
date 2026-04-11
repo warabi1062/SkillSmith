@@ -1,108 +1,130 @@
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Karla:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 @theme {
-  /* フォント */
-  --font-display: "Sora", sans-serif;
-  --font-body: "Karla", sans-serif;
+  /* フォント - M3: Noto Sans JP（見出し・ラベル）+ IBM Plex Sans（本文） */
+  --font-display: "Noto Sans JP", "IBM Plex Sans", sans-serif;
+  --font-body: "IBM Plex Sans", "Noto Sans JP", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /* カラー */
-  --color-bg-deep: #f5f6f8;
-  --color-bg-base: #eef0f4;
-  --color-bg-surface: #ffffff;
-  --color-bg-elevated: #f8f9fb;
-  --color-bg-hover: #edf0f5;
-  --color-border-subtle: rgba(0, 0, 0, 0.06);
-  --color-border-default: rgba(0, 0, 0, 0.1);
-  --color-border-strong: rgba(0, 0, 0, 0.16);
-  --color-text-primary: #1a1f28;
-  --color-text-secondary: #374151;
-  --color-text-tertiary: #718096;
-  --color-text-inverse: #ffffff;
-  --color-accent-teal: #0a9e80;
-  --color-accent-teal-dim: rgba(10, 158, 128, 0.08);
-  --color-accent-teal-glow: rgba(10, 158, 128, 0.15);
-  --color-accent-teal-hover: #078068;
-  --color-accent-teal-light: #0bb896;
-  --color-accent-amber: #c47a18;
-  --color-accent-amber-dim: rgba(196, 122, 24, 0.08);
-  --color-accent-amber-border: rgba(232, 160, 64, 0.25);
-  --color-accent-blue: #2e6fd6;
-  --color-accent-blue-dim: rgba(46, 111, 214, 0.07);
-  --color-accent-blue-border: rgba(78, 143, 255, 0.3);
-  --color-accent-violet: #7c5cbf;
-  --color-accent-violet-dim: rgba(124, 92, 191, 0.07);
-  --color-accent-violet-border: rgba(124, 92, 191, 0.2);
-  --color-accent-violet-hover: rgba(124, 92, 191, 0.12);
-  --color-accent-rose: #d44a8a;
-  --color-accent-rose-dim: rgba(212, 74, 138, 0.07);
-  --color-accent-rose-border: rgba(244, 114, 182, 0.2);
-  --color-accent-red: #dc3545;
-  --color-accent-red-dim: rgba(220, 53, 69, 0.08);
-  --color-accent-red-border: rgba(220, 53, 69, 0.2);
-  --color-accent-red-hover: rgba(220, 53, 69, 0.14);
-  --color-accent-red-border-hover: rgba(220, 53, 69, 0.3);
-  --color-model-purple-from: #7c3aed;
-  --color-model-purple-to: #6d28d9;
-  --color-model-purple-glow: rgba(124, 58, 237, 0.2);
+  /* M3 カラーシステム - Tealベースのカスタムスキーム */
+  /* Primary */
+  --color-primary: #006b5e;
+  --color-primary-container: #73f8dd;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #00201b;
 
-  /* 角丸 */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.25rem;
+  /* Secondary */
+  --color-secondary: #4a635d;
+  --color-secondary-container: #cce8df;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #06201a;
 
-  /* シャドウ */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --shadow-glow-teal: 0 0 20px rgba(10, 158, 128, 0.1);
-  --shadow-glow-amber: 0 0 20px rgba(196, 122, 24, 0.08);
+  /* Tertiary */
+  --color-tertiary: #426278;
+  --color-tertiary-container: #c7e7ff;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #001e30;
+
+  /* Error */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #410002;
+
+  /* Surface - M3 tonal elevation */
+  --color-surface: #f5faf7;
+  --color-surface-dim: #d5dbd8;
+  --color-surface-bright: #f5faf7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff5f2;
+  --color-surface-container: #e9efec;
+  --color-surface-container-high: #e3eae7;
+  --color-surface-container-highest: #dee4e1;
+  --color-on-surface: #171d1b;
+  --color-on-surface-variant: #3f4945;
+  --color-outline: #6f7975;
+  --color-outline-variant: #bfc9c4;
+
+  /* Inverse */
+  --color-inverse-surface: #2b3230;
+  --color-inverse-on-surface: #ecf2ef;
+  --color-inverse-primary: #52dbc2;
+
+  /* Shadow & Scrim */
+  --color-shadow: #000000;
+  --color-scrim: #000000;
+
+  /* アクセントカラー（スキル種別バッジ用） */
+  --color-accent-amber: #7c5800;
+  --color-accent-amber-container: #ffdea4;
+  --color-accent-amber-on-container: #271900;
+  --color-accent-violet: #6750a4;
+  --color-accent-violet-container: #eaddff;
+  --color-accent-violet-on-container: #21005d;
+  --color-accent-blue: #0061a4;
+  --color-accent-blue-container: #d1e4ff;
+  --color-accent-blue-on-container: #001d36;
+  --color-accent-rose: #984061;
+  --color-accent-rose-container: #ffd9e2;
+  --color-accent-rose-on-container: #3e001d;
+
+  /* 角丸 - M3 shape scale */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.1875rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+
+  /* Elevation - M3 shadow levels */
+  --shadow-level0: none;
+  --shadow-level1:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --shadow-level2:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --shadow-level3:
+    0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-level4:
+    0 6px 10px 4px rgba(0, 0, 0, 0.15), 0 2px 3px rgba(0, 0, 0, 0.3);
+  --shadow-level5:
+    0 8px 12px 6px rgba(0, 0, 0, 0.15), 0 4px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* グローバルスタイル */
 html {
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.6;
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-deep);
+  line-height: 1.5;
+  color: var(--color-on-surface);
+  background-color: var(--color-surface);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(
-      ellipse 80% 60% at 50% -20%,
-      rgba(10, 158, 128, 0.04) 0%,
-      transparent 60%
-    ),
-    var(--color-bg-deep);
+  background: var(--color-surface);
 }
 
 a {
-  color: var(--color-accent-teal);
+  color: var(--color-primary);
   text-decoration: none;
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 a:hover {
-  color: var(--color-accent-teal-hover);
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 ::selection {
-  background: var(--color-accent-teal-dim);
-  color: var(--color-text-primary);
+  background: var(--color-primary-container);
+  color: var(--color-on-primary-container);
 }
 
 /* スクロールバー */
 .ov-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-bg-hover) transparent;
+  scrollbar-color: var(--color-outline-variant) transparent;
 }
 
 .ov-scrollbar::-webkit-scrollbar {
@@ -114,18 +136,18 @@ a:hover {
 }
 
 .ov-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-bg-hover);
+  background: var(--color-outline-variant);
   border-radius: 9999px;
 }
 
-/* サイドパネル内markdownスタイル（react-markdownが素のHTML要素を生成するためCSSで対応） */
+/* サイドパネル内markdownスタイル */
 .ov-sidepanel-content h1,
 .ov-sidepanel-content h2,
 .ov-sidepanel-content h3,
 .ov-sidepanel-content h4,
 .ov-sidepanel-content h5,
 .ov-sidepanel-content h6 {
-  color: var(--color-text-primary);
+  color: var(--color-on-surface);
   font-family: var(--font-display);
   margin: 1.25em 0 0.5em;
   line-height: 1.3;
@@ -167,16 +189,16 @@ a:hover {
 .ov-sidepanel-content code {
   font-family: var(--font-mono);
   font-size: 0.825rem;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 4px;
   padding: 0.15em 0.4em;
 }
 
 .ov-sidepanel-content pre {
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 6px;
+  background: var(--color-surface-container-high);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
   padding: 0.875rem 1rem;
   overflow-x: auto;
   margin: 0.75em 0;
@@ -193,10 +215,10 @@ a:hover {
 .ov-sidepanel-content blockquote {
   margin: 0.75em 0;
   padding: 0.5em 1em;
-  border-left: 3px solid var(--color-accent-teal);
-  background: var(--color-accent-teal-dim);
-  border-radius: 0 4px 4px 0;
-  color: var(--color-text-secondary);
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-surface-container-low);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  color: var(--color-on-surface-variant);
 }
 
 .ov-sidepanel-content blockquote p {
@@ -212,25 +234,25 @@ a:hover {
 
 .ov-sidepanel-content th,
 .ov-sidepanel-content td {
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--color-outline-variant);
   padding: 0.5em 0.75em;
   text-align: left;
 }
 
 .ov-sidepanel-content th {
-  background: var(--color-bg-elevated);
+  background: var(--color-surface-container);
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-on-surface);
 }
 
 .ov-sidepanel-content hr {
   border: none;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-outline-variant);
   margin: 1.25em 0;
 }
 
 .ov-sidepanel-content a {
-  color: var(--color-accent-teal);
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -239,18 +261,18 @@ a:hover {
 }
 
 .ov-sidepanel-content strong {
-  color: var(--color-text-primary);
+  color: var(--color-on-surface);
   font-weight: 600;
 }
 
-/* インラインMarkdownコンテンツ共通スタイル（react-markdownが素のHTML要素を生成するためCSSで対応） */
+/* インラインMarkdownコンテンツ共通スタイル */
 .ov-markdown h1,
 .ov-markdown h2,
 .ov-markdown h3,
 .ov-markdown h4,
 .ov-markdown h5,
 .ov-markdown h6 {
-  color: var(--color-text-primary);
+  color: var(--color-on-surface);
   font-family: var(--font-display);
   margin: 1em 0 0.4em;
   line-height: 1.3;
@@ -306,16 +328,16 @@ a:hover {
 .ov-markdown code {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  background: var(--color-bg-elevated);
-  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
   border-radius: 4px;
   padding: 0.15em 0.4em;
 }
 
 .ov-markdown pre {
-  background: var(--color-bg-deep);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 6px;
+  background: var(--color-surface-container-high);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-sm);
   padding: 0.75rem 0.875rem;
   overflow-x: auto;
   margin: 0.6em 0;
@@ -332,10 +354,10 @@ a:hover {
 .ov-markdown blockquote {
   margin: 0.6em 0;
   padding: 0.4em 0.875em;
-  border-left: 3px solid var(--color-accent-teal);
-  background: var(--color-accent-teal-dim);
-  border-radius: 0 4px 4px 0;
-  color: var(--color-text-secondary);
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-surface-container-low);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+  color: var(--color-on-surface-variant);
 }
 
 .ov-markdown blockquote p {
@@ -351,25 +373,25 @@ a:hover {
 
 .ov-markdown th,
 .ov-markdown td {
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--color-outline-variant);
   padding: 0.4em 0.625em;
   text-align: left;
 }
 
 .ov-markdown th {
-  background: var(--color-bg-elevated);
+  background: var(--color-surface-container);
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-on-surface);
 }
 
 .ov-markdown hr {
   border: none;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--color-outline-variant);
   margin: 1em 0;
 }
 
 .ov-markdown a {
-  color: var(--color-accent-teal);
+  color: var(--color-primary);
   text-decoration: none;
 }
 
@@ -378,6 +400,6 @@ a:hover {
 }
 
 .ov-markdown strong {
-  color: var(--color-text-primary);
+  color: var(--color-on-surface);
   font-weight: 600;
 }

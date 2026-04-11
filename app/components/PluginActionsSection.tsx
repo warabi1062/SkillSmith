@@ -10,11 +10,11 @@ export default function PluginActionsSection({
   return (
     <div className="flex items-start mb-6">
       <div>
-        <h2 className="font-display text-[1.375rem] font-semibold text-text-primary mb-1">
+        <h2 className="font-display text-xl font-semibold text-on-surface mb-1">
           {plugin.name}
         </h2>
         {plugin.description && (
-          <p className="text-sm text-text-secondary leading-normal">
+          <p className="text-sm text-on-surface-variant leading-relaxed">
             {plugin.description}
           </p>
         )}
