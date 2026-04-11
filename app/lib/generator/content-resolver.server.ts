@@ -5,7 +5,7 @@ import { SKILL_TYPES } from "../types/constants";
 import { generateOrchestratorContent } from "./orchestrator-content-generator.server";
 import type { SkillMeta } from "./orchestrator-content-generator.server";
 import { generateWorkerContent } from "./worker-content-generator.server";
-import { generateTeamContent } from "./team-content-generator.server";
+import { generateTeamContent } from "./team-content-generator";
 
 /**
  * スキル種別に応じて content を自動生成する。

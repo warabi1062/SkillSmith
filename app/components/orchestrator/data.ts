@@ -11,7 +11,7 @@ import { SKILL_TYPES } from "../../lib/types/constants";
 import {
   buildLeaderDuties,
   buildTeamRules,
-} from "../../lib/generator/team-content-generator.server";
+} from "../../lib/generator/team-content-generator";
 import type { StepFields, SectionFields, SkillDetailData } from "./types";
 
 // --- データ変換関数 ---
