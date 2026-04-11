@@ -100,6 +100,11 @@ export function StepItem({
   }
 
   if (step.type === "inline") {
+    // inlineStepsが1つだけでlabelと同じtitleなら、サブステップのタイトルは冗長なので省略
+    const isSingleDuplicate =
+      step.inlineSteps?.length === 1 &&
+      step.inlineSteps[0].title === step.label;
+
     return (
       <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
         <div
@@ -112,9 +117,11 @@ export function StepItem({
             <div>
               {step.inlineSteps.map((subStep) => (
                 <div key={subStep.id} className="mb-2">
-                  <div className="font-display text-sm font-medium text-on-surface py-1">
-                    {stepLabel}-{subStep.id}. {subStep.title}
-                  </div>
+                  {!isSingleDuplicate && (
+                    <div className="font-display text-sm font-medium text-on-surface py-1">
+                      {stepLabel}-{subStep.id}. {subStep.title}
+                    </div>
+                  )}
                   <BodyContent body={subStep.body} />
                 </div>
               ))}
