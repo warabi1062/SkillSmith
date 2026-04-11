@@ -8,7 +8,10 @@ import type {
 import { isLoadedSkillRef } from "../../lib/types/loaded";
 import { serializeToolRef } from "../../lib/types/skill";
 import { SKILL_TYPES } from "../../lib/types/constants";
-import { buildLeaderDuties } from "../../lib/generator/team-content-generator.server";
+import {
+  buildLeaderDuties,
+  buildTeamRules,
+} from "../../lib/generator/team-content-generator.server";
 import type { StepFields, SectionFields, SkillDetailData } from "./types";
 
 // --- データ変換関数 ---
@@ -72,6 +75,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
   }
 
   let teammatesData = null;
+  let teamRulesData: string[] | null = null;
   if (
     skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
     skill.teammates
@@ -80,6 +84,8 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
     );
     const memberNames = sorted.map((t) => t.name);
+
+    teamRulesData = buildTeamRules(memberNames);
 
     const leaderDuties = buildLeaderDuties({
       memberNames,
@@ -121,6 +127,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? convertSections(skill.afterSections)
       : null,
     teammates: teammatesData,
+    teamRules: teamRulesData,
     supportFiles: Object.fromEntries(
       (skill.files ?? []).map((f) => [f.filename, f.content]),
     ),

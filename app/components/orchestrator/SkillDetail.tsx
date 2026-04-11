@@ -84,6 +84,13 @@ export function SkillDetail({
           <h5 className="font-display mb-3 text-sm font-semibold text-on-surface">
             Teammates
           </h5>
+          {data.teamRules && data.teamRules.length > 0 && (
+            <ul className="mb-4 list-disc list-inside text-sm text-on-surface-variant leading-relaxed space-y-0.5">
+              {data.teamRules.map((rule) => (
+                <li key={rule}>{rule}</li>
+              ))}
+            </ul>
+          )}
           {data.teammates.map((mate) => (
             <div key={mate.name} className="mb-3">
               <div className="flex flex-col gap-0.5">

@@ -72,7 +72,7 @@ describe("generateTeamContent", () => {
     );
   });
 
-  it("リーダーセクションにメンバー名の厳守指示が含まれる", () => {
+  it("チーム共通ルールにメンバー名の厳守指示が含まれる", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain(

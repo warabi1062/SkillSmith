@@ -12,6 +12,14 @@ export interface TeamContentInput {
   requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
+// チーム共通ルールを構築する
+export function buildTeamRules(memberNames: string[]): string[] {
+  return [
+    `各メンバーは定義された名前（${memberNames.join(", ")}）と完全一致する name でスポーンすること`,
+    "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
+  ];
+}
+
 // リーダーのデフォルト担当リストを構築する
 export function buildLeaderDuties(input: {
   memberNames: string[];
@@ -19,11 +27,8 @@ export function buildLeaderDuties(input: {
   additionalLeaderSteps?: string[];
 }): string[] {
   const duties: string[] = [
-    `各メンバーは定義された名前（${input.memberNames.join(", ")}）と完全一致する name でスポーンすること`,
     `${input.memberNames.join(" / ")} の進捗監視`,
     "定期的にメンバーの稼働状況を確認し、全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す",
-    "レビューサイクルが最大3回で打ち切られることの管理",
-    "3回で解決しない場合はユーザーに報告して判断を仰ぐ",
   ];
   if (input.requiresUserApproval) {
     duties.push("レビューPASS後、成果物をユーザーに提示して承認を得る");
@@ -59,6 +64,13 @@ export function generateTeamContent(input: TeamContentInput): string {
   // Teammate セクション
   lines.push("");
   lines.push("## Teammate");
+
+  // 共通ルール
+  lines.push("");
+  const teamRules = buildTeamRules(memberNames);
+  for (const rule of teamRules) {
+    lines.push(`- ${rule}`);
+  }
 
   // リーダー
   lines.push("");
