@@ -12,6 +12,30 @@ export interface TeamContentInput {
   requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
+// リーダーのデフォルト担当リストを構築する
+export function buildLeaderDuties(input: {
+  memberNames: string[];
+  requiresUserApproval?: boolean;
+  additionalLeaderSteps?: string[];
+}): string[] {
+  const duties: string[] = [
+    `各メンバーは定義された名前（${input.memberNames.join(", ")}）と完全一致する name でスポーンすること`,
+    `${input.memberNames.join(" / ")} の進捗監視`,
+    "定期的にメンバーの稼働状況を確認し、全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す",
+    "レビューサイクルが最大3回で打ち切られることの管理",
+    "3回で解決しない場合はユーザーに報告して判断を仰ぐ",
+  ];
+  if (input.requiresUserApproval) {
+    duties.push("レビューPASS後、成果物をユーザーに提示して承認を得る");
+    duties.push("フィードバックがあれば適切なメンバーに修正を依頼する");
+  }
+  if (input.additionalLeaderSteps) {
+    duties.push(...input.additionalLeaderSteps);
+  }
+  duties.push("全メンバーの作業が完了したらチームを削除する");
+  return duties;
+}
+
 export function generateTeamContent(input: TeamContentInput): string {
   const lines: string[] = [];
 
@@ -44,30 +68,14 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("チーム全体の進行管理を担当する。");
   lines.push("");
   lines.push("#### 担当");
-  // デフォルトのリーダー担当
-  lines.push(
-    `- 各メンバーは定義された名前（${memberNames.join(", ")}）と完全一致する name でスポーンすること。手順内のメンバー間通知はこの名前を前提としており、変更するとメッセージが届かなくなる`,
-  );
-  lines.push(`- ${memberNames.join(" / ")} の進捗監視`);
-  lines.push(
-    "- 定期的にメンバーの稼働状況を確認し、全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す",
-  );
-  lines.push("- レビューサイクルが最大3回で打ち切られることの管理");
-  lines.push("- 3回で解決しない場合はユーザーに報告して判断を仰ぐ");
-
-  if (input.requiresUserApproval) {
-    lines.push("- レビューPASS後、成果物をユーザーに提示して承認を得る");
-    lines.push("- フィードバックがあれば適切なメンバーに修正を依頼する");
+  const leaderDuties = buildLeaderDuties({
+    memberNames,
+    requiresUserApproval: input.requiresUserApproval,
+    additionalLeaderSteps: input.additionalLeaderSteps,
+  });
+  for (const duty of leaderDuties) {
+    lines.push(`- ${duty}`);
   }
-
-  // スキル定義からの追加手順
-  if (input.additionalLeaderSteps) {
-    for (const step of input.additionalLeaderSteps) {
-      lines.push(`- ${step}`);
-    }
-  }
-
-  lines.push("- 全メンバーの作業が完了したらチームを削除する");
 
   // 各 teammate
   for (const teammate of sortedTeammates) {

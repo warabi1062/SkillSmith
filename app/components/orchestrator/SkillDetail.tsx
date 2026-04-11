@@ -95,19 +95,28 @@ export function SkillDetail({
                 </span>
               </div>
               <div className="pb-2">
-                <div className="mt-2">
-                  {mate.steps.map((step) => (
-                    <div key={step.id} className="mb-2">
-                      <div className="font-display text-sm font-medium text-on-surface py-1">
-                        {step.id}. {step.title}
+                {mate.duties && (
+                  <ul className="mt-2 list-disc list-inside text-sm text-on-surface-variant leading-relaxed space-y-0.5">
+                    {mate.duties.map((duty) => (
+                      <li key={duty}>{duty}</li>
+                    ))}
+                  </ul>
+                )}
+                {mate.steps && (
+                  <div className="mt-2">
+                    {mate.steps.map((step) => (
+                      <div key={step.id} className="mb-2">
+                        <div className="font-display text-sm font-medium text-on-surface py-1">
+                          {step.id}. {step.title}
+                        </div>
+                        <BodyContent
+                          body={step.body}
+                          supportFiles={data.supportFiles}
+                        />
                       </div>
-                      <BodyContent
-                        body={step.body}
-                        supportFiles={data.supportFiles}
-                      />
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}

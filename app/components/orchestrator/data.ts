@@ -8,6 +8,7 @@ import type {
 import { isLoadedSkillRef } from "../../lib/types/loaded";
 import { serializeToolRef } from "../../lib/types/skill";
 import { SKILL_TYPES } from "../../lib/types/constants";
+import { buildLeaderDuties } from "../../lib/generator/team-content-generator.server";
 import type { StepFields, SectionFields, SkillDetailData } from "./types";
 
 // --- データ変換関数 ---
@@ -70,18 +71,39 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     }));
   }
 
-  const teammatesData =
-    skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM && skill.teammates
-      ? skill.teammates.map((t) => ({
-          name: t.name,
-          role: t.role,
-          steps: t.steps.map((s) => ({
-            id: s.id,
-            title: s.title,
-            body: s.body,
-          })),
-        }))
-      : null;
+  let teammatesData = null;
+  if (
+    skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
+    skill.teammates
+  ) {
+    const sorted = skill.teammates.toSorted(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+    );
+    const memberNames = sorted.map((t) => t.name);
+
+    const leaderDuties = buildLeaderDuties({
+      memberNames,
+      requiresUserApproval: skill.requiresUserApproval,
+      additionalLeaderSteps: skill.additionalLeaderSteps,
+    });
+
+    teammatesData = [
+      {
+        name: "リーダー",
+        role: "チーム全体の進行管理を担当する。",
+        duties: leaderDuties,
+      },
+      ...sorted.map((t) => ({
+        name: t.name,
+        role: t.role,
+        steps: t.steps.map((s) => ({
+          id: s.id,
+          title: s.title,
+          body: s.body,
+        })),
+      })),
+    ];
+  }
 
   return {
     name: skill.name,

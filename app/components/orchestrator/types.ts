@@ -13,7 +13,8 @@ export interface InlineSubStepFields {
 export interface TeammateFields {
   name: string;
   role: string;
-  steps: InlineSubStepFields[];
+  steps?: InlineSubStepFields[];
+  duties?: string[]; // リーダーなど担当ベースの記述用
 }
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
