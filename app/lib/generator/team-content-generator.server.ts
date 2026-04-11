@@ -68,6 +68,8 @@ export function generateTeamContent(input: TeamContentInput): string {
 
   // 共通ルール
   lines.push("");
+  lines.push("### 共通ルール");
+  lines.push("");
   const teamRules = buildTeamRules(memberNames);
   for (const rule of teamRules) {
     lines.push(`- ${rule}`);
