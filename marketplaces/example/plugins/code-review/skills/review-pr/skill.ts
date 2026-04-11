@@ -36,7 +36,7 @@ const reviewPrSkill = new EntryPointSkill({
   beforeSections: [
     {
       heading: "レビュー基準",
-      body: "コードの品質・セキュリティ・パフォーマンスの3軸でレビューを行う。",
+      body: "コードの品質・セキュリティ・パフォーマンスの3軸でレビューを行う。\n\n詳細は [スタイルガイド](./style-guide.md) を参照し、[チェックリスト](./checklist.md) に沿ってレビューを実施すること。過去のレビュー例は [レビュー結果サンプル](./example-review.md) を参考にする。",
     },
   ],
   // afterSections: 補足説明として配置
