@@ -16,6 +16,7 @@ export interface TeamContentInput {
 export function buildTeamRules(memberNames: string[]): string[] {
   return [
     `各メンバーは定義された名前（${memberNames.join(", ")}）と完全一致する name でスポーンすること`,
+    "メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する",
     "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
   ];
 }
