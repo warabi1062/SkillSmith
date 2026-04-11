@@ -62,11 +62,11 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     skill.workerSteps &&
     skill.workerSteps.length > 0
   ) {
-    // workerStepsをinline型のStepFieldsに変換
+    // workerStepsをworker型のStepFieldsに変換
     steps = skill.workerSteps.map((ws) => ({
-      type: "inline" as const,
+      type: "worker" as const,
       label: ws.title,
-      inlineSteps: [{ id: ws.id, title: ws.title, body: ws.body }],
+      body: ws.body,
     }));
   }
 

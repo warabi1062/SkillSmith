@@ -21,9 +21,10 @@ export interface TeammateFields {
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）
 export interface StepFields {
-  type: "skill" | "inline" | "branch";
+  type: "skill" | "inline" | "branch" | "worker";
   label: string;
   description?: string;
+  body?: string;
   cases?: { name: string; steps: StepFields[] }[];
   inlineSteps?: InlineSubStepFields[];
 }
