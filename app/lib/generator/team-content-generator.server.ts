@@ -1,7 +1,6 @@
 // チームスキル（WorkerWithAgentTeam）の content を teammates 定義から自動生成する
 
 import type { LoadedTeammate } from "../types/loaded";
-import { COMMUNICATION_PATTERNS } from "../types/constants";
 import { renderListSection } from "../core/section-utils";
 
 export interface TeamContentInput {
@@ -57,12 +56,8 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("- 3回で解決しない場合はユーザーに報告して判断を仰ぐ");
 
   if (input.requiresUserApproval) {
-    const worker = sortedTeammates.find(
-      (t) => t.communicationPattern?.type === COMMUNICATION_PATTERNS.RESPONDER,
-    );
-    const workerName = worker?.name ?? memberNames[0];
     lines.push("- レビューPASS後、成果物をユーザーに提示して承認を得る");
-    lines.push(`- フィードバックがあれば ${workerName} に修正を依頼する`);
+    lines.push("- フィードバックがあれば適切なメンバーに修正を依頼する");
   }
 
   // スキル定義からの追加手順

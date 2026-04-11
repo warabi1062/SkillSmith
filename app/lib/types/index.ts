@@ -20,7 +20,6 @@ export type {
   InlineStep,
   Step,
   Section,
-  CommunicationPattern,
 } from "./skill";
 export {
   tool,

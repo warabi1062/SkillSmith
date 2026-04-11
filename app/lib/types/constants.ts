@@ -13,11 +13,6 @@ export const TOOL_REF_TYPES = {
   MCP: "mcp",
 } as const;
 
-export const COMMUNICATION_PATTERNS = {
-  POLLER: "poller",
-  RESPONDER: "responder",
-} as const;
-
 export const SUPPORT_FILE_ROLES = {
   TEMPLATE: "TEMPLATE",
   REFERENCE: "REFERENCE",

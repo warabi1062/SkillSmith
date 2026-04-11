@@ -80,7 +80,6 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
             title: s.title,
             body: s.body,
           })),
-          communicationPattern: t.communicationPattern,
         }))
       : null;
 

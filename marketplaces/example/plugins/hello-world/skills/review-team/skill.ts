@@ -33,7 +33,6 @@ const reviewTeamSkill = new WorkerWithAgentTeam({
       name: "reviewer",
       role: "草稿の品質をチェックする",
       sortOrder: 2,
-      communicationPattern: { type: "poller", target: "drafter" },
       steps: [
         {
           id: "1",

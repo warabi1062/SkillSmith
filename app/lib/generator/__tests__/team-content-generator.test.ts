@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { generateTeamContent } from "../team-content-generator.server";
 import type { TeamContentInput } from "../team-content-generator.server";
 import type { LoadedTeammate } from "../../types/loaded";
-import { COMMUNICATION_PATTERNS } from "../../types/constants";
 
 // テスト用ヘルパー: 最小のteammate定義
 function makeWorker(name: string): LoadedTeammate {
@@ -11,11 +10,10 @@ function makeWorker(name: string): LoadedTeammate {
     role: `${name}の役割説明`,
     steps: [{ id: "W1", title: "作業開始", body: "作業を開始する。" }],
     sortOrder: 1,
-    communicationPattern: { type: COMMUNICATION_PATTERNS.RESPONDER },
   };
 }
 
-function makeReviewer(pollingTarget: string): LoadedTeammate {
+function makeReviewer(): LoadedTeammate {
   return {
     name: "reviewer",
     role: "レビューを行う。",
@@ -24,10 +22,6 @@ function makeReviewer(pollingTarget: string): LoadedTeammate {
       { id: "R2", title: "レビュー実行", body: "レビューを行う。" },
     ],
     sortOrder: 2,
-    communicationPattern: {
-      type: COMMUNICATION_PATTERNS.POLLER,
-      target: pollingTarget,
-    },
   };
 }
 
@@ -35,7 +29,7 @@ function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
   return {
     input: ["タスクID"],
     output: ["結果のファイルパス"],
-    teammates: [makeWorker("implementer"), makeReviewer("implementer")],
+    teammates: [makeWorker("implementer"), makeReviewer()],
     teamPrefix: "test",
     ...overrides,
   };
@@ -94,7 +88,7 @@ describe("generateTeamContent", () => {
     expect(result).toContain(
       "レビューPASS後、成果物をユーザーに提示して承認を得る",
     );
-    expect(result).toContain("implementer に修正を依頼する");
+    expect(result).toContain("適切なメンバーに修正を依頼する");
   });
 
   it("requiresUserApproval が false/undefined の場合、ユーザー承認フローが含まれない", () => {
@@ -121,7 +115,7 @@ describe("generateTeamContent", () => {
 
   it("teammateがsortOrder順にソートされる", () => {
     const teammates: LoadedTeammate[] = [
-      { ...makeReviewer("worker"), sortOrder: 2 },
+      { ...makeReviewer(), sortOrder: 2 },
       { ...makeWorker("worker"), sortOrder: 1 },
     ];
     const result = generateTeamContent(makeInput({ teammates }));

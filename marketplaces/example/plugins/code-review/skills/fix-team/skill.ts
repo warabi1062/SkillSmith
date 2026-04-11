@@ -1,4 +1,4 @@
-// WorkerWithAgentTeam サンプル: CommunicationPattern responder
+// WorkerWithAgentTeam サンプル
 import { WorkerWithAgentTeam, tool } from "../../../../../../app/lib/types";
 
 const fixTeamSkill = new WorkerWithAgentTeam({
@@ -30,8 +30,6 @@ const fixTeamSkill = new WorkerWithAgentTeam({
       name: "verifier",
       role: "修正内容を検証し、品質を保証する",
       sortOrder: 2,
-      // [14] CommunicationPattern responder
-      communicationPattern: { type: "responder" },
       steps: [
         {
           id: "1",

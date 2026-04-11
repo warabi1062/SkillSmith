@@ -1,7 +1,6 @@
 import { SectionItems } from "./SectionItems";
 import { BodyContent } from "./BodyContent";
 import { StepItem } from "./StepItem";
-import { COMMUNICATION_PATTERNS } from "../../lib/types/constants";
 import type { SkillDetailData } from "./types";
 import type { LoadedSkillUnion } from "../../lib/types/loaded";
 
@@ -96,18 +95,6 @@ export function SkillDetail({
                 </span>
               </div>
               <div className="pb-2">
-                {mate.communicationPattern?.type ===
-                  COMMUNICATION_PATTERNS.POLLER && (
-                  <div className="text-sm text-outline py-0.5 font-mono">
-                    polling &rarr; {mate.communicationPattern.target}
-                  </div>
-                )}
-                {mate.communicationPattern?.type ===
-                  COMMUNICATION_PATTERNS.RESPONDER && (
-                  <div className="text-sm text-outline py-0.5 font-mono">
-                    status_check responder
-                  </div>
-                )}
                 <div className="mt-2">
                   {mate.steps.map((step) => (
                     <div key={step.id} className="mb-2">

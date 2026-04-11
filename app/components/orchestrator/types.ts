@@ -1,5 +1,3 @@
-import type { CommunicationPattern } from "../../lib/types/skill";
-
 // --- 型定義 ---
 
 // サポートファイルの内容マップ（filename → content）
@@ -16,7 +14,6 @@ export interface TeammateFields {
   name: string;
   role: string;
   steps: InlineSubStepFields[];
-  communicationPattern?: CommunicationPattern;
 }
 
 // オーケストレーターのステップ（再帰構造をフラットに展開済み）

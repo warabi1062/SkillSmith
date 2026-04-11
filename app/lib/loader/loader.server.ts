@@ -10,7 +10,6 @@ import type {
   SupportFile,
   DelegateStep,
   Section,
-  CommunicationPattern,
 } from "../types/skill";
 import { SKILL_TYPES } from "../types/constants";
 import type { MarketplaceDefinition } from "../types/marketplace";
@@ -116,7 +115,6 @@ interface ImportedTeammate {
   role: string;
   steps: ImportedDelegateStep[];
   sortOrder?: number;
-  communicationPattern?: CommunicationPattern;
 }
 
 // 動的importで読み込まれるプラグイン定義の型
@@ -229,7 +227,6 @@ export async function loadPluginDefinition(
           role: t.role,
           steps: t.steps,
           sortOrder: t.sortOrder,
-          communicationPattern: t.communicationPattern,
         }));
         return {
           ...base,

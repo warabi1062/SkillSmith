@@ -1,11 +1,6 @@
 // スキル型定義: abstract class とサブクラス
 
-import {
-  SKILL_TYPES,
-  TOOL_REF_TYPES,
-  COMMUNICATION_PATTERNS,
-  SUPPORT_FILE_ROLES,
-} from "./constants";
+import { SKILL_TYPES, TOOL_REF_TYPES, SUPPORT_FILE_ROLES } from "./constants";
 
 // ツール参照の構造化型（string ではなく型安全にツールを指定する）
 export type ToolRef =
@@ -125,18 +120,12 @@ export interface AgentConfig {
   afterSections?: Section[]; // 実行セクション後の追加セクション
 }
 
-// チームメンバーのコミュニケーションパターン（discriminated union）
-export type CommunicationPattern =
-  | { type: typeof COMMUNICATION_PATTERNS.POLLER; target: string } // このメンバーが target をポーリング
-  | { type: typeof COMMUNICATION_PATTERNS.RESPONDER }; // status_check に応答する側
-
 // チームメンバーの構造化定義
 export interface Teammate {
   name: string; // メンバー名（例: "implementer"）
   role: string; // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
   steps: DelegateStep[]; // 手順ステップの配列
   sortOrder?: number;
-  communicationPattern?: CommunicationPattern; // コミュニケーションパターン
 }
 
 // SkillType の文字列リテラル型
