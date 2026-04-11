@@ -13,12 +13,6 @@ export const TOOL_REF_TYPES = {
   MCP: "mcp",
 } as const;
 
-export const SUPPORT_FILE_ROLES = {
-  TEMPLATE: "TEMPLATE",
-  REFERENCE: "REFERENCE",
-  EXAMPLE: "EXAMPLE",
-} as const;
-
 export const ERROR_CODES = {
   INVALID_SKILL_NAME: "INVALID_SKILL_NAME",
   EMPTY_CONTENT: "EMPTY_CONTENT",

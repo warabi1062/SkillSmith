@@ -1,6 +1,6 @@
 // スキル型定義: abstract class とサブクラス
 
-import { SKILL_TYPES, TOOL_REF_TYPES, SUPPORT_FILE_ROLES } from "./constants";
+import { SKILL_TYPES, TOOL_REF_TYPES } from "./constants";
 
 // ツール参照の構造化型（string ではなく型安全にツールを指定する）
 export type ToolRef =
@@ -99,15 +99,9 @@ export interface Section {
   body: string;
 }
 
-// サポートファイルの役割
-export type SupportFileRole =
-  (typeof SUPPORT_FILE_ROLES)[keyof typeof SUPPORT_FILE_ROLES];
-
 // サポートファイルの参照宣言（定義ファイル上の型）
 export interface SupportFile {
-  role: SupportFileRole;
   filename: string;
-  sortOrder?: number;
 }
 
 // Agent設定（WorkerWithSubAgent用）

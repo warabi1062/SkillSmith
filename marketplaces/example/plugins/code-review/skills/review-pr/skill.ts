@@ -1,7 +1,6 @@
 // EntryPointSkill サンプル: Branch, ネストBranch, InlineStep, InlineStep input/output,
 // beforeSections/afterSections, SupportFile全ロール
 import { EntryPointSkill } from "../../../../../../app/lib/types";
-import { SUPPORT_FILE_ROLES } from "../../../../../../app/lib/types/constants";
 import analyzeDiffSkill from "../analyze-diff/skill";
 import suggestFixSkill from "../suggest-fix/skill";
 import fixTeamSkill from "../fix-team/skill";
@@ -14,23 +13,11 @@ const reviewPrSkill = new EntryPointSkill({
   argumentHint: "<pr-number>",
   input: ["PR番号"],
   output: ["レビュー結果サマリー"],
-  // [8] SupportFile（TEMPLATE / REFERENCE / EXAMPLE）
+  // [8] SupportFile
   files: [
-    {
-      role: SUPPORT_FILE_ROLES.TEMPLATE,
-      filename: "checklist.md",
-      sortOrder: 1,
-    },
-    {
-      role: SUPPORT_FILE_ROLES.REFERENCE,
-      filename: "style-guide.md",
-      sortOrder: 2,
-    },
-    {
-      role: SUPPORT_FILE_ROLES.EXAMPLE,
-      filename: "example-review.md",
-      sortOrder: 3,
-    },
+    { filename: "checklist.md" },
+    { filename: "style-guide.md" },
+    { filename: "example-review.md" },
   ],
   // beforeSections: 作業詳細の前に配置
   beforeSections: [

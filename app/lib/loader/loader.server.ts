@@ -170,10 +170,8 @@ export async function loadPluginDefinition(
           try {
             const content = await fs.readFile(filePath, "utf-8");
             loadedFiles.push({
-              role: file.role,
               filename: file.filename,
               content,
-              sortOrder: file.sortOrder,
             });
           } catch {
             throw new Error(`サポートファイルが見つかりません: ${filePath}`);

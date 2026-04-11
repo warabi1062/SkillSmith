@@ -3,7 +3,6 @@ import type { GeneratedFile } from "./types";
 
 // サポートファイルの入力データ
 interface SupportFileInput {
-  role: string;
   filename: string;
   content: string;
 }

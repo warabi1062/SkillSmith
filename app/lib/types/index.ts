@@ -10,7 +10,6 @@ export {
 } from "./skill";
 export type {
   ToolRef,
-  SupportFileRole,
   SupportFile,
   AgentConfig,
   DelegateStep,

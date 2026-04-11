@@ -1,15 +1,13 @@
 // Loaded系型定義と型ガード
 // ローダーが返す解決済みの型。ファイルシステムAPIを使用しないため .server.ts サフィックス不要
 
-import type { ToolRef, SupportFileRole, AgentConfig } from "./skill";
+import type { ToolRef, AgentConfig } from "./skill";
 import { SKILL_TYPES } from "./constants";
 
 // ローダーが返す型: SupportFile + 読み込んだ content
 export interface LoadedSupportFile {
-  role: SupportFileRole;
   filename: string;
   content: string;
-  sortOrder?: number;
 }
 
 // ローダー用の分岐ステップ型（スキル名は文字列参照）

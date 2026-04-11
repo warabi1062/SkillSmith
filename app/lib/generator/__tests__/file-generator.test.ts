@@ -6,12 +6,8 @@ describe("generateSupportFiles", () => {
     const files = generateSupportFiles(
       "skills/my-skill",
       [
-        { role: "TEMPLATE", filename: "template.md", content: "# Template\n" },
-        {
-          role: "REFERENCE",
-          filename: "reference.md",
-          content: "# Reference\n",
-        },
+        { filename: "template.md", content: "# Template\n" },
+        { filename: "reference.md", content: "# Reference\n" },
       ],
       "my-skill",
     );
@@ -33,9 +29,9 @@ describe("generateSupportFiles", () => {
     const files = generateSupportFiles(
       "skills/test",
       [
-        { role: "TEMPLATE", filename: "../escape.md", content: "bad\n" },
-        { role: "REFERENCE", filename: "/absolute.md", content: "bad\n" },
-        { role: "EXAMPLE", filename: "safe.md", content: "good\n" },
+        { filename: "../escape.md", content: "bad\n" },
+        { filename: "/absolute.md", content: "bad\n" },
+        { filename: "safe.md", content: "good\n" },
       ],
       "test-skill",
     );
@@ -47,7 +43,7 @@ describe("generateSupportFiles", () => {
   it("末尾改行がないコンテンツに改行を自動付与すること", () => {
     const files = generateSupportFiles(
       "skills/test",
-      [{ role: "TEMPLATE", filename: "no-newline.md", content: "no newline" }],
+      [{ filename: "no-newline.md", content: "no newline" }],
       "test-skill",
     );
 
@@ -57,13 +53,7 @@ describe("generateSupportFiles", () => {
   it("末尾改行があるコンテンツには改行を重複付与しないこと", () => {
     const files = generateSupportFiles(
       "skills/test",
-      [
-        {
-          role: "TEMPLATE",
-          filename: "has-newline.md",
-          content: "has newline\n",
-        },
-      ],
+      [{ filename: "has-newline.md", content: "has newline\n" }],
       "test-skill",
     );
 
