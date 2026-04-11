@@ -5,19 +5,6 @@ import { COMMUNICATION_PATTERNS } from "../../lib/types/constants";
 import type { SkillDetailData } from "./types";
 import type { LoadedSkillUnion } from "../../lib/types/loaded";
 
-// ネスト深度に応じたM3 surface-containerレベルのマッピング
-const DEPTH_BG = [
-  "bg-surface-container-lowest",
-  "bg-surface-container-low",
-  "bg-surface-container",
-  "bg-surface-container-high",
-  "bg-surface-container-highest",
-] as const;
-
-function getDepthBg(depth: number): string {
-  return DEPTH_BG[Math.min(depth, DEPTH_BG.length - 1)];
-}
-
 // スキル詳細の共通表示コンポーネント（全スキルタイプ対応）
 export function SkillDetail({
   data,
@@ -28,12 +15,10 @@ export function SkillDetail({
   allSkills?: LoadedSkillUnion[];
   depth?: number;
 }) {
-  const bgClass = getDepthBg(depth);
-
   return (
     <div className="px-4 py-3 my-1">
       {/* 付属情報: description, input, output, beforeSections, afterSections */}
-      <div className={`mb-4 p-4 rounded-md ${bgClass}`}>
+      <div className="mb-4 p-4 rounded-md bg-surface-container-low">
         {data.description && (
           <div className="mb-3">
             <div className="text-sm text-on-surface-variant leading-relaxed">

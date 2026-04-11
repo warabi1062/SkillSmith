@@ -37,10 +37,10 @@
   --color-surface-dim: #d5dbd8;
   --color-surface-bright: #f5faf7;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #eff5f2;
-  --color-surface-container: #e9efec;
-  --color-surface-container-high: #e3eae7;
-  --color-surface-container-highest: #dee4e1;
+  --color-surface-container-low: #f7faf9;
+  --color-surface-container: #f0f4f2;
+  --color-surface-container-high: #e9eeed;
+  --color-surface-container-highest: #e3e8e6;
   --color-on-surface: #171d1b;
   --color-on-surface-variant: #3f4945;
   --color-outline: #6f7975;

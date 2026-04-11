@@ -7,15 +7,6 @@ import type { StepFields } from "./types";
 import type { LoadedSkillUnion } from "../../lib/types/loaded";
 import { SKILL_TYPES } from "../../lib/types/constants";
 
-// ネスト深度に応じたM3 surface-containerレベルのマッピング
-const DEPTH_BG = [
-  "bg-surface-container-lowest",
-  "bg-surface-container-low",
-  "bg-surface-container",
-  "bg-surface-container-high",
-  "bg-surface-container-highest",
-] as const;
-
 // ネスト深度に応じたM3 elevationシャドウのマッピング
 const DEPTH_SHADOW = [
   "shadow-level1",
@@ -24,10 +15,6 @@ const DEPTH_SHADOW = [
   "shadow-level2",
   "shadow-level3",
 ] as const;
-
-function getDepthBg(depth: number): string {
-  return DEPTH_BG[Math.min(depth, DEPTH_BG.length - 1)];
-}
 
 function getDepthShadow(depth: number): string {
   return DEPTH_SHADOW[Math.min(depth, DEPTH_SHADOW.length - 1)];
@@ -48,12 +35,11 @@ export function StepItem({
   depth?: number;
 }) {
   const stepLabel = `Step${prefix}${index}`;
-  const bgClass = getDepthBg(depth);
   const shadowClass = getDepthShadow(depth);
 
   if (step.type === "branch") {
     return (
-      <div className={`rounded-md ${bgClass} ${shadowClass}`}>
+      <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
         <div className="px-4 py-3 font-display text-base font-semibold flex items-center gap-2 text-on-surface">
           {stepLabel}. {step.label}
         </div>
@@ -99,7 +85,7 @@ export function StepItem({
 
   if (step.type === "inline") {
     return (
-      <div className={`rounded-md ${bgClass} ${shadowClass}`}>
+      <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
         <div className="px-4 py-3 font-display text-base font-semibold text-on-surface flex items-center gap-2">
           {stepLabel}. {step.label}
         </div>
@@ -125,7 +111,7 @@ export function StepItem({
   const referencedSkill = allSkills.find((s) => s.name === step.label) ?? null;
 
   return (
-    <div className={`rounded-md ${bgClass} ${shadowClass}`}>
+    <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
       <div className="px-4 py-3 font-display text-base font-semibold text-on-surface flex items-center gap-2.5">
         {stepLabel}. {step.label}
         <span className="inline-block px-2.5 py-0.5 font-mono text-[0.625rem] font-semibold rounded-full leading-relaxed tracking-wider uppercase bg-accent-amber-container text-accent-amber-on-container">
