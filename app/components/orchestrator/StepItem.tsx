@@ -16,8 +16,21 @@ const DEPTH_SHADOW = [
   "shadow-level3",
 ] as const;
 
+// ネスト深度に応じたステップ見出しの文字サイズ
+const DEPTH_TITLE_SIZE = [
+  "text-base",
+  "text-[0.9375rem]",
+  "text-[0.875rem]",
+  "text-[0.8125rem]",
+  "text-[0.75rem]",
+] as const;
+
 function getDepthShadow(depth: number): string {
   return DEPTH_SHADOW[Math.min(depth, DEPTH_SHADOW.length - 1)];
+}
+
+function getDepthTitleSize(depth: number): string {
+  return DEPTH_TITLE_SIZE[Math.min(depth, DEPTH_TITLE_SIZE.length - 1)];
 }
 
 // ステップの再帰的表示コンポーネント
@@ -36,11 +49,14 @@ export function StepItem({
 }) {
   const stepLabel = `Step${prefix}${index}`;
   const shadowClass = getDepthShadow(depth);
+  const titleSize = getDepthTitleSize(depth);
 
   if (step.type === "branch") {
     return (
       <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
-        <div className="px-4 py-3 font-display text-base font-semibold flex items-center gap-2 text-on-surface">
+        <div
+          className={`px-4 py-3 font-display ${titleSize} font-semibold flex items-center gap-2 text-on-surface`}
+        >
           {stepLabel}. {step.label}
         </div>
         <div className="px-4 pb-4">
@@ -86,7 +102,9 @@ export function StepItem({
   if (step.type === "inline") {
     return (
       <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
-        <div className="px-4 py-3 font-display text-base font-semibold text-on-surface flex items-center gap-2">
+        <div
+          className={`px-4 py-3 font-display ${titleSize} font-semibold text-on-surface flex items-center gap-2`}
+        >
           {stepLabel}. {step.label}
         </div>
         <div className="px-4 pb-4">
@@ -112,7 +130,9 @@ export function StepItem({
 
   return (
     <div className={`rounded-md bg-surface-container-lowest ${shadowClass}`}>
-      <div className="px-4 py-3 font-display text-base font-semibold text-on-surface flex items-center gap-2.5">
+      <div
+        className={`px-4 py-3 font-display ${titleSize} font-semibold text-on-surface flex items-center gap-2.5`}
+      >
         {stepLabel}. {step.label}
         <span className="inline-block px-2.5 py-0.5 font-mono text-[0.625rem] font-semibold rounded-full leading-relaxed tracking-wider uppercase bg-accent-amber-container text-accent-amber-on-container">
           SKILL
