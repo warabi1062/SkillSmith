@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, registerCommand, route } from "../router";
+import { getVersion } from "../help";
+
+// package.json から現在のバージョンを取得してテスト内で使う
+const CURRENT_VERSION = getVersion();
 
 // テスト用の出力キャプチャヘルパー
 function captureOutput(): { output: string[]; write: (s: string) => void } {
@@ -27,7 +31,7 @@ describe("route", () => {
 
       // Assert
       expect(exitCode).toBe(0);
-      expect(output.join("")).toContain("1.0.0");
+      expect(output.join("")).toContain(CURRENT_VERSION);
     });
 
     it("entity/action があっても --version が優先される", async () => {
@@ -47,7 +51,7 @@ describe("route", () => {
       // Assert
       expect(exitCode).toBe(0);
       expect(handler).not.toHaveBeenCalled();
-      expect(output.join("")).toContain("1.0.0");
+      expect(output.join("")).toContain(CURRENT_VERSION);
     });
   });
 
@@ -207,7 +211,7 @@ describe("route", () => {
 
       // Assert
       expect(exitCode).toBe(0);
-      expect(output.join("")).toContain("1.0.0");
+      expect(output.join("")).toContain(CURRENT_VERSION);
       expect(output.join("")).not.toContain("Usage:");
     });
 

@@ -139,6 +139,7 @@ export async function loadPluginDefinition(
   }
 
   // plugin.ts を動的importで読み込む（jiti で TypeScript をトランスパイル）
+  // CJS ビルドでは tsup の shims が import.meta.url を __filename ベースで補填する
   const jiti = createJiti(import.meta.url);
   const pluginModule = (await jiti.import(pluginTsPath)) as Record<
     string,

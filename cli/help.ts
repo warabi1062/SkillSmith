@@ -3,8 +3,15 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { CommandDefinition } from "./types";
 
-// パッケージバージョンを package.json から取得するヘルパー
+// ビルド時に tsup の define で置換されるバージョン文字列。
+// 開発時（tsx 直接実行）は未定義なので package.json からフォールバックして読む。
+declare const __SKILLSMITH_VERSION__: string | undefined;
+
+// パッケージバージョンを取得するヘルパー
 export function getVersion(): string {
+  if (typeof __SKILLSMITH_VERSION__ !== "undefined") {
+    return __SKILLSMITH_VERSION__;
+  }
   const dir =
     typeof __dirname !== "undefined"
       ? __dirname
