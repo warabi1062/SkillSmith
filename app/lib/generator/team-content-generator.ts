@@ -12,13 +12,22 @@ export interface TeamContentInput {
   requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
+// 全メンバーが従うメッセージ送受信の制約
+const MEMBER_MESSAGING_CONSTRAINT =
+  "メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する（最大5回）";
+
 // チーム共通ルールを構築する
 export function buildTeamRules(memberNames: string[]): string[] {
   return [
     `各メンバーは定義された名前（${memberNames.join(", ")}）と完全一致する name でスポーンすること`,
-    "メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する（最大5回）",
+    MEMBER_MESSAGING_CONSTRAINT,
     "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
   ];
+}
+
+// 各メンバーに転記する制約リストを構築する
+export function buildMemberConstraints(): string[] {
+  return [MEMBER_MESSAGING_CONSTRAINT];
 }
 
 // リーダーのデフォルト担当リストを構築する
@@ -82,6 +91,11 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("#### 役割");
   lines.push("チーム全体の進行管理を担当する。");
   lines.push("");
+  lines.push("#### 制約");
+  for (const constraint of buildMemberConstraints()) {
+    lines.push(`- ${constraint}`);
+  }
+  lines.push("");
   lines.push("#### 担当");
   const leaderDuties = buildLeaderDuties({
     memberNames,
@@ -99,6 +113,11 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push("");
     lines.push("#### 役割");
     lines.push(teammate.role);
+    lines.push("");
+    lines.push("#### 制約");
+    for (const constraint of buildMemberConstraints()) {
+      lines.push(`- ${constraint}`);
+    }
     lines.push("");
     lines.push("#### 手順");
 

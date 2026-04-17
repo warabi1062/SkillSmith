@@ -131,4 +131,29 @@ describe("generateTeamContent", () => {
     expect(result).toContain("implementer・reviewerの2名体制");
     expect(result).toContain("メインエージェントはリーダーとして参加する");
   });
+
+  it("メッセージ送受信ルールのみ各メンバーの制約として転記される", () => {
+    const result = generateTeamContent(makeInput());
+
+    // 制約見出しがリーダー + 各teammate分の計3回出現する
+    const constraintHeadingCount = result.split("#### 制約").length - 1;
+    expect(constraintHeadingCount).toBe(3);
+
+    // 共通ルールセクション（トップレベル）は維持される
+    expect(result).toContain("### 共通ルール");
+
+    // メッセージ送受信ルールは共通ルール + 3メンバーで計4回出現する
+    const messagingSnippet = "メンバー間のメッセージ送受信は確認応答方式で行う";
+    const messagingCount = result.split(messagingSnippet).length - 1;
+    expect(messagingCount).toBe(4);
+
+    // 残り2ルールは共通ルールのみで1回のみ出現する
+    const nameRuleCount =
+      result.split("完全一致する name でスポーンすること").length - 1;
+    expect(nameRuleCount).toBe(1);
+
+    const reviewCycleCount =
+      result.split("レビューサイクルは最大3回で打ち切り").length - 1;
+    expect(reviewCycleCount).toBe(1);
+  });
 });
