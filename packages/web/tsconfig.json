@@ -3,5 +3,5 @@
   "compilerOptions": {
     "rootDirs": [".", "./.react-router/types"]
   },
-  "include": [".react-router/types/**/*", "app/**/*"]
+  "include": [".react-router/types/**/*", "app/**/*", "src/**/*"]
 }
