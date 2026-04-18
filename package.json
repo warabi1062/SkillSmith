@@ -1,18 +1,9 @@
 {
-  "name": "@warabi1062/skillsmith",
-  "version": "0.0.1",
+  "name": "skillsmith-monorepo",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
-  "description": "Claude Code のスキル設計パターンをスキーマとして形式化し、プラグインを生成するツール",
-  "keywords": [
-    "claude",
-    "claude-code",
-    "skill",
-    "plugin",
-    "cli",
-    "generator"
-  ],
-  "author": "warabi1062 <kohei.2126@gmail.com>",
-  "license": "MIT",
+  "description": "SkillSmith workspace root (non-publishable)",
   "repository": {
     "type": "git",
     "url": "https://github.com/warabi1062/SkillSmith.git"
@@ -21,29 +12,19 @@
   "bugs": {
     "url": "https://github.com/warabi1062/SkillSmith/issues"
   },
-  "bin": {
-    "skillsmith": "./cli/bin.cjs"
-  },
-  "files": [
-    "dist",
-    "cli/bin.cjs",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
     "dev": "tsx scripts/dev.ts",
-    "build": "tsup",
+    "build": "pnpm -r build",
     "build:web": "react-router build",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "lint": "oxlint",
     "format": "biome format --write .",
     "format:check": "biome check --formatter-enabled=true --linter-enabled=false .",
-    "cli": "tsx cli/index.ts",
+    "cli": "tsx packages/cli/src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "prepublishOnly": "pnpm build"
+    "test:coverage": "vitest run --coverage"
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
   "dependencies": {

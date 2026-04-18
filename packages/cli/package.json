@@ -1,6 +1,45 @@
 {
-  "name": "@warabi1062/skillsmith-cli-placeholder",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module"
+  "name": "@warabi1062/skillsmith",
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Claude Code のスキル設計パターンをスキーマとして形式化し、プラグインを生成するツール",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skill",
+    "plugin",
+    "cli",
+    "generator"
+  ],
+  "author": "warabi1062 <kohei.2126@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/warabi1062/SkillSmith.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/warabi1062/SkillSmith#readme",
+  "bugs": {
+    "url": "https://github.com/warabi1062/SkillSmith/issues"
+  },
+  "bin": {
+    "skillsmith": "./bin.cjs"
+  },
+  "files": [
+    "dist",
+    "bin.cjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "@warabi1062/skillsmith-core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
