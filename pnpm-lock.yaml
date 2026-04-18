@@ -36,7 +36,7 @@ importers:
   packages/cli:
     dependencies:
       '@warabi1062/skillsmith-core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       '@warabi1062/skillsmith-viewer':
@@ -52,7 +52,7 @@ importers:
   packages/web:
     dependencies:
       '@warabi1062/skillsmith-core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       express:
         specifier: ^5.2.1

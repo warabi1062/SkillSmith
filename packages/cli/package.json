@@ -1,6 +1,6 @@
 {
   "name": "@warabi1062/skillsmith",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "description": "Claude Code のスキル設計パターンをスキーマとして形式化し、プラグインを生成するツール",
   "keywords": [
@@ -37,13 +37,13 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@warabi1062/skillsmith-core": "workspace:*"
+    "@warabi1062/skillsmith-core": "workspace:^"
   },
   "devDependencies": {
     "@warabi1062/skillsmith-viewer": "workspace:*"
   },
   "peerDependencies": {
-    "@warabi1062/skillsmith-viewer": "workspace:*"
+    "@warabi1062/skillsmith-viewer": "workspace:^"
   },
   "peerDependenciesMeta": {
     "@warabi1062/skillsmith-viewer": {
