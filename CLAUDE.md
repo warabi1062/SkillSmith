@@ -14,47 +14,47 @@ SkillSmith は、Claude Code のスキル設計パターンをスキーマとし
 
 ## 開発コマンド
 
-- パッケージマネージャ: `pnpm@10.6.4`（必須）
+- パッケージマネージャ: `pnpm@10.33.0`（必須）
 - `pnpm install` で依存関係をインストール
-- `pnpm dev` - 開発サーバー起動（React Router dev）
-- `pnpm build` - プロダクションビルド
-- `pnpm typecheck` - TypeScript型チェック（`tsc --noEmit`）
+- `pnpm dev` - 開発サーバー起動（`packages/web` の React Router dev）
+- `pnpm build` - プロダクションビルド（`pnpm -r build` で全パッケージ）
+- `pnpm typecheck` - TypeScript型チェック（`pnpm -r typecheck`）
 - `pnpm lint` - Lint実行（oxlint）
 - `pnpm format` - フォーマット（Biome）
-- `pnpm cli` - CLIの直接実行（`tsx cli/index.ts`）
-- `pnpm cli plugin export {plugin-dir}` - 単一プラグインのエクスポート
+- `pnpm cli` - CLIの直接実行（`tsx packages/cli/src/index.ts`）
+- `pnpm cli plugin export {plugin.ts-path} --output {output-dir}` - 単一プラグインのエクスポート
 - `pnpm cli marketplace export {marketplace-dir} --output {output-dir}` - マーケットプレース一括エクスポート
 
 ## アーキテクチャ
 
 ### 3つのレイヤー
 
-SkillSmithは **Web UI** / **生成エンジン** / **CLI** の3層で構成される。
+SkillSmith は pnpm workspaces による monorepo 構成で、`packages/` 配下に 3 パッケージ（`@warabi1062/skillsmith-viewer` / `@warabi1062/skillsmith-core` / `@warabi1062/skillsmith`（CLI））を持つ。役割としては **Web UI** / **生成エンジン** / **CLI** の3層で構成される。
 
-1. **Web UI**（`app/routes/`）: React Router v7。プラグイン定義の閲覧・オーケストレーター構造の可視化
-2. **生成エンジン**（`app/lib/`）: TypeScriptのスキル定義 → Markdownベースのプラグインファイルへの変換パイプライン
-3. **CLI**（`cli/`）: `skillsmith plugin export` コマンドでプラグインをファイルシステムに出力
+1. **Web UI**（`packages/web/app/routes/`）: React Router v7。プラグイン定義の閲覧・オーケストレーター構造の可視化
+2. **生成エンジン**（`packages/core/src/`）: TypeScriptのスキル定義 → Markdownベースのプラグインファイルへの変換パイプライン
+3. **CLI**（`packages/cli/src/`）: `skillsmith plugin export` コマンドでプラグインをファイルシステムに出力
 
 ### データフロー（生成パイプライン）
 
 ```
 plugin.ts（TypeScriptスキル定義）
-  ↓ loader.server.ts（jiti で動的読み込み）
+  ↓ packages/core/src/loader/loader.server.ts（jiti で動的読み込み）
 LoadedPluginDefinition（型付き・内容解決済み）
-  ↓ plugin-generator.server.ts（各スキル種別ごとに委譲）
+  ↓ packages/core/src/generator/plugin-generator.server.ts（各スキル種別ごとに委譲）
   │  ├→ skill-generator（SKILL.md frontmatter + content）
   │  ├→ orchestrator-content-generator（EntryPoint: steps→markdown）
   │  ├→ worker-content-generator / agent-content-generator（Worker系）
   │  ├→ team-content-generator（AgentTeam系）
   │  └→ file-generator（サポートファイルコピー）
 GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
-  ↓ exporter.server.ts（一時ディレクトリ→ターゲットへ2段階書き出し）
+  ↓ packages/core/src/exporter/exporter.server.ts（一時ディレクトリ→ターゲットへ2段階書き出し）
 ファイルシステム出力
 ```
 
 ### スキル型の階層
 
-`app/lib/types/skill.ts` に定義された抽象基底クラス `Skill` から4つの具象型が派生する。スキル種別（`skillType`）がDiscriminated Unionのキーとなり、生成パイプラインの分岐を制御する。
+`packages/core/src/types/skill.ts` に定義された抽象基底クラス `Skill` から4つの具象型が派生する。スキル種別（`skillType`）がDiscriminated Unionのキーとなり、生成パイプラインの分岐を制御する。
 
 | 型 | skillType | 生成物 |
 |---|---|---|
@@ -96,9 +96,9 @@ GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
 
 - フレームワーク: Vitest
 - 実行: `pnpm test`（単発）/ `pnpm test:watch`（ウォッチ）/ `pnpm test:coverage`（カバレッジ）
-- 単一ファイル実行: `pnpm test -- app/lib/generator/__tests__/skill-generator.test.ts`
+- 単一ファイル実行: `pnpm test -- packages/core/src/generator/__tests__/skill-generator.test.ts`
 - 配置: 対象モジュールと同階層の `__tests__/` ディレクトリに `*.test.ts(x)` として作成
-- 対象パターン: `app/**/__tests__/**/*.test.{ts,tsx}`, `cli/**/__tests__/**/*.test.ts`
+- 対象パターン: `packages/web/app/**/__tests__/**/*.test.{ts,tsx}`, `packages/core/src/**/__tests__/**/*.test.{ts,tsx}`, `packages/cli/src/**/__tests__/**/*.test.ts`
 
 ### テストを書くべきケース
 

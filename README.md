@@ -20,12 +20,22 @@ TypeScript でスキル定義（`marketplaces/{marketplace}/plugins/{name}/plugi
 
 ## アーキテクチャ
 
-### レイヤード構造
+### monorepo 構成
 
-`app/lib/` は依存方向を制御した4層構造:
+SkillSmith は pnpm workspaces による monorepo で、`packages/` 配下に3つのパッケージを持つ:
+
+| パッケージ | ディレクトリ | 役割 |
+|-----------|------------|------|
+| `@warabi1062/skillsmith-core` | `packages/core/` | 生成エンジン。型定義・loader・generator・exporter を提供 |
+| `@warabi1062/skillsmith` | `packages/cli/` | CLI。`skillsmith plugin export` 等を提供 |
+| `@warabi1062/skillsmith-viewer` | `packages/web/` | Web UI。React Router v7 による閲覧・可視化 |
+
+### レイヤード構造（packages/core/src/）
+
+生成エンジン（`packages/core/src/`）は依存方向を制御した4層構造:
 
 ```
-app/lib/
+packages/core/src/
 ├── types/       # Layer 0: 型定義・定数（依存なし）
 ├── core/        # Layer 1: 共通ロジック（types にのみ依存）
 ├── loader/      # Layer 2a: プラグイン定義の動的読み込み
@@ -36,7 +46,7 @@ app/lib/
 
 依存ルール: 上位レイヤーのみが下位レイヤーに依存する。loader と generator は相互依存しない。
 
-### 生成パイプライン（generator/）
+### 生成パイプライン（packages/core/src/generator/）
 
 generator/ 内は2つの責務に分かれる:
 
@@ -47,7 +57,7 @@ generator/ 内は2つの責務に分かれる:
 
 ### ファイル命名規約
 
-- `.server.ts`: サーバー専用モジュール（React Router がクライアントバンドルから除外）
+- `.server.ts`: サーバー専用モジュール（`packages/web/` の React Router がクライアントバンドルから除外する規約を core 側にも適用）
 - `.ts`: クライアント/サーバー両用（型定義、UI から参照されるロジック）
 
 ## セットアップ
@@ -66,7 +76,7 @@ pnpm lint         # Lint (oxlint)
 pnpm format       # フォーマット (Biome)
 pnpm test         # テスト実行
 pnpm cli          # CLI直接実行
-pnpm cli plugin export {plugin-dir}                              # 単一プラグインエクスポート
+pnpm cli plugin export {plugin.ts-path} --output {dir}           # 単一プラグインエクスポート
 pnpm cli marketplace export {marketplace-dir} --output {dir}     # マーケットプレース一括エクスポート
 ```
 
