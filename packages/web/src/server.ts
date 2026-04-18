@@ -8,10 +8,12 @@ import {
   getMarketplacesBaseDir,
 } from "@warabi1062/skillsmith-core/loader";
 
-// start({ cwd, port? }) で HTTP サーバーを起動するプログラマブル API
+// start({ cwd, port?, spaDir? }) で HTTP サーバーを起動するプログラマブル API
 export interface StartOptions {
   cwd: string;
   port?: number;
+  // SPA 配信ディレクトリの上書き（指定時は dist/spa より優先）。テスト用途が主
+  spaDir?: string;
 }
 
 export interface StartedServer {
@@ -84,8 +86,9 @@ export async function start(opts: StartOptions): Promise<StartedServer> {
 
   // dev 時は Vite が SPA を配信するので API のみ提供する
   if (!process.env.SKILLSMITH_DEV_API_ONLY) {
-    // dist/server.js からの相対で dist/spa/ を参照
-    const distDir = fileURLToPath(new URL("./spa", import.meta.url));
+    // 既定は dist/server.js からの相対で dist/spa/ を参照。opts.spaDir で上書き可
+    const distDir =
+      opts.spaDir ?? fileURLToPath(new URL("./spa", import.meta.url));
     app.use(express.static(distDir));
     // Express 5: 無名ワイルドカード不可。named splat + braces でルートパスを含めて一致させる
     app.get("/{*splat}", (_req, res) => {
