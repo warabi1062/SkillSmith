@@ -98,7 +98,7 @@ GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
 - 実行: `pnpm test`（単発）/ `pnpm test:watch`（ウォッチ）/ `pnpm test:coverage`（カバレッジ）
 - 単一ファイル実行: `pnpm test -- packages/core/src/generator/__tests__/skill-generator.test.ts`
 - 配置: 対象モジュールと同階層の `__tests__/` ディレクトリに `*.test.ts(x)` として作成
-- 対象パターン: `packages/web/app/**/__tests__/**/*.test.{ts,tsx}`, `packages/core/src/**/__tests__/**/*.test.{ts,tsx}`, `packages/cli/src/**/__tests__/**/*.test.ts`
+- 対象パターン: `packages/web/app/**/__tests__/**/*.test.{ts,tsx}`, `packages/web/src/**/__tests__/**/*.test.{ts,tsx}`, `packages/core/src/**/__tests__/**/*.test.{ts,tsx}`, `packages/cli/src/**/__tests__/**/*.test.ts`
 
 ### テストを書くべきケース
 
