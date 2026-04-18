@@ -17,7 +17,6 @@
   "include": [
     ".react-router/types/**/*",
     "app/**/*",
-    "cli/**/*",
     "packages/core/src/**/*",
     "plugins/**/*"
   ]

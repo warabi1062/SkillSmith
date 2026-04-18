@@ -6,12 +6,11 @@ const pkg = JSON.parse(readFileSync("./package.json", "utf-8")) as {
   version: string;
 };
 
-// publish 用ビルド設定
-// ESM + CJS + .d.ts を dist/ に出力する
-// エントリ名は publish 後の import パスと一致させる（.server サフィックスは剥がす）
+// CLI パッケージの publish 用ビルド設定
+// エントリは src/index.ts のみ、bin.cjs は dist/index.cjs を実行する
 export default defineConfig({
   entry: {
-    "cli/index": "cli/index.ts",
+    index: "src/index.ts",
   },
   format: ["esm", "cjs"],
   dts: true,
