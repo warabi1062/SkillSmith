@@ -201,6 +201,55 @@ describe("route", () => {
     });
   });
 
+  describe("action 省略コマンド", () => {
+    it("action 省略登録のコマンドを entity のみで実行できる", async () => {
+      // Arrange
+      const handler = vi.fn().mockResolvedValue(0);
+      registerCommand({
+        entity: "web",
+        description: "Start web viewer",
+        handler,
+      });
+      const { write } = captureOutput();
+
+      // Act
+      const exitCode = await route(["web"], write);
+
+      // Assert
+      expect(exitCode).toBe(0);
+      expect(handler).toHaveBeenCalledOnce();
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({ entity: "web", action: "" }),
+      );
+    });
+
+    it("action 省略コマンドと action 必須コマンドが共存できる", async () => {
+      // Arrange
+      const webHandler = vi.fn().mockResolvedValue(0);
+      const pluginHandler = vi.fn().mockResolvedValue(0);
+      registerCommand({
+        entity: "web",
+        description: "Start web viewer",
+        handler: webHandler,
+      });
+      registerCommand({
+        entity: "plugin",
+        action: "export",
+        description: "test",
+        handler: pluginHandler,
+      });
+      const { write } = captureOutput();
+
+      // Act
+      await route(["web"], write);
+      await route(["plugin", "export"], write);
+
+      // Assert
+      expect(webHandler).toHaveBeenCalledOnce();
+      expect(pluginHandler).toHaveBeenCalledOnce();
+    });
+  });
+
   describe("判定優先順位", () => {
     it("--version は --help より優先される", async () => {
       // Arrange

@@ -22,9 +22,12 @@ export interface CommandContext {
 export type CommandHandler = (ctx: CommandContext) => Promise<number>;
 
 // コマンド定義
+// action は optional。省略登録したコマンドは `skillsmith <entity>` の形で起動でき、
+// router 側で `cmd.action === undefined` 判定によって突合する。
+// 登録時は action キー自体を書かない運用に統一する（undefined の明示設定は想定しない）。
 export interface CommandDefinition {
   entity: string;
-  action: string;
+  action?: string;
   description: string;
   handler: CommandHandler;
 }

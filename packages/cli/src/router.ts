@@ -130,28 +130,44 @@ export async function route(
     return 1;
   }
 
-  // 5. entity + action の一致を検索
-  if (action) {
-    const matched = commands.find(
-      (cmd) => cmd.entity === entity && cmd.action === action,
+  // 5. action 未入力時: action 省略登録コマンドを優先して突合する
+  if (!action) {
+    const matchedEntityOnly = commands.find(
+      (cmd) => cmd.entity === entity && cmd.action === undefined,
     );
-    if (matched) {
+    if (matchedEntityOnly) {
       const ctx: CommandContext = {
         entity,
-        action,
+        action: "",
         args: rest,
         options,
       };
-      return matched.handler(ctx);
+      return matchedEntityOnly.handler(ctx);
     }
 
-    // 一致しない: エラーメッセージ + 全体ヘルプ
-    write(`Unknown command: ${entity} ${action}\n\n`);
-    write(`${formatGeneralHelp(commands)}\n`);
+    // 6. entity のみ（action なし）: entity ヘルプを表示してエラー
+    write(`${formatEntityHelp(entity, commands)}\n`);
     return 1;
   }
 
-  // 6. entity のみ（action なし）: entity ヘルプを表示してエラー
-  write(`${formatEntityHelp(entity, commands)}\n`);
+  // 7. entity + action の一致を検索
+  const matched = commands.find(
+    (cmd) => cmd.entity === entity && cmd.action === action,
+  );
+  if (matched) {
+    const ctx: CommandContext = {
+      entity,
+      action,
+      args: rest,
+      options,
+    };
+    return matched.handler(ctx);
+  }
+
+  // 一致しない: エラーメッセージ + 全体ヘルプ
+  // action 省略コマンドが登録されていても追加 positional（`web foo` 等）は unknown 扱いにする。
+  // 現状は追加 positional を受け付けないため、誤入力時のユーザー誘導を優先する。
+  write(`Unknown command: ${entity} ${action}\n\n`);
+  write(`${formatGeneralHelp(commands)}\n`);
   return 1;
 }
