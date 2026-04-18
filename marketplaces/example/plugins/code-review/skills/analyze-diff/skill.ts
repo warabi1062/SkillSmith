@@ -1,5 +1,5 @@
 // WorkerSkill サンプル: beforeSections, mcp(), disableModelInvocation, userInvocable オーバーライド
-import { WorkerSkill, tool, mcp } from "../../../../../../app/lib/types";
+import { WorkerSkill, tool, mcp } from "@warabi1062/skillsmith-core/types";
 
 const analyzeDiffSkill = new WorkerSkill({
   name: "analyze-diff",

@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import {
   loadAllPluginMetaInMarketplace,
   getMarketplacesBaseDir,
-} from "../lib/loader";
+} from "@warabi1062/skillsmith-core/loader";
 import type { Route } from "./+types/marketplaces.$marketplaceId._index";
 import * as path from "node:path";
 

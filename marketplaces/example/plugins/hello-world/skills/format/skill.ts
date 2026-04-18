@@ -1,5 +1,5 @@
 // WorkerSkill のサンプル: 挨拶メッセージをフォーマットする
-import { WorkerSkill, tool } from "../../../../../../app/lib/types";
+import { WorkerSkill, tool } from "@warabi1062/skillsmith-core/types";
 
 const formatSkill = new WorkerSkill({
   name: "format",

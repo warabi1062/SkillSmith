@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { convertStep, convertSections } from "../orchestrator";
 
-import type { LoadedStep, LoadedSection } from "../../lib/types/loaded";
+import type {
+  LoadedStep,
+  LoadedSection,
+} from "@warabi1062/skillsmith-core/types";
 
 describe("convertStep", () => {
   it("SkillRefステップをskill型に変換する", () => {

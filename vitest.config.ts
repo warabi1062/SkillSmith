@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     include: [
       "app/**/__tests__/**/*.test.{ts,tsx}",
+      "packages/core/src/**/__tests__/**/*.test.{ts,tsx}",
       "cli/**/__tests__/**/*.test.ts",
     ],
     coverage: {

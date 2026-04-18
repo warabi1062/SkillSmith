@@ -2,7 +2,7 @@ import { SectionItems } from "./SectionItems";
 import { BodyContent } from "./BodyContent";
 import { StepItem } from "./StepItem";
 import type { SkillDetailData } from "./types";
-import type { LoadedSkillUnion } from "../../lib/types/loaded";
+import type { LoadedSkillUnion } from "@warabi1062/skillsmith-core/types";
 
 // スキル詳細の共通表示コンポーネント（全スキルタイプ対応）
 export function SkillDetail({

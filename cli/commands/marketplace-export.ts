@@ -6,9 +6,9 @@ import { parseCommandArgs } from "../command-utils";
 import {
   loadPluginDefinition,
   loadMarketplaceDefinition,
-} from "../../app/lib/loader";
-import { exportPlugin } from "../../app/lib/exporter/exporter.server";
-import { generateMarketplaceJson } from "../../app/lib/generator/marketplace-json-generator.server";
+} from "@warabi1062/skillsmith-core/loader";
+import { exportPlugin } from "@warabi1062/skillsmith-core/exporter";
+import { generateMarketplaceJson } from "@warabi1062/skillsmith-core/generator";
 
 export function registerMarketplaceExportCommand(): void {
   registerCommand({

@@ -4,8 +4,8 @@ import { BodyContent } from "./BodyContent";
 import { SkillDetail } from "./SkillDetail";
 import { buildSkillDetailData } from "./data";
 import type { StepFields } from "./types";
-import type { LoadedSkillUnion } from "../../lib/types/loaded";
-import { SKILL_TYPES } from "../../lib/types/constants";
+import type { LoadedSkillUnion } from "@warabi1062/skillsmith-core/types";
+import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
 
 // ネスト深度に応じたM3 elevationシャドウのマッピング
 const DEPTH_SHADOW = [

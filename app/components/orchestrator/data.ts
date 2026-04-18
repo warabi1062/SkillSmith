@@ -4,14 +4,16 @@ import type {
   LoadedBranch,
   LoadedInlineStep,
   LoadedSection,
-} from "../../lib/types/loaded";
-import { isLoadedSkillRef } from "../../lib/types/loaded";
-import { serializeToolRef } from "../../lib/types/skill";
-import { SKILL_TYPES } from "../../lib/types/constants";
+} from "@warabi1062/skillsmith-core/types";
+import {
+  isLoadedSkillRef,
+  serializeToolRef,
+} from "@warabi1062/skillsmith-core/types";
+import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
 import {
   buildLeaderDuties,
   buildTeamRules,
-} from "../../lib/generator/team-content-generator";
+} from "@warabi1062/skillsmith-core/generator";
 import type { StepFields, SectionFields, SkillDetailData } from "./types";
 
 // --- データ変換関数 ---

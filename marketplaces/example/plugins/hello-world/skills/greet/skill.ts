@@ -1,5 +1,5 @@
 // EntryPointSkill のサンプル: オーケストレーターとして greet → format の順に実行
-import { EntryPointSkill } from "../../../../../../app/lib/types";
+import { EntryPointSkill } from "@warabi1062/skillsmith-core/types";
 import formatSkill from "../format/skill";
 
 const greetSkill = new EntryPointSkill({

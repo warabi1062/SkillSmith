@@ -3,7 +3,7 @@ import {
   WorkerWithSubAgent,
   tool,
   bash,
-} from "../../../../../../app/lib/types";
+} from "@warabi1062/skillsmith-core/types";
 
 const suggestFixSkill = new WorkerWithSubAgent({
   name: "suggest-fix",
