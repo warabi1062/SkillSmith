@@ -65,7 +65,7 @@ GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
 
 ### マーケットプレースとプラグイン定義の書き方
 
-プラグインは `marketplaces/{marketplace}/plugins/{name}/plugin.ts` に `PluginDefinition` を default export する。各スキルは上記4型のいずれかのインスタンスで、`steps[]`・`sections[]`・`ToolRef`（`tool()`, `bash()`, `mcp()`）を組み合わせて定義する。実例は `marketplaces/example/plugins/` を参照。
+プラグインは `packages/web/marketplaces/{marketplace}/plugins/{name}/plugin.ts` に `PluginDefinition` を default export する。各スキルは上記4型のいずれかのインスタンスで、`steps[]`・`sections[]`・`ToolRef`（`tool()`, `bash()`, `mcp()`）を組み合わせて定義する。実例は `packages/web/marketplaces/example/plugins/` を参照。
 
 マーケットプレースは複数のプラグインをまとめた配布単位で、`marketplace export` コマンドで外部リポジトリに一括出力する。
 
