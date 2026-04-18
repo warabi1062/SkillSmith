@@ -64,6 +64,25 @@ describe("api-client", () => {
     expect(result).toEqual(body);
   });
 
+  it("fetchPlugin は id / name の両方を encodeURIComponent で URL エスケープする", async () => {
+    mockFetch.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          plugin: { name: "x", skills: [] },
+          pluginId: "pl/b",
+          marketplaceId: "mp/a",
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await fetchPlugin("mp/a", "pl/b");
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/marketplaces/mp%2Fa/plugins/pl%2Fb",
+    );
+  });
+
   it("非 200 応答では Response を throw する", async () => {
     mockFetch.mockResolvedValueOnce(
       new Response("Not Found", { status: 404, statusText: "Not Found" }),

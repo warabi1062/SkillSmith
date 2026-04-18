@@ -1,8 +1,9 @@
-import { Outlet, useLoaderData } from "react-router";
+import { Outlet } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import Breadcrumb from "../components/Breadcrumb";
 
-// marketplace レイアウト: params だけを返す軽量 loader（API 呼び出しは不要）
+// marketplace レイアウト: handle.breadcrumb から参照するため loader は残すが、
+// Component 側では loaderData を直接使わないため useLoaderData は呼ばない
 export async function loader({ params }: LoaderFunctionArgs) {
   return { marketplaceId: params.marketplaceId ?? "" };
 }
@@ -16,7 +17,6 @@ export const handle = {
 };
 
 export default function MarketplaceLayout() {
-  useLoaderData() as { marketplaceId: string };
   return (
     <>
       <Breadcrumb />

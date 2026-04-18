@@ -120,6 +120,26 @@ describe("src/server.ts (start)", () => {
       const body = (await res.json()) as { error: string };
       expect(body.error).toBe("Plugin not found");
     });
+
+    it("marketplace id にパストラバーサルを含むリクエストは 400 を返す", async () => {
+      // Express 5 はパスパラメータをデコードするので、%2F や生の / は別扱いになる
+      // %2F エンコード版: req.params.id に "../../etc" が入るケース
+      const encoded = await fetch(
+        `http://127.0.0.1:${server.port}/api/marketplaces/..%2F..%2Fetc`,
+      );
+      expect(encoded.status).toBe(400);
+      const encodedBody = (await encoded.json()) as { error: string };
+      expect(encodedBody.error).toBe("Invalid marketplace id");
+    });
+
+    it("plugin 名にパストラバーサルを含むリクエストは 400 を返す", async () => {
+      const res = await fetch(
+        `http://127.0.0.1:${server.port}/api/marketplaces/example/plugins/..%2F..%2Fetc`,
+      );
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe("Invalid plugin path");
+    });
   });
 
   describe("壊れた plugin.ts", () => {
