@@ -1,5 +1,5 @@
 // WorkerWithAgentTeam のサンプル: チームでメッセージをレビューするスキル
-import { WorkerWithAgentTeam, tool } from "../../../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool } from "@warabi1062/skillsmith-core/types";
 
 const reviewTeamSkill = new WorkerWithAgentTeam({
   name: "review-team",

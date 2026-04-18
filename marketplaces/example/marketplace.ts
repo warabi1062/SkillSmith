@@ -1,5 +1,5 @@
 // サンプルマーケットプレース: 開発時の動作確認用
-import type { MarketplaceDefinition } from "../../app/lib/types";
+import type { MarketplaceDefinition } from "@warabi1062/skillsmith-core/types";
 import helloWorld from "./plugins/hello-world/plugin";
 import codeReview from "./plugins/code-review/plugin";
 

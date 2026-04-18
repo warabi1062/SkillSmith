@@ -1,5 +1,5 @@
 // WorkerWithAgentTeam サンプル
-import { WorkerWithAgentTeam, tool } from "../../../../../../app/lib/types";
+import { WorkerWithAgentTeam, tool } from "@warabi1062/skillsmith-core/types";
 
 const fixTeamSkill = new WorkerWithAgentTeam({
   name: "fix-team",

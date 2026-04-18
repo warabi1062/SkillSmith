@@ -1,5 +1,5 @@
 // コードレビュープラグイン: 全機能パターンの網羅的動作確認用
-import type { PluginDefinition } from "../../../../app/lib/types";
+import type { PluginDefinition } from "@warabi1062/skillsmith-core/types";
 import reviewPrSkill from "./skills/review-pr/skill";
 import analyzeDiffSkill from "./skills/analyze-diff/skill";
 import suggestFixSkill from "./skills/suggest-fix/skill";

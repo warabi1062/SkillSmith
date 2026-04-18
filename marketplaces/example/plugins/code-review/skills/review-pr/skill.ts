@@ -1,6 +1,6 @@
 // EntryPointSkill サンプル: Branch, ネストBranch, InlineStep, InlineStep input/output,
 // beforeSections/afterSections, SupportFile全ロール
-import { EntryPointSkill } from "../../../../../../app/lib/types";
+import { EntryPointSkill } from "@warabi1062/skillsmith-core/types";
 import analyzeDiffSkill from "../analyze-diff/skill";
 import suggestFixSkill from "../suggest-fix/skill";
 import fixTeamSkill from "../fix-team/skill";

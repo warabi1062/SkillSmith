@@ -1,5 +1,5 @@
 // サンプルプラグイン: 全スキルタイプの動作確認用
-import type { PluginDefinition } from "../../../../app/lib/types";
+import type { PluginDefinition } from "@warabi1062/skillsmith-core/types";
 import greetSkill from "./skills/greet/skill";
 import formatSkill from "./skills/format/skill";
 import translateSkill from "./skills/translate/skill";
