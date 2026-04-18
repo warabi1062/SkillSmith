@@ -1,6 +1,88 @@
 {
   "name": "@warabi1062/skillsmith-core",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "exports": {
+    "./types": {
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/types/index.js"
+      },
+      "require": {
+        "types": "./dist/types/index.d.cts",
+        "default": "./dist/types/index.cjs"
+      }
+    },
+    "./types/constants": {
+      "import": {
+        "types": "./dist/types/constants.d.ts",
+        "default": "./dist/types/constants.js"
+      },
+      "require": {
+        "types": "./dist/types/constants.d.cts",
+        "default": "./dist/types/constants.cjs"
+      }
+    },
+    "./generator": {
+      "import": {
+        "types": "./dist/generator/index.d.ts",
+        "default": "./dist/generator/index.js"
+      },
+      "require": {
+        "types": "./dist/generator/index.d.cts",
+        "default": "./dist/generator/index.cjs"
+      }
+    },
+    "./generator/types": {
+      "import": {
+        "types": "./dist/generator/types.d.ts",
+        "default": "./dist/generator/types.js"
+      },
+      "require": {
+        "types": "./dist/generator/types.d.cts",
+        "default": "./dist/generator/types.cjs"
+      }
+    },
+    "./exporter": {
+      "import": {
+        "types": "./dist/exporter/index.d.ts",
+        "default": "./dist/exporter/index.js"
+      },
+      "require": {
+        "types": "./dist/exporter/index.d.cts",
+        "default": "./dist/exporter/index.cjs"
+      }
+    },
+    "./loader": {
+      "import": {
+        "types": "./dist/loader/index.d.ts",
+        "default": "./dist/loader/index.js"
+      },
+      "require": {
+        "types": "./dist/loader/index.d.cts",
+        "default": "./dist/loader/index.cjs"
+      }
+    },
+    "./utils/skill-type": {
+      "import": {
+        "types": "./dist/utils/skill-type.d.ts",
+        "default": "./dist/utils/skill-type.js"
+      },
+      "require": {
+        "types": "./dist/utils/skill-type.d.cts",
+        "default": "./dist/utils/skill-type.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jiti": "^2.6.1"
+  }
 }
