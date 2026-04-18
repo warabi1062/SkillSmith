@@ -24,6 +24,10 @@ SkillSmith は、Claude Code のスキル設計パターンをスキーマとし
 - `pnpm cli` - CLIの直接実行（`tsx packages/cli/src/index.ts`）
 - `pnpm cli plugin export {plugin.ts-path} --output {output-dir}` - 単一プラグインのエクスポート
 - `pnpm cli marketplace export {marketplace-dir} --output {output-dir}` - マーケットプレース一括エクスポート
+- `pnpm cli web` - ローカルの `marketplaces/` ディレクトリをブラウザで閲覧する Web ビューアーを起動（`@warabi1062/skillsmith-viewer` が optional peer としてインストールされている必要あり。外部ユーザーは `skillsmith web` として実行）
+- `pnpm changeset` - 変更内容に対する changeset ファイルを追加
+- `pnpm version-packages` - changeset を消費して各パッケージのバージョン・CHANGELOG を更新（内部で `changeset version`）
+- `pnpm release` - 全パッケージを build してから npm に publish（内部で `pnpm -r build && changeset publish`）
 
 ## アーキテクチャ
 
