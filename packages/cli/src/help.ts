@@ -21,6 +21,11 @@ export function getVersion(): string {
   return pkg.version;
 }
 
+// コマンドの表示名: action 省略コマンドは `entity` のみ、それ以外は `entity action`
+function formatCommandName(cmd: CommandDefinition): string {
+  return cmd.action ? `${cmd.entity} ${cmd.action}` : cmd.entity;
+}
+
 // 全体ヘルプを生成する
 export function formatGeneralHelp(commands: CommandDefinition[]): string {
   const lines = [
@@ -43,14 +48,13 @@ export function formatGeneralHelp(commands: CommandDefinition[]): string {
 
   if (grouped.size > 0) {
     // コマンド名の最大幅を計算して列を揃える
-    // action 省略コマンドは `entity` のみ、それ以外は `entity action` として扱う
-    const formatName = (cmd: CommandDefinition): string =>
-      cmd.action ? `${cmd.entity} ${cmd.action}` : cmd.entity;
-    const maxWidth = Math.max(...commands.map((cmd) => formatName(cmd).length));
+    const maxWidth = Math.max(
+      ...commands.map((cmd) => formatCommandName(cmd).length),
+    );
     lines.push("Commands:");
     for (const [, cmds] of grouped) {
       for (const cmd of cmds) {
-        const name = formatName(cmd);
+        const name = formatCommandName(cmd);
         lines.push(`  ${name.padEnd(maxWidth)}    ${cmd.description}`);
       }
     }

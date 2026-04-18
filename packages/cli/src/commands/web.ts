@@ -1,20 +1,10 @@
 import { registerCommand } from "../router";
 import { createOutput } from "../output";
-
-// viewer パッケージの識別子（import 呼び出し・未解決判定・インストール案内で共有）
-const VIEWER_PACKAGE_NAME = "@warabi1062/skillsmith-viewer";
-const VIEWER_SERVER_MODULE = `${VIEWER_PACKAGE_NAME}/server`;
-
-// viewer server モジュールの型
-type ViewerServerModule = typeof import("@warabi1062/skillsmith-viewer/server");
-
-// viewer 動的 import を切り出してテストから差し替え可能にする。
-// export const にして vitest から spyOn できる形にしている。
-export const loadViewer = async (): Promise<ViewerServerModule> => {
-  // 文字列リテラルを関数呼び出しに渡すことで tsup の external 判定を経由させ、
-  // CLI bundle に viewer 本体が含まれないようにする。
-  return await import(VIEWER_SERVER_MODULE);
-};
+import {
+  VIEWER_PACKAGE_NAME,
+  loadViewer,
+  type ViewerServerModule,
+} from "./web-loader";
 
 // viewer 未解決判定: Node の module-not-found エラーで、かつメッセージに viewer
 // パッケージ名が含まれる場合のみ「未インストール」とみなす。別モジュール未解決の
