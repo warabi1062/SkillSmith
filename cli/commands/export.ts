@@ -3,8 +3,8 @@ import { access } from "node:fs/promises";
 import { registerCommand } from "../router";
 import { createOutput } from "../output";
 import { parseCommandArgs } from "../command-utils";
-import { loadPluginDefinition } from "../../app/lib/loader";
-import { exportPlugin } from "../../app/lib/exporter/exporter.server";
+import { loadPluginDefinition } from "@warabi1062/skillsmith-core/loader";
+import { exportPlugin } from "@warabi1062/skillsmith-core/exporter";
 
 export function registerExportCommand(): void {
   registerCommand({

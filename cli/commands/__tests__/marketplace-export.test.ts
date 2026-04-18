@@ -2,16 +2,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, route } from "../../router";
 
 // モック設定
-vi.mock("../../../app/lib/loader", () => ({
+vi.mock("@warabi1062/skillsmith-core/loader", () => ({
   loadPluginDefinition: vi.fn(),
   loadMarketplaceDefinition: vi.fn(),
 }));
 
-vi.mock("../../../app/lib/exporter/exporter.server", () => ({
+vi.mock("@warabi1062/skillsmith-core/exporter", () => ({
   exportPlugin: vi.fn(),
 }));
 
-vi.mock("../../../app/lib/generator/marketplace-json-generator.server", () => ({
+vi.mock("@warabi1062/skillsmith-core/generator", () => ({
   generateMarketplaceJson: vi.fn(),
 }));
 
@@ -24,9 +24,9 @@ import { registerMarketplaceExportCommand } from "../marketplace-export";
 import {
   loadPluginDefinition,
   loadMarketplaceDefinition,
-} from "../../../app/lib/loader";
-import { exportPlugin } from "../../../app/lib/exporter/exporter.server";
-import { generateMarketplaceJson } from "../../../app/lib/generator/marketplace-json-generator.server";
+} from "@warabi1062/skillsmith-core/loader";
+import { exportPlugin } from "@warabi1062/skillsmith-core/exporter";
+import { generateMarketplaceJson } from "@warabi1062/skillsmith-core/generator";
 import { mkdir, writeFile } from "node:fs/promises";
 
 // テスト用のprocess.stdout/stderr出力キャプチャヘルパー

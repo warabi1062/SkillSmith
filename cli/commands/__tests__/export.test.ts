@@ -2,11 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, route } from "../../router";
 
 // モック設定
-vi.mock("../../../app/lib/loader", () => ({
+vi.mock("@warabi1062/skillsmith-core/loader", () => ({
   loadPluginDefinition: vi.fn(),
 }));
 
-vi.mock("../../../app/lib/exporter/exporter.server", () => ({
+vi.mock("@warabi1062/skillsmith-core/exporter", () => ({
   exportPlugin: vi.fn(),
 }));
 
@@ -15,8 +15,8 @@ vi.mock("node:fs/promises", () => ({
 }));
 
 import { registerExportCommand } from "../export";
-import { loadPluginDefinition } from "../../../app/lib/loader";
-import { exportPlugin } from "../../../app/lib/exporter/exporter.server";
+import { loadPluginDefinition } from "@warabi1062/skillsmith-core/loader";
+import { exportPlugin } from "@warabi1062/skillsmith-core/exporter";
 import { access } from "node:fs/promises";
 
 // テスト用のprocess.stdout/stderr出力キャプチャヘルパー
