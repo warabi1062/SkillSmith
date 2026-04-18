@@ -43,13 +43,14 @@ export function formatGeneralHelp(commands: CommandDefinition[]): string {
 
   if (grouped.size > 0) {
     // コマンド名の最大幅を計算して列を揃える
-    const maxWidth = Math.max(
-      ...commands.map((cmd) => `${cmd.entity} ${cmd.action}`.length),
-    );
+    // action 省略コマンドは `entity` のみ、それ以外は `entity action` として扱う
+    const formatName = (cmd: CommandDefinition): string =>
+      cmd.action ? `${cmd.entity} ${cmd.action}` : cmd.entity;
+    const maxWidth = Math.max(...commands.map((cmd) => formatName(cmd).length));
     lines.push("Commands:");
-    for (const [entity, cmds] of grouped) {
+    for (const [, cmds] of grouped) {
       for (const cmd of cmds) {
-        const name = `${entity} ${cmd.action}`;
+        const name = formatName(cmd);
         lines.push(`  ${name.padEnd(maxWidth)}    ${cmd.description}`);
       }
     }
@@ -72,16 +73,35 @@ export function formatEntityHelp(
     return `Unknown entity: ${entity}\n\nRun 'skillsmith --help' for usage.`;
   }
 
-  const lines = [
-    `Usage: skillsmith ${entity} <action> [options]`,
-    "",
-    "Actions:",
-  ];
+  // action 省略コマンドのみ（`skillsmith web` 形式）と action 必須コマンドで Usage 行を分ける
+  const actionCommands = entityCommands.filter(
+    (cmd) => cmd.action !== undefined,
+  );
+  const entityOnlyCommand = entityCommands.find(
+    (cmd) => cmd.action === undefined,
+  );
 
-  // アクション名の最大幅を計算して列を揃える
-  const maxWidth = Math.max(...entityCommands.map((cmd) => cmd.action.length));
-  for (const cmd of entityCommands) {
-    lines.push(`  ${cmd.action.padEnd(maxWidth)}    ${cmd.description}`);
+  const lines: string[] = [];
+  if (actionCommands.length > 0) {
+    lines.push(`Usage: skillsmith ${entity} <action> [options]`);
+  } else {
+    lines.push(`Usage: skillsmith ${entity} [options]`);
+  }
+
+  if (entityOnlyCommand) {
+    lines.push("", entityOnlyCommand.description);
+  }
+
+  if (actionCommands.length > 0) {
+    lines.push("", "Actions:");
+    // action 必須コマンドのみテーブルに並べる（action が undefined のものは Usage 行で説明済み）
+    const maxWidth = Math.max(
+      ...actionCommands.map((cmd) => (cmd.action ?? "").length),
+    );
+    for (const cmd of actionCommands) {
+      const actionName = cmd.action ?? "";
+      lines.push(`  ${actionName.padEnd(maxWidth)}    ${cmd.description}`);
+    }
   }
 
   return lines.join("\n");
