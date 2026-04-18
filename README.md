@@ -1,107 +1,111 @@
 # SkillSmith
 
-Claude Code のスキル設計パターンをスキーマとして形式化し、GUI上でスキルを組み立てることで設計の一貫性を構造的に保証するツール。Orchestrator + Worker skill + Agent のパターンに沿ったプラグインのみを生成する。
+A tool that formalizes Claude Code skill design patterns as a schema. Define skills in TypeScript and generate plugins that follow the Orchestrator + Worker skill + Agent pattern — the structural consistency is enforced by the schema itself.
 
-## 仕組み
+## How it works
 
-TypeScript でスキル定義（`packages/web/marketplaces/{marketplace}/plugins/{name}/plugin.ts`）を記述すると、SkillSmith が Claude Code プラグイン形式の Markdown ファイル群（SKILL.md, agent.md 等）に変換する。
+Write skill definitions as TypeScript (`packages/web/marketplaces/{marketplace}/plugins/{name}/plugin.ts`), and SkillSmith converts them into Claude Code plugin files (`SKILL.md`, `agent.md`, etc.).
 
-- **Web UI** でプラグイン構造の閲覧・オーケストレーターの可視化
-- **CLI** (`skillsmith plugin export` / `skillsmith marketplace export`) でファイルシステムへの出力
+- **Web UI** for browsing plugin structure and visualizing orchestrators
+- **CLI** (`skillsmith plugin export` / `skillsmith marketplace export`) for writing plugins to the filesystem
 
-### スキル型
+### Skill types
 
-| 型 | 用途 |
+| Type | Purpose |
 |---|---|
-| `EntryPointSkill` | ユーザーが `/skill-name` で呼び出すオーケストレーター |
-| `WorkerSkill` | 単純なワーカー（SKILL.md のみ生成） |
-| `WorkerWithSubAgent` | Sub Agent を持つワーカー（SKILL.md + agent.md） |
-| `WorkerWithAgentTeam` | Agent Team を持つワーカー（SKILL.md + TeamCreate指示） |
+| `EntryPointSkill` | Orchestrator invoked by the user via `/skill-name` |
+| `WorkerSkill` | Simple worker (generates `SKILL.md` only) |
+| `WorkerWithSubAgent` | Worker backed by a Sub Agent (`SKILL.md` + `agent.md`) |
+| `WorkerWithAgentTeam` | Worker backed by an Agent Team (`SKILL.md` + TeamCreate instructions) |
 
-## アーキテクチャ
+## Architecture
 
-### monorepo 構成
+### Monorepo layout
 
-SkillSmith は pnpm workspaces による monorepo で、`packages/` 配下に3つのパッケージを持つ:
+SkillSmith is a pnpm workspaces monorepo with three packages under `packages/`:
 
-| パッケージ | ディレクトリ | 役割 |
-|-----------|------------|------|
-| `@warabi1062/skillsmith-core` | `packages/core/` | 生成エンジン。型定義・loader・generator・exporter を提供 |
-| `@warabi1062/skillsmith` | `packages/cli/` | CLI。`skillsmith plugin export` 等を提供 |
-| `@warabi1062/skillsmith-viewer` | `packages/web/` | Web UI。React Router v7 による閲覧・可視化 |
+| Package | Directory | Role |
+|---|---|---|
+| [`@warabi1062/skillsmith-core`](packages/core) | `packages/core/` | Generation engine: type definitions, loader, generator, exporter |
+| [`@warabi1062/skillsmith`](packages/cli) | `packages/cli/` | CLI: `skillsmith plugin export` and related commands |
+| [`@warabi1062/skillsmith-viewer`](packages/web) | `packages/web/` | Web UI: React Router v7 viewer and visualizer |
 
-### レイヤード構造（packages/core/src/）
+### Layered structure (`packages/core/src/`)
 
-生成エンジン（`packages/core/src/`）は依存方向を制御した4層構造:
+The generation engine uses a four-layer structure with controlled dependency direction:
 
 ```
 packages/core/src/
-├── types/       # Layer 0: 型定義・定数（依存なし）
-├── core/        # Layer 1: 共通ロジック（types にのみ依存）
-├── loader/      # Layer 2a: プラグイン定義の動的読み込み
-├── generator/   # Layer 2b: Markdown ファイル生成パイプライン
-├── exporter/    # Layer 3: ファイルシステムへの書き出し
-└── utils/       # 横断: UI用ユーティリティ
+├── types/       # Layer 0: type definitions and constants (no deps)
+├── core/        # Layer 1: shared logic (depends only on types)
+├── loader/      # Layer 2a: dynamic loading of plugin definitions
+├── generator/   # Layer 2b: Markdown generation pipeline
+├── exporter/    # Layer 3: filesystem output
+└── utils/       # Cross-cutting: UI helpers
 ```
 
-依存ルール: 上位レイヤーのみが下位レイヤーに依存する。loader と generator は相互依存しない。
+Dependency rule: higher layers depend on lower layers only. `loader` and `generator` do not depend on each other.
 
-### 生成パイプライン（packages/core/src/generator/）
+### Generation pipeline (`packages/core/src/generator/`)
 
-generator/ 内は2つの責務に分かれる:
+The `generator/` directory splits into two responsibilities:
 
-- **Content Generator**: スキル型ごとに Markdown 本文を組み立てる純粋関数（orchestrator / worker / agent / team）
-- **Serializer**: frontmatter + content を結合し GeneratedFile を生成する（skill-generator / agent-generator 等）
+- **Content Generator**: pure functions that assemble Markdown body per skill type (orchestrator / worker / agent / team)
+- **Serializer**: combines frontmatter and content into `GeneratedFile` objects (skill-generator / agent-generator / …)
 
-`content-resolver.server.ts` がスキル型に応じた content 生成の分岐を一元管理し、`plugin-generator.server.ts` が全体のオーケストレーションを担当する。
+`content-resolver.server.ts` centralizes the branching by skill type, and `plugin-generator.server.ts` orchestrates the pipeline.
 
-### ファイル命名規約
+### File naming conventions
 
-- `.server.ts`: サーバー専用モジュール（`packages/web/` の React Router がクライアントバンドルから除外する規約を core 側にも適用）
-- `.ts`: クライアント/サーバー両用（型定義、UI から参照されるロジック）
+- `.server.ts`: server-only modules (mirrors the React Router convention used in `packages/web/` — excluded from client bundles)
+- `.ts`: dual client/server (type definitions, logic referenced from the UI)
 
-## セットアップ
+## Setup
 
 ```bash
 pnpm install
 ```
 
-## 開発
+## Development
 
 ```bash
-pnpm dev          # 開発サーバー起動
-pnpm build        # プロダクションビルド
-pnpm typecheck    # 型チェック
+pnpm dev          # Start the dev server
+pnpm build        # Production build
+pnpm typecheck    # Type check
 pnpm lint         # Lint (oxlint)
-pnpm format       # フォーマット (Biome)
-pnpm test         # テスト実行
-pnpm cli          # CLI直接実行
-pnpm cli plugin export {plugin.ts-path} --output {dir}           # 単一プラグインエクスポート
-pnpm cli marketplace export {marketplace-dir} --output {dir}     # マーケットプレース一括エクスポート
+pnpm format       # Format (Biome)
+pnpm test         # Run tests
+pnpm cli          # Run the CLI directly
+pnpm cli plugin export {plugin.ts-path} --output {dir}           # Export a single plugin
+pnpm cli marketplace export {marketplace-dir} --output {dir}     # Export an entire marketplace
 ```
 
-## Web ビューアーの使い方
+## Using the Web viewer
 
-ローカルの `marketplaces/` ディレクトリをブラウザで視覚的に確認するためのビューアー。CLI（`@warabi1062/skillsmith`）と合わせて導入する。
+The Web viewer visualizes a local `marketplaces/` directory in the browser. Install it alongside the CLI (`@warabi1062/skillsmith`):
 
 ```bash
-# CLI 本体
+# CLI
 pnpm add -D @warabi1062/skillsmith
 
-# Web ビューアー（optional peer。閲覧したい場合のみ追加）
+# Viewer (optional peer — install only if you want the UI)
 pnpm add -D @warabi1062/skillsmith-viewer
 
-# 起動
+# Launch
 pnpm skillsmith web
 ```
 
-`skillsmith web` 実行時のカレントディレクトリ配下の `marketplaces/` を自動検出し、SPA + 薄い HTTP API サーバー構成のローカルツールとして起動する。`plugin.ts` を編集したあとブラウザをリロードすると、最新の内容が反映される。
+`skillsmith web` auto-detects a `marketplaces/` directory in the current working directory and runs as a local SPA + thin HTTP API server. Edit a `plugin.ts` file and reload the browser to see the updated output.
 
-ビューアーをインストールせずに `skillsmith web` を実行すると、インストール案内を表示して終了する。
+If the viewer is not installed, `skillsmith web` prints an install hint and exits.
 
-## ドキュメント
+## Documentation
 
-| ドキュメント | 内容 |
-|------------|------|
-| [docs/reference.md](docs/reference.md) | プラグイン作成リファレンス。スキル/エージェントの設計パターン、frontmatterフィールド、アンチパターンなど |
-| [docs/tool-design.md](docs/tool-design.md) | SkillSmith のツール設計。reference.md のパターンをツールに落とし込む際の設計判断と根拠 |
+| Document | Content |
+|---|---|
+| [docs/reference.md](docs/reference.md) | Plugin authoring reference: skill/agent design patterns, frontmatter fields, anti-patterns |
+| [docs/tool-design.md](docs/tool-design.md) | SkillSmith tool design: how the patterns in `reference.md` are mapped into the tool |
+
+## License
+
+MIT © warabi1062
