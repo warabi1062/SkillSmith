@@ -14,7 +14,8 @@ if (targetArg) {
 const apiPort = Number(process.env.SKILLSMITH_API_PORT ?? 5174);
 
 // API サーバー（静的配信を無効化した状態で起動、Vite の proxy から叩かれる）
-const api = spawn("tsx", ["src/server.ts"], {
+// src/server.ts はライブラリファイルなので、start() を呼ぶ薄いエントリ scripts/dev-api.ts を経由する
+const api = spawn("tsx", ["scripts/dev-api.ts"], {
   stdio: "inherit",
   env: {
     ...process.env,
