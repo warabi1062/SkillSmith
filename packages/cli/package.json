@@ -39,6 +39,17 @@
   "dependencies": {
     "@warabi1062/skillsmith-core": "workspace:*"
   },
+  "devDependencies": {
+    "@warabi1062/skillsmith-viewer": "workspace:*"
+  },
+  "peerDependencies": {
+    "@warabi1062/skillsmith-viewer": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@warabi1062/skillsmith-viewer": {
+      "optional": true
+    }
+  },
   "publishConfig": {
     "access": "public"
   }

@@ -2,6 +2,7 @@
 
 import { registerExportCommand } from "./commands/export";
 import { registerMarketplaceExportCommand } from "./commands/marketplace-export";
+import { registerWebCommand } from "./commands/web";
 import { route } from "./router";
 
 // CLI エントリーポイント
@@ -10,6 +11,7 @@ async function main(): Promise<void> {
     // コマンド登録
     registerExportCommand();
     registerMarketplaceExportCommand();
+    registerWebCommand();
 
     // process.argv の先頭 2 要素（node パスとスクリプトパス）を除外
     const exitCode = await route(process.argv.slice(2));
