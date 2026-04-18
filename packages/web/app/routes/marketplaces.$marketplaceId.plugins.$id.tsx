@@ -1,11 +1,7 @@
-import { data, Outlet } from "react-router";
-import {
-  loadPluginDefinition,
-  getMarketplacesBaseDir,
-} from "@warabi1062/skillsmith-core/loader";
+import { Outlet, useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import type { LoadedPluginDefinition } from "@warabi1062/skillsmith-core/types";
-import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id";
-import * as path from "node:path";
+import { fetchPlugin } from "../../src/api-client";
 
 // 子ルートが useOutletContext で受け取る型
 export type PluginOutletContext = {
@@ -14,24 +10,11 @@ export type PluginOutletContext = {
   marketplaceId: string;
 };
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const dirPath = path.join(
-    getMarketplacesBaseDir(),
-    params.marketplaceId,
-    "plugins",
-    params.id,
-  );
-
-  try {
-    const plugin = await loadPluginDefinition(dirPath);
-    return {
-      plugin,
-      pluginId: params.id,
-      marketplaceId: params.marketplaceId,
-    };
-  } catch {
-    throw data("Plugin not found", { status: 404 });
-  }
+export async function loader({ params }: LoaderFunctionArgs) {
+  const marketplaceId = params.marketplaceId ?? "";
+  const pluginId = params.id ?? "";
+  // api-client が非 200 で Response を throw するので 404 はそのまま伝播する
+  return await fetchPlugin(marketplaceId, pluginId);
 }
 
 // ブレッドクラム: プラグイン名を表示
@@ -48,6 +31,7 @@ export const handle = {
   }),
 };
 
-export default function PluginLayout({ loaderData }: Route.ComponentProps) {
+export default function PluginLayout() {
+  const loaderData = useLoaderData() as PluginOutletContext;
   return <Outlet context={loaderData} />;
 }

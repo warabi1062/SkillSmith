@@ -1,18 +1,8 @@
 import { useOutletContext, useParams } from "react-router";
-import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.skills.$name";
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import { buildSkillDetailData, SkillDetail } from "../components/orchestrator";
 import { getSkillTypeBadge } from "@warabi1062/skillsmith-core/utils/skill-type";
 import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
-
-export function meta({ matches, params }: Route.MetaArgs) {
-  const parentData = matches.find(
-    (m) => m?.id === "routes/marketplaces.$marketplaceId.plugins.$id",
-  )?.data as { plugin: { name: string } } | undefined;
-  const pluginName = parentData?.plugin?.name ?? "Plugin";
-  const name = params.name ?? "Skill";
-  return [{ title: `${name} - ${pluginName} - SkillSmith` }];
-}
 
 // ブレッドクラム: スキル名を表示
 export const handle = {

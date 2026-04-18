@@ -1,9 +1,11 @@
 import { Outlet } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import Breadcrumb from "../components/Breadcrumb";
-import type { Route } from "./+types/marketplaces.$marketplaceId";
 
-export async function loader({ params }: Route.LoaderArgs) {
-  return { marketplaceId: params.marketplaceId };
+// marketplace レイアウト: handle.breadcrumb から参照するため loader は残すが、
+// Component 側では loaderData を直接使わないため useLoaderData は呼ばない
+export async function loader({ params }: LoaderFunctionArgs) {
+  return { marketplaceId: params.marketplaceId ?? "" };
 }
 
 // ブレッドクラム: 「Top > {marketplace名}」
@@ -14,7 +16,7 @@ export const handle = {
   }),
 };
 
-export default function MarketplaceLayout(_props: Route.ComponentProps) {
+export default function MarketplaceLayout() {
   return (
     <>
       <Breadcrumb />
