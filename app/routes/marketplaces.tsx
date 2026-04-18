@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { loadAllMarketplaceMeta } from "../lib/loader";
+import { loadAllMarketplaceMeta } from "@warabi1062/skillsmith-core/loader";
 import type { Route } from "./+types/marketplaces";
 
 export function meta(_args: Route.MetaArgs) {

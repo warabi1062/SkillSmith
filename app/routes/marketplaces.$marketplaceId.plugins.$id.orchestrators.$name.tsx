@@ -2,7 +2,7 @@ import { useOutletContext, useParams } from "react-router";
 import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id.orchestrators.$name";
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import { buildSkillDetailData, SkillDetail } from "../components/orchestrator";
-import { SKILL_TYPES } from "../lib/types/constants";
+import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
 
 export function meta({ matches, params }: Route.MetaArgs) {
   const parentData = matches.find(
