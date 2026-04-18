@@ -1,28 +1,19 @@
-import { Link } from "react-router";
-import {
-  loadAllPluginMetaInMarketplace,
-  getMarketplacesBaseDir,
-} from "@warabi1062/skillsmith-core/loader";
-import type { Route } from "./+types/marketplaces.$marketplaceId._index";
-import * as path from "node:path";
+import { Link, useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
+import type { PluginMeta } from "@warabi1062/skillsmith-core/loader";
+import { fetchMarketplace } from "../../src/api-client";
 
-export function meta({ params }: Route.MetaArgs) {
-  return [{ title: `${params.marketplaceId} - SkillSmith` }];
+export async function loader({ params }: LoaderFunctionArgs) {
+  const marketplaceId = params.marketplaceId ?? "";
+  const { plugins } = await fetchMarketplace(marketplaceId);
+  return { plugins, marketplaceId };
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const marketplaceDirPath = path.join(
-    getMarketplacesBaseDir(),
-    params.marketplaceId,
-  );
-  const plugins = await loadAllPluginMetaInMarketplace(marketplaceDirPath);
-  return { plugins, marketplaceId: params.marketplaceId };
-}
-
-export default function MarketplacePlugins({
-  loaderData,
-}: Route.ComponentProps) {
-  const { plugins, marketplaceId } = loaderData;
+export default function MarketplacePlugins() {
+  const { plugins, marketplaceId } = useLoaderData() as {
+    plugins: PluginMeta[];
+    marketplaceId: string;
+  };
 
   return (
     <div>

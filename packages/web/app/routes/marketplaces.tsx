@@ -1,18 +1,17 @@
-import { Link } from "react-router";
-import { loadAllMarketplaceMeta } from "@warabi1062/skillsmith-core/loader";
-import type { Route } from "./+types/marketplaces";
+import { Link, useLoaderData } from "react-router";
+import type { MarketplaceMeta } from "@warabi1062/skillsmith-core/loader";
+import { fetchMarketplaces } from "../../src/api-client";
 
-export function meta(_args: Route.MetaArgs) {
-  return [{ title: "SkillSmith" }];
-}
-
-export async function loader(_args: Route.LoaderArgs) {
-  const marketplaces = await loadAllMarketplaceMeta();
+// トップ画面の client loader: /api/marketplaces を叩く
+export async function loader() {
+  const marketplaces = await fetchMarketplaces();
   return { marketplaces };
 }
 
-export default function Marketplaces({ loaderData }: Route.ComponentProps) {
-  const { marketplaces } = loaderData;
+export default function Marketplaces() {
+  const { marketplaces } = useLoaderData() as {
+    marketplaces: MarketplaceMeta[];
+  };
 
   return (
     <div>

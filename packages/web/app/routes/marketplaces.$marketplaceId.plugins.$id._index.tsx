@@ -1,17 +1,8 @@
 import { Link, useOutletContext } from "react-router";
-import type { Route } from "./+types/marketplaces.$marketplaceId.plugins.$id._index";
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import PluginActionsSection from "../components/PluginActionsSection";
 import { getSkillTypeBadge } from "@warabi1062/skillsmith-core/utils/skill-type";
 import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
-
-export function meta({ matches }: Route.MetaArgs) {
-  const parentData = matches.find(
-    (m) => m?.id === "routes/marketplaces.$marketplaceId.plugins.$id",
-  )?.data as { plugin: { name: string } } | undefined;
-  const name = parentData?.plugin?.name ?? "Plugin";
-  return [{ title: `${name} - SkillSmith` }];
-}
 
 export default function PluginDetail() {
   const { plugin, pluginId, marketplaceId } =
