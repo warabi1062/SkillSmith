@@ -1,8 +1,27 @@
 {
   "name": "@warabi1062/skillsmith-core",
   "version": "0.0.1",
-  "private": true,
   "type": "module",
+  "description": "SkillSmith のコア生成エンジン。プラグイン定義の読み込み・スキル生成・ファイル出力を提供する",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skill",
+    "plugin",
+    "generator",
+    "core"
+  ],
+  "author": "warabi1062 <kohei.2126@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/warabi1062/SkillSmith.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/warabi1062/SkillSmith#readme",
+  "bugs": {
+    "url": "https://github.com/warabi1062/SkillSmith/issues"
+  },
   "exports": {
     "./types": {
       "import": {
@@ -80,9 +99,13 @@
   ],
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "jiti": "^2.6.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
