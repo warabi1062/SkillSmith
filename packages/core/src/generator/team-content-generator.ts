@@ -4,6 +4,7 @@ import type { LoadedTeammate } from "../types/loaded";
 import { renderListSection } from "../core/section-utils";
 
 export interface TeamContentInput {
+  skillName: string; // 親スキルの name（teammate agent の subagent_type prefix に使用）
   input?: string[]; // 入力の説明
   output?: string[]; // 出力の説明
   teammates: LoadedTeammate[]; // チームメンバー定義
@@ -106,26 +107,15 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push(`- ${duty}`);
   }
 
-  // 各 teammate
+  // 各 teammate は個別の agent.md を参照する形に簡略化
   for (const teammate of sortedTeammates) {
+    const prefixedName = `${input.skillName}-${teammate.name}`;
     lines.push("");
     lines.push(`### ${teammate.name}`);
     lines.push("");
-    lines.push("#### 役割");
-    lines.push(teammate.role);
-    lines.push("");
-    lines.push("#### 制約");
-    for (const constraint of buildMemberConstraints()) {
-      lines.push(`- ${constraint}`);
-    }
-    lines.push("");
-    lines.push("#### 手順");
-
-    for (const step of teammate.steps) {
-      lines.push("");
-      lines.push(`##### ${step.id}. ${step.title}`);
-      lines.push(step.body);
-    }
+    lines.push(
+      `subagent_type: \`${prefixedName}\` でスポーンすること。役割と手順は \`agents/${prefixedName}.md\` を参照。`,
+    );
   }
 
   return lines.join("\n");

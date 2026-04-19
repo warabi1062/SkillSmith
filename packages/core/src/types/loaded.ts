@@ -99,6 +99,8 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
 export interface LoadedTeammate {
   name: string;
   role: string;
+  model?: "sonnet" | "opus" | "haiku";
+  tools?: ToolRef[];
   steps: LoadedDelegateStep[];
   sortOrder?: number;
 }

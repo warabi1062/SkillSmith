@@ -1,8 +1,7 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
-import { serializeFrontmatter } from "../core/frontmatter.server";
 import { generateAgentContent } from "./agent-content-generator.server";
+import { buildAgentFileContent } from "./agent-file-builder.server";
 import type { ToolRef, Section } from "../types/skill";
-import { serializeToolRef } from "../types/skill";
 import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 // Agent設定データ
@@ -66,29 +65,14 @@ export function generateAgentMd(component: AgentComponentData): {
     return { file: null, errors };
   }
 
-  // ToolRef[] → string[] にシリアライズしてfrontmatter用に変換
-  const tools = config.tools?.map(serializeToolRef);
-
-  // Build frontmatter
-  const frontmatterFields: Record<
-    string,
-    string | number | boolean | string[] | null | undefined
-  > = {
+  const content = buildAgentFileContent({
     name: agentName,
-    description: config.description ?? skillConfig.description ?? undefined,
-  };
-
-  if (config.model) {
-    frontmatterFields.model = config.model;
-  }
-  if (tools && tools.length > 0) {
-    frontmatterFields.tools = tools;
-  }
-  // skills: SkillConfigのnameを使用
-  frontmatterFields.skills = [skillConfig.name];
-
-  const frontmatter = serializeFrontmatter(frontmatterFields);
-  const content = `${frontmatter}\n\n${agentContent}\n`;
+    description: config.description ?? skillConfig.description ?? "",
+    model: config.model,
+    tools: config.tools,
+    skills: [skillConfig.name],
+    body: agentContent,
+  });
 
   return {
     file: {

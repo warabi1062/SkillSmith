@@ -288,4 +288,54 @@ describe("loadPluginDefinition", () => {
       expect(skill.teammates![1].name).toBe("member-b");
     }
   });
+
+  it("teammate の model / tools を LoadedTeammate に引き継ぐこと", async () => {
+    await createPluginStructure({
+      pluginTs: `
+        const plugin = {
+          name: "test-plugin",
+          skills: [
+            {
+              skillType: "WORKER_WITH_AGENT_TEAM",
+              name: "team-skill",
+              teamPrefix: "test",
+              teammates: [
+                {
+                  name: "drafter",
+                  role: "草稿",
+                  model: "haiku",
+                  tools: [
+                    { type: "tool", name: "Read" },
+                    { type: "tool", name: "Write" },
+                  ],
+                  steps: [{ id: "S1", title: "ステップ1", body: "本文" }],
+                },
+                {
+                  name: "reviewer",
+                  role: "レビュー",
+                  steps: [{ id: "S1", title: "ステップ1", body: "本文" }],
+                },
+              ],
+            },
+          ],
+        };
+        export default plugin;
+      `,
+    });
+
+    const result = await loadPluginDefinition(tmpDir);
+    const skill = result.skills[0];
+
+    expect(skill.skillType).toBe(SKILL_TYPES.WORKER_WITH_AGENT_TEAM);
+    if ("teammates" in skill) {
+      expect(skill.teammates[0].model).toBe("haiku");
+      expect(skill.teammates[0].tools).toEqual([
+        { type: "tool", name: "Read" },
+        { type: "tool", name: "Write" },
+      ]);
+      // 省略時は undefined のまま伝播する
+      expect(skill.teammates[1].model).toBeUndefined();
+      expect(skill.teammates[1].tools).toBeUndefined();
+    }
+  });
 });

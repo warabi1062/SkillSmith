@@ -15,6 +15,8 @@ const reviewTeamSkill = new WorkerWithAgentTeam({
     {
       name: "drafter",
       role: "メッセージの草稿を作成する",
+      model: "haiku",
+      tools: [tool("Read"), tool("Write")],
       sortOrder: 1,
       steps: [
         {

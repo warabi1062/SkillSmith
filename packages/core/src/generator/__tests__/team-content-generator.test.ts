@@ -27,6 +27,7 @@ function makeReviewer(): LoadedTeammate {
 
 function makeInput(overrides?: Partial<TeamContentInput>): TeamContentInput {
   return {
+    skillName: "review-team",
     input: ["タスクID"],
     output: ["結果のファイルパス"],
     teammates: [makeWorker("implementer"), makeReviewer()],
@@ -99,18 +100,23 @@ describe("generateTeamContent", () => {
     expect(result).not.toContain("ユーザーに提示して承認を得る");
   });
 
-  it("各teammateのセクションが生成される", () => {
+  it("各teammate は subagent_type 参照の 1 行に簡略化される", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("### implementer");
-    expect(result).toContain("#### 役割");
-    expect(result).toContain("implementerの役割説明");
-    expect(result).toContain("##### W1. 作業開始");
-    expect(result).toContain("作業を開始する。");
+    expect(result).toContain(
+      "subagent_type: `review-team-implementer` でスポーンすること。役割と手順は `agents/review-team-implementer.md` を参照。",
+    );
 
     expect(result).toContain("### reviewer");
-    expect(result).toContain("##### R1. ポーリング");
-    expect(result).toContain("##### R2. レビュー実行");
+    expect(result).toContain(
+      "subagent_type: `review-team-reviewer` でスポーンすること。役割と手順は `agents/review-team-reviewer.md` を参照。",
+    );
+
+    // 旧フォーマットの teammate 本体は残っていない
+    expect(result).not.toContain("implementerの役割説明");
+    expect(result).not.toContain("##### W1. 作業開始");
+    expect(result).not.toContain("##### R1. ポーリング");
   });
 
   it("teammateがsortOrder順にソートされる", () => {
@@ -132,22 +138,22 @@ describe("generateTeamContent", () => {
     expect(result).toContain("メインエージェントはリーダーとして参加する");
   });
 
-  it("メッセージ送受信ルールのみ各メンバーの制約として転記される", () => {
+  it("制約・メッセージ送受信ルールはリーダーセクションのみに残る", () => {
     const result = generateTeamContent(makeInput());
 
-    // 制約見出しがリーダー + 各teammate分の計3回出現する
+    // 制約見出しはリーダーのみで 1 回出現する（各 teammate は agent.md 側に移動）
     const constraintHeadingCount = result.split("#### 制約").length - 1;
-    expect(constraintHeadingCount).toBe(3);
+    expect(constraintHeadingCount).toBe(1);
 
     // 共通ルールセクション（トップレベル）は維持される
     expect(result).toContain("### 共通ルール");
 
-    // メッセージ送受信ルールは共通ルール + 3メンバーで計4回出現する
+    // メッセージ送受信ルールは共通ルール + リーダーで計 2 回出現する
     const messagingSnippet = "メンバー間のメッセージ送受信は確認応答方式で行う";
     const messagingCount = result.split(messagingSnippet).length - 1;
-    expect(messagingCount).toBe(4);
+    expect(messagingCount).toBe(2);
 
-    // 残り2ルールは共通ルールのみで1回のみ出現する
+    // 残り 2 ルールは共通ルールのみで 1 回のみ出現する
     const nameRuleCount =
       result.split("完全一致する name でスポーンすること").length - 1;
     expect(nameRuleCount).toBe(1);
@@ -155,5 +161,15 @@ describe("generateTeamContent", () => {
     const reviewCycleCount =
       result.split("レビューサイクルは最大3回で打ち切り").length - 1;
     expect(reviewCycleCount).toBe(1);
+  });
+
+  it("subagent_type 参照が全 teammate 分 prefix 付きで出力される", () => {
+    const result = generateTeamContent(makeInput());
+
+    const subagentRefs = result.match(/subagent_type: `[^`]+`/g) ?? [];
+    expect(subagentRefs).toEqual([
+      "subagent_type: `review-team-implementer`",
+      "subagent_type: `review-team-reviewer`",
+    ]);
   });
 });
