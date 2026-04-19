@@ -53,4 +53,23 @@ describe("WorkerWithAgentTeam", () => {
     expect(skill.output).toEqual(["出力"]);
     expect(skill.allowedTools).toEqual([tool("Read")]);
   });
+
+  it("teammate に model / tools を指定できる", () => {
+    const teammate: Teammate = {
+      name: "drafter",
+      role: "草稿作成",
+      model: "haiku",
+      tools: [tool("Read"), tool("Write")],
+      steps: [{ id: "S1", title: "ステップ1", body: "本文" }],
+      sortOrder: 1,
+    };
+    const skill = new WorkerWithAgentTeam({
+      name: "team-with-model-tools",
+      teammates: [teammate],
+      teamPrefix: "test",
+    });
+
+    expect(skill.teammates[0].model).toBe("haiku");
+    expect(skill.teammates[0].tools).toEqual([tool("Read"), tool("Write")]);
+  });
 });
