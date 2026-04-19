@@ -6,7 +6,7 @@ import { start, type StartedServer } from "../server";
 
 // packages/web 直下の marketplaces/example を fixture として利用する
 const WEB_ROOT = path.resolve(__dirname, "../..");
-const EXAMPLE_CWD = WEB_ROOT;
+const EXAMPLE_MARKETPLACES_DIR = path.join(WEB_ROOT, "marketplaces");
 
 // 壊れた plugin.ts を含む marketplace を作るための一時 cwd を準備する
 async function setupBrokenMarketplace(): Promise<string> {
@@ -47,7 +47,10 @@ describe("src/server.ts (start)", () => {
 
     beforeAll(async () => {
       process.env.SKILLSMITH_DEV_API_ONLY = "1";
-      server = await start({ cwd: EXAMPLE_CWD, port: 0 });
+      server = await start({
+        marketplacesDir: EXAMPLE_MARKETPLACES_DIR,
+        port: 0,
+      });
     });
 
     afterAll(async () => {
@@ -150,7 +153,10 @@ describe("src/server.ts (start)", () => {
     beforeAll(async () => {
       process.env.SKILLSMITH_DEV_API_ONLY = "1";
       brokenRoot = await setupBrokenMarketplace();
-      server = await start({ cwd: brokenRoot, port: 0 });
+      server = await start({
+        marketplacesDir: path.join(brokenRoot, "marketplaces"),
+        port: 0,
+      });
     });
 
     afterAll(async () => {
@@ -177,7 +183,11 @@ describe("src/server.ts (start)", () => {
 
     beforeAll(async () => {
       spaDir = await setupSpaDir();
-      server = await start({ cwd: EXAMPLE_CWD, port: 0, spaDir });
+      server = await start({
+        marketplacesDir: EXAMPLE_MARKETPLACES_DIR,
+        port: 0,
+        spaDir,
+      });
     });
 
     afterAll(async () => {

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { registerCommand } from "../router";
 import { createOutput } from "../output";
 import {
@@ -67,7 +68,8 @@ export function registerWebCommand(): void {
       // listen が終わる構造のため、SIGINT/SIGTERM を受けるまで resolve しない
       // Promise を handler が返すことで、index.ts の `process.exit(exitCode)` が
       // サーバー停止後まで遅延される。
-      const server = await viewer.start({ cwd: process.cwd() });
+      const marketplacesDir = path.resolve(process.cwd(), "marketplaces");
+      const server = await viewer.start({ marketplacesDir });
 
       if (ctx.options.json) {
         output.success({

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, route } from "../../router";
 
@@ -89,7 +90,9 @@ describe("web コマンド", () => {
       // Assert
       expect(exitCode).toBe(0);
       expect(mockStart).toHaveBeenCalledOnce();
-      expect(mockStart).toHaveBeenCalledWith({ cwd: expect.any(String) });
+      expect(mockStart).toHaveBeenCalledWith({
+        marketplacesDir: path.resolve(process.cwd(), "marketplaces"),
+      });
       expect(mockServer.close).toHaveBeenCalledOnce();
     } finally {
       cleanup();
