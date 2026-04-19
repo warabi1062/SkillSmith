@@ -113,6 +113,8 @@ type ImportedSkill =
 interface ImportedTeammate {
   name: string;
   role: string;
+  model?: "sonnet" | "opus" | "haiku";
+  tools?: ToolRef[];
   steps: ImportedDelegateStep[];
   sortOrder?: number;
 }
@@ -224,6 +226,8 @@ export async function loadPluginDefinition(
         const loadedTeammates: LoadedTeammate[] = skill.teammates.map((t) => ({
           name: t.name,
           role: t.role,
+          model: t.model,
+          tools: t.tools,
           steps: t.steps,
           sortOrder: t.sortOrder,
         }));
