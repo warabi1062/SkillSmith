@@ -164,9 +164,23 @@ export async function route(
     return matched.handler(ctx);
   }
 
+  // 8. entity + action 一致なしだが、entity-only 登録コマンドが存在する場合は
+  //    action 位置の positional を引数として扱い、ctx.args 先頭に含めて handler に渡す。
+  //    これにより `skillsmith web <marketplaces-dir>` のような positional 引数が使える。
+  const matchedEntityOnly = commands.find(
+    (cmd) => cmd.entity === entity && cmd.action === undefined,
+  );
+  if (matchedEntityOnly) {
+    const ctx: CommandContext = {
+      entity,
+      action: "",
+      args: [action, ...rest],
+      options,
+    };
+    return matchedEntityOnly.handler(ctx);
+  }
+
   // 一致しない: エラーメッセージ + 全体ヘルプ
-  // action 省略コマンドが登録されていても追加 positional（`web foo` 等）は unknown 扱いにする。
-  // 現状は追加 positional を受け付けないため、誤入力時のユーザー誘導を優先する。
   write(`Unknown command: ${entity} ${action}\n\n`);
   write(`${formatGeneralHelp(commands)}\n`);
   return 1;

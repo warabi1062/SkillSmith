@@ -99,6 +99,37 @@ describe("web コマンド", () => {
     }
   });
 
+  it("positional 引数で marketplaces ディレクトリを受け取り start に渡す", async () => {
+    // Arrange
+    const mockServer = {
+      port: 5173,
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    const mockStart = vi.fn().mockResolvedValue(mockServer);
+    vi.mocked(loadViewer).mockResolvedValue({
+      start: mockStart,
+    } as unknown as Awaited<ReturnType<typeof loadViewer>>);
+    const { cleanup } = captureProcessOutput();
+
+    try {
+      // Act: positional で相対パスを渡しても絶対パスに解決される
+      const routePromise = route(["web", "./custom-marketplaces"], noop);
+      await new Promise((r) => setImmediate(r));
+      await new Promise((r) => setImmediate(r));
+      process.emit("SIGINT");
+      const exitCode = await routePromise;
+
+      // Assert
+      expect(exitCode).toBe(0);
+      expect(mockStart).toHaveBeenCalledOnce();
+      expect(mockStart).toHaveBeenCalledWith({
+        marketplacesDir: path.resolve("./custom-marketplaces"),
+      });
+    } finally {
+      cleanup();
+    }
+  });
+
   it("ERR_MODULE_NOT_FOUND かつ viewer パッケージ名一致: インストール案内 + exit 1", async () => {
     // Arrange
     const err = Object.assign(
