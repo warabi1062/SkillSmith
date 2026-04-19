@@ -50,6 +50,7 @@ export function resolveSkillContent(
     skill.teamPrefix
   ) {
     return generateTeamContent({
+      skillName: skill.name,
       input: skill.input,
       output: skill.output,
       teammates: skill.teammates,
