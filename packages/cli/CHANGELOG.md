@@ -1,5 +1,17 @@
 # @warabi1062/skillsmith
 
+## 0.2.0
+
+### Minor Changes
+
+- 8446ad4: Teammate に model / tools フィールドを追加し、各 teammate ごとに agents/{skillName}-{teammate.name}.md を自動生成するよう変更。SKILL.md の teammate セクションは subagent_type 参照に簡略化。
+
+### Patch Changes
+
+- Updated dependencies [8446ad4]
+  - @warabi1062/skillsmith-viewer@0.2.0
+  - @warabi1062/skillsmith-core@0.2.0
+
 ## 0.1.1
 
 ### Patch Changes
