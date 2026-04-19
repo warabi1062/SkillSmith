@@ -37,10 +37,10 @@ Walks `marketplace-dir/plugins/*/plugin.ts` and exports every plugin in one run.
 ### Launch the local Web viewer
 
 ```bash
-skillsmith web
+skillsmith web [marketplaces-dir]
 ```
 
-Starts a local SPA + thin HTTP API server that auto-detects a `marketplaces/` directory in the current working directory and visualizes plugin definitions and orchestrator structure in the browser. Requires `@warabi1062/skillsmith-viewer` to be installed; if it's missing, the command prints install instructions and exits.
+Starts a local SPA + thin HTTP API server that visualizes plugin definitions and orchestrator structure in the browser. When `marketplaces-dir` is omitted, `skillsmith web` falls back to `./marketplaces` in the current working directory. Requires `@warabi1062/skillsmith-viewer` to be installed; if it's missing, the command prints install instructions and exits.
 
 ## Writing a plugin
 

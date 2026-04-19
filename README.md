@@ -95,7 +95,15 @@ pnpm add -D @warabi1062/skillsmith-viewer
 pnpm skillsmith web
 ```
 
-`skillsmith web` auto-detects a `marketplaces/` directory in the current working directory and runs as a local SPA + thin HTTP API server. Edit a `plugin.ts` file and reload the browser to see the updated output.
+`skillsmith web` runs as a local SPA + thin HTTP API server that visualizes a `marketplaces/` directory. Edit a `plugin.ts` file and reload the browser to see the updated output.
+
+```bash
+# Without args: auto-detect ./marketplaces in the current working directory
+pnpm skillsmith web
+
+# With a positional path: point the viewer at a specific marketplaces dir
+pnpm skillsmith web ./some/other/marketplaces
+```
 
 If the viewer is not installed, `skillsmith web` prints an install hint and exits.
 
