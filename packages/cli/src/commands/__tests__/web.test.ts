@@ -1,3 +1,4 @@
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearCommands, route } from "../../router";
 
@@ -89,8 +90,41 @@ describe("web コマンド", () => {
       // Assert
       expect(exitCode).toBe(0);
       expect(mockStart).toHaveBeenCalledOnce();
-      expect(mockStart).toHaveBeenCalledWith({ cwd: expect.any(String) });
+      expect(mockStart).toHaveBeenCalledWith({
+        marketplacesDir: path.resolve(process.cwd(), "marketplaces"),
+      });
       expect(mockServer.close).toHaveBeenCalledOnce();
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("positional 引数で marketplaces ディレクトリを受け取り start に渡す", async () => {
+    // Arrange
+    const mockServer = {
+      port: 5173,
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+    const mockStart = vi.fn().mockResolvedValue(mockServer);
+    vi.mocked(loadViewer).mockResolvedValue({
+      start: mockStart,
+    } as unknown as Awaited<ReturnType<typeof loadViewer>>);
+    const { cleanup } = captureProcessOutput();
+
+    try {
+      // Act: positional で相対パスを渡しても絶対パスに解決される
+      const routePromise = route(["web", "./custom-marketplaces"], noop);
+      await new Promise((r) => setImmediate(r));
+      await new Promise((r) => setImmediate(r));
+      process.emit("SIGINT");
+      const exitCode = await routePromise;
+
+      // Assert
+      expect(exitCode).toBe(0);
+      expect(mockStart).toHaveBeenCalledOnce();
+      expect(mockStart).toHaveBeenCalledWith({
+        marketplacesDir: path.resolve("./custom-marketplaces"),
+      });
     } finally {
       cleanup();
     }

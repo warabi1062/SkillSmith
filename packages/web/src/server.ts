@@ -8,9 +8,10 @@ import {
   getMarketplacesBaseDir,
 } from "@warabi1062/skillsmith-core/loader";
 
-// start({ cwd, port?, host?, spaDir? }) で HTTP サーバーを起動するプログラマブル API
+// start({ marketplacesDir, port?, host?, spaDir? }) で HTTP サーバーを起動するプログラマブル API
 export interface StartOptions {
-  cwd: string;
+  // 閲覧対象の marketplaces ディレクトリ（呼び出し側で解決済みのパスを受け取る）
+  marketplacesDir: string;
   port?: number;
   // bind address の既定は 127.0.0.1。LAN 公開したい場合のみ "0.0.0.0" 等を明示
   host?: string;
@@ -41,12 +42,9 @@ function isPluginNotFound(err: unknown): boolean {
 }
 
 export async function start(opts: StartOptions): Promise<StartedServer> {
-  // cwd 注入: core/loader は SKILLSMITH_MARKETPLACES_DIR を参照するので、
-  // 引数 cwd からフルパスを組み立てて上書きする（既存 scripts/dev.ts の慣習に準拠）
-  process.env.SKILLSMITH_MARKETPLACES_DIR = path.resolve(
-    opts.cwd,
-    "marketplaces",
-  );
+  // core/loader は SKILLSMITH_MARKETPLACES_DIR を参照するため、受け取った marketplacesDir を
+  // 絶対パスに正規化して上書きする。パス組み立ては呼び出し側（CLI）が責務として持つ。
+  process.env.SKILLSMITH_MARKETPLACES_DIR = path.resolve(opts.marketplacesDir);
 
   const port = opts.port ?? Number(process.env.PORT ?? 5173);
   // 既定は localhost（loopback）にバインドし、LAN 公開したい場合のみ host を明示する

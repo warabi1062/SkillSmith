@@ -26,13 +26,14 @@ This starts a local SPA + thin HTTP API server that reads `marketplaces/{marketp
 
 ## Programmatic use
 
-The server can also be embedded directly. It reads `marketplaces/` relative to the `cwd` you pass in:
+The server can also be embedded directly. Pass the resolved `marketplacesDir` you want to browse:
 
 ```ts
+import path from "node:path";
 import { start } from "@warabi1062/skillsmith-viewer/server";
 
 const server = await start({
-  cwd: process.cwd(),
+  marketplacesDir: path.resolve(process.cwd(), "marketplaces"),
   port: 5173,
 });
 

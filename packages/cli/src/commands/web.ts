@@ -1,5 +1,7 @@
+import path from "node:path";
 import { registerCommand } from "../router";
 import { createOutput } from "../output";
+import { parseCommandArgs } from "../command-utils";
 import {
   VIEWER_PACKAGE_NAME,
   loadViewer,
@@ -38,9 +40,17 @@ function writeInstallInstructions(): void {
 export function registerWebCommand(): void {
   registerCommand({
     entity: "web",
-    description: "Web ビューアーを起動して marketplaces を閲覧する",
+    description:
+      "Web ビューアーを起動して marketplaces を閲覧する ([marketplaces-dir])",
     handler: async (ctx) => {
       const output = createOutput(ctx.options);
+
+      // positional 引数で marketplaces ディレクトリを受け取る。
+      // 省略時は従来互換として cwd/marketplaces をフォールバックに使う。
+      const { positionals } = parseCommandArgs(ctx.args, {});
+      const marketplacesDir = positionals[0]
+        ? path.resolve(positionals[0])
+        : path.resolve(process.cwd(), "marketplaces");
 
       let viewer: ViewerServerModule;
       try {
@@ -67,7 +77,7 @@ export function registerWebCommand(): void {
       // listen が終わる構造のため、SIGINT/SIGTERM を受けるまで resolve しない
       // Promise を handler が返すことで、index.ts の `process.exit(exitCode)` が
       // サーバー停止後まで遅延される。
-      const server = await viewer.start({ cwd: process.cwd() });
+      const server = await viewer.start({ marketplacesDir });
 
       if (ctx.options.json) {
         output.success({

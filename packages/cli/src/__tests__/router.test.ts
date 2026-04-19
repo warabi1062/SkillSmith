@@ -223,6 +223,30 @@ describe("route", () => {
       );
     });
 
+    it("action 省略コマンドは action 位置の positional を args に含めて受け取る", async () => {
+      // Arrange
+      const handler = vi.fn().mockResolvedValue(0);
+      registerCommand({
+        entity: "web",
+        description: "Start web viewer",
+        handler,
+      });
+      const { write } = captureOutput();
+
+      // Act: `skillsmith web ./some-dir` の形を想定
+      const exitCode = await route(["web", "./some-dir"], write);
+
+      // Assert
+      expect(exitCode).toBe(0);
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entity: "web",
+          action: "",
+          args: ["./some-dir"],
+        }),
+      );
+    });
+
     it("action 省略コマンドと action 必須コマンドが共存できる", async () => {
       // Arrange
       const webHandler = vi.fn().mockResolvedValue(0);
