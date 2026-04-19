@@ -14,7 +14,7 @@ pnpm add @warabi1062/skillsmith-core
 
 | Export | Purpose |
 |---|---|
-| `@warabi1062/skillsmith-core/types` | Skill / plugin type definitions (`EntryPointSkill`, `WorkerSkill`, `WorkerWithSubAgent`, `WorkerWithAgentTeam`, `PluginDefinition`, `ToolRef`, etc.) |
+| `@warabi1062/skillsmith-core/types` | Skill / plugin type definitions (`EntryPointSkill`, `WorkerSkill`, `WorkerWithSubAgent`, `WorkerWithAgentTeam`, `Teammate` (with optional `model` / `tools`), `PluginDefinition`, `ToolRef`, etc.) |
 | `@warabi1062/skillsmith-core/types/constants` | Skill type constants |
 | `@warabi1062/skillsmith-core/loader` | Dynamically load `plugin.ts` files via jiti |
 | `@warabi1062/skillsmith-core/generator` | Transform loaded plugin definitions into Markdown (`SKILL.md`, `agent.md`, etc.) |
