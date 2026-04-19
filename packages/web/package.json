@@ -1,6 +1,6 @@
 {
   "name": "@warabi1062/skillsmith-viewer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "SkillSmith の Web ビューアー。プラグイン定義の閲覧とオーケストレーター構造の可視化を提供する",
   "keywords": [
