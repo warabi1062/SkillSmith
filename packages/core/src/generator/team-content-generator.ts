@@ -18,9 +18,18 @@ const MEMBER_MESSAGING_CONSTRAINT =
   "メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する（最大5回）";
 
 // チーム共通ルールを構築する
-export function buildTeamRules(memberNames: string[]): string[] {
+export function buildTeamRules(params: {
+  skillName: string;
+  memberNames: string[];
+}): string[] {
+  const { skillName, memberNames } = params;
+  const subagentTypes = memberNames
+    .map((n) => `\`${skillName}-${n}\``)
+    .join(" / ");
+  const names = memberNames.map((n) => `\`${n}\``).join(" / ");
   return [
-    `各メンバーは定義された名前（${memberNames.join(", ")}）と完全一致する name でスポーンすること`,
+    `各メンバーを Agent tool でスポーンする際は、subagent_type に ${subagentTypes} を指定する（agent 定義ファイルと一致）`,
+    `スポーン時の name パラメータは ${names}（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される`,
     MEMBER_MESSAGING_CONSTRAINT,
     "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
   ];
@@ -80,7 +89,10 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("");
   lines.push("### 共通ルール");
   lines.push("");
-  const teamRules = buildTeamRules(memberNames);
+  const teamRules = buildTeamRules({
+    skillName: input.skillName,
+    memberNames,
+  });
   for (const rule of teamRules) {
     lines.push(`- ${rule}`);
   }
@@ -107,14 +119,14 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push(`- ${duty}`);
   }
 
-  // 各 teammate は個別の agent.md を参照する形に簡略化
+  // 各 teammate は役割 + subagent_type の軽量な索引として出力する
   for (const teammate of sortedTeammates) {
     const prefixedName = `${input.skillName}-${teammate.name}`;
     lines.push("");
     lines.push(`### ${teammate.name}`);
     lines.push("");
     lines.push(
-      `subagent_type: \`${prefixedName}\` でスポーンすること。役割と手順は \`agents/${prefixedName}.md\` を参照。`,
+      `${teammate.role} \`subagent_type: ${prefixedName}\` でスポーンする。`,
     );
   }
 

@@ -73,12 +73,30 @@ describe("generateTeamContent", () => {
     );
   });
 
-  it("チーム共通ルールにメンバー名の厳守指示が含まれる", () => {
+  it("チーム共通ルールに subagent_type の指示が含まれる", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain(
-      "定義された名前（implementer, reviewer）と完全一致する name でスポーンすること",
+      "subagent_type に `review-team-implementer` / `review-team-reviewer` を指定する",
     );
+    expect(result).toContain("agent 定義ファイルと一致");
+  });
+
+  it("チーム共通ルールに name パラメータの指示と用途が含まれる", () => {
+    const result = generateTeamContent(makeInput());
+
+    expect(result).toContain(
+      "name パラメータは `implementer` / `reviewer`（teammate 名そのもの）を指定する",
+    );
+    expect(result).toContain("SendMessage の to");
+    expect(result).toContain("TaskUpdate の owner");
+  });
+
+  it("旧仕様の「定義された名前と完全一致する name でスポーンすること」文言が含まれない", () => {
+    const result = generateTeamContent(makeInput());
+
+    expect(result).not.toContain("定義された名前（");
+    expect(result).not.toContain("完全一致する name でスポーンすること");
   });
 
   it("requiresUserApproval が true の場合、ユーザー承認フローが含まれる", () => {
@@ -100,21 +118,25 @@ describe("generateTeamContent", () => {
     expect(result).not.toContain("ユーザーに提示して承認を得る");
   });
 
-  it("各teammate は subagent_type 参照の 1 行に簡略化される", () => {
+  it("各teammate は役割 + subagent_type の軽量な索引行に簡略化される", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("### implementer");
     expect(result).toContain(
-      "subagent_type: `review-team-implementer` でスポーンすること。役割と手順は `agents/review-team-implementer.md` を参照。",
+      "implementerの役割説明 `subagent_type: review-team-implementer` でスポーンする。",
     );
 
     expect(result).toContain("### reviewer");
     expect(result).toContain(
-      "subagent_type: `review-team-reviewer` でスポーンすること。役割と手順は `agents/review-team-reviewer.md` を参照。",
+      "レビューを行う。 `subagent_type: review-team-reviewer` でスポーンする。",
     );
 
+    // agents/*.md への参照は含まれない
+    expect(result).not.toContain("agents/review-team-implementer.md");
+    expect(result).not.toContain("agents/review-team-reviewer.md");
+    expect(result).not.toMatch(/`agents\/[^`]+\.md` を参照/);
+
     // 旧フォーマットの teammate 本体は残っていない
-    expect(result).not.toContain("implementerの役割説明");
     expect(result).not.toContain("##### W1. 作業開始");
     expect(result).not.toContain("##### R1. ポーリング");
   });
@@ -153,9 +175,14 @@ describe("generateTeamContent", () => {
     const messagingCount = result.split(messagingSnippet).length - 1;
     expect(messagingCount).toBe(2);
 
-    // 残り 2 ルールは共通ルールのみで 1 回のみ出現する
+    // subagent_type 指示は共通ルールのみで 1 回のみ出現する
+    const subagentTypeRuleCount =
+      result.split("subagent_type に `review-team-implementer`").length - 1;
+    expect(subagentTypeRuleCount).toBe(1);
+
+    // name 指示は共通ルールのみで 1 回のみ出現する
     const nameRuleCount =
-      result.split("完全一致する name でスポーンすること").length - 1;
+      result.split("name パラメータは `implementer` / `reviewer`").length - 1;
     expect(nameRuleCount).toBe(1);
 
     const reviewCycleCount =
@@ -166,10 +193,10 @@ describe("generateTeamContent", () => {
   it("subagent_type 参照が全 teammate 分 prefix 付きで出力される", () => {
     const result = generateTeamContent(makeInput());
 
-    const subagentRefs = result.match(/subagent_type: `[^`]+`/g) ?? [];
-    expect(subagentRefs).toEqual([
-      "subagent_type: `review-team-implementer`",
-      "subagent_type: `review-team-reviewer`",
-    ]);
+    // 共通ルール内（バッククォートで囲まれた prefix 付き名）+ 各 teammate セクション（`subagent_type: xxx` 形式）の両方で出現
+    expect(result).toContain("`review-team-implementer`");
+    expect(result).toContain("`review-team-reviewer`");
+    expect(result).toContain("`subagent_type: review-team-implementer`");
+    expect(result).toContain("`subagent_type: review-team-reviewer`");
   });
 });
