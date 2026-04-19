@@ -87,7 +87,10 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     );
     const memberNames = sorted.map((t) => t.name);
 
-    teamRulesData = buildTeamRules(memberNames);
+    teamRulesData = buildTeamRules({
+      skillName: skill.name,
+      memberNames,
+    });
 
     const leaderDuties = buildLeaderDuties({
       memberNames,
