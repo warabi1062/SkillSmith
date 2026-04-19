@@ -9,6 +9,7 @@ import type { ValidatorSkillData } from "./validator.server";
 import { generatePluginJson } from "./plugin-json-generator.server";
 import { generateSkillMd } from "./skill-generator.server";
 import { generateAgentMd } from "./agent-generator.server";
+import { generateTeammateAgentMd } from "./teammate-agent-generator.server";
 import { generateSupportFiles } from "./file-generator.server";
 import { resolveSkillContent } from "./content-resolver.server";
 import { generateHooks } from "./hooks-generator.server";
@@ -160,6 +161,15 @@ export function generateSkillComponent(
     errors.push(...agentResult.errors);
     if (agentResult.file) {
       files.push(agentResult.file);
+    }
+  }
+
+  // WORKER_WITH_AGENT_TEAM は各 teammate 分の agent.md を個別生成する
+  if (skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM) {
+    for (const teammate of skill.teammates) {
+      const teammateResult = generateTeammateAgentMd(skill.name, teammate);
+      files.push(teammateResult.file);
+      errors.push(...teammateResult.errors);
     }
   }
 

@@ -47,6 +47,34 @@ function makeWorkerWithSubAgentSkill(
   } as LoadedSkillUnion;
 }
 
+function makeWorkerWithAgentTeamSkill(
+  overrides?: Partial<LoadedSkillUnion>,
+): LoadedSkillUnion {
+  return {
+    name: "review-team",
+    files: [],
+    skillType: SKILL_TYPES.WORKER_WITH_AGENT_TEAM,
+    teamPrefix: "review",
+    teammates: [
+      {
+        name: "drafter",
+        role: "草稿作成",
+        model: "haiku",
+        tools: [tool("Read"), tool("Write")],
+        steps: [{ id: "1", title: "草稿", body: "草稿を書く" }],
+        sortOrder: 1,
+      },
+      {
+        name: "reviewer",
+        role: "レビュー",
+        steps: [{ id: "1", title: "レビュー", body: "レビューする" }],
+        sortOrder: 2,
+      },
+    ],
+    ...overrides,
+  } as LoadedSkillUnion;
+}
+
 function makePluginDef(skills: LoadedSkillUnion[]): LoadedPluginDefinition {
   return {
     name: "test-plugin",
@@ -136,6 +164,37 @@ describe("generateSkillComponent", () => {
     const agentMd = result.files.find((f) => f.path.includes("agents/"));
     expect(skillMd).toBeDefined();
     expect(agentMd).toBeDefined();
+  });
+
+  it("WORKER_WITH_AGENT_TEAMスキルでSKILL.mdとteammate数分のagent.mdを生成する", () => {
+    // Arrange
+    const skill = makeWorkerWithAgentTeamSkill();
+    const metas = new Map();
+
+    // Act
+    const result = generateSkillComponent(skill, metas);
+
+    // Assert
+    const skillMd = result.files.find((f) =>
+      f.path.endsWith(FILE_PATHS.SKILL_MD),
+    );
+    expect(skillMd).toBeDefined();
+
+    const agentFiles = result.files.filter((f) =>
+      f.path.startsWith(FILE_PATHS.AGENTS_DIR),
+    );
+    expect(agentFiles.map((f) => f.path).toSorted()).toEqual([
+      `${FILE_PATHS.AGENTS_DIR}review-team-drafter.md`,
+      `${FILE_PATHS.AGENTS_DIR}review-team-reviewer.md`,
+    ]);
+
+    // drafter agent に model / tools が出力されている
+    const drafterMd = agentFiles.find((f) => f.path.includes("drafter"));
+    expect(drafterMd!.content).toContain("name: review-team-drafter");
+    expect(drafterMd!.content).toContain("model: haiku");
+    expect(drafterMd!.content).toContain("  - Read");
+
+    expect(result.errors.filter((e) => e.severity === "error")).toHaveLength(0);
   });
 
   it("無効なスキル名でエラーを返しファイルを生成しない", () => {
