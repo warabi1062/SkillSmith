@@ -12,7 +12,7 @@ import {
 import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
 import {
   buildLeaderDuties,
-  buildTeamRules,
+  buildSpawnRules,
 } from "@warabi1062/skillsmith-core/generator";
 import type { StepFields, SectionFields, SkillDetailData } from "./types";
 
@@ -77,7 +77,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
   }
 
   let teammatesData = null;
-  let teamRulesData: string[] | null = null;
+  let spawnRulesData: string[] | null = null;
   if (
     skill.skillType === SKILL_TYPES.WORKER_WITH_AGENT_TEAM &&
     skill.teammates
@@ -87,7 +87,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     );
     const memberNames = sorted.map((t) => t.name);
 
-    teamRulesData = buildTeamRules({
+    spawnRulesData = buildSpawnRules({
       skillName: skill.name,
       memberNames,
     });
@@ -132,7 +132,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ? convertSections(skill.afterSections)
       : null,
     teammates: teammatesData,
-    teamRules: teamRulesData,
+    spawnRules: spawnRulesData,
     supportFiles: Object.fromEntries(
       (skill.files ?? []).map((f) => [f.filename, f.content]),
     ),

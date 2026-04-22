@@ -9,7 +9,10 @@ export { generateMarketplaceJson } from "./marketplace-json-generator.server";
 export type { GenerateMarketplaceJsonResult } from "./marketplace-json-generator.server";
 
 // --- Team content helpers（Web UI から参照） ---
-export { buildLeaderDuties, buildTeamRules } from "./team-content-generator";
+export {
+  buildLeaderDuties,
+  buildSpawnRules,
+} from "./team-content-generator";
 
 // --- バリデーション ---
 export { validateGeneratedPlugin } from "./validator.server";

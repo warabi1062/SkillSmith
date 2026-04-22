@@ -44,6 +44,6 @@ export interface SkillDetailData {
   beforeSections: SectionFields[] | null;
   afterSections: SectionFields[] | null;
   teammates: TeammateFields[] | null;
-  teamRules: string[] | null;
+  spawnRules: string[] | null;
   supportFiles: SupportFileMap;
 }

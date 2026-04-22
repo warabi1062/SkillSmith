@@ -62,13 +62,13 @@ export function SkillDetail({
           supportFiles={data.supportFiles}
         />
 
-        {data.teamRules && data.teamRules.length > 0 && (
+        {data.spawnRules && data.spawnRules.length > 0 && (
           <div className="mb-3">
             <label className="block font-display text-[0.6875rem] font-semibold mb-1.5 text-on-surface-variant uppercase tracking-widest">
-              共通ルール
+              Teammate スポーンに関するルール
             </label>
             <ul className="list-disc list-inside text-sm text-on-surface-variant leading-relaxed space-y-0.5">
-              {data.teamRules.map((rule) => (
+              {data.spawnRules.map((rule) => (
                 <li key={rule}>{rule}</li>
               ))}
             </ul>

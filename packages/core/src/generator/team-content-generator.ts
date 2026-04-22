@@ -17,8 +17,8 @@ export interface TeamContentInput {
 const MEMBER_MESSAGING_CONSTRAINT =
   "メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する（最大5回）";
 
-// チーム共通ルールを構築する
-export function buildTeamRules(params: {
+// teammate スポーン時（リーダーがメンバーを起動する瞬間）に適用されるルールを構築する
+export function buildSpawnRules(params: {
   skillName: string;
   memberNames: string[];
 }): string[] {
@@ -28,10 +28,10 @@ export function buildTeamRules(params: {
     .join(" / ");
   const names = memberNames.map((n) => `\`${n}\``).join(" / ");
   return [
-    `各メンバーを Agent tool でスポーンする際は、subagent_type に ${subagentTypes} を指定する（agent 定義ファイルと一致）`,
-    `スポーン時の name パラメータは ${names}（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される`,
-    MEMBER_MESSAGING_CONSTRAINT,
-    "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
+    `subagent_type に ${subagentTypes} を指定する（agent 定義ファイルと一致）`,
+    `name パラメータには ${names}（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される`,
+    "prompt には、作業に必要な具体情報（前工程の成果物のファイルパス・対象モジュール・入力データ等）のみを自然言語で渡す。subagent は独立コンテキストで動作し親の会話履歴を参照できないため、こうした情報は prompt に含めないと伝わらない。例: 「implementer agent として、~/.claude/workflows/{task-id}/plan.md に記載された計画を実装してください」",
+    "各メンバーの役割・制約・手順は agent 定義ファイル側に記述済みのため絶対に prompt へ再掲しない（二重指示は挙動不安定化の原因になる）",
   ];
 }
 
@@ -49,6 +49,7 @@ export function buildLeaderDuties(input: {
   const duties: string[] = [
     `${input.memberNames.join(" / ")} の進捗監視`,
     "定期的にメンバーの稼働状況を確認し、全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す",
+    "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
   ];
   if (input.requiresUserApproval) {
     duties.push("レビューPASS後、成果物をユーザーに提示して承認を得る");
@@ -72,7 +73,7 @@ export function generateTeamContent(input: TeamContentInput): string {
   // 概要
   lines.push("");
   lines.push(
-    `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、下記Teammateセクションの共通ルールと各メンバーの役割・手順をプロンプトとして渡して起動する。メインエージェントはリーダーとして参加する。`,
+    `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、各メンバーを agent type 指定でスポーンする。メインエージェントはリーダーとして参加する。メンバーの役割・制約・手順は各 agent 定義ファイルに記述済みのため、リーダーはそれらを prompt に再掲せず、起動指示のみを渡す。`,
   );
 
   // 入力セクション
@@ -85,15 +86,19 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push("");
   lines.push("## Teammate");
 
-  // 共通ルール
+  // スポーン時のルール（リーダーがメンバーを起動する瞬間に適用）
   lines.push("");
-  lines.push("### 共通ルール");
+  lines.push("### Teammate スポーンに関するルール");
   lines.push("");
-  const teamRules = buildTeamRules({
+  lines.push(
+    "リーダーが各メンバーを Agent tool でスポーンする際、以下に従う。",
+  );
+  lines.push("");
+  const spawnRules = buildSpawnRules({
     skillName: input.skillName,
     memberNames,
   });
-  for (const rule of teamRules) {
+  for (const rule of spawnRules) {
     lines.push(`- ${rule}`);
   }
 
