@@ -1,6 +1,6 @@
 {
   "name": "@warabi1062/skillsmith",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "description": "Claude Code のスキル設計パターンをスキーマとして形式化し、プラグインを生成するツール",
   "keywords": [

@@ -1,5 +1,19 @@
 # @warabi1062/skillsmith-viewer
 
+## 0.2.3
+
+### Patch Changes
+
+- team skill のリーダーが subagent スポーン時に役割・手順を prompt へ二重指示してしまい動作が不安定になる問題に対処するため、生成される SKILL.md の Teammate セクションを再構成。
+
+  - 概要にリーダーは prompt に役割・手順を再掲しない旨を明記
+  - 「Teammate スポーンに関するルール」セクションを新設し、subagent_type / name パラメータ / prompt の指針（独立コンテキスト向け具体情報のみ渡す、役割・制約・手順は再掲しない）を集約
+  - メッセージ送受信・レビューサイクル打ち切りルールを「共通ルール」独立セクションから除去し、リーダー制約 / 担当へ吸収
+  - `@warabi1062/skillsmith-core/generator` の `buildTeamRules` export を `buildSpawnRules` に置き換え
+
+- Updated dependencies
+  - @warabi1062/skillsmith-core@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@warabi1062/skillsmith-core",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "description": "SkillSmith のコア生成エンジン。プラグイン定義の読み込み・スキル生成・ファイル出力を提供する",
   "keywords": [
