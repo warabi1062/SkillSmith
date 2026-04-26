@@ -1,5 +1,11 @@
 # @warabi1062/skillsmith-core
 
+## 1.0.1
+
+### Patch Changes
+
+- team skill 生成物の Teammate スポーンルールから「subagent_type は指定しない（汎用エージェントとして起動する）」の行を削除した。実運用上は不要な但し書きで、ノイズとなっていたため。
+
 ## 1.0.0
 
 ### Minor Changes
