@@ -114,7 +114,6 @@ interface ImportedTeammate {
   name: string;
   role: string;
   model?: "sonnet" | "opus" | "haiku";
-  tools?: ToolRef[];
   steps: ImportedDelegateStep[];
   sortOrder?: number;
 }
@@ -227,7 +226,6 @@ export async function loadPluginDefinition(
           name: t.name,
           role: t.role,
           model: t.model,
-          tools: t.tools,
           steps: t.steps,
           sortOrder: t.sortOrder,
         }));

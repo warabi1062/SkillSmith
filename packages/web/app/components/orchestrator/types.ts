@@ -13,6 +13,7 @@ export interface InlineSubStepFields {
 export interface TeammateFields {
   name: string;
   role: string;
+  model?: string; // teammate に指定された Agent ツール model（任意）
   steps?: InlineSubStepFields[];
   duties?: string[]; // リーダーなど担当ベースの記述用
 }

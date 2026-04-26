@@ -16,7 +16,7 @@ Write skill definitions as TypeScript (`packages/web/marketplaces/{marketplace}/
 | `EntryPointSkill` | Orchestrator invoked by the user via `/skill-name` |
 | `WorkerSkill` | Simple worker (generates `SKILL.md` only) |
 | `WorkerWithSubAgent` | Worker backed by a Sub Agent (`SKILL.md` + `agent.md`) |
-| `WorkerWithAgentTeam` | Worker backed by an Agent Team (`SKILL.md` + per-teammate `agents/{skillName}-{teammate.name}.md`). `Teammate` accepts optional `model` / `tools`. |
+| `WorkerWithAgentTeam` | Worker backed by an Agent Team. The full member spec (role / constraints / steps) is rendered into `SKILL.md` so the leader can transcribe it into the spawn prompt. `Teammate` accepts an optional `model` (rendered as an Agent-tool `model` instruction). |
 
 ## Architecture
 

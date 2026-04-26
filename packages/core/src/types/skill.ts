@@ -118,8 +118,7 @@ export interface AgentConfig {
 export interface Teammate {
   name: string; // メンバー名（例: "implementer"）
   role: string; // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
-  model?: "sonnet" | "opus" | "haiku"; // teammate のサブエージェントに割り当てるモデル
-  tools?: ToolRef[]; // teammate のサブエージェントに許可するツール
+  model?: "sonnet" | "opus" | "haiku"; // Agent ツールの model パラメータで指定するモデル
   steps: DelegateStep[]; // 手順ステップの配列
   sortOrder?: number;
 }

@@ -60,7 +60,6 @@ function makeWorkerWithAgentTeamSkill(
         name: "drafter",
         role: "草稿作成",
         model: "haiku",
-        tools: [tool("Read"), tool("Write")],
         steps: [{ id: "1", title: "草稿", body: "草稿を書く" }],
         sortOrder: 1,
       },
@@ -166,7 +165,7 @@ describe("generateSkillComponent", () => {
     expect(agentMd).toBeDefined();
   });
 
-  it("WORKER_WITH_AGENT_TEAMスキルでSKILL.mdとteammate数分のagent.mdを生成する", () => {
+  it("WORKER_WITH_AGENT_TEAMスキルではSKILL.mdに役割・制約・手順を全文展開し、teammate 用 agent.md は生成しない", () => {
     // Arrange
     const skill = makeWorkerWithAgentTeamSkill();
     const metas = new Map();
@@ -180,19 +179,23 @@ describe("generateSkillComponent", () => {
     );
     expect(skillMd).toBeDefined();
 
+    // teammate 用の agent.md ファイルは生成されない
     const agentFiles = result.files.filter((f) =>
       f.path.startsWith(FILE_PATHS.AGENTS_DIR),
     );
-    expect(agentFiles.map((f) => f.path).toSorted()).toEqual([
-      `${FILE_PATHS.AGENTS_DIR}review-team-drafter.md`,
-      `${FILE_PATHS.AGENTS_DIR}review-team-reviewer.md`,
-    ]);
+    expect(agentFiles).toHaveLength(0);
 
-    // drafter agent に model / tools が出力されている
-    const drafterMd = agentFiles.find((f) => f.path.includes("drafter"));
-    expect(drafterMd!.content).toContain("name: review-team-drafter");
-    expect(drafterMd!.content).toContain("model: haiku");
-    expect(drafterMd!.content).toContain("  - Read");
+    // SKILL.md に teammate の役割・手順が全文含まれる
+    expect(skillMd!.content).toContain("### drafter");
+    expect(skillMd!.content).toContain("草稿作成");
+    expect(skillMd!.content).toContain("##### 1. 草稿");
+    expect(skillMd!.content).toContain("草稿を書く");
+    expect(skillMd!.content).toContain("### reviewer");
+
+    // drafter の model 指定が SKILL.md に書き出される
+    expect(skillMd!.content).toContain(
+      "Agent ツールの model パラメータに `haiku` を指定して起動する。",
+    );
 
     expect(result.errors.filter((e) => e.severity === "error")).toHaveLength(0);
   });

@@ -4,7 +4,7 @@ import type { LoadedTeammate } from "../types/loaded";
 import { renderListSection } from "../core/section-utils";
 
 export interface TeamContentInput {
-  skillName: string; // 親スキルの name（teammate agent の subagent_type prefix に使用）
+  skillName: string; // 親スキルの name（spawn ルールの説明に使用）
   input?: string[]; // 入力の説明
   output?: string[]; // 出力の説明
   teammates: LoadedTeammate[]; // チームメンバー定義
@@ -19,20 +19,29 @@ const MEMBER_MESSAGING_CONSTRAINT =
 
 // teammate スポーン時（リーダーがメンバーを起動する瞬間）に適用されるルールを構築する
 export function buildSpawnRules(params: {
-  skillName: string;
   memberNames: string[];
+  teammatesWithModel: { name: string; model?: string }[];
 }): string[] {
-  const { skillName, memberNames } = params;
-  const subagentTypes = memberNames
-    .map((n) => `\`${skillName}-${n}\``)
-    .join(" / ");
+  const { memberNames, teammatesWithModel } = params;
   const names = memberNames.map((n) => `\`${n}\``).join(" / ");
-  return [
-    `subagent_type に ${subagentTypes} を指定する（agent 定義ファイルと一致）`,
+  const rules: string[] = [
+    "subagent_type は指定しない（汎用エージェントとして起動する）",
     `name パラメータには ${names}（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される`,
-    "prompt には、作業に必要な具体情報（前工程の成果物のファイルパス・対象モジュール・入力データ等）のみを自然言語で渡す。subagent は独立コンテキストで動作し親の会話履歴を参照できないため、こうした情報は prompt に含めないと伝わらない。例: 「implementer agent として、~/.claude/workflows/{task-id}/plan.md に記載された計画を実装してください」",
-    "各メンバーの役割・制約・手順は agent 定義ファイル側に記述済みのため絶対に prompt へ再掲しない（二重指示は挙動不安定化の原因になる）",
+    "prompt には、Teammate セクションに記載された当該メンバーの役割・制約・手順を全文含める。subagent は独立コンテキストで動作し親の会話履歴を参照できないため、SKILL.md 内の本文をそのまま転記して渡す。あわせて作業に必要な具体情報（前工程の成果物のファイルパス・対象モジュール・入力データ等）も prompt に渡す",
   ];
+
+  // model 指定がある teammate のみ抜き出して、Agent ツールの model 指定指示を加える
+  const withModel = teammatesWithModel.filter((t) => t.model);
+  if (withModel.length > 0) {
+    const modelSpec = withModel
+      .map((t) => `\`${t.name}\` は \`model: "${t.model}"\``)
+      .join(" / ");
+    rules.push(
+      `Agent ツールの model パラメータで以下のモデルを指定する: ${modelSpec}`,
+    );
+  }
+
+  return rules;
 }
 
 // 各メンバーに転記する制約リストを構築する
@@ -73,7 +82,7 @@ export function generateTeamContent(input: TeamContentInput): string {
   // 概要
   lines.push("");
   lines.push(
-    `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、各メンバーを agent type 指定でスポーンする。メインエージェントはリーダーとして参加する。メンバーの役割・制約・手順は各 agent 定義ファイルに記述済みのため、リーダーはそれらを prompt に再掲せず、起動指示のみを渡す。`,
+    `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、下記Teammateセクションの各メンバーの役割・制約・手順を prompt として渡して起動する。メインエージェントはリーダーとして参加する。`,
   );
 
   // 入力セクション
@@ -95,8 +104,11 @@ export function generateTeamContent(input: TeamContentInput): string {
   );
   lines.push("");
   const spawnRules = buildSpawnRules({
-    skillName: input.skillName,
     memberNames,
+    teammatesWithModel: sortedTeammates.map((t) => ({
+      name: t.name,
+      model: t.model,
+    })),
   });
   for (const rule of spawnRules) {
     lines.push(`- ${rule}`);
@@ -124,15 +136,32 @@ export function generateTeamContent(input: TeamContentInput): string {
     lines.push(`- ${duty}`);
   }
 
-  // 各 teammate は役割 + subagent_type の軽量な索引として出力する
+  // 各 teammate（役割・制約・手順を全文出力する）
   for (const teammate of sortedTeammates) {
-    const prefixedName = `${input.skillName}-${teammate.name}`;
     lines.push("");
     lines.push(`### ${teammate.name}`);
     lines.push("");
-    lines.push(
-      `${teammate.role} \`subagent_type: ${prefixedName}\` でスポーンする。`,
-    );
+    lines.push("#### 役割");
+    lines.push(teammate.role);
+    if (teammate.model) {
+      lines.push("");
+      lines.push("#### モデル");
+      lines.push(
+        `Agent ツールの model パラメータに \`${teammate.model}\` を指定して起動する。`,
+      );
+    }
+    lines.push("");
+    lines.push("#### 制約");
+    for (const constraint of buildMemberConstraints()) {
+      lines.push(`- ${constraint}`);
+    }
+    lines.push("");
+    lines.push("#### 手順");
+    for (const step of teammate.steps) {
+      lines.push("");
+      lines.push(`##### ${step.id}. ${step.title}`);
+      lines.push(step.body);
+    }
   }
 
   return lines.join("\n");

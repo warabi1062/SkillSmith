@@ -100,7 +100,6 @@ export interface LoadedTeammate {
   name: string;
   role: string;
   model?: "sonnet" | "opus" | "haiku";
-  tools?: ToolRef[];
   steps: LoadedDelegateStep[];
   sortOrder?: number;
 }

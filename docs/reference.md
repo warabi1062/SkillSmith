@@ -301,7 +301,7 @@ allowed-tools:
 1 行で編成と起動方法を宣言する:
 
 ```
-{member名をカンマ区切り}の N 名体制で作業を行う。チームを作成し、下記 Teammate セクションの共通ルールと各メンバーの役割・手順をプロンプトとして渡して起動する。メインエージェントはリーダーとして参加する。
+{member名をカンマ区切り}の N 名体制で作業を行う。チームを作成し、下記 Teammate セクションの各メンバーの役割・制約・手順を prompt として渡して起動する。メインエージェントはリーダーとして参加する。
 ```
 
 #### 入力 / 出力
@@ -318,71 +318,58 @@ allowed-tools:
 
 #### Teammate セクション
 
-Teammate セクションは team 起動時にプロンプトとして各メンバーに渡される。以下の構造を守る。各 member の本体（役割・制約・手順）は SKILL.md には直接書かず、個別の `agents/{skillName}-{member-name}.md` に切り出す（次節参照）。
+Teammate セクションは team 起動時に各メンバーへ渡される prompt の元になる。各 member の本体（役割・制約・手順）は SKILL.md 本文に全文記述し、リーダーは spawn 時にその当該 member 分の本文を prompt にそのまま転記して渡す（独立コンテキストで動作するため、再掲しないと伝わらない）。
 
 ```markdown
 ## Teammate
 
-### 共通ルール
-- 各メンバーを Agent tool でスポーンする際は、subagent_type に `{skillName}-{member名}` / ... を指定する（agent 定義ファイルと一致）
-- スポーン時の name パラメータは `{member名}` / ...（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される
-- メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する（最大5回）
-- {打ち切り上限のルール。用途に応じて調整、例: レビューサイクルは最大3回で打ち切り}
+### Teammate スポーンに関するルール
+
+リーダーが各メンバーを Agent tool でスポーンする際、以下に従う。
+
+- subagent_type は指定しない（汎用エージェントとして起動する）
+- name パラメータには `{member名}` / ...（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される
+- prompt には、Teammate セクションに記載された当該メンバーの役割・制約・手順を全文含める。あわせて作業に必要な具体情報（前工程の成果物のファイルパス・対象モジュール・入力データ等）も prompt に渡す
+- Agent ツールの model パラメータで以下のモデルを指定する: `{member名}` は `model: "{モデル名}"` / ...   ← model 指定がある teammate のみ列挙される
 
 ### リーダー
 #### 役割
 チーム全体の進行管理を担当する。
 
+#### 制約
+- メンバー間のメッセージ送受信は確認応答方式で行う…（共通の member 制約）
+
 #### 担当
 - 各 member の進捗監視
 - 定期的にメンバーの稼働状況を確認し、全メンバーが停止している場合は状況を調査して適切に teammate に指示を出す
+- レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ
 - {用途固有の責務: ユーザー承認取得、成果物の記録など}
 - 全メンバーの作業が完了したらチームを削除する
 
 ### {member-name}
 
-{teammate.role（1〜2文）} `subagent_type: {skillName}-{member-name}` でスポーンする。
+#### 役割
+{teammate.role をそのまま}
+
+#### モデル                          ← model 指定がある場合のみ出力
+Agent ツールの model パラメータに `{モデル名}` を指定して起動する。
+
+#### 制約
+- メンバー間のメッセージ送受信は確認応答方式で行う…（共通の member 制約）
+
+#### 手順
+
+##### {id}. {title}
+{body}
 ```
 
 メンバーのステップ識別子（`P1`, `R2` 等）は先頭英字で member を区別できるようにすると、手順がチーム全体で読みやすくなる。
 
-#### Teammate subagent 定義ファイル
+#### Teammate の model 指定
 
-各 teammate の本体は `agents/{skillName}-{teammate.name}.md` に個別ファイルとして生成される。ファイル名と `frontmatter.name` の双方に `{skillName}-` プレフィックスを付けることで、orchestrator から複数の Agent Team skill を段階的に起動した際に、`reviewer` 等の同名 teammate が `agents/` 配下で衝突するのを防ぐ（`agents/` は plugin-global なため）。SKILL.md の subagent_type 参照も同じ prefix 付き名を使う。
+`Teammate` 型は `model?: "sonnet" | "opus" | "haiku"` を受け付ける。指定すると、生成される SKILL.md の Teammate セクションに「`#### モデル` Agent ツールの model パラメータに `{モデル名}` を指定して起動する。」という指示が出力され、加えて「Teammate スポーンに関するルール」にも `{member名}` ごとの model 指定が一覧化される。リーダーはこれらの記述に従い、Agent ツールの `model` パラメータでモデルを指定して起動する。
 
-frontmatter 例:
-
-```yaml
----
-name: review-team-drafter       # {skillName}-{teammate.name}
-description: メッセージの草稿を作成する
-model: haiku
-tools:
-  - Read
-  - Write
----
-```
-
-本文構成は以下のテンプレートに従う:
-
-```markdown
-## 役割
-{teammate.role をそのまま}
-
-## 制約
-- メンバー間のメッセージ送受信は確認応答方式で行う…（共通の member 制約）
-
-## 手順
-
-### {id}. {title}
-{body}
-```
-
-`model` と `tools` はオプションで、指定された場合のみ frontmatter に出力される。`model` は `sonnet` / `opus` / `haiku` のいずれか。`tools` は `ToolRef[]` として渡し、`Read` / `Bash(git *)` / `mcp__server__method` 形式に展開される。
-
-`skills:` は出力しない（teammate 自身はスキルをプリロードしない）。
-
-> **命名規約の違い**: WorkerWithSubAgent の Sub Agent は `{skillName}-agent` サフィックス規約、WorkerWithAgentTeam の teammate は `{skillName}-{teammate.name}` 規約と、末尾の形が異なる。いずれも `{skillName}-` prefix を持つ点で整合しているが、完全統一は別チケット扱い。
+teammate 用の `agents/*.md` は生成されない（subagent_type は使わず、汎用エージェントを `model` 指定で起動する）。teammate ごとのツール制限は型として保持していない（必要なら spawn 時の prompt 側で具体的に指示する）。
 
 ### メンバー間のメッセージングとデータ受け渡し
 

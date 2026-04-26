@@ -106,6 +106,11 @@ export function SkillDetail({
                 <span className="text-sm text-on-surface-variant">
                   {mate.role}
                 </span>
+                {mate.model && (
+                  <span className="text-xs text-on-surface-variant">
+                    model: <code>{mate.model}</code>
+                  </span>
+                )}
               </div>
               <div className="pb-2">
                 {mate.duties && (

@@ -289,7 +289,7 @@ describe("loadPluginDefinition", () => {
     }
   });
 
-  it("teammate の model / tools を LoadedTeammate に引き継ぐこと", async () => {
+  it("teammate の model を LoadedTeammate に引き継ぐこと", async () => {
     await createPluginStructure({
       pluginTs: `
         const plugin = {
@@ -304,10 +304,6 @@ describe("loadPluginDefinition", () => {
                   name: "drafter",
                   role: "草稿",
                   model: "haiku",
-                  tools: [
-                    { type: "tool", name: "Read" },
-                    { type: "tool", name: "Write" },
-                  ],
                   steps: [{ id: "S1", title: "ステップ1", body: "本文" }],
                 },
                 {
@@ -329,13 +325,8 @@ describe("loadPluginDefinition", () => {
     expect(skill.skillType).toBe(SKILL_TYPES.WORKER_WITH_AGENT_TEAM);
     if ("teammates" in skill) {
       expect(skill.teammates[0].model).toBe("haiku");
-      expect(skill.teammates[0].tools).toEqual([
-        { type: "tool", name: "Read" },
-        { type: "tool", name: "Write" },
-      ]);
       // 省略時は undefined のまま伝播する
       expect(skill.teammates[1].model).toBeUndefined();
-      expect(skill.teammates[1].tools).toBeUndefined();
     }
   });
 });

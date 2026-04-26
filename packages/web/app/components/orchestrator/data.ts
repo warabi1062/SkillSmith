@@ -88,8 +88,11 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
     const memberNames = sorted.map((t) => t.name);
 
     spawnRulesData = buildSpawnRules({
-      skillName: skill.name,
       memberNames,
+      teammatesWithModel: sorted.map((t) => ({
+        name: t.name,
+        model: t.model,
+      })),
     });
 
     const leaderDuties = buildLeaderDuties({
@@ -107,6 +110,7 @@ export function buildSkillDetailData(skill: LoadedSkillUnion): SkillDetailData {
       ...sorted.map((t) => ({
         name: t.name,
         role: t.role,
+        model: t.model,
         steps: t.steps.map((s) => ({
           id: s.id,
           title: s.title,

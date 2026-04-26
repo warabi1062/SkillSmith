@@ -73,14 +73,13 @@ describe("generateTeamContent", () => {
     );
   });
 
-  it("スポーンルールに subagent_type の指示が含まれる", () => {
+  it("スポーンルールに subagent_type を指定しない指示が含まれる", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("### Teammate スポーンに関するルール");
     expect(result).toContain(
-      "subagent_type に `review-team-implementer` / `review-team-reviewer` を指定する",
+      "subagent_type は指定しない（汎用エージェントとして起動する）",
     );
-    expect(result).toContain("agent 定義ファイルと一致");
   });
 
   it("スポーンルールに name パラメータの指示と用途が含まれる", () => {
@@ -93,68 +92,77 @@ describe("generateTeamContent", () => {
     expect(result).toContain("TaskUpdate の owner");
   });
 
-  it("旧仕様の「定義された名前と完全一致する name でスポーンすること」文言が含まれない", () => {
+  it("スポーンルールに prompt へ役割・制約・手順を全文含める指示が記述される", () => {
     const result = generateTeamContent(makeInput());
 
-    expect(result).not.toContain("定義された名前（");
-    expect(result).not.toContain("完全一致する name でスポーンすること");
-  });
-
-  it("スポーンルールに prompt で役割・手順を再記述しない指示が含まれる", () => {
-    const result = generateTeamContent(makeInput());
-
-    expect(result).toContain("絶対に prompt へ再掲しない");
-    expect(result).toContain("agent 定義ファイル側に記述済み");
-    expect(result).toContain("二重指示は挙動不安定化の原因");
-  });
-
-  it("スポーンルールに prompt に渡すべき情報の指針（独立コンテキスト向け具体情報）が含まれる", () => {
-    const result = generateTeamContent(makeInput());
-
-    expect(result).toContain("のみを自然言語で渡す");
+    expect(result).toContain(
+      "prompt には、Teammate セクションに記載された当該メンバーの役割・制約・手順を全文含める",
+    );
     expect(result).toContain("独立コンテキスト");
     expect(result).toContain("親の会話履歴を参照できない");
-    expect(result).toContain("前工程の成果物のファイルパス");
   });
 
-  it("スポーンルールセクションのみが存在し、共通ルールセクションは出力されない", () => {
+  it("旧仕様の subagent_type 個別指定や agent 定義ファイル参照は出力されない", () => {
     const result = generateTeamContent(makeInput());
 
-    expect(result).toContain("### Teammate スポーンに関するルール");
-    // 共通ルールはリーダー duties と各 agent 制約に吸収されたため、独立セクションとしては存在しない
-    expect(result).not.toContain("### 共通ルール");
+    expect(result).not.toContain("`review-team-implementer`");
+    expect(result).not.toContain("`review-team-reviewer`");
+    expect(result).not.toContain("agent 定義ファイル");
+    expect(result).not.toContain("agents/");
+  });
+
+  it("model 指定がない場合は spawn ルールに model 行が出ない", () => {
+    const result = generateTeamContent(makeInput());
+
+    // どの teammate にも model 指定がないため、Agent ツールの model パラメータ行は出ない
+    expect(result).not.toContain("Agent ツールの model パラメータで以下");
+  });
+
+  it("model 指定がある teammate のみ spawn ルールに列挙される", () => {
+    const teammates: LoadedTeammate[] = [
+      { ...makeWorker("implementer"), model: "haiku" },
+      makeReviewer(),
+    ];
+    const result = generateTeamContent(makeInput({ teammates }));
+
+    expect(result).toContain(
+      "Agent ツールの model パラメータで以下のモデルを指定する",
+    );
+    expect(result).toContain('`implementer` は `model: "haiku"`');
+    // model 指定のない reviewer は列挙対象外
+    expect(result).not.toContain("`reviewer` は `model:");
   });
 
   it("レビューサイクル打ち切りルールはリーダーの担当に含まれる", () => {
     const result = generateTeamContent(makeInput());
 
-    // リーダーセクション配下に 1 回だけ出現する
     const leaderIdx = result.indexOf("### リーダー");
-    const leaderSection = result.slice(leaderIdx);
+    // 行頭の "### "（teammate 見出し）を次に検索する。indexOf("### ", ...) だと
+    // "#### " 内部の "### " 部分文字列にもマッチしてしまうため、改行つきパターンで探す
+    const nextMemberIdx = result.indexOf("\n### ", leaderIdx + 1);
+    const leaderSection = result.slice(
+      leaderIdx,
+      nextMemberIdx === -1 ? undefined : nextMemberIdx,
+    );
     expect(leaderSection).toContain(
       "レビューサイクルは最大3回で打ち切り、解決しない場合はユーザーに報告して判断を仰ぐ",
     );
-
-    const reviewCycleCount =
-      result.split("レビューサイクルは最大3回で打ち切り").length - 1;
-    expect(reviewCycleCount).toBe(1);
   });
 
-  it("メッセージ送受信ルールは共通ルールから除去され、リーダー制約と各 agent（buildMemberConstraints 経由）にのみ残る", () => {
+  it("メッセージ送受信ルールはリーダー制約と各 teammate 制約に転記される", () => {
     const result = generateTeamContent(makeInput());
 
-    // generateTeamContent の出力にはリーダー制約でのみ 1 回出現する（各 teammate の agent.md 側には出ない）
+    // リーダー（1）+ 各 teammate（2）= 計3回
     const messagingSnippet = "メンバー間のメッセージ送受信は確認応答方式で行う";
     const messagingCount = result.split(messagingSnippet).length - 1;
-    expect(messagingCount).toBe(1);
+    expect(messagingCount).toBe(3);
   });
 
-  it("概要に旧仕様の「各メンバーの役割・手順をプロンプトとして渡して起動する」文言が含まれない", () => {
+  it("概要に「役割・制約・手順を prompt として渡して起動する」文言が含まれる", () => {
     const result = generateTeamContent(makeInput());
 
-    expect(result).not.toContain("役割・手順をプロンプトとして渡して起動する");
-    expect(result).not.toContain(
-      "共通ルールと各メンバーの役割・手順をプロンプトとして渡して",
+    expect(result).toContain(
+      "各メンバーの役割・制約・手順を prompt として渡して起動する",
     );
   });
 
@@ -177,27 +185,36 @@ describe("generateTeamContent", () => {
     expect(result).not.toContain("ユーザーに提示して承認を得る");
   });
 
-  it("各teammate は役割 + subagent_type の軽量な索引行に簡略化される", () => {
+  it("各teammate は役割・制約・手順を全文含めた本体で出力される", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("### implementer");
-    expect(result).toContain(
-      "implementerの役割説明 `subagent_type: review-team-implementer` でスポーンする。",
-    );
+    expect(result).toContain("implementerの役割説明");
+    expect(result).toContain("##### W1. 作業開始");
+    expect(result).toContain("作業を開始する。");
 
     expect(result).toContain("### reviewer");
-    expect(result).toContain(
-      "レビューを行う。 `subagent_type: review-team-reviewer` でスポーンする。",
+    expect(result).toContain("##### R1. ポーリング");
+    expect(result).toContain("##### R2. レビュー実行");
+  });
+
+  it("model 指定がある teammate のセクションには #### モデル ブロックが含まれる", () => {
+    const teammates: LoadedTeammate[] = [
+      { ...makeWorker("implementer"), model: "haiku" },
+      makeReviewer(),
+    ];
+    const result = generateTeamContent(makeInput({ teammates }));
+
+    const implementerIdx = result.indexOf("\n### implementer");
+    const reviewerIdx = result.indexOf("\n### reviewer");
+    const implementerSection = result.slice(implementerIdx, reviewerIdx);
+    const reviewerSection = result.slice(reviewerIdx);
+
+    expect(implementerSection).toContain("#### モデル");
+    expect(implementerSection).toContain(
+      "Agent ツールの model パラメータに `haiku` を指定して起動する。",
     );
-
-    // agents/*.md への参照は含まれない
-    expect(result).not.toContain("agents/review-team-implementer.md");
-    expect(result).not.toContain("agents/review-team-reviewer.md");
-    expect(result).not.toMatch(/`agents\/[^`]+\.md` を参照/);
-
-    // 旧フォーマットの teammate 本体は残っていない
-    expect(result).not.toContain("##### W1. 作業開始");
-    expect(result).not.toContain("##### R1. ポーリング");
+    expect(reviewerSection).not.toContain("#### モデル");
   });
 
   it("teammateがsortOrder順にソートされる", () => {
@@ -217,33 +234,5 @@ describe("generateTeamContent", () => {
 
     expect(result).toContain("implementer・reviewerの2名体制");
     expect(result).toContain("メインエージェントはリーダーとして参加する");
-  });
-
-  it("制約見出しはリーダーセクションのみ、各指示は 1 回のみ出現する", () => {
-    const result = generateTeamContent(makeInput());
-
-    // 制約見出しはリーダーのみで 1 回出現する（各 teammate は agent.md 側に移動）
-    const constraintHeadingCount = result.split("#### 制約").length - 1;
-    expect(constraintHeadingCount).toBe(1);
-
-    // subagent_type 指示はスポーンルールのみで 1 回出現する
-    const subagentTypeRuleCount =
-      result.split("subagent_type に `review-team-implementer`").length - 1;
-    expect(subagentTypeRuleCount).toBe(1);
-
-    // name 指示はスポーンルールのみで 1 回出現する
-    const nameRuleCount =
-      result.split("name パラメータには `implementer` / `reviewer`").length - 1;
-    expect(nameRuleCount).toBe(1);
-  });
-
-  it("subagent_type 参照が全 teammate 分 prefix 付きで出力される", () => {
-    const result = generateTeamContent(makeInput());
-
-    // 共通ルール内（バッククォートで囲まれた prefix 付き名）+ 各 teammate セクション（`subagent_type: xxx` 形式）の両方で出現
-    expect(result).toContain("`review-team-implementer`");
-    expect(result).toContain("`review-team-reviewer`");
-    expect(result).toContain("`subagent_type: review-team-implementer`");
-    expect(result).toContain("`subagent_type: review-team-reviewer`");
   });
 });
