@@ -327,7 +327,6 @@ Teammate セクションは team 起動時に各メンバーへ渡される prom
 
 リーダーが各メンバーを Agent tool でスポーンする際、以下に従う。
 
-- subagent_type は指定しない（汎用エージェントとして起動する）
 - name パラメータには `{member名}` / ...（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される
 - prompt には、Teammate セクションに記載された当該メンバーの役割・制約・手順を全文含める。あわせて作業に必要な具体情報（前工程の成果物のファイルパス・対象モジュール・入力データ等）も prompt に渡す
 - Agent ツールの model パラメータで以下のモデルを指定する: `{member名}` は `model: "{モデル名}"` / ...   ← model 指定がある teammate のみ列挙される

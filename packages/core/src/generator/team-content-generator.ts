@@ -25,7 +25,6 @@ export function buildSpawnRules(params: {
   const { memberNames, teammatesWithModel } = params;
   const names = memberNames.map((n) => `\`${n}\``).join(" / ");
   const rules: string[] = [
-    "subagent_type は指定しない（汎用エージェントとして起動する）",
     `name パラメータには ${names}（teammate 名そのもの）を指定する。name はメッセージ送受信（SendMessage の to）・タスク所有者（TaskUpdate の owner）で使用される`,
     "prompt には、Teammate セクションに記載された当該メンバーの役割・制約・手順を全文含める。subagent は独立コンテキストで動作し親の会話履歴を参照できないため、SKILL.md 内の本文をそのまま転記して渡す。あわせて作業に必要な具体情報（前工程の成果物のファイルパス・対象モジュール・入力データ等）も prompt に渡す",
   ];

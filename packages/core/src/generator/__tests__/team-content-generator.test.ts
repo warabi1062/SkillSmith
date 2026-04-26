@@ -73,13 +73,12 @@ describe("generateTeamContent", () => {
     );
   });
 
-  it("スポーンルールに subagent_type を指定しない指示が含まれる", () => {
+  it("スポーンルールセクションが出力される", () => {
     const result = generateTeamContent(makeInput());
 
     expect(result).toContain("### Teammate スポーンに関するルール");
-    expect(result).toContain(
-      "subagent_type は指定しない（汎用エージェントとして起動する）",
-    );
+    // 旧仕様の「subagent_type は指定しない」という説明は不要なので含めない
+    expect(result).not.toContain("subagent_type は指定しない");
   });
 
   it("スポーンルールに name パラメータの指示と用途が含まれる", () => {
