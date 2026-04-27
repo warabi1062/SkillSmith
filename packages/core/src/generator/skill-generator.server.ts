@@ -1,6 +1,6 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "../core/frontmatter.server";
-import type { ToolRef } from "../types/skill";
+import type { ToolRef, SkillModel } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
 import {
   SKILL_TYPES,
@@ -20,6 +20,7 @@ export interface SkillGeneratorInput {
   argumentHint?: string;
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
+  model?: SkillModel;
   allowedTools?: ToolRef[];
   content: string;
 }
@@ -81,6 +82,9 @@ export function generateSkillMd(component: SkillComponentData): {
   }
   if (config.disableModelInvocation) {
     frontmatterFields[FRONTMATTER_FIELDS.DISABLE_MODEL_INVOCATION] = true;
+  }
+  if (config.model !== undefined) {
+    frontmatterFields[FRONTMATTER_FIELDS.MODEL] = config.model;
   }
   // userInvocable が明示的に設定されていればその値を使う。未設定ならENTRY_POINT以外はfalse
   if (config.userInvocable !== undefined) {
