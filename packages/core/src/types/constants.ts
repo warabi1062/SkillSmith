@@ -40,5 +40,6 @@ export const FRONTMATTER_FIELDS = {
   ARGUMENT_HINT: "argument-hint",
   USER_INVOCABLE: "user-invocable",
   DISABLE_MODEL_INVOCATION: "disable-model-invocation",
+  MODEL: "model",
   ALLOWED_TOOLS: "allowed-tools",
 } as const;

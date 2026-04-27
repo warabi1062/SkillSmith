@@ -10,6 +10,7 @@ import type {
   SupportFile,
   DelegateStep,
   Section,
+  SkillModel,
 } from "../types/skill";
 import { SKILL_TYPES } from "../types/constants";
 import type { MarketplaceDefinition } from "../types/marketplace";
@@ -74,6 +75,7 @@ interface ImportedSkillBase {
   argumentHint?: string;
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
+  model?: SkillModel;
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
@@ -204,6 +206,7 @@ export async function loadPluginDefinition(
         argumentHint: skill.argumentHint,
         userInvocable: skill.userInvocable,
         disableModelInvocation: skill.disableModelInvocation,
+        model: skill.model,
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,

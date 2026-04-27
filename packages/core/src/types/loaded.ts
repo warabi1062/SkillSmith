@@ -1,7 +1,7 @@
 // Loaded系型定義と型ガード
 // ローダーが返す解決済みの型。ファイルシステムAPIを使用しないため .server.ts サフィックス不要
 
-import type { ToolRef, AgentConfig } from "./skill";
+import type { ToolRef, AgentConfig, SkillModel } from "./skill";
 import { SKILL_TYPES } from "./constants";
 
 // ローダーが返す型: SupportFile + 読み込んだ content
@@ -65,6 +65,7 @@ interface LoadedSkillBase {
   argumentHint?: string;
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
+  model?: SkillModel; // SKILL.md frontmatter の model フィールド
   files: LoadedSupportFile[];
   dependencies?: string[];
   steps?: LoadedStep[];

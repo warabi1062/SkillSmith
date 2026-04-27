@@ -12,6 +12,7 @@ function makeSkillComponent(overrides: {
   allowedTools?: import("../../types/skill").ToolRef[];
   input?: string[];
   output?: string[];
+  model?: import("../../types/skill").SkillModel;
 }) {
   return {
     skillName: overrides.name ?? "my-skill",
@@ -24,6 +25,7 @@ function makeSkillComponent(overrides: {
       content: overrides.content ?? "# Hello",
       input: overrides.input,
       output: overrides.output,
+      model: overrides.model,
     },
   };
 }
@@ -107,5 +109,25 @@ describe("generateSkillMd", () => {
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
+  });
+
+  it("model 指定時に frontmatter に model を出力する", () => {
+    const { file } = generateSkillMd(makeSkillComponent({ model: "sonnet" }));
+    expect(file!.content).toContain("model: sonnet");
+  });
+
+  it("model 未指定時は frontmatter に model を含めない", () => {
+    const { file } = generateSkillMd(makeSkillComponent({}));
+    expect(file!.content).not.toContain("model:");
+  });
+
+  it.each([
+    "sonnet",
+    "opus",
+    "haiku",
+    "inherit",
+  ] as const)("model に %s を指定した場合 frontmatter に出力される", (model) => {
+    const { file } = generateSkillMd(makeSkillComponent({ model }));
+    expect(file!.content).toContain(`model: ${model}`);
   });
 });

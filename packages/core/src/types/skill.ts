@@ -126,6 +126,10 @@ export interface Teammate {
 // SkillType の文字列リテラル型
 export type SkillType = (typeof SKILL_TYPES)[keyof typeof SKILL_TYPES];
 
+// SKILL.md frontmatter で指定可能な model 値
+// Claude Code の skills 仕様に準拠（https://docs.claude.com/en/docs/claude-code/skills）
+export type SkillModel = "sonnet" | "opus" | "haiku" | "inherit";
+
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
   Skill,
@@ -136,6 +140,7 @@ type SkillOptionalFields = Pick<
   | "argumentHint"
   | "userInvocable"
   | "disableModelInvocation"
+  | "model"
   | "files"
   | "dependencies"
   | "steps"
@@ -155,6 +160,7 @@ export abstract class Skill {
   argumentHint?: string;
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
+  model?: SkillModel; // SKILL.md frontmatter の model フィールド
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
   steps?: Step[]; // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
@@ -172,6 +178,7 @@ export abstract class Skill {
       this.userInvocable = init.userInvocable;
     if (init.disableModelInvocation !== undefined)
       this.disableModelInvocation = init.disableModelInvocation;
+    if (init.model !== undefined) this.model = init.model;
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
     if (init.steps !== undefined) this.steps = init.steps;

@@ -119,6 +119,7 @@ export function generateSkillComponent(
       argumentHint: skill.argumentHint,
       userInvocable: skill.userInvocable,
       disableModelInvocation: skill.disableModelInvocation,
+      model: skill.model,
       allowedTools: skill.allowedTools,
       content,
     },
