@@ -29,9 +29,17 @@ async function setupBrokenMarketplace(): Promise<string> {
   return tmpRoot;
 }
 
-// SPA fallback 用のダミー dist/spa ディレクトリを作る
-async function setupSpaDir(): Promise<string> {
-  const tmpSpa = await fs.mkdtemp(path.join(os.tmpdir(), "skillsmith-spa-"));
+// SPA fallback 用のダミー dist/spa ディレクトリを作る。
+// dotfileParent=true の場合は親階層に "." で始まるディレクトリ（pnpm の .pnpm 等を模す）を挟み、
+// send ライブラリのデフォルト dotfile ポリシー(ignore=404) による誤検知の回帰検証に使う。
+async function setupSpaDir(opts?: {
+  dotfileParent?: boolean;
+}): Promise<string> {
+  const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), "skillsmith-spa-"));
+  const tmpSpa = opts?.dotfileParent
+    ? path.join(tmpRoot, ".pnpm", "viewer", "dist", "spa")
+    : tmpRoot;
+  await fs.mkdir(tmpSpa, { recursive: true });
   await fs.writeFile(
     path.join(tmpSpa, "index.html"),
     "<!doctype html><html><body>SPA</body></html>",
@@ -217,6 +225,41 @@ describe("src/server.ts (start)", () => {
       );
       expect(res.status).toBe(200);
       expect(res.headers.get("content-type")).toMatch(/application\/json/);
+    });
+  });
+
+  // 回帰防止: pnpm でインストールされた viewer の絶対パスには ".pnpm" が含まれる。
+  // sendFile に絶対パスを渡すと send ライブラリが ".pnpm" を dotfile と判定して 404 になる
+  // ため、SPA fallback では root + 相対パスで sendFile しなければならない。
+  describe("SPA fallback（親階層に dotfile を含む）", () => {
+    let server: StartedServer;
+    let spaDir: string;
+
+    beforeAll(async () => {
+      spaDir = await setupSpaDir({ dotfileParent: true });
+      server = await start({
+        marketplacesDir: EXAMPLE_MARKETPLACES_DIR,
+        port: 0,
+        spaDir,
+      });
+    });
+
+    afterAll(async () => {
+      await server.close();
+      // 親階層ごと作っているので、tmpdir 配下の skillsmith-spa-* ルートまで遡って削除する
+      const tmpRootMatch = spaDir.match(/^(.*?[\\/]skillsmith-spa-[^\\/]+)/);
+      if (tmpRootMatch) {
+        await fs.rm(tmpRootMatch[1], { recursive: true, force: true });
+      }
+    });
+
+    it("親パスに .pnpm を含んでもネスト URL で index.html を返す", async () => {
+      const res = await fetch(
+        `http://127.0.0.1:${server.port}/marketplaces/example/plugins/hello-world`,
+      );
+      expect(res.status).toBe(200);
+      const text = await res.text();
+      expect(text).toContain("SPA");
     });
   });
 });

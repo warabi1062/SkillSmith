@@ -119,8 +119,11 @@ export async function start(opts: StartOptions): Promise<StartedServer> {
       opts.spaDir ?? fileURLToPath(new URL("./spa", import.meta.url));
     app.use(express.static(distDir));
     // Express 5: 無名ワイルドカード不可。named splat + braces でルートパスを含めて一致させる
+    // sendFile に絶対パスをそのまま渡すと、pnpm のインストール先パスに含まれる ".pnpm" が
+    // send ライブラリのデフォルト dotfile ポリシー(ignore=404) に引っかかる。
+    // root オプションを指定して相対パス解決にすることで、root より下の dotfile のみ対象にする。
     app.get("/{*splat}", (_req, res) => {
-      res.sendFile(path.join(distDir, "index.html"));
+      res.sendFile("index.html", { root: distDir });
     });
   }
 
