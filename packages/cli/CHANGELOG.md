@@ -1,5 +1,13 @@
 # @warabi1062/skillsmith
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @warabi1062/skillsmith-viewer@1.0.2
+  - @warabi1062/skillsmith-core@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes

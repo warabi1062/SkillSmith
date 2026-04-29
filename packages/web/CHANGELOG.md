@@ -1,5 +1,12 @@
 # @warabi1062/skillsmith-viewer
 
+## 1.0.2
+
+### Patch Changes
+
+- viewer の SPA fallback で sendFile に絶対パスを渡していたため、pnpm のインストール先パスに含まれる `.pnpm` が send ライブラリの dotfile ポリシー(ignore=404)に引っかかり、ネスト URL のリロードで NotFoundError になる不具合を修正
+  - @warabi1062/skillsmith-core@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes
