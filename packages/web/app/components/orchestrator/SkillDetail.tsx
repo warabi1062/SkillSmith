@@ -16,7 +16,7 @@ export function SkillDetail({
 }) {
   return (
     <div className="px-4 py-3 my-1">
-      {/* 付属情報: description, input, output, beforeSections, afterSections */}
+      {/* 付属情報: description, input, output, beforeSections */}
       <div className="mb-4 p-4 rounded-md bg-surface-container-low">
         {data.description && (
           <div className="mb-3">
@@ -57,11 +57,6 @@ export function SkillDetail({
           supportFiles={data.supportFiles}
         />
 
-        <SectionItems
-          sections={data.afterSections ?? []}
-          supportFiles={data.supportFiles}
-        />
-
         {data.spawnRules && data.spawnRules.length > 0 && (
           <div className="mb-3">
             <label className="block font-display text-[0.6875rem] font-semibold mb-1.5 text-on-surface-variant uppercase tracking-widest">
@@ -88,6 +83,16 @@ export function SkillDetail({
               depth={depth}
             />
           ))}
+        </div>
+      )}
+
+      {/* afterSections は steps の後に表示 */}
+      {data.afterSections && data.afterSections.length > 0 && (
+        <div className="mt-4 p-4 rounded-md bg-surface-container-low">
+          <SectionItems
+            sections={data.afterSections}
+            supportFiles={data.supportFiles}
+          />
         </div>
       )}
 
