@@ -1,5 +1,14 @@
 # @warabi1062/skillsmith
 
+## 1.0.3
+
+### Patch Changes
+
+- 7da7dd2: viewer: SkillDetail で afterSection を steps の後に描画するように変更
+- Updated dependencies [7da7dd2]
+  - @warabi1062/skillsmith-viewer@1.0.3
+  - @warabi1062/skillsmith-core@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes
