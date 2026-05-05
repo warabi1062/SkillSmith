@@ -128,6 +128,12 @@ interface ImportedPluginDefinition {
   hooks?: HookDefinition;
 }
 
+// moduleCache を切ることで、同一プロセス内で plugin.ts / marketplace.ts が
+// 編集されても再読み込みできるようにする。fsCache は引き続き有効。
+function createFreshJiti(): ReturnType<typeof createJiti> {
+  return createJiti(import.meta.url, { moduleCache: false });
+}
+
 // プラグイン定義をディレクトリから読み込む
 export async function loadPluginDefinition(
   dirPath: string,
@@ -143,7 +149,7 @@ export async function loadPluginDefinition(
 
   // plugin.ts を動的importで読み込む（jiti で TypeScript をトランスパイル）
   // CJS ビルドでは tsup の shims が import.meta.url を __filename ベースで補填する
-  const jiti = createJiti(import.meta.url);
+  const jiti = createFreshJiti();
   const pluginModule = (await jiti.import(pluginTsPath)) as Record<
     string,
     unknown
@@ -284,7 +290,7 @@ export async function loadPluginMeta(
   const pluginTsPath = path.join(dirPath, "plugin.ts");
   try {
     await fs.access(pluginTsPath);
-    const jiti = createJiti(import.meta.url);
+    const jiti = createFreshJiti();
     const mod = (await jiti.import(pluginTsPath)) as Record<string, unknown>;
     const def = mod.default as ImportedPluginDefinition | undefined;
     if (def && def.name) {
@@ -413,7 +419,7 @@ export async function loadMarketplaceDefinition(
   }
 
   // marketplace.ts を動的importで読み込む
-  const jiti = createJiti(import.meta.url);
+  const jiti = createFreshJiti();
   const mod = (await jiti.import(marketplaceTsPath)) as Record<string, unknown>;
   const def = mod.default as MarketplaceDefinition | undefined;
 
