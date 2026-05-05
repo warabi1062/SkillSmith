@@ -5,11 +5,14 @@ import {
   isRouteErrorResponse,
   useRouteError,
 } from "react-router";
+import { MarketplaceWatchListener } from "./components/MarketplaceWatchListener";
 
 // SPA レイアウト: <html>/<body> は index.html 側で定義する
 export default function Root() {
   return (
     <div className="min-h-screen flex flex-col">
+      {/* marketplaces 変更を SSE で受け取り loader を再実行する（描画には影響しない） */}
+      <MarketplaceWatchListener />
       {/* M3 Top app bar - surface-container */}
       <header className="bg-surface-container-low px-6 py-4 shrink-0">
         <div className="max-w-[1200px] mx-auto w-full flex items-center">

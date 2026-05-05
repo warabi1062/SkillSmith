@@ -7,6 +7,7 @@ import {
   loadPluginDefinition,
   getMarketplacesBaseDir,
 } from "@warabi1062/skillsmith-core/loader";
+import { attachMarketplaceWatch } from "./marketplace-watch";
 
 // start({ marketplacesDir, port?, host?, spaDir? }) で HTTP サーバーを起動するプログラマブル API
 export interface StartOptions {
@@ -50,6 +51,10 @@ export async function start(opts: StartOptions): Promise<StartedServer> {
   // 既定は localhost（loopback）にバインドし、LAN 公開したい場合のみ host を明示する
   const host = opts.host ?? process.env.HOST ?? "127.0.0.1";
   const app = express();
+
+  // marketplaces ディレクトリの変更監視と SSE エンドポイントを常時 ON で組み込む。
+  // ブラウザは /api/events を購読し、変更通知を受けたら loader を再実行する。
+  const closeWatch = attachMarketplaceWatch(app, opts.marketplacesDir);
 
   // JSON API はファイル配信より先に定義する
   app.get("/api/marketplaces", async (_req, res, next) => {
@@ -134,10 +139,13 @@ export async function start(opts: StartOptions): Promise<StartedServer> {
         typeof addr === "object" && addr !== null ? addr.port : port;
       resolve({
         port: actualPort,
-        close: () =>
-          new Promise<void>((r, rej) => {
+        // SSE 接続を先に切らないと server.close が hang するため、watch のクリーンアップを先行させる
+        close: async () => {
+          await closeWatch();
+          await new Promise<void>((r, rej) => {
             server.close((err) => (err ? rej(err) : r()));
-          }),
+          });
+        },
       });
     });
   });
