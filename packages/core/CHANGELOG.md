@@ -1,5 +1,14 @@
 # @warabi1062/skillsmith-core
 
+## 1.0.4
+
+### Patch Changes
+
+- Web ビューアーで marketplaces ディレクトリのホットリロードに対応した。`pnpm dev` や `skillsmith web` で起動中に `plugin.ts` / `marketplace.ts` / `skill.ts` などを編集すると、サーバーを再起動しなくてもブラウザに自動で反映される。
+
+  - `@warabi1062/skillsmith-core`: ローダーが jiti の `moduleCache: false` で動作するようになり、同一プロセス内で TS ファイルを再読み込みできる
+  - `@warabi1062/skillsmith-viewer`: `marketplaces/**` を chokidar で監視し、`/api/events` の SSE で変更をブラウザに通知。クライアントは React Router の `useRevalidator` で全 loader を再実行する
+
 ## 1.0.3
 
 ### Patch Changes
