@@ -95,11 +95,25 @@ export interface HookDefinition {
   scripts?: HookScript[]; // 同梱するスクリプトファイル
 }
 
+// plugin.json の author フィールド
+export interface PluginAuthor {
+  name: string;
+  email?: string;
+  url?: string;
+}
+
 // プラグイン定義（依存関係は各スキルが自身の dependencies で宣言する）
+// plugin.json のフィールドは Claude Code の plugins 仕様（https://code.claude.com/docs/en/plugins-reference）に準拠
 export interface PluginDefinition {
   name: string;
   description?: string;
-  category?: string;
+  version?: string; // semver。指定するとユーザーはバージョン変更時のみ更新を受け取る
+  author?: PluginAuthor;
+  homepage?: string;
+  repository?: string;
+  license?: string; // SPDX 識別子（例: "MIT"）
+  keywords?: string[];
+  category?: string; // marketplace.json のエントリに出力される（plugin.json には含まれない）
   skills: Skill[];
   hooks?: HookDefinition;
 }

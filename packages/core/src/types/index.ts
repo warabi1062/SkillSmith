@@ -15,6 +15,11 @@ export type {
   DelegateStep,
   Teammate,
   SkillType,
+  ModelSpec,
+  SkillModel,
+  EffortLevel,
+  AgentPermissionMode,
+  AgentMemoryScope,
   Branch,
   InlineStep,
   Step,
@@ -30,6 +35,7 @@ export {
 // Plugin 関連
 export type {
   PluginDefinition,
+  PluginAuthor,
   HookDefinition,
   HookEventMap,
   HookEvent,

@@ -8,6 +8,9 @@ const plugin: PluginDefinition = {
   name: "code-review",
   description:
     "PRレビューの自動化プラグイン（Branch・InlineStep・SupportFile・Hooks等の動作確認用）",
+  version: "1.0.0",
+  author: { name: "skillsmith-dev" },
+  license: "MIT",
   category: "example",
   skills: [reviewPrSkill, analyzeDiffSkill, suggestFixSkill, fixTeamSkill],
   // [10] Hooks（HookDefinition + scripts）

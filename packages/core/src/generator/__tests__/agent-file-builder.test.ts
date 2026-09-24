@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildAgentFileContent } from "../agent-file-builder.server";
-import { tool, mcp } from "../../types/skill";
+import { tool, mcp, bash } from "../../types/skill";
 
 describe("buildAgentFileContent", () => {
   it("name と description を含む frontmatter を生成する", () => {
@@ -93,5 +93,47 @@ describe("buildAgentFileContent", () => {
     });
 
     expect(content).toMatch(/---\n\n本文\n$/);
+  });
+  it("effort / disallowedTools / permissionMode / maxTurns / memory / isolation を frontmatter に出力する", () => {
+    const content = buildAgentFileContent({
+      name: "a",
+      description: "d",
+      model: "claude-sonnet-5",
+      effort: "high",
+      tools: [tool("Read")],
+      disallowedTools: [tool("Write"), bash("rm *")],
+      permissionMode: "plan",
+      maxTurns: 20,
+      memory: "project",
+      isolation: "worktree",
+      body: "本文",
+    });
+
+    expect(content).toContain("model: claude-sonnet-5");
+    expect(content).toContain("effort: high");
+    expect(content).toContain("disallowedTools:\n  - Write\n  - Bash(rm *)");
+    expect(content).toContain("permissionMode: plan");
+    expect(content).toContain("maxTurns: 20");
+    expect(content).toContain("memory: project");
+    expect(content).toContain("isolation: worktree");
+  });
+
+  it("任意フィールドを省略した場合は frontmatter に出力しない", () => {
+    const content = buildAgentFileContent({
+      name: "a",
+      description: "d",
+      body: "本文",
+    });
+
+    for (const key of [
+      "effort:",
+      "disallowedTools:",
+      "permissionMode:",
+      "maxTurns:",
+      "memory:",
+      "isolation:",
+    ]) {
+      expect(content).not.toContain(key);
+    }
   });
 });

@@ -14,7 +14,7 @@ export interface MarketplacePluginEntry {
 export interface MarketplaceDefinition {
   name: string;
   description?: string;
-  owner?: { name: string };
+  owner: { name: string; email?: string }; // Claude Code の仕様で必須
   plugins: PluginDefinition[];
 }
 
@@ -23,6 +23,6 @@ export interface MarketplaceJson {
   $schema: string;
   name: string;
   description?: string;
-  owner?: { name: string };
+  owner: { name: string; email?: string };
   plugins: MarketplacePluginEntry[];
 }

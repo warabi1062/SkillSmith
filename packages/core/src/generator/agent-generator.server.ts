@@ -1,13 +1,26 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { generateAgentContent } from "./agent-content-generator.server";
 import { buildAgentFileContent } from "./agent-file-builder.server";
-import type { ToolRef, Section } from "../types/skill";
+import type {
+  ToolRef,
+  Section,
+  ModelSpec,
+  EffortLevel,
+  AgentPermissionMode,
+  AgentMemoryScope,
+} from "../types/skill";
 import { ERROR_CODES, FILE_PATHS } from "../types/constants";
 
 // Agent設定データ
 interface AgentConfigData {
-  model?: string;
+  model?: ModelSpec;
+  effort?: EffortLevel;
   tools?: ToolRef[];
+  disallowedTools?: ToolRef[];
+  permissionMode?: AgentPermissionMode;
+  maxTurns?: number;
+  memory?: AgentMemoryScope;
+  isolation?: "worktree";
   description: string;
   beforeSections?: Section[];
   afterSections?: Section[];
@@ -69,7 +82,13 @@ export function generateAgentMd(component: AgentComponentData): {
     name: agentName,
     description: config.description ?? skillConfig.description ?? "",
     model: config.model,
+    effort: config.effort,
     tools: config.tools,
+    disallowedTools: config.disallowedTools,
+    permissionMode: config.permissionMode,
+    maxTurns: config.maxTurns,
+    memory: config.memory,
+    isolation: config.isolation,
     skills: [skillConfig.name],
     body: agentContent,
   });

@@ -108,7 +108,7 @@ function renderSkillRef(
   lines.push(`${h(headingLevel)} Step ${stepNumber}: ${skillName}`);
   lines.push("");
   if (meta?.hasAgent) {
-    lines.push(`Task ツールを subagent_type: ${skillName}-agent で呼び出す。`);
+    lines.push(`Agent ツールを subagent_type: ${skillName}-agent で呼び出す。`);
   } else {
     lines.push(`${skillName} skill を実行する。`);
   }

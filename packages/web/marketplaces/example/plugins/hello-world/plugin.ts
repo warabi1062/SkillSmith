@@ -9,6 +9,9 @@ const plugin: PluginDefinition = {
   name: "hello-world",
   description:
     "全スキルタイプ（EntryPoint / Worker / WorkerWithSubAgent / WorkerWithAgentTeam）の動作確認用サンプルプラグイン",
+  version: "1.0.0",
+  author: { name: "skillsmith-dev" },
+  license: "MIT",
   category: "example",
   skills: [greetSkill, formatSkill, translateSkill, reviewTeamSkill],
 };
