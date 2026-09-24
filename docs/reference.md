@@ -605,7 +605,7 @@ const plugin: PluginDefinition = {
 };
 ```
 
-生成される `hooks/hooks.json` には `$schema`（`https://json.schemastore.org/hooks-schema.json`）が付与され、エディタの補完・検証に使える。Claude Code は読み込み時にこのキーを無視する。
+`HookDefinition.schema` に JSON Schema の URL を指定すると、生成される `hooks/hooks.json` の先頭に `$schema` として出力され、エディタの補完・検証に使える。Claude Code は読み込み時にこのキーを無視する（公式ドキュメントは特定の URL を示していないため、SkillSmith もデフォルトでは出力しない）。
 
 ### イベント一覧と matcher の対象
 
@@ -652,7 +652,7 @@ SkillSmith は上記を `HookEvent` 型として定義しており、既知の�
 | `command` | シェルコマンド・実行ファイルを起動 | `command`（必須）、`args`、`async`、`asyncRewake`、`shell`（`bash` / `powershell`） |
 | `http` | フック入力 JSON を POST し、レスポンス JSON を決定として扱う | `url`（必須）、`headers`、`allowedEnvVars` |
 | `mcp_tool` | 接続済み MCP サーバーのツールを呼び出す | `server`（必須）、`tool`（必須）、`input` |
-| `prompt` | 単発の LLM 評価で決定 JSON を返す | `prompt`（必須。`$ARGUMENTS` にフック入力が展開）、`model` |
+| `prompt` | 単発の LLM 評価で決定 JSON を返す | `prompt`（必須。`$ARGUMENTS` にフック入力が展開）、`model`、`continueOnBlock`（`ok: false` 時に停止せず reason を Claude に返して続行） |
 | `agent` | ツールを使えるサブエージェントで検証する（experimental） | `prompt`（必須）、`model` |
 
 全 type 共通のフィールド:

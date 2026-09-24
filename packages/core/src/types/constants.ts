@@ -55,10 +55,6 @@ export const FRONTMATTER_FIELDS = {
 // ---- hooks 関連 ----
 // Claude Code の hooks 仕様に準拠（https://code.claude.com/docs/en/hooks）
 
-// hooks/hooks.json の $schema に出力する JSON Schema の URL
-export const HOOKS_JSON_SCHEMA_URL =
-  "https://json.schemastore.org/hooks-schema.json";
-
 // フックアクションの種類
 export const HOOK_TYPES = {
   COMMAND: "command",

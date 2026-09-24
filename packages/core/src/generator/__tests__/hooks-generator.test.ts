@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generateHooks, validateHooks } from "../hooks-generator.server";
-import {
-  ERROR_CODES,
-  FILE_PATHS,
-  HOOKS_JSON_SCHEMA_URL,
-} from "../../types/constants";
+import { ERROR_CODES, FILE_PATHS } from "../../types/constants";
 import type { LoadedHookDefinition } from "../../types/loaded";
 
 // テスト用ヘルパー: エラーコードで絞り込む
@@ -54,7 +50,21 @@ describe("generateHooks", () => {
     expect(json.hooks.TeammateIdle[0].hooks[0].timeout).toBe(30);
   });
 
-  it("$schema を先頭キーとして出力すること", () => {
+  it("schema が指定された場合に $schema を先頭キーとして出力すること", () => {
+    const hookDef: LoadedHookDefinition = {
+      schema: "https://example.com/hooks.schema.json",
+      hooks: {
+        Stop: [{ hooks: [{ type: "command", command: "echo done" }] }],
+      },
+    };
+
+    const result = generateHooks(hookDef);
+    const json = JSON.parse(result.files[0].content);
+    expect(json.$schema).toBe("https://example.com/hooks.schema.json");
+    expect(Object.keys(json)[0]).toBe("$schema");
+  });
+
+  it("schema が未指定の場合に $schema を出力しないこと", () => {
     const hookDef: LoadedHookDefinition = {
       hooks: {
         Stop: [{ hooks: [{ type: "command", command: "echo done" }] }],
@@ -63,8 +73,7 @@ describe("generateHooks", () => {
 
     const result = generateHooks(hookDef);
     const json = JSON.parse(result.files[0].content);
-    expect(json.$schema).toBe(HOOKS_JSON_SCHEMA_URL);
-    expect(Object.keys(json)[0]).toBe("$schema");
+    expect(json.$schema).toBeUndefined();
   });
 
   it("description が未指定の場合に省略されること", () => {
@@ -228,6 +237,7 @@ describe("generateHooks", () => {
                 type: "prompt",
                 prompt: "Is this safe? $ARGUMENTS",
                 model: "claude-haiku-4-5-20251001",
+                continueOnBlock: true,
               },
               {
                 type: "agent",
@@ -268,6 +278,7 @@ describe("generateHooks", () => {
       input: { path: "${tool_input.file_path}" },
     });
     expect(prompt.model).toBe("claude-haiku-4-5-20251001");
+    expect(prompt.continueOnBlock).toBe(true);
     expect(agent.model).toBe("claude-sonnet-5");
     expect(agent.timeout).toBe(60);
   });

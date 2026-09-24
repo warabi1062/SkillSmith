@@ -50,6 +50,7 @@ export interface PromptHookAction extends HookActionBase {
   type: typeof HOOK_TYPES.PROMPT;
   prompt: string; // $ARGUMENTS にフック入力 JSON が展開される
   model?: string; // 省略時は高速モデル
+  continueOnBlock?: boolean; // prompt が ok: false を返したとき、停止せず reason を Claude に返してターンを続ける（公式 JSON Schema に定義あり）
 }
 
 // agent 型: ツールを使えるサブエージェントで検証し、決定 JSON を返す（experimental）
@@ -88,6 +89,7 @@ export interface HookScript {
 
 // フック定義: hooks/hooks.json の構造
 export interface HookDefinition {
+  schema?: string; // hooks.json の $schema に出力する JSON Schema の URL（エディタ補完・検証用。Claude Code は読み込み時に無視する）
   description?: string;
   hooks: HookEventMap;
   scripts?: HookScript[]; // 同梱するスクリプトファイル

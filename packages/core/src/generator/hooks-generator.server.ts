@@ -12,7 +12,6 @@ import {
   HOOK_IF_ALLOWED_EVENTS,
   HOOK_MCP_TOOL_DISALLOWED_EVENTS,
   HOOK_TYPES,
-  HOOKS_JSON_SCHEMA_URL,
 } from "../types/constants";
 
 export interface GenerateHooksResult {
@@ -37,10 +36,12 @@ export function generateHooks(
   const files: GeneratedFile[] = [];
   const errors: GenerationValidationError[] = validateHooks(hookDef);
 
-  // hooks/hooks.json の生成（$schema はエディタ補完・検証用。Claude Code は読み込み時に無視する）
-  const hooksJsonContent: Record<string, unknown> = {
-    $schema: HOOKS_JSON_SCHEMA_URL,
-  };
+  // hooks/hooks.json の生成
+  // $schema は指定されたときだけ先頭に出力する（エディタ補完・検証用。Claude Code は読み込み時に無視する）
+  const hooksJsonContent: Record<string, unknown> = {};
+  if (hookDef.schema) {
+    hooksJsonContent.$schema = hookDef.schema;
+  }
   if (hookDef.description) {
     hooksJsonContent.description = hookDef.description;
   }

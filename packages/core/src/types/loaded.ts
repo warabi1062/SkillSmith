@@ -128,6 +128,7 @@ export interface LoadedHookScript {
 
 // ローダーが返すフック定義型
 export interface LoadedHookDefinition {
+  schema?: string;
   description?: string;
   hooks: import("./plugin").HookEventMap;
   scripts?: LoadedHookScript[];

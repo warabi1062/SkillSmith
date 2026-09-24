@@ -461,6 +461,7 @@ async function loadHookDefinition(
   }
 
   return {
+    schema: hookDef.schema,
     description: hookDef.description,
     hooks: hookDef.hooks,
     scripts: loadedScripts.length > 0 ? loadedScripts : undefined,

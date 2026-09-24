@@ -47,6 +47,9 @@ function collectMeta(action: HookAction): string[] {
         meta.push(`env: ${action.allowedEnvVars.join(", ")}`);
       break;
     case "prompt":
+      if (action.model) meta.push(`model: ${action.model}`);
+      if (action.continueOnBlock) meta.push("continueOnBlock");
+      break;
     case "agent":
       if (action.model) meta.push(`model: ${action.model}`);
       break;
