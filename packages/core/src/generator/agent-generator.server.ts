@@ -6,10 +6,14 @@ import type {
   Section,
   ModelSpec,
   EffortLevel,
-  AgentPermissionMode,
   AgentMemoryScope,
 } from "../types/skill";
-import { ERROR_CODES, FILE_PATHS } from "../types/constants";
+import { tool } from "../types/skill";
+import {
+  AGENT_NESTING_DISALLOWED_TOOL,
+  ERROR_CODES,
+  FILE_PATHS,
+} from "../types/constants";
 
 // Agent設定データ
 interface AgentConfigData {
@@ -17,7 +21,6 @@ interface AgentConfigData {
   effort?: EffortLevel;
   tools?: ToolRef[];
   disallowedTools?: ToolRef[];
-  permissionMode?: AgentPermissionMode;
   maxTurns?: number;
   memory?: AgentMemoryScope;
   isolation?: "worktree";
@@ -84,8 +87,7 @@ export function generateAgentMd(component: AgentComponentData): {
     model: config.model,
     effort: config.effort,
     tools: config.tools,
-    disallowedTools: config.disallowedTools,
-    permissionMode: config.permissionMode,
+    disallowedTools: withNestingDisallowed(config.disallowedTools),
     maxTurns: config.maxTurns,
     memory: config.memory,
     isolation: config.isolation,
@@ -101,4 +103,19 @@ export function generateAgentMd(component: AgentComponentData): {
     },
     errors,
   };
+}
+
+// disallowedTools に Agent を追加する（既にあれば重複させない）
+// Worker Agent から更に subagent を起動させないための設計方針を生成物で担保する
+function withNestingDisallowed(disallowedTools?: ToolRef[]): ToolRef[] {
+  const base = disallowedTools ?? [];
+  const alreadyIncluded = base.some(
+    (ref) =>
+      ref.type === "tool" &&
+      ref.name === AGENT_NESTING_DISALLOWED_TOOL &&
+      !ref.pattern,
+  );
+  return alreadyIncluded
+    ? base
+    : [...base, tool(AGENT_NESTING_DISALLOWED_TOOL)];
 }

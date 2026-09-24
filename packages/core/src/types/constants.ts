@@ -31,6 +31,7 @@ export const ERROR_CODES = {
   HOOK_EMPTY_ENTRY: "HOOK_EMPTY_ENTRY",
   HOOK_IF_NOT_ALLOWED: "HOOK_IF_NOT_ALLOWED",
   HOOK_MCP_TOOL_NOT_ALLOWED: "HOOK_MCP_TOOL_NOT_ALLOWED",
+  HOOK_PROMPT_NOT_ALLOWED: "HOOK_PROMPT_NOT_ALLOWED",
   HOOK_AGENT_NOT_ALLOWED: "HOOK_AGENT_NOT_ALLOWED",
   HOOK_MISSING_SCRIPT: "HOOK_MISSING_SCRIPT",
   HOOK_UNQUOTED_PLUGIN_ROOT: "HOOK_UNQUOTED_PLUGIN_ROOT",
@@ -68,17 +69,6 @@ export const SKILL_DESCRIPTION_MAX_LENGTH = 1536;
 // marketplace.json の $schema に出力する公式 JSON Schema の URL
 export const MARKETPLACE_JSON_SCHEMA_URL =
   "https://www.schemastore.org/claude-code-marketplace.json";
-
-// agent.md の permissionMode に指定できる値
-export const AGENT_PERMISSION_MODES = [
-  "default",
-  "acceptEdits",
-  "auto",
-  "dontAsk",
-  "bypassPermissions",
-  "plan",
-  "manual",
-] as const;
 
 // agent.md の memory に指定できる値
 export const AGENT_MEMORY_SCOPES = ["user", "project", "local"] as const;
@@ -153,5 +143,33 @@ export const HOOK_MCP_TOOL_DISALLOWED_EVENTS = [
   "Setup",
 ] as const;
 
-// `agent` 型が使えないイベント（command / http 型のみ許可）
-export const HOOK_AGENT_DISALLOWED_EVENTS = ["PermissionRequest"] as const;
+// `prompt` 型・`agent` 型の両方が使えるイベント
+// （公式ドキュメント「Events that support all five hook types」の一覧。
+//  それ以外のイベントは command / http / mcp_tool のみ対応）
+export const HOOK_LLM_ALLOWED_EVENTS = [
+  "PermissionDenied",
+  "PostToolBatch",
+  "PostToolUse",
+  "PostToolUseFailure",
+  "PreToolUse",
+  "Stop",
+  "SubagentStop",
+  "TaskCompleted",
+  "TaskCreated",
+  "TeammateIdle",
+  "UserPromptExpansion",
+  "UserPromptSubmit",
+] as const;
+
+// `prompt` 型が使えるイベント（上記に加えて PermissionRequest でも使える）
+export const HOOK_PROMPT_ALLOWED_EVENTS = [
+  ...HOOK_LLM_ALLOWED_EVENTS,
+  "PermissionRequest",
+] as const;
+
+// `agent` 型が使えるイベント（PermissionRequest では command / http / mcp_tool / prompt のみ許可）
+export const HOOK_AGENT_ALLOWED_EVENTS = HOOK_LLM_ALLOWED_EVENTS;
+
+// Worker の agent.md に常に付与する disallowedTools
+// SkillSmith は subagent の連鎖的増殖を防ぐ設計方針として、Worker Agent から更に Agent を起動させない
+export const AGENT_NESTING_DISALLOWED_TOOL = "Agent";

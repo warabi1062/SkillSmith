@@ -2,7 +2,6 @@
 
 import {
   AGENT_MEMORY_SCOPES,
-  AGENT_PERMISSION_MODES,
   EFFORT_LEVELS,
   SKILL_TYPES,
   TOOL_REF_TYPES,
@@ -118,21 +117,18 @@ export type ModelSpec = "sonnet" | "opus" | "haiku" | "inherit" | (string & {});
 // effort に指定できる値
 export type EffortLevel = (typeof EFFORT_LEVELS)[number];
 
-// agent.md の permissionMode に指定できる値
-export type AgentPermissionMode = (typeof AGENT_PERMISSION_MODES)[number];
-
 // agent.md の memory に指定できる値
 export type AgentMemoryScope = (typeof AGENT_MEMORY_SCOPES)[number];
 
 // Agent設定（WorkerWithSubAgent用）
 // description + beforeSections/afterSections から content を自動生成
 // frontmatter フィールドは Claude Code の sub-agents 仕様（https://code.claude.com/docs/en/sub-agents）に準拠
+// プラグイン配下の agent では無視される permissionMode / hooks / mcpServers は受け付けない
 export interface AgentConfig {
   model?: ModelSpec;
   effort?: EffortLevel;
   tools?: ToolRef[];
-  disallowedTools?: ToolRef[]; // tools やデフォルトから除外するツール
-  permissionMode?: AgentPermissionMode;
+  disallowedTools?: ToolRef[]; // tools やデフォルトから除外するツール（Agent は常に自動付与される）
   maxTurns?: number; // エージェントの最大ターン数
   memory?: AgentMemoryScope; // 永続メモリのスコープ
   isolation?: "worktree"; // 一時 git worktree で隔離実行

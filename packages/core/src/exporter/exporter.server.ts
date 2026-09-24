@@ -3,6 +3,7 @@ import {
   writeFile,
   access,
   copyFile,
+  chmod,
   rm,
   mkdtemp,
 } from "node:fs/promises";
@@ -12,6 +13,10 @@ import type { LoadedPluginDefinition } from "../types/loaded";
 import type { GenerationValidationError } from "../generator/types";
 import { generatePlugin } from "../generator/index";
 import { isWithinDirectory } from "../core/path-validation.server";
+
+// 書き出すファイルのパーミッション
+const REGULAR_FILE_MODE = 0o644;
+const EXECUTABLE_FILE_MODE = 0o755; // hook スクリプト用（exec form で直接 spawn されるため実行権限が必要）
 
 export interface ExportOptions {
   targetDir: string;
@@ -70,6 +75,9 @@ export async function exportPlugin(
   const tempDir = await mkdtemp(path.join(tmpdir(), "skillsmith-export-"));
 
   try {
+    // 実行権限付きで書き出すファイル（Phase 2 で上書きコピーした後に権限を再適用する）
+    const executableFiles = new Set<string>();
+
     // Phase 1: Write all files to the temporary directory
     for (const file of generatedPlugin.files) {
       const targetFilePath = path.resolve(resolvedTargetDir, file.path);
@@ -98,8 +106,14 @@ export async function exportPlugin(
 
       try {
         await mkdir(tempFileDir, { recursive: true });
-        await writeFile(tempFilePath, file.content, "utf-8");
+        await writeFile(tempFilePath, file.content, {
+          encoding: "utf-8",
+          mode: file.executable ? EXECUTABLE_FILE_MODE : REGULAR_FILE_MODE,
+        });
         result.writtenFiles.push(file.path);
+        if (file.executable) {
+          executableFiles.add(file.path);
+        }
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Unknown error writing file";
@@ -124,6 +138,10 @@ export async function exportPlugin(
         await mkdir(destDir, { recursive: true });
         await copyFile(src, dest);
         copiedFiles.push(dest);
+        // copyFile は既存ファイルを上書きしてもモードを引き継がないため、明示的に付与する
+        if (executableFiles.has(filePath)) {
+          await chmod(dest, EXECUTABLE_FILE_MODE);
+        }
       }
     } catch (err) {
       // Rollback: remove all files that were successfully copied

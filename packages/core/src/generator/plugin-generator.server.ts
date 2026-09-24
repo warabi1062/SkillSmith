@@ -159,7 +159,6 @@ export function generateSkillComponent(
         effort: skill.agentConfig.effort,
         tools: skill.agentConfig.tools,
         disallowedTools: skill.agentConfig.disallowedTools,
-        permissionMode: skill.agentConfig.permissionMode,
         maxTurns: skill.agentConfig.maxTurns,
         memory: skill.agentConfig.memory,
         isolation: skill.agentConfig.isolation,

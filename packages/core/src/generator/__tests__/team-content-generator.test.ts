@@ -234,4 +234,10 @@ describe("generateTeamContent", () => {
     expect(result).toContain("implementer・reviewerの2名体制");
     expect(result).toContain("メインエージェントはリーダーとして参加する");
   });
+
+  it("Agent Teams が experimental であり有効化フラグが必要な旨を概要に含める", () => {
+    const result = generateTeamContent(makeInput());
+
+    expect(result).toContain("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1");
+  });
 });

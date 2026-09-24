@@ -13,6 +13,10 @@ export interface TeamContentInput {
   requiresUserApproval?: boolean; // レビューPASS後にユーザー承認を得るか
 }
 
+// Agent Teams の前提条件（experimental 機能のため、フラグが無効なら通常の subagent として起動される）
+const AGENT_TEAMS_PREREQUISITE =
+  "この skill は Agent Teams（experimental）を前提とする。`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` が設定されていない環境では、名前付きの Agent ツール呼び出しは teammate にならず通常の subagent として起動されるため、実行前に設定を確認し、無効な場合はユーザーに有効化を依頼して中断する。";
+
 // 全メンバーが従うメッセージ送受信の制約
 const MEMBER_MESSAGING_CONSTRAINT =
   "メンバー間のメッセージ送受信は確認応答方式で行う。受信側はまず受領確認を送信元に返し、その後に作業を開始する。送信側は確認が返らない場合メッセージを再送する（最大5回）";
@@ -83,6 +87,8 @@ export function generateTeamContent(input: TeamContentInput): string {
   lines.push(
     `${memberNames.join("・")}の${memberNames.length}名体制で作業を行う。チームを作成し、下記Teammateセクションの各メンバーの役割・制約・手順を prompt として渡して起動する。メインエージェントはリーダーとして参加する。`,
   );
+  lines.push("");
+  lines.push(AGENT_TEAMS_PREREQUISITE);
 
   // 入力セクション
   lines.push(...renderListSection("入力", input.input));

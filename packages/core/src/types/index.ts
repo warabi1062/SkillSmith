@@ -18,7 +18,6 @@ export type {
   ModelSpec,
   SkillModel,
   EffortLevel,
-  AgentPermissionMode,
   AgentMemoryScope,
   Branch,
   InlineStep,

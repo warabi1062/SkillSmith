@@ -62,11 +62,11 @@ Componentは `pluginId` と `type`（SKILL / AGENT）だけを持ち、固有の
 
 ### 4. Entry-point同士の呼び出しを許可する
 
-**reference.md での制約**: 「Sub Agentは更にSub Agentを生成できない」ため、実質的に Entry-point が別の Entry-point を呼び出すことは想定されていない。
+**reference.md での制約**: 「Sub Agent のネストは禁止」という設計方針のため、実質的に Entry-point が別の Entry-point を呼び出すことは想定されていない。
 
 **ツール設計での判断**: この制約を緩和し、Entry-point 同士の依存を ComponentDependency で登録可能にする。
 
-**理由**: 元の制約は人間が手動で依存関係を管理する前提での複雑さ回避策だった。SkillSmith で依存関係を可視化・管理できるようになれば、この制約は不要になる。ただし Claude Code ランタイムの制約（Sub Agent が Sub Agent を生成できない）は依然として存在するため、実行時にどう展開するかはアプリケーション側で考慮する必要がある。
+**理由**: 元の制約は人間が手動で依存関係を管理する前提での複雑さ回避策だった。SkillSmith で依存関係を可視化・管理できるようになれば、この制約は不要になる。ただし SkillSmith の設計方針（Worker Agent から更に Agent を起動させない。生成される agent.md には `disallowedTools: [Agent]` が付与される）は維持するため、Entry-point 同士の依存を実行時にどう展開するかはアプリケーション側で考慮する必要がある。
 
 ### 5. Agent→Skillの依存をWORKERのみに制限する
 
