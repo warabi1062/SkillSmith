@@ -28,7 +28,21 @@ export {
 } from "./skill";
 
 // Plugin 関連
-export type { PluginDefinition } from "./plugin";
+export type {
+  PluginDefinition,
+  HookDefinition,
+  HookEventMap,
+  HookEvent,
+  HookType,
+  HookEntry,
+  HookAction,
+  CommandHookAction,
+  HttpHookAction,
+  McpToolHookAction,
+  PromptHookAction,
+  AgentHookAction,
+  HookScript,
+} from "./plugin";
 
 // Marketplace 関連
 export type {

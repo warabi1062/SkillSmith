@@ -76,6 +76,7 @@ describe("export コマンド", () => {
       writtenFiles: [".claude-plugin/plugin.json", "skills/my-skill/SKILL.md"],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
 
     try {
@@ -152,6 +153,7 @@ describe("export コマンド", () => {
       writtenFiles: [],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
 
     try {
@@ -187,6 +189,7 @@ describe("export コマンド", () => {
       writtenFiles: ["skills/a/SKILL.md"],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
 
     try {
@@ -229,6 +232,7 @@ describe("export コマンド", () => {
       writtenFiles: [],
       skippedFiles: [],
       errors: ["Write failed"],
+      validationErrors: [],
     });
 
     try {
@@ -267,6 +271,81 @@ describe("export コマンド", () => {
       const errorOutput = stderrData.join("");
       expect(errorOutput).toContain("[io]");
       expect(errorOutput).toContain("ファイルが見つかりません");
+    } finally {
+      cleanup();
+    }
+  });
+  it("severity が warning のバリデーション結果を成功出力の warnings に含める", async () => {
+    // Arrange
+    registerExportCommand();
+    const { stdoutData, cleanup } = captureProcessOutput();
+
+    vi.mocked(access).mockResolvedValue(undefined);
+    vi.mocked(loadPluginDefinition).mockResolvedValue({
+      name: "test-plugin",
+      skills: [],
+    });
+    vi.mocked(exportPlugin).mockResolvedValue({
+      success: true,
+      exportedDir: "/tmp/output",
+      writtenFiles: ["hooks/hooks.json"],
+      skippedFiles: [],
+      errors: [],
+      validationErrors: [
+        {
+          severity: "warning",
+          code: "HOOK_UNKNOWN_EVENT",
+          message: "Unknown hook event Foo",
+          field: "hooks.Foo",
+        },
+      ],
+    });
+
+    try {
+      // Act
+      const exitCode = await route(
+        ["plugin", "export", "./plugin.ts", "--output", "/tmp/output"],
+        noop,
+      );
+
+      // Assert
+      expect(exitCode).toBe(0);
+      const output = stdoutData.join("");
+      expect(output).toContain("warnings");
+      expect(output).toContain("hooks.Foo: Unknown hook event Foo");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("warning がなければ成功出力に warnings キーを含めない", async () => {
+    // Arrange
+    registerExportCommand();
+    const { stdoutData, cleanup } = captureProcessOutput();
+
+    vi.mocked(access).mockResolvedValue(undefined);
+    vi.mocked(loadPluginDefinition).mockResolvedValue({
+      name: "test-plugin",
+      skills: [],
+    });
+    vi.mocked(exportPlugin).mockResolvedValue({
+      success: true,
+      exportedDir: "/tmp/output",
+      writtenFiles: [],
+      skippedFiles: [],
+      errors: [],
+      validationErrors: [],
+    });
+
+    try {
+      // Act
+      await route(
+        ["plugin", "export", "./plugin.ts", "--output", "/tmp/output"],
+        noop,
+      );
+
+      // Assert
+      expect(stdoutData.join("")).not.toContain("warnings");
     } finally {
       cleanup();
     }

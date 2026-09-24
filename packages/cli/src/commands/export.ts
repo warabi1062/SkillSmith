@@ -71,10 +71,16 @@ export function registerExportCommand(): void {
           return 1;
         }
 
+        // severity が warning のバリデーション結果は書き出しを止めないが、ユーザーに見せる
+        const warnings = result.validationErrors
+          .filter((e) => e.severity === "warning")
+          .map((e) => (e.field ? `${e.field}: ${e.message}` : e.message));
+
         output.success({
           exportedDir: result.exportedDir,
           writtenFiles: result.writtenFiles,
           skippedFiles: result.skippedFiles,
+          ...(warnings.length > 0 ? { warnings } : {}),
         });
         return 0;
       } catch (err) {
