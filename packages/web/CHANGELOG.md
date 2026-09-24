@@ -1,5 +1,36 @@
 # @warabi1062/skillsmith-viewer
 
+## 1.1.0
+
+### Minor Changes
+
+- d085dc9: hooks 定義を Claude Code の最新仕様に対応させた。
+
+  - `HookAction` を `command` / `http` / `mcp_tool` / `prompt` / `agent` の 5 種の Discriminated Union に拡張。共通フィールド `timeout` / `statusMessage` / `if`、command 型の `args` / `async` / `asyncRewake` / `shell`、prompt 型の `model` / `continueOnBlock`、agent 型の `model` を追加
+  - イベント名を `HookEvent` 型（公式の全イベント）として定義。既知のイベントは補完・型チェックの対象になり、未知のイベント名は警告付きで通す
+  - `generateHooks` が仕様違反を検証するようになった（空エントリ、ツール系以外での `if`、SessionStart/Setup での `mcp_tool`、未同梱スクリプトの参照、未クォートの `${CLAUDE_PLUGIN_ROOT}`）
+  - `HookDefinition.schema` を指定すると `hooks/hooks.json` の先頭に `$schema` を出力
+  - `exportPlugin` が生成時のバリデーション結果を `validationErrors` として返すようになった。severity が error のものがあれば書き出さずに失敗し、warning は CLI の成功出力に `warnings` として表示する（従来は全て無視されていた）
+  - viewer のプラグイン詳細に Hooks セクションを追加
+  - example の code-review プラグインを新フィールドを使う形に更新（`timeout` の単位誤りも修正）
+  - docs/reference.md に hooks の節を追加
+
+- 3b8b474: Skill / Agent / plugin.json / marketplace.json の生成を Claude Code の最新仕様に対応させた。
+
+  - `Skill` に `effort` / `disallowedTools` / `arguments` / `paths` / `whenToUse` を追加し、対応する frontmatter を生成する。`description` + `when_to_use` が 1,536 文字を超えると警告する
+  - `SkillModel` / `Teammate.model` / `AgentConfig.model` をエイリアス・`inherit` に加えてフル ID も書ける `ModelSpec` 型に緩和
+  - `AgentConfig` に `effort` / `disallowedTools` / `permissionMode` / `maxTurns` / `memory` / `isolation` を追加し、agent.md の frontmatter に出力する
+  - `PluginDefinition` に `version` / `author` / `homepage` / `repository` / `license` / `keywords` を追加し、plugin.json に出力する
+  - marketplace.json の `$schema` を実在する公式 URL（schemastore）に修正。`owner` を必須にし、欠落時は生成エラーにする
+  - オーケストレーターの SKILL.md で「Task ツール」と書いていた箇所を公式名の「Agent ツール」に修正（docs / CLAUDE.md も同様）
+
+### Patch Changes
+
+- Updated dependencies [7670b37]
+- Updated dependencies [d085dc9]
+- Updated dependencies [3b8b474]
+  - @warabi1062/skillsmith-core@1.1.0
+
 ## 1.0.4
 
 ### Patch Changes
