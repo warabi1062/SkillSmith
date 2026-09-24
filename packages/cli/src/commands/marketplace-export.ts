@@ -60,7 +60,12 @@ export function registerMarketplaceExportCommand(): void {
       }
 
       // marketplace.plugins の順序で各プラグインをエクスポート
-      const results: { name: string; success: boolean; error?: string }[] = [];
+      const results: {
+        name: string;
+        success: boolean;
+        error?: string;
+        warnings?: string[];
+      }[] = [];
 
       for (const pluginDef of marketplaceDef.plugins) {
         const pluginDirPath = path.join(pluginsDir, pluginDef.name);
@@ -85,7 +90,15 @@ export function registerMarketplaceExportCommand(): void {
               error: result.errors.join("; "),
             });
           } else {
-            results.push({ name: pluginDef.name, success: true });
+            // severity が warning のバリデーション結果は書き出しを止めないが、ユーザーに見せる
+            const warnings = result.validationErrors
+              .filter((e) => e.severity === "warning")
+              .map((e) => (e.field ? `${e.field}: ${e.message}` : e.message));
+            results.push({
+              name: pluginDef.name,
+              success: true,
+              ...(warnings.length > 0 ? { warnings } : {}),
+            });
           }
         } catch (err) {
           const message =
@@ -152,11 +165,17 @@ export function registerMarketplaceExportCommand(): void {
         return 1;
       }
 
+      // プラグイン名を接頭辞にして warning を平坦化する
+      const warnings = results.flatMap((r) =>
+        (r.warnings ?? []).map((w) => `${r.name}: ${w}`),
+      );
+
       output.success({
         marketplace: resolvedMarketplaceDir,
         exportedPlugins: results.map((r) => r.name),
         marketplaceJson: marketplaceJsonPath,
         outputDir,
+        ...(warnings.length > 0 ? { warnings } : {}),
       });
       return 0;
     },

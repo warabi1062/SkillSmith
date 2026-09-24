@@ -9,6 +9,7 @@ import {
 import path from "node:path";
 import { tmpdir } from "node:os";
 import type { LoadedPluginDefinition } from "../types/loaded";
+import type { GenerationValidationError } from "../generator/types";
 import { generatePlugin } from "../generator/index";
 import { isWithinDirectory } from "../core/path-validation.server";
 
@@ -23,6 +24,15 @@ export interface ExportResult {
   writtenFiles: string[];
   skippedFiles: string[];
   errors: string[];
+  // 生成時のバリデーション結果（warning を含む）。severity が error のものがあれば書き出しは行わない
+  validationErrors: GenerationValidationError[];
+}
+
+// バリデーションエラーを人間向けの1行メッセージにする
+function formatValidationError(error: GenerationValidationError): string {
+  const location = error.field ?? error.skillName;
+  const prefix = location ? `${location}: ` : "";
+  return `${prefix}${error.message} [${error.code}]`;
 }
 
 export async function exportPlugin(
@@ -35,12 +45,25 @@ export async function exportPlugin(
     writtenFiles: [],
     skippedFiles: [],
     errors: [],
+    validationErrors: [],
   };
 
   // generatePlugin は同期関数
   const generateResult = generatePlugin(plugin);
 
   const { plugin: generatedPlugin } = generateResult;
+  result.validationErrors = generatedPlugin.validationErrors;
+
+  // severity が error のバリデーション結果があれば、生成物が仕様違反なので書き出さずに中断する
+  // （warning は書き出しを止めず、呼び出し側が validationErrors から表示する）
+  const fatalValidationErrors = generatedPlugin.validationErrors.filter(
+    (e) => e.severity === "error",
+  );
+  if (fatalValidationErrors.length > 0) {
+    result.errors.push(...fatalValidationErrors.map(formatValidationError));
+    return result;
+  }
+
   const resolvedTargetDir = path.resolve(options.targetDir);
 
   // Create a temporary directory to stage all writes
