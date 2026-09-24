@@ -432,6 +432,120 @@ describe("validateHooks", () => {
     expect(findByCode(errors, ERROR_CODES.HOOK_AGENT_NOT_ALLOWED)).toHaveLength(
       1,
     );
+    expect(errors[0].field).toBe("hooks.PermissionRequest[0].hooks[0].type");
+  });
+
+  it("PermissionRequest での prompt は許可すること", () => {
+    const hookDef: LoadedHookDefinition = {
+      hooks: {
+        PermissionRequest: [
+          { hooks: [{ type: "prompt", prompt: "Check $ARGUMENTS" }] },
+        ],
+      },
+    };
+    expect(validateHooks(hookDef)).toHaveLength(0);
+  });
+
+  it("prompt / agent に対応していないイベント（SessionStart / PreCompact / PreModelSwitch 等）ではエラーにすること", () => {
+    for (const event of [
+      "SessionStart",
+      "Setup",
+      "SessionEnd",
+      "Notification",
+      "MessageDisplay",
+      "PreCompact",
+      "PostCompact",
+      "PreModelSwitch",
+      "PostModelSwitch",
+      "SubagentStart",
+      "ConfigChange",
+    ] as const) {
+      const hookDef: LoadedHookDefinition = {
+        hooks: {
+          [event]: [
+            {
+              hooks: [
+                { type: "prompt", prompt: "Check $ARGUMENTS" },
+                { type: "agent", prompt: "Check $ARGUMENTS" },
+              ],
+            },
+          ],
+        },
+      };
+      const errors = validateHooks(hookDef);
+      expect(
+        findByCode(errors, ERROR_CODES.HOOK_PROMPT_NOT_ALLOWED),
+        event,
+      ).toHaveLength(1);
+      expect(
+        findByCode(errors, ERROR_CODES.HOOK_AGENT_NOT_ALLOWED),
+        event,
+      ).toHaveLength(1);
+    }
+  });
+
+  it("prompt / agent に対応しているイベント（PreToolUse / Stop / UserPromptSubmit 等）では許可すること", () => {
+    for (const event of [
+      "PreToolUse",
+      "PostToolUse",
+      "PostToolUseFailure",
+      "PostToolBatch",
+      "PermissionDenied",
+      "Stop",
+      "SubagentStop",
+      "TaskCreated",
+      "TaskCompleted",
+      "TeammateIdle",
+      "UserPromptSubmit",
+      "UserPromptExpansion",
+    ] as const) {
+      const hookDef: LoadedHookDefinition = {
+        hooks: {
+          [event]: [
+            {
+              hooks: [
+                { type: "prompt", prompt: "Check $ARGUMENTS" },
+                { type: "agent", prompt: "Check $ARGUMENTS" },
+              ],
+            },
+          ],
+        },
+      };
+      expect(validateHooks(hookDef), event).toHaveLength(0);
+    }
+  });
+
+  it("未知のイベントでの prompt / agent は HOOK_UNKNOWN_EVENT の警告のみとし、型エラーにはしないこと", () => {
+    const hookDef: LoadedHookDefinition = {
+      hooks: {
+        BrandNewEvent: [
+          { hooks: [{ type: "prompt", prompt: "Check $ARGUMENTS" }] },
+        ],
+      },
+    };
+    const errors = validateHooks(hookDef);
+    expect(findByCode(errors, ERROR_CODES.HOOK_UNKNOWN_EVENT)).toHaveLength(1);
+    expect(
+      findByCode(errors, ERROR_CODES.HOOK_PROMPT_NOT_ALLOWED),
+    ).toHaveLength(0);
+  });
+
+  it("スクリプトファイルは executable フラグ付きで生成すること", () => {
+    const hookDef: LoadedHookDefinition = {
+      hooks: {
+        Stop: [{ hooks: [{ type: "command", command: "echo done" }] }],
+      },
+      scripts: [{ filename: "run.sh", content: "#!/bin/bash\nexit 0\n" }],
+    };
+    const result = generateHooks(hookDef);
+    const script = result.files.find(
+      (f) => f.path === `${FILE_PATHS.SCRIPTS_DIR}run.sh`,
+    );
+    expect(script?.executable).toBe(true);
+    const hooksJson = result.files.find(
+      (f) => f.path === FILE_PATHS.HOOKS_JSON,
+    );
+    expect(hooksJson?.executable).toBeUndefined();
   });
 
   it("command が参照するスクリプトが同梱されていなければエラーにすること", () => {

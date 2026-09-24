@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readdir, rm, stat, writeFile, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { tmpdir } from "node:os";
@@ -72,6 +72,73 @@ describe("exportPlugin", () => {
     expect(result.validationErrors[0].code).toBe(
       ERROR_CODES.HOOK_UNKNOWN_EVENT,
     );
+  });
+
+  it("hook スクリプトを実行権限付き（0o755）で書き出し、それ以外は 0o644 で書き出すこと", async () => {
+    const plugin: LoadedPluginDefinition = {
+      name: "exec-scripts",
+      skills: [],
+      hooks: {
+        hooks: {
+          Stop: [
+            {
+              hooks: [
+                {
+                  type: "command",
+                  command: "${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh",
+                  args: ["done"],
+                },
+              ],
+            },
+          ],
+        },
+        scripts: [{ filename: "notify.sh", content: "#!/bin/bash\necho ok\n" }],
+      },
+    };
+
+    const result = await exportPlugin(plugin, { targetDir, overwrite: true });
+
+    expect(result.success).toBe(true);
+    const scriptMode =
+      (await stat(path.join(targetDir, "scripts/notify.sh"))).mode & 0o777;
+    expect(scriptMode).toBe(0o755);
+    const hooksJsonMode =
+      (await stat(path.join(targetDir, FILE_PATHS.HOOKS_JSON))).mode & 0o777;
+    expect(hooksJsonMode).toBe(0o644);
+  });
+
+  it("既存の非実行ファイルを上書きしても hook スクリプトは実行権限付きになること", async () => {
+    const plugin: LoadedPluginDefinition = {
+      name: "exec-scripts-overwrite",
+      skills: [],
+      hooks: {
+        hooks: {
+          Stop: [
+            {
+              hooks: [
+                {
+                  type: "command",
+                  command: "${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh",
+                  args: ["done"],
+                },
+              ],
+            },
+          ],
+        },
+        scripts: [{ filename: "notify.sh", content: "#!/bin/bash\necho ok\n" }],
+      },
+    };
+    await mkdir(path.join(targetDir, "scripts"), { recursive: true });
+    await writeFile(path.join(targetDir, "scripts/notify.sh"), "old", {
+      mode: 0o644,
+    });
+
+    const result = await exportPlugin(plugin, { targetDir, overwrite: true });
+
+    expect(result.success).toBe(true);
+    const scriptMode =
+      (await stat(path.join(targetDir, "scripts/notify.sh"))).mode & 0o777;
+    expect(scriptMode).toBe(0o755);
   });
 
   it("バリデーション結果がなければ validationErrors が空配列であること", async () => {

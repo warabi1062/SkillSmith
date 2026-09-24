@@ -111,10 +111,10 @@ Skill は役割によって3つのパターンに分類される。
 
 **オーケストレーター型は Skill として作ること（Agent にしない）**:
 - オーケストレーターは `Agent(subagent_type: ...)` で他の agent を呼び出す必要がある
-- Agent（Subagent）は更に Subagent を生成できない（[公式ドキュメント: Sub-agents - Limitations](https://docs.anthropic.com/en/docs/claude-code/sub-agents#limitations)）
-- Skill はメインコンテキストで実行されるため、Agent ツールで自由に Subagent を呼べる
-- `context: fork` + カスタム Agent の組み合わせも、fork 先が Subagent になるため同じ制約を受ける
-- 唯一の例外は `claude --agent` でメインスレッドとして起動する場合だが、`/skill-name` での呼び出しとは別の使い方になる
+- SkillSmith では **Subagent のネストを設計方針として禁止する**。Claude Code 自体はデフォルトで 3 階層までのネストを許可している（[公式ドキュメント: Sub-agents](https://code.claude.com/docs/en/sub-agents)、`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` で変更可）が、subagent の連鎖的増殖によるコンテキスト・コストの爆発を防ぐため、Worker Agent から更に Agent を起動させない。生成される Worker の agent.md には `disallowedTools: [Agent]` が自動付与される
+- Skill はメインコンテキストで実行されるため、Agent ツールで Subagent を呼べる
+- `context: fork` + カスタム Agent の組み合わせは fork 先が Subagent になるため、オーケストレーターには使わない
+- Agent Teams の teammate は Claude Code の仕様上も nested spawn ができない
 
 #### Worker skill
 
@@ -153,7 +153,7 @@ Entry-point skill（主にオーケストレーター型）のステップとし
 - メインスレッドで手順通りに実行すれば済む（例: slack-notify, memory-manager, retrospective）
 
 **ルール**:
-- **Entry-point skill（オーケストレーター型）**: Skillとして作成する（Agentにしない）。Subagentは更にSubagentを生成できないため
+- **Entry-point skill（オーケストレーター型）**: Skillとして作成する（Agentにしない）。Worker Agent からの Subagent 起動は設計方針として禁止しているため
 - **Worker skill**: 必ず対応するAgentを作成し、Agentの`skills:`でプリロードする。オーケストレーターはAgentを呼び出す（Skillを直接呼ばない）
 - **Cross-cutting skill**: Entry-point skillから直接参照しない。CLAUDE.mdからグローバルに注入する
 
@@ -204,7 +204,7 @@ allowed-tools:
 #### 読み取り専用系
 調査・分析・レビュー系のスキル向き:
 ```
-Read, Grep, Glob, Task
+Read, Grep, Glob, Agent
 ```
 
 #### 読み書き系
@@ -252,11 +252,13 @@ ToolSearch    # 未知のMCPツールを動的に発見する場合に追加
 
 | スキルの性質 | allowed-tools |
 |------------|---------------|
-| 調査・レビュー | Read, Grep, Glob, Task |
+| 調査・レビュー | Read, Grep, Glob, Agent |
 | レポート書き出し | Read, Write, Grep, Glob |
-| コード実装 | Read, Write, Edit, Grep, Glob, Bash, Task, ToolSearch |
-| PR操作 | Read, Grep, Glob, Bash(git *), Bash(gh *), Task |
-| Linearチケット操作 | Read, Grep, Glob, Task, ToolSearch, Linear MCP系 |
+| コード実装 | Read, Write, Edit, Grep, Glob, Bash, Agent, ToolSearch |
+| PR操作 | Read, Grep, Glob, Bash(git *), Bash(gh *), Agent |
+| Linearチケット操作 | Read, Grep, Glob, Agent, ToolSearch, Linear MCP系 |
+
+`Task` は v2.1.63 で `Agent` に改名された旧名。互換エイリアスとして動作するが、新規に書く場合は `Agent` を使う。上記は Entry-point skill（メインコンテキストで実行）向けの例で、Worker の agent.md では `Agent` は `disallowedTools` に自動付与される。
 
 ### スキルのディレクトリ構造
 
@@ -285,7 +287,11 @@ Worker skill の実装形態のひとつ。Worker は通常 1 つの Sub Agent �
 
 ### AgentTeam とは
 
+公式ドキュメント: https://code.claude.com/docs/en/agent-teams
+
 - リーダー（メインエージェント）＋複数の member agent を 1 つのチームとして並行稼働させる機構
+- **experimental 機能で、デフォルトでは無効**。`settings.json` の `env` に `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` を設定する必要がある。無効な環境では名前付きの Agent ツール呼び出しは teammate にならず、通常の subagent として起動される。SkillSmith が生成する team skill の冒頭にはこの前提の記述が出力され、無効時はユーザーに有効化を依頼して中断する
+- teammate には agent 定義の `skills:` が適用されない。このため team skill は各 member の役割・制約・手順を SKILL.md 本文に全文記述し、リーダーが prompt に転記する方式を採る
 - 各 member はチームが存続している間、相互にメッセージを送受信できる。会話はチームを解散するまで継続する
 - 対比として、オーケストレーター型 Entry-point は Sub Agent を直列に単発呼び出しするだけで、呼び出し先は都度終了する。メンバー間の往復や並行稼働が必要な場合に AgentTeam を使う
 
@@ -308,7 +314,8 @@ name: {skill-name}
 description: {N名体制で何をするか}
 user-invocable: false
 allowed-tools:
-  - Task             # チームの作成・メッセージ送受信に必要
+  - Agent            # teammate のスポーンに必要
+  - SendMessage      # teammate へのメッセージ送信に必要
   - Read             # 以下は用途に応じて
   - Write
   - ...
@@ -425,7 +432,7 @@ Agent ツールの `subagent_type` で指定して起動される。
 | `tools` | No | 使用可能なツールのリスト |
 | `disallowedTools` | No | 拒否するツールのリスト。`tools`やデフォルトから除外される |
 | `skills` | No | プリロードするスキルのリスト。スキルの全文がシステムプロンプトに注入される |
-| `permissionMode` | No | 権限モード。`default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan`, `manual` |
+| `permissionMode` | No | 権限モード。**プラグイン配下の agent では無視される**（`hooks` / `mcpServers` も同様。セキュリティ上の理由） |
 | `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`xhigh`/`max` |
 | `maxTurns` | No | エージェントの最大ターン数。無限ループ防止に有効 |
 | `mcpServers` | No | エージェントにスコープされたMCPサーバー。名前参照またはインライン定義 |
@@ -434,7 +441,9 @@ Agent ツールの `subagent_type` で指定して起動される。
 | `background` | No | `true`で常にバックグラウンドタスクとして実行。デフォルト: `false` |
 | `isolation` | No | `worktree`で一時的なgit worktreeで隔離実行。変更がなければ自動クリーンアップ |
 
-SkillSmith の `AgentConfig` は `model` / `effort` / `tools` / `disallowedTools` / `permissionMode` / `maxTurns` / `memory` / `isolation` を受け付ける。`mcpServers` / `hooks` / `background` は現時点では生成しない。
+SkillSmith の `AgentConfig` は `model` / `effort` / `tools` / `disallowedTools` / `maxTurns` / `memory` / `isolation` を受け付ける。`permissionMode` / `mcpServers` / `hooks` はプラグイン配下の agent では Claude Code が無視するため受け付けない。`background` は現時点では生成しない。
+
+`disallowedTools` には `Agent` が常に自動付与される（Subagent のネスト禁止の設計方針。詳細は「オーケストレーター型は Skill として作ること」を参照）。
 
 ### tools 選定ガイド
 
@@ -467,7 +476,6 @@ tools:
   - Grep
   - Glob
   - Bash
-  - Task
 ```
 
 #### 外部API系
@@ -499,8 +507,8 @@ skills:
 | triage-agent | チケット情報精査 | sonnet | (なし・スキル経由) | linear-triage |
 | split-agent | チケット分割判断 | sonnet | (なし・スキル経由) | linear-split |
 | bug-reproduction-agent | バグ再現確認 | inherit | Read,Bash,Write,Glob,AskUserQuestion | capture-bug-reproduction |
-| plan-agent | 実装計画作成 | inherit | Read,Grep,Glob,Write,Task,ToolSearch | plan-implementation |
-| implement-agent | コード実装 | inherit | Read,Write,Edit,Grep,Glob,Bash,Task | implement |
+| plan-agent | 実装計画作成 | inherit | Read,Grep,Glob,Write,ToolSearch | plan-implementation |
+| implement-agent | コード実装 | inherit | Read,Write,Edit,Grep,Glob,Bash | implement |
 | plan-review-agent | 実装計画レビュー | inherit | Read,Grep,Glob | (なし) |
 | review-agent | コードレビュー | inherit | Read,Grep,Glob,Bash | (なし) |
 | capture-before-after-agent | 視覚的検証 | inherit | Read,Bash,Write,AskUserQuestion | capture-before-after |
@@ -690,8 +698,11 @@ SkillSmith は上記を `HookEvent` 型として定義しており、既知の�
 | 組み合わせ | 理由 |
 |-----------|------|
 | `SessionStart` / `Setup` で `mcp_tool` | MCP サーバー接続前に発火する |
-| `PermissionRequest` で `agent` | `command` / `http` のみ許可 |
+| 下記 12 イベント以外で `prompt` / `agent` | `prompt` / `agent` の全 5 種に対応するのは `PreToolUse` / `PostToolUse` / `PostToolUseFailure` / `PostToolBatch` / `PermissionDenied` / `Stop` / `SubagentStop` / `TaskCreated` / `TaskCompleted` / `TeammateIdle` / `UserPromptSubmit` / `UserPromptExpansion` のみ。それ以外は `command` / `http` / `mcp_tool` だけ |
+| `PermissionRequest` で `agent` | `prompt` は使えるが `agent` は使えない |
 | ツール系以外のイベントで `if` | permission rule はツール呼び出しにしか適用できない |
+
+生成された `scripts/*` は実行権限（0755）付きで書き出される。exec form はシェルを介さずスクリプトを直接 spawn するため実行権限が必須で、git は実行ビットを保持し、Claude Code はインストール時に権限を付与しない。
 
 ### フックの出力と exit code
 

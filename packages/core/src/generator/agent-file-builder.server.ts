@@ -12,7 +12,6 @@ export interface AgentFileInput {
   effort?: string;
   tools?: ToolRef[];
   disallowedTools?: ToolRef[];
-  permissionMode?: string;
   maxTurns?: number;
   memory?: string;
   isolation?: "worktree";
@@ -39,9 +38,6 @@ export function buildAgentFileContent(input: AgentFileInput): string {
   }
   if (input.disallowedTools && input.disallowedTools.length > 0) {
     fields.disallowedTools = input.disallowedTools.map(serializeToolRef);
-  }
-  if (input.permissionMode) {
-    fields.permissionMode = input.permissionMode;
   }
   if (input.maxTurns !== undefined) {
     fields.maxTurns = input.maxTurns;

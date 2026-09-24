@@ -94,7 +94,7 @@ describe("buildAgentFileContent", () => {
 
     expect(content).toMatch(/---\n\n本文\n$/);
   });
-  it("effort / disallowedTools / permissionMode / maxTurns / memory / isolation を frontmatter に出力する", () => {
+  it("effort / disallowedTools / maxTurns / memory / isolation を frontmatter に出力する", () => {
     const content = buildAgentFileContent({
       name: "a",
       description: "d",
@@ -102,7 +102,6 @@ describe("buildAgentFileContent", () => {
       effort: "high",
       tools: [tool("Read")],
       disallowedTools: [tool("Write"), bash("rm *")],
-      permissionMode: "plan",
       maxTurns: 20,
       memory: "project",
       isolation: "worktree",
@@ -112,7 +111,6 @@ describe("buildAgentFileContent", () => {
     expect(content).toContain("model: claude-sonnet-5");
     expect(content).toContain("effort: high");
     expect(content).toContain("disallowedTools:\n  - Write\n  - Bash(rm *)");
-    expect(content).toContain("permissionMode: plan");
     expect(content).toContain("maxTurns: 20");
     expect(content).toContain("memory: project");
     expect(content).toContain("isolation: worktree");
@@ -128,7 +126,6 @@ describe("buildAgentFileContent", () => {
     for (const key of [
       "effort:",
       "disallowedTools:",
-      "permissionMode:",
       "maxTurns:",
       "memory:",
       "isolation:",

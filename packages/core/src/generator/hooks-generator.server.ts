@@ -7,10 +7,11 @@ import type { HookAction } from "../types/plugin";
 import {
   ERROR_CODES,
   FILE_PATHS,
-  HOOK_AGENT_DISALLOWED_EVENTS,
+  HOOK_AGENT_ALLOWED_EVENTS,
   HOOK_EVENTS,
   HOOK_IF_ALLOWED_EVENTS,
   HOOK_MCP_TOOL_DISALLOWED_EVENTS,
+  HOOK_PROMPT_ALLOWED_EVENTS,
   HOOK_TYPES,
 } from "../types/constants";
 
@@ -53,11 +54,14 @@ export function generateHooks(
   });
 
   // スクリプトファイルの生成
+  // exec form（args あり）はシェルを介さずファイルを直接 spawn するため実行権限が必須。
+  // git は実行ビットを保持し、Claude Code はインストール時に権限を付与しないので、書き出し時点で付ける
   if (hookDef.scripts) {
     for (const script of hookDef.scripts) {
       files.push({
         path: `${FILE_PATHS.SCRIPTS_DIR}${script.filename}`,
         content: script.content,
+        executable: true,
       });
     }
   }
@@ -71,7 +75,9 @@ export function generateHooks(
  * - フックアクションが空のエントリ: エラー
  * - ツール系イベント以外での `if`: エラー
  * - SessionStart / Setup での `mcp_tool`: エラー（MCP 接続前に発火するため）
- * - PermissionRequest での `agent`: エラー（command / http 型のみ許可）
+ * - `prompt` / `agent` に対応していないイベントでの使用: エラー
+ *   （対応イベントは公式ドキュメントの「Events that support all five hook types」に準拠。
+ *    `prompt` は加えて PermissionRequest でも使えるが、`agent` は使えない）
  * - command が参照するスクリプトが scripts に同梱されていない: エラー
  * - shell form でクォートされていない ${CLAUDE_PLUGIN_ROOT}: 警告（`claude plugin validate` と同じ指摘）
  */
@@ -84,7 +90,8 @@ export function validateHooks(
   const mcpToolDisallowedEvents = new Set<string>(
     HOOK_MCP_TOOL_DISALLOWED_EVENTS,
   );
-  const agentDisallowedEvents = new Set<string>(HOOK_AGENT_DISALLOWED_EVENTS);
+  const promptAllowedEvents = new Set<string>(HOOK_PROMPT_ALLOWED_EVENTS);
+  const agentAllowedEvents = new Set<string>(HOOK_AGENT_ALLOWED_EVENTS);
   const bundledScripts = new Set(
     (hookDef.scripts ?? []).map((script) => script.filename),
   );
@@ -121,7 +128,8 @@ export function validateHooks(
             field: actionField,
             ifAllowedEvents,
             mcpToolDisallowedEvents,
-            agentDisallowedEvents,
+            promptAllowedEvents,
+            agentAllowedEvents,
             bundledScripts,
           }),
         );
@@ -137,7 +145,8 @@ interface ActionValidationContext {
   field: string;
   ifAllowedEvents: Set<string>;
   mcpToolDisallowedEvents: Set<string>;
-  agentDisallowedEvents: Set<string>;
+  promptAllowedEvents: Set<string>;
+  agentAllowedEvents: Set<string>;
   bundledScripts: Set<string>;
 }
 
@@ -169,14 +178,31 @@ function validateHookAction(
     });
   }
 
+  // 未知のイベントは HOOK_UNKNOWN_EVENT で警告済みなので、ここでは既知イベントのみ判定する
+  const isKnownEvent = (HOOK_EVENTS as readonly string[]).includes(ctx.event);
+
+  if (
+    action.type === HOOK_TYPES.PROMPT &&
+    isKnownEvent &&
+    !ctx.promptAllowedEvents.has(ctx.event)
+  ) {
+    errors.push({
+      severity: "error",
+      code: ERROR_CODES.HOOK_PROMPT_NOT_ALLOWED,
+      message: `"prompt" hooks are not supported on ${ctx.event}. Supported events: ${HOOK_PROMPT_ALLOWED_EVENTS.join(", ")}`,
+      field: `${ctx.field}.type`,
+    });
+  }
+
   if (
     action.type === HOOK_TYPES.AGENT &&
-    ctx.agentDisallowedEvents.has(ctx.event)
+    isKnownEvent &&
+    !ctx.agentAllowedEvents.has(ctx.event)
   ) {
     errors.push({
       severity: "error",
       code: ERROR_CODES.HOOK_AGENT_NOT_ALLOWED,
-      message: `"agent" hooks cannot run on ${ctx.event}. Use "command" or "http" instead`,
+      message: `"agent" hooks are not supported on ${ctx.event}. Supported events: ${HOOK_AGENT_ALLOWED_EVENTS.join(", ")}`,
       field: `${ctx.field}.type`,
     });
   }

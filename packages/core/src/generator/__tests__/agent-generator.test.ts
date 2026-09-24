@@ -12,12 +12,14 @@ function makeAgentComponent(overrides: {
   description?: string;
   model?: string;
   tools?: ToolRef[];
+  disallowedTools?: ToolRef[];
 }) {
   return {
     skillName: overrides.skillName ?? "my-skill",
     agentConfig: {
       model: overrides.model,
       tools: overrides.tools,
+      disallowedTools: overrides.disallowedTools,
       description: overrides.description ?? "テスト用エージェント",
     },
     skillConfig: {
@@ -95,6 +97,26 @@ describe("generateAgentMd", () => {
     );
     expect(file!.content).not.toContain("input:");
     expect(file!.content).not.toContain("output:");
+  });
+
+  it("disallowedTools 未指定でも Agent を disallowedTools に付与する（subagent のネスト禁止）", () => {
+    const { file } = generateAgentMd(makeAgentComponent({}));
+    expect(file!.content).toContain("disallowedTools:\n  - Agent");
+  });
+
+  it("disallowedTools 指定時は末尾に Agent を追加する", () => {
+    const { file } = generateAgentMd(
+      makeAgentComponent({ disallowedTools: [tool("Write")] }),
+    );
+    expect(file!.content).toContain("disallowedTools:\n  - Write\n  - Agent");
+  });
+
+  it("disallowedTools に既に Agent があれば重複させない", () => {
+    const { file } = generateAgentMd(
+      makeAgentComponent({ disallowedTools: [tool("Agent"), tool("Write")] }),
+    );
+    expect(file!.content).toContain("disallowedTools:\n  - Agent\n  - Write\n");
+    expect(file!.content.match(/  - Agent/g)).toHaveLength(1);
   });
 
   it("descriptionを本文に含める", () => {

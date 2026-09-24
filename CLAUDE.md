@@ -80,7 +80,7 @@ GeneratedPlugin（GeneratedFile[] + バリデーションエラー）
 3. **Sub Agent** の成果物はワークフローファイル（`~/.claude/workflows/{task-id}/`）に保存し、**ファイルパスのみ**をOrchestratorに返す
 4. Orchestratorがパスを中継し、次のAgentに渡す（読み込む側はファイル名を知らない）
 
-**重要な制約**: Sub Agentは更にSub Agentを生成できない。そのためオーケストレーター型Entry-pointは必ずSkillとして作成する（Agentにしない）。
+**重要な設計方針**: Sub Agent のネスト（Sub Agent が更に Sub Agent を起動すること）は禁止する。Claude Code 自体はデフォルトで 3 階層までのネストを許可しているが、SkillSmith では subagent の連鎖的増殖を防ぐため意図的に 1 階層に限定する。このため、オーケストレーター型 Entry-point は必ず Skill として作成し（Agent にしない）、Worker の agent.md には `disallowedTools: [Agent]` が自動付与される。
 
 ### スキルの3分類
 
