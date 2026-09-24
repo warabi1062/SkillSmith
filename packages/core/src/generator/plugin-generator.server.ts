@@ -63,6 +63,12 @@ export function generatePlugin(
   const pluginJson = generatePluginJson({
     name: pluginDef.name,
     description: pluginDef.description,
+    version: pluginDef.version,
+    author: pluginDef.author,
+    homepage: pluginDef.homepage,
+    repository: pluginDef.repository,
+    license: pluginDef.license,
+    keywords: pluginDef.keywords,
   });
   validationErrors.push(...pluginJson.errors);
   if (pluginJson.file) {
@@ -117,10 +123,15 @@ export function generateSkillComponent(
       description: skill.description,
       skillType: skill.skillType,
       argumentHint: skill.argumentHint,
+      arguments: skill.arguments,
       userInvocable: skill.userInvocable,
       disableModelInvocation: skill.disableModelInvocation,
       model: skill.model,
+      effort: skill.effort,
       allowedTools: skill.allowedTools,
+      disallowedTools: skill.disallowedTools,
+      paths: skill.paths,
+      whenToUse: skill.whenToUse,
       content,
     },
   });
@@ -145,7 +156,13 @@ export function generateSkillComponent(
       skillName: skill.name,
       agentConfig: {
         model: skill.agentConfig.model,
+        effort: skill.agentConfig.effort,
         tools: skill.agentConfig.tools,
+        disallowedTools: skill.agentConfig.disallowedTools,
+        permissionMode: skill.agentConfig.permissionMode,
+        maxTurns: skill.agentConfig.maxTurns,
+        memory: skill.agentConfig.memory,
+        isolation: skill.agentConfig.isolation,
         description: skill.agentConfig.description,
         beforeSections: skill.agentConfig.beforeSections,
         afterSections: skill.agentConfig.afterSections,

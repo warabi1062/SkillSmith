@@ -1,31 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { generateSkillMd } from "../skill-generator.server";
-import { tool } from "../../types/skill";
+import { tool, bash } from "../../types/skill";
+import type { SkillGeneratorInput } from "../skill-generator.server";
 import { SKILL_TYPES, ERROR_CODES, FILE_PATHS } from "../../types/constants";
 
-function makeSkillComponent(overrides: {
-  name?: string;
-  description?: string;
-  content?: string;
-  skillType?: string;
-  argumentHint?: string;
-  allowedTools?: import("../../types/skill").ToolRef[];
-  input?: string[];
-  output?: string[];
-  model?: import("../../types/skill").SkillModel;
-}) {
+function makeSkillComponent(
+  overrides: Partial<SkillGeneratorInput> & {
+    input?: string[];
+    output?: string[];
+  },
+) {
   return {
     skillName: overrides.name ?? "my-skill",
     skillConfig: {
+      ...overrides,
       name: overrides.name ?? "my-skill",
-      description: overrides.description,
       skillType: overrides.skillType ?? SKILL_TYPES.ENTRY_POINT,
-      argumentHint: overrides.argumentHint,
-      allowedTools: overrides.allowedTools,
       content: overrides.content ?? "# Hello",
-      input: overrides.input,
-      output: overrides.output,
-      model: overrides.model,
     },
   };
 }
@@ -129,5 +120,71 @@ describe("generateSkillMd", () => {
   ] as const)("model に %s を指定した場合 frontmatter に出力される", (model) => {
     const { file } = generateSkillMd(makeSkillComponent({ model }));
     expect(file!.content).toContain(`model: ${model}`);
+  });
+  it("model にフル ID を指定した場合も frontmatter に出力される", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ model: "claude-opus-5-5" }),
+    );
+    expect(file!.content).toContain("model: claude-opus-5-5");
+  });
+
+  it("effort 指定時に frontmatter に effort を出力する", () => {
+    const { file } = generateSkillMd(makeSkillComponent({ effort: "xhigh" }));
+    expect(file!.content).toContain("effort: xhigh");
+  });
+
+  it("disallowedTools を disallowed-tools の YAML リストとして出力する", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({
+        disallowedTools: [tool("Write"), bash("rm *")],
+      }),
+    );
+    expect(file!.content).toContain(
+      "disallowed-tools:\n  - Write\n  - Bash(rm *)",
+    );
+  });
+
+  it("arguments を YAML リストとして出力する", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ arguments: ["issue", "branch"] }),
+    );
+    expect(file!.content).toContain("arguments:\n  - issue\n  - branch");
+  });
+
+  it("paths を YAML リストとして出力する", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ paths: ["src/**/*.ts", "docs/**"] }),
+    );
+    expect(file!.content).toContain("paths:\n  - src/**/*.ts\n  - docs/**");
+  });
+
+  it("whenToUse を when_to_use として出力する", () => {
+    const { file } = generateSkillMd(
+      makeSkillComponent({ whenToUse: "PR レビュー依頼を受けたとき" }),
+    );
+    expect(file!.content).toContain("when_to_use: PR レビュー依頼を受けたとき");
+  });
+
+  it("description と when_to_use の合計が 1536 文字を超えると警告を返す", () => {
+    const { file, errors } = generateSkillMd(
+      makeSkillComponent({
+        description: "a".repeat(1000),
+        whenToUse: "b".repeat(600),
+      }),
+    );
+    expect(file).not.toBeNull();
+    expect(errors).toHaveLength(1);
+    expect(errors[0].severity).toBe("warning");
+    expect(errors[0].code).toBe(ERROR_CODES.SKILL_DESCRIPTION_TOO_LONG);
+  });
+
+  it("description と when_to_use の合計が 1536 文字以内なら警告を返さない", () => {
+    const { errors } = generateSkillMd(
+      makeSkillComponent({
+        description: "a".repeat(1000),
+        whenToUse: "b".repeat(536),
+      }),
+    );
+    expect(errors).toHaveLength(0);
   });
 });

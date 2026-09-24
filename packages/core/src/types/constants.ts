@@ -24,6 +24,8 @@ export const ERROR_CODES = {
   MISSING_PLUGIN_NAME: "MISSING_PLUGIN_NAME",
   MARKETPLACE_NAME_REQUIRED: "MARKETPLACE_NAME_REQUIRED",
   MARKETPLACE_NO_PLUGINS: "MARKETPLACE_NO_PLUGINS",
+  MARKETPLACE_OWNER_REQUIRED: "MARKETPLACE_OWNER_REQUIRED",
+  SKILL_DESCRIPTION_TOO_LONG: "SKILL_DESCRIPTION_TOO_LONG",
   // hooks 関連
   HOOK_UNKNOWN_EVENT: "HOOK_UNKNOWN_EVENT",
   HOOK_EMPTY_ENTRY: "HOOK_EMPTY_ENTRY",
@@ -49,8 +51,37 @@ export const FRONTMATTER_FIELDS = {
   USER_INVOCABLE: "user-invocable",
   DISABLE_MODEL_INVOCATION: "disable-model-invocation",
   MODEL: "model",
+  EFFORT: "effort",
   ALLOWED_TOOLS: "allowed-tools",
+  DISALLOWED_TOOLS: "disallowed-tools",
+  ARGUMENTS: "arguments",
+  PATHS: "paths",
+  WHEN_TO_USE: "when_to_use",
 } as const;
+
+// SKILL.md / agent.md の effort に指定できる値
+export const EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"] as const;
+
+// SKILL.md の description + when_to_use の合計文字数上限（Claude Code の仕様）
+export const SKILL_DESCRIPTION_MAX_LENGTH = 1536;
+
+// marketplace.json の $schema に出力する公式 JSON Schema の URL
+export const MARKETPLACE_JSON_SCHEMA_URL =
+  "https://www.schemastore.org/claude-code-marketplace.json";
+
+// agent.md の permissionMode に指定できる値
+export const AGENT_PERMISSION_MODES = [
+  "default",
+  "acceptEdits",
+  "auto",
+  "dontAsk",
+  "bypassPermissions",
+  "plan",
+  "manual",
+] as const;
+
+// agent.md の memory に指定できる値
+export const AGENT_MEMORY_SCOPES = ["user", "project", "local"] as const;
 
 // ---- hooks 関連 ----
 // Claude Code の hooks 仕様に準拠（https://code.claude.com/docs/en/hooks）

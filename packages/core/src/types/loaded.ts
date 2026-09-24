@@ -1,7 +1,13 @@
 // Loaded系型定義と型ガード
 // ローダーが返す解決済みの型。ファイルシステムAPIを使用しないため .server.ts サフィックス不要
 
-import type { ToolRef, AgentConfig, SkillModel } from "./skill";
+import type {
+  ToolRef,
+  AgentConfig,
+  SkillModel,
+  EffortLevel,
+  ModelSpec,
+} from "./skill";
 import { SKILL_TYPES } from "./constants";
 
 // ローダーが返す型: SupportFile + 読み込んだ content
@@ -62,10 +68,15 @@ interface LoadedSkillBase {
   input?: string[];
   output?: string[];
   allowedTools?: ToolRef[];
+  disallowedTools?: ToolRef[];
   argumentHint?: string;
+  arguments?: string[];
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
   model?: SkillModel; // SKILL.md frontmatter の model フィールド
+  effort?: EffortLevel;
+  paths?: string[];
+  whenToUse?: string;
   files: LoadedSupportFile[];
   dependencies?: string[];
   steps?: LoadedStep[];
@@ -100,7 +111,7 @@ export interface LoadedWorkerWithSubAgentSkill extends LoadedSkillBase {
 export interface LoadedTeammate {
   name: string;
   role: string;
-  model?: "sonnet" | "opus" | "haiku";
+  model?: ModelSpec;
   steps: LoadedDelegateStep[];
   sortOrder?: number;
 }
@@ -138,6 +149,12 @@ export interface LoadedHookDefinition {
 export interface LoadedPluginDefinition {
   name: string;
   description?: string;
+  version?: string;
+  author?: import("./plugin").PluginAuthor;
+  homepage?: string;
+  repository?: string;
+  license?: string;
+  keywords?: string[];
   skills: LoadedSkillUnion[];
   hooks?: LoadedHookDefinition;
 }

@@ -70,6 +70,7 @@ function createMarketplaceDef(
   return {
     name: "test-marketplace",
     description: "テスト用マーケットプレイス",
+    owner: { name: "test-owner" },
     plugins: pluginNames.map((name) => ({
       name,
       skills: [],

@@ -78,7 +78,7 @@ ComponentDependency で Agent が依存できる Skill は、SkillConfig.type �
 
 **reference.md での管理方法**:
 - Agent の `skills:` フロントマターで、プリロードするスキルをリスト指定
-- Orchestrator Skill の SKILL.md 内で、`Task(subagent_type: ...)` で呼ぶ Agent を記述
+- Orchestrator Skill の SKILL.md 内で、`Agent(subagent_type: ...)` で呼ぶ Agent を記述
 
 **ツール設計での判断**: 上記すべてを `ComponentDependency` テーブルで管理し、AgentConfig から `skills` フィールドを廃止する。
 

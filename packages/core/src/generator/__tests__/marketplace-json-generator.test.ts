@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { generateMarketplaceJson } from "../marketplace-json-generator.server";
 import type { MarketplaceDefinition } from "../../types/marketplace";
 import type { PluginDefinition } from "../../types/plugin";
-import { ERROR_CODES, FILE_PATHS } from "../../types/constants";
+import {
+  ERROR_CODES,
+  FILE_PATHS,
+  MARKETPLACE_JSON_SCHEMA_URL,
+} from "../../types/constants";
 
 // テスト用のヘルパー関数
 function makeMarketplace(
@@ -11,7 +15,7 @@ function makeMarketplace(
   return {
     name: overrides.name ?? "test-marketplace",
     description: overrides.description,
-    owner: overrides.owner,
+    owner: overrides.owner ?? { name: "default-owner" },
     plugins: overrides.plugins ?? [],
   };
 }
@@ -39,8 +43,9 @@ describe("generateMarketplaceJson", () => {
     const result = generateMarketplaceJson(marketplace);
     const json = JSON.parse(result.file.content);
 
+    expect(json.$schema).toBe(MARKETPLACE_JSON_SCHEMA_URL);
     expect(json.$schema).toBe(
-      "https://anthropic.com/claude-code/marketplace.schema.json",
+      "https://www.schemastore.org/claude-code-marketplace.json",
     );
     expect(json.name).toBe("my-marketplace");
     expect(json.description).toBe("テスト用マーケットプレイス");
@@ -100,13 +105,35 @@ describe("generateMarketplaceJson", () => {
     expect(json.plugins[0].description).toBeUndefined();
   });
 
-  it("ownerが未指定の場合にownerフィールドが省略されること", () => {
+  it("owner.name が未指定の場合にエラーを返すこと（Claude Code の仕様で必須）", () => {
+    const marketplace = makeMarketplace({
+      name: "test",
+      plugins: [makePlugin()],
+    });
+    // jiti 経由の読み込みでは型チェックが効かないため、欠落ケースを再現する
+    (marketplace as { owner?: unknown }).owner = undefined;
+
+    const result = generateMarketplaceJson(marketplace);
+
+    expect(
+      result.errors.some(
+        (e) =>
+          e.code === ERROR_CODES.MARKETPLACE_OWNER_REQUIRED &&
+          e.severity === "error",
+      ),
+    ).toBe(true);
+  });
+
+  it("owner に email を含めて出力できること", () => {
     const result = generateMarketplaceJson(
-      makeMarketplace({ name: "test", plugins: [makePlugin()] }),
+      makeMarketplace({
+        owner: { name: "me", email: "me@example.com" },
+        plugins: [makePlugin()],
+      }),
     );
     const json = JSON.parse(result.file.content);
 
-    expect(json.owner).toBeUndefined();
+    expect(json.owner).toEqual({ name: "me", email: "me@example.com" });
   });
 
   it("descriptionが未指定の場合にdescriptionフィールドが省略されること", () => {

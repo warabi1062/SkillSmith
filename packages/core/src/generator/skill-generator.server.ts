@@ -1,12 +1,13 @@
 import type { GeneratedFile, GenerationValidationError } from "./types";
 import { serializeFrontmatter } from "../core/frontmatter.server";
-import type { ToolRef, SkillModel } from "../types/skill";
+import type { ToolRef, SkillModel, EffortLevel } from "../types/skill";
 import { serializeToolRef } from "../types/skill";
 import {
   SKILL_TYPES,
   ERROR_CODES,
   FILE_PATHS,
   FRONTMATTER_FIELDS,
+  SKILL_DESCRIPTION_MAX_LENGTH,
 } from "../types/constants";
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
@@ -18,10 +19,15 @@ export interface SkillGeneratorInput {
   description?: string;
   skillType: string;
   argumentHint?: string;
+  arguments?: string[];
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
   model?: SkillModel;
+  effort?: EffortLevel;
   allowedTools?: ToolRef[];
+  disallowedTools?: ToolRef[];
+  paths?: string[];
+  whenToUse?: string;
   content: string;
 }
 
@@ -63,8 +69,22 @@ export function generateSkillMd(component: SkillComponentData): {
     return { file: null, errors };
   }
 
+  // description + when_to_use は合算で上限があり、超過分は Claude Code 側で切り詰められる
+  const descriptionLength =
+    (config.description?.length ?? 0) + (config.whenToUse?.length ?? 0);
+  if (descriptionLength > SKILL_DESCRIPTION_MAX_LENGTH) {
+    errors.push({
+      severity: "warning",
+      code: ERROR_CODES.SKILL_DESCRIPTION_TOO_LONG,
+      message: `Skill "${config.name}" description + when_to_use is ${descriptionLength} characters, exceeding the ${SKILL_DESCRIPTION_MAX_LENGTH} character limit (the excess will be truncated by Claude Code)`,
+      skillName: component.skillName,
+      field: "description",
+    });
+  }
+
   // ToolRef[] → string[] にシリアライズしてfrontmatter用に変換
   const allowedTools = config.allowedTools?.map(serializeToolRef);
+  const disallowedTools = config.disallowedTools?.map(serializeToolRef);
 
   // Build frontmatter
   const frontmatterFields: Record<
@@ -77,14 +97,23 @@ export function generateSkillMd(component: SkillComponentData): {
   if (config.description) {
     frontmatterFields.description = config.description;
   }
+  if (config.whenToUse) {
+    frontmatterFields[FRONTMATTER_FIELDS.WHEN_TO_USE] = config.whenToUse;
+  }
   if (config.argumentHint) {
     frontmatterFields[FRONTMATTER_FIELDS.ARGUMENT_HINT] = config.argumentHint;
+  }
+  if (config.arguments && config.arguments.length > 0) {
+    frontmatterFields[FRONTMATTER_FIELDS.ARGUMENTS] = config.arguments;
   }
   if (config.disableModelInvocation) {
     frontmatterFields[FRONTMATTER_FIELDS.DISABLE_MODEL_INVOCATION] = true;
   }
   if (config.model !== undefined) {
     frontmatterFields[FRONTMATTER_FIELDS.MODEL] = config.model;
+  }
+  if (config.effort !== undefined) {
+    frontmatterFields[FRONTMATTER_FIELDS.EFFORT] = config.effort;
   }
   // userInvocable が明示的に設定されていればその値を使う。未設定ならENTRY_POINT以外はfalse
   if (config.userInvocable !== undefined) {
@@ -94,6 +123,12 @@ export function generateSkillMd(component: SkillComponentData): {
   }
   if (allowedTools && allowedTools.length > 0) {
     frontmatterFields[FRONTMATTER_FIELDS.ALLOWED_TOOLS] = allowedTools;
+  }
+  if (disallowedTools && disallowedTools.length > 0) {
+    frontmatterFields[FRONTMATTER_FIELDS.DISALLOWED_TOOLS] = disallowedTools;
+  }
+  if (config.paths && config.paths.length > 0) {
+    frontmatterFields[FRONTMATTER_FIELDS.PATHS] = config.paths;
   }
 
   const frontmatter = serializeFrontmatter(frontmatterFields);
