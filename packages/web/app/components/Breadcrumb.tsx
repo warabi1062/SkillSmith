@@ -22,7 +22,7 @@ function useBreadcrumbs(): BreadcrumbItem[] {
     const def = handle.breadcrumb;
     const resolved =
       typeof def === "function"
-        ? def({ data: match.data, params: match.params })
+        ? def({ data: match.loaderData, params: match.params })
         : def;
 
     items.push(resolved);

@@ -1,6 +1,12 @@
 // スキル型定義: abstract class とサブクラス
 
-import { SKILL_TYPES, TOOL_REF_TYPES } from "./constants";
+import {
+  AGENT_MEMORY_SCOPES,
+  AGENT_PERMISSION_MODES,
+  EFFORT_LEVELS,
+  SKILL_TYPES,
+  TOOL_REF_TYPES,
+} from "./constants";
 
 // ツール参照の構造化型（string ではなく型安全にツールを指定する）
 export type ToolRef =
@@ -104,11 +110,32 @@ export interface SupportFile {
   filename: string;
 }
 
+// モデル指定に使う値
+// Claude Code の仕様（https://code.claude.com/docs/en/skills#frontmatter-reference）に準拠し、
+// エイリアス（sonnet / opus / haiku）・inherit のほか、フル ID などの任意の文字列も受け付ける
+export type ModelSpec = "sonnet" | "opus" | "haiku" | "inherit" | (string & {});
+
+// effort に指定できる値
+export type EffortLevel = (typeof EFFORT_LEVELS)[number];
+
+// agent.md の permissionMode に指定できる値
+export type AgentPermissionMode = (typeof AGENT_PERMISSION_MODES)[number];
+
+// agent.md の memory に指定できる値
+export type AgentMemoryScope = (typeof AGENT_MEMORY_SCOPES)[number];
+
 // Agent設定（WorkerWithSubAgent用）
 // description + beforeSections/afterSections から content を自動生成
+// frontmatter フィールドは Claude Code の sub-agents 仕様（https://code.claude.com/docs/en/sub-agents）に準拠
 export interface AgentConfig {
-  model?: string;
+  model?: ModelSpec;
+  effort?: EffortLevel;
   tools?: ToolRef[];
+  disallowedTools?: ToolRef[]; // tools やデフォルトから除外するツール
+  permissionMode?: AgentPermissionMode;
+  maxTurns?: number; // エージェントの最大ターン数
+  memory?: AgentMemoryScope; // 永続メモリのスコープ
+  isolation?: "worktree"; // 一時 git worktree で隔離実行
   description: string; // agentの説明
   beforeSections?: Section[]; // 実行セクション前の追加セクション
   afterSections?: Section[]; // 実行セクション後の追加セクション
@@ -118,7 +145,7 @@ export interface AgentConfig {
 export interface Teammate {
   name: string; // メンバー名（例: "implementer"）
   role: string; // 役割の説明（例: "実装計画に従ってコードを実装し、テストを書く"）
-  model?: "sonnet" | "opus" | "haiku"; // Agent ツールの model パラメータで指定するモデル
+  model?: ModelSpec; // Agent ツールの model パラメータで指定するモデル
   steps: DelegateStep[]; // 手順ステップの配列
   sortOrder?: number;
 }
@@ -126,9 +153,8 @@ export interface Teammate {
 // SkillType の文字列リテラル型
 export type SkillType = (typeof SKILL_TYPES)[keyof typeof SKILL_TYPES];
 
-// SKILL.md frontmatter で指定可能な model 値
-// Claude Code の skills 仕様に準拠（https://docs.claude.com/en/docs/claude-code/skills）
-export type SkillModel = "sonnet" | "opus" | "haiku" | "inherit";
+// SKILL.md frontmatter で指定可能な model 値（/model で指定できる任意の値 + inherit）
+export type SkillModel = ModelSpec;
 
 // Skill の共通オプショナルフィールド
 type SkillOptionalFields = Pick<
@@ -137,10 +163,15 @@ type SkillOptionalFields = Pick<
   | "input"
   | "output"
   | "allowedTools"
+  | "disallowedTools"
   | "argumentHint"
+  | "arguments"
   | "userInvocable"
   | "disableModelInvocation"
   | "model"
+  | "effort"
+  | "paths"
+  | "whenToUse"
   | "files"
   | "dependencies"
   | "steps"
@@ -157,10 +188,15 @@ export abstract class Skill {
   input?: string[];
   output?: string[];
   allowedTools?: ToolRef[];
+  disallowedTools?: ToolRef[]; // スキル実行中にツールプールから除外するツール
   argumentHint?: string;
+  arguments?: string[]; // 名前付き位置引数。本文で $name として参照できる
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
   model?: SkillModel; // SKILL.md frontmatter の model フィールド
+  effort?: EffortLevel; // SKILL.md frontmatter の effort フィールド
+  paths?: string[]; // 自動有効化を限定する glob パターン
+  whenToUse?: string; // description に追記される呼び出し文脈（合計 1536 文字まで）
   files?: SupportFile[];
   dependencies?: Skill[]; // このスキルが呼び出すスキルインスタンスのリスト
   steps?: Step[]; // オーケストレーター用: 再帰的ステップ定義（Branch を含む）
@@ -173,12 +209,18 @@ export abstract class Skill {
     if (init.input !== undefined) this.input = init.input;
     if (init.output !== undefined) this.output = init.output;
     if (init.allowedTools !== undefined) this.allowedTools = init.allowedTools;
+    if (init.disallowedTools !== undefined)
+      this.disallowedTools = init.disallowedTools;
     if (init.argumentHint !== undefined) this.argumentHint = init.argumentHint;
+    if (init.arguments !== undefined) this.arguments = init.arguments;
     if (init.userInvocable !== undefined)
       this.userInvocable = init.userInvocable;
     if (init.disableModelInvocation !== undefined)
       this.disableModelInvocation = init.disableModelInvocation;
     if (init.model !== undefined) this.model = init.model;
+    if (init.effort !== undefined) this.effort = init.effort;
+    if (init.paths !== undefined) this.paths = init.paths;
+    if (init.whenToUse !== undefined) this.whenToUse = init.whenToUse;
     if (init.files !== undefined) this.files = init.files;
     if (init.dependencies !== undefined) this.dependencies = init.dependencies;
     if (init.steps !== undefined) this.steps = init.steps;

@@ -11,6 +11,8 @@ import type {
   DelegateStep,
   Section,
   SkillModel,
+  EffortLevel,
+  ModelSpec,
 } from "../types/skill";
 import { SKILL_TYPES } from "../types/constants";
 import type { MarketplaceDefinition } from "../types/marketplace";
@@ -28,7 +30,7 @@ import type {
   LoadedHookDefinition,
   LoadedHookScript,
 } from "../types/loaded";
-import type { HookDefinition } from "../types/plugin";
+import type { HookDefinition, PluginAuthor } from "../types/plugin";
 import { isLoadedBranch, isLoadedInlineStep } from "../types/loaded";
 
 // import 用の分岐ステップ型
@@ -72,10 +74,15 @@ interface ImportedSkillBase {
   input?: string[];
   output?: string[];
   allowedTools?: ToolRef[];
+  disallowedTools?: ToolRef[];
   argumentHint?: string;
+  arguments?: string[];
   userInvocable?: boolean;
   disableModelInvocation?: boolean;
   model?: SkillModel;
+  effort?: EffortLevel;
+  paths?: string[];
+  whenToUse?: string;
   files?: SupportFile[];
   dependencies?: { name: string }[];
   steps?: ImportedStep[];
@@ -115,7 +122,7 @@ type ImportedSkill =
 interface ImportedTeammate {
   name: string;
   role: string;
-  model?: "sonnet" | "opus" | "haiku";
+  model?: ModelSpec;
   steps: ImportedDelegateStep[];
   sortOrder?: number;
 }
@@ -124,6 +131,12 @@ interface ImportedTeammate {
 interface ImportedPluginDefinition {
   name: string;
   description?: string;
+  version?: string;
+  author?: PluginAuthor;
+  homepage?: string;
+  repository?: string;
+  license?: string;
+  keywords?: string[];
   skills: ImportedSkill[];
   hooks?: HookDefinition;
 }
@@ -209,10 +222,15 @@ export async function loadPluginDefinition(
         input: skill.input,
         output: skill.output,
         allowedTools: skill.allowedTools,
+        disallowedTools: skill.disallowedTools,
         argumentHint: skill.argumentHint,
+        arguments: skill.arguments,
         userInvocable: skill.userInvocable,
         disableModelInvocation: skill.disableModelInvocation,
         model: skill.model,
+        effort: skill.effort,
+        paths: skill.paths,
+        whenToUse: skill.whenToUse,
         files: loadedFiles,
         dependencies,
         steps: loadedSteps,
@@ -270,6 +288,12 @@ export async function loadPluginDefinition(
   return {
     name: pluginDef.name,
     description: pluginDef.description,
+    version: pluginDef.version,
+    author: pluginDef.author,
+    homepage: pluginDef.homepage,
+    repository: pluginDef.repository,
+    license: pluginDef.license,
+    keywords: pluginDef.keywords,
     skills,
     hooks: loadedHooks,
   };
@@ -461,6 +485,7 @@ async function loadHookDefinition(
   }
 
   return {
+    schema: hookDef.schema,
     description: hookDef.description,
     hooks: hookDef.hooks,
     scripts: loadedScripts.length > 0 ? loadedScripts : undefined,

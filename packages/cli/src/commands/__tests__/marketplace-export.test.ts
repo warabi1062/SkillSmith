@@ -70,6 +70,7 @@ function createMarketplaceDef(
   return {
     name: "test-marketplace",
     description: "テスト用マーケットプレイス",
+    owner: { name: "test-owner" },
     plugins: pluginNames.map((name) => ({
       name,
       skills: [],
@@ -100,6 +101,7 @@ describe("marketplace export コマンド", () => {
       writtenFiles: ["skills/my-skill/SKILL.md"],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
     vi.mocked(generateMarketplaceJson).mockReturnValue({
       file: { path: "marketplace.json", content: '{"name":"test"}' },
@@ -144,6 +146,7 @@ describe("marketplace export コマンド", () => {
       writtenFiles: ["skills/a/SKILL.md"],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
     vi.mocked(generateMarketplaceJson).mockReturnValue({
       file: { path: "marketplace.json", content: '{"name":"test"}' },
@@ -266,6 +269,7 @@ describe("marketplace export コマンド", () => {
         writtenFiles: [],
         skippedFiles: [],
         errors: [],
+        validationErrors: [],
       })
       .mockResolvedValueOnce({
         success: false,
@@ -273,6 +277,7 @@ describe("marketplace export コマンド", () => {
         writtenFiles: [],
         skippedFiles: [],
         errors: ["Write failed"],
+        validationErrors: [],
       });
 
     try {
@@ -337,6 +342,7 @@ describe("marketplace export コマンド", () => {
       writtenFiles: [],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
     vi.mocked(generateMarketplaceJson).mockReturnValue({
       file: { path: "marketplace.json", content: "" },
@@ -383,6 +389,7 @@ describe("marketplace export コマンド", () => {
       writtenFiles: [],
       skippedFiles: [],
       errors: [],
+      validationErrors: [],
     });
     vi.mocked(generateMarketplaceJson).mockReturnValue({
       file: { path: "marketplace.json", content: '{"name":"test"}' },
@@ -403,6 +410,55 @@ describe("marketplace export コマンド", () => {
       const errorOutput = stderrData.join("");
       expect(errorOutput).toContain("[io]");
       expect(errorOutput).toContain("marketplace.json");
+    } finally {
+      cleanup();
+    }
+  });
+  it("プラグインの warning をプラグイン名付きで成功出力の warnings に含める", async () => {
+    // Arrange
+    registerMarketplaceExportCommand();
+    const { stdoutData, cleanup } = captureProcessOutput();
+    const marketplaceDef = createMarketplaceDef(["plugin-a"]);
+
+    vi.mocked(loadMarketplaceDefinition).mockResolvedValue(marketplaceDef);
+    vi.mocked(loadPluginDefinition).mockResolvedValue({
+      name: "plugin-a",
+      skills: [],
+    });
+    vi.mocked(exportPlugin).mockResolvedValue({
+      success: true,
+      exportedDir: "/tmp/output/plugins/plugin-a",
+      writtenFiles: ["hooks/hooks.json"],
+      skippedFiles: [],
+      errors: [],
+      validationErrors: [
+        {
+          severity: "warning",
+          code: "HOOK_UNKNOWN_EVENT",
+          message: "Unknown hook event Foo",
+          field: "hooks.Foo",
+        },
+      ],
+    });
+    vi.mocked(generateMarketplaceJson).mockReturnValue({
+      file: { path: "marketplace.json", content: '{"name":"test"}' },
+      errors: [],
+    });
+    vi.mocked(mkdir).mockResolvedValue(undefined);
+    vi.mocked(writeFile).mockResolvedValue(undefined);
+
+    try {
+      // Act
+      const exitCode = await route(
+        ["marketplace", "export", "./marketplace", "--output", "/tmp/output"],
+        noop,
+      );
+
+      // Assert
+      expect(exitCode).toBe(0);
+      const output = stdoutData.join("");
+      expect(output).toContain("warnings");
+      expect(output).toContain("plugin-a: hooks.Foo: Unknown hook event Foo");
     } finally {
       cleanup();
     }

@@ -1,6 +1,7 @@
 import { Link, useOutletContext } from "react-router";
 import type { PluginOutletContext } from "./marketplaces.$marketplaceId.plugins.$id";
 import PluginActionsSection from "../components/PluginActionsSection";
+import PluginHooksSection from "../components/PluginHooksSection";
 import { getSkillTypeBadge } from "@warabi1062/skillsmith-core/utils/skill-type";
 import { SKILL_TYPES } from "@warabi1062/skillsmith-core/types/constants";
 
@@ -76,6 +77,8 @@ export default function PluginDetail() {
           </div>
         </div>
       )}
+
+      {plugin.hooks && <PluginHooksSection hooks={plugin.hooks} />}
     </div>
   );
 }

@@ -7,16 +7,17 @@ import type {
   MarketplacePluginEntry,
 } from "../types/marketplace";
 import type { GeneratedFile, GenerationValidationError } from "./types";
-import { ERROR_CODES, FILE_PATHS } from "../types/constants";
+import {
+  ERROR_CODES,
+  FILE_PATHS,
+  MARKETPLACE_JSON_SCHEMA_URL,
+} from "../types/constants";
 
 // ジェネレータの結果型
 export interface GenerateMarketplaceJsonResult {
   file: GeneratedFile;
   errors: GenerationValidationError[];
 }
-
-const MARKETPLACE_JSON_SCHEMA =
-  "https://anthropic.com/claude-code/marketplace.schema.json";
 
 // marketplace.json を生成する
 export function generateMarketplaceJson(
@@ -30,6 +31,15 @@ export function generateMarketplaceJson(
       severity: "error",
       code: ERROR_CODES.MARKETPLACE_NAME_REQUIRED,
       message: "marketplace の name は必須です",
+    });
+  }
+
+  // バリデーション: owner は Claude Code の仕様で必須（型上は必須だが、jiti 経由の読み込みでは欠落しうる）
+  if (!marketplace.owner?.name) {
+    errors.push({
+      severity: "error",
+      code: ERROR_CODES.MARKETPLACE_OWNER_REQUIRED,
+      message: "marketplace の owner.name は必須です",
     });
   }
 
@@ -54,10 +64,10 @@ export function generateMarketplaceJson(
 
   // marketplace.json オブジェクトを構築
   const json: MarketplaceJson = {
-    $schema: MARKETPLACE_JSON_SCHEMA,
+    $schema: MARKETPLACE_JSON_SCHEMA_URL,
     name: marketplace.name,
     ...(marketplace.description && { description: marketplace.description }),
-    ...(marketplace.owner && { owner: marketplace.owner }),
+    owner: marketplace.owner,
     plugins: pluginEntries,
   };
 

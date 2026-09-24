@@ -43,18 +43,29 @@ plugins/{plugin-name}/
 ├── agents/
 │   ├── triage-agent.md
 │   └── implement-agent.md
+├── hooks/
+│   └── hooks.json             # ライフサイクルフック定義（任意。「フック（hooks）」参照）
+├── scripts/                   # フックから呼び出すスクリプト（任意）
+│   └── notify.sh
 └── docs/                      # プラグインのドキュメント（任意）
     └── design.md
 ```
 
 ### plugin.json フォーマット
 
+必須は `name` のみ。`version` / `author` を省略すると `claude plugin validate` が警告する。
+
 ```json
 {
   "name": "{plugin-name}",
-  "description": "{プラグインの概要}"
+  "version": "1.0.0",
+  "description": "{プラグインの概要}",
+  "author": { "name": "{作者名}" },
+  "license": "MIT"
 }
 ```
+
+SkillSmith の `PluginDefinition` は `version` / `author` / `homepage` / `repository` / `license` / `keywords` を受け付ける。`category` は marketplace.json 側のフィールドで plugin.json には出力されない。
 
 ## スキル作成
 
@@ -89,7 +100,7 @@ Skill は役割によって3つのパターンに分類される。
 
 **オーケストレーター型**:
 
-複数の Agent を `Task(subagent_type: ...)` で順番に呼び出し、ワークフロー全体を制御するEntry-point skill。
+複数の Agent を `Agent(subagent_type: ...)` で順番に呼び出し、ワークフロー全体を制御するEntry-point skill。
 
 特徴:
 - 全体の流れを1箇所で把握できる
@@ -99,9 +110,9 @@ Skill は役割によって3つのパターンに分類される。
 - **Worker skill を直接呼ばず、必ず対応する Agent を経由する**
 
 **オーケストレーター型は Skill として作ること（Agent にしない）**:
-- オーケストレーターは `Task(subagent_type: ...)` で他の agent を呼び出す必要がある
+- オーケストレーターは `Agent(subagent_type: ...)` で他の agent を呼び出す必要がある
 - Agent（Subagent）は更に Subagent を生成できない（[公式ドキュメント: Sub-agents - Limitations](https://docs.anthropic.com/en/docs/claude-code/sub-agents#limitations)）
-- Skill はメインコンテキストで実行されるため、Task ツールで自由に Subagent を呼べる
+- Skill はメインコンテキストで実行されるため、Agent ツールで自由に Subagent を呼べる
 - `context: fork` + カスタム Agent の組み合わせも、fork 先が Subagent になるため同じ制約を受ける
 - 唯一の例外は `claude --agent` でメインスレッドとして起動する場合だが、`/skill-name` での呼び出しとは別の使い方になる
 
@@ -116,7 +127,7 @@ Entry-point skill（主にオーケストレーター型）のステップとし
 
 **Worker skill に対応する Agent が必要かの判断**:
 - Skill は手順・知識を定義し、Agent は `skills:` でそれをプリロードして実行する
-- オーケストレーターは Agent を `Task(subagent_type: ...)` で呼び出す（Skill を直接呼ばない）
+- オーケストレーターは Agent を `Agent(subagent_type: ...)` で呼び出す（Skill を直接呼ばない）
 - これにより skill-agent の紐づけが Agent 側に凝集され、オーケストレーターは「誰に依頼するか」だけを管理する
 
 **Agent が必要なケース**:
@@ -154,15 +165,23 @@ Entry-point skill（主にオーケストレーター型）のステップとし
 |-----------|------|------|
 | `name` | No | スキル名。省略時はディレクトリ名。小文字・数字・ハイフンのみ（最大64文字） |
 | `description` | 推奨 | スキルの説明。Claudeが自動発動の判断に使う |
+| `when_to_use` | No | 呼び出し文脈の補足。`description` に追記される（合計 1,536 文字まで） |
 | `argument-hint` | No | オートコンプリートで表示されるヒント。例: `[issue-number]` |
+| `arguments` | No | 名前付き位置引数。本文で `$issue` のように参照できる |
 | `disable-model-invocation` | No | `true`でClaudeの自動発動を禁止。副作用のあるスキル向き |
 | `user-invocable` | No | `false`で`/`メニューから非表示。バックグラウンド知識向き |
 | `allowed-tools` | No | スキル実行中に許可確認なしで使えるツール |
+| `disallowed-tools` | No | スキル実行中にツールプールから除外するツール |
 | `context` | No | `fork`でサブエージェントとして隔離実行 |
 | `agent` | No | `context: fork`時のエージェントタイプ |
-| `model` | No | スキル実行時のモデル指定 |
-| `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`max`（`max`はOpus 4.6のみ） |
+| `background` | No | `context: fork` 時に `false` で結果を待つ |
+| `model` | No | スキル実行時のモデル指定。エイリアス（`sonnet` 等）・フル ID・`inherit` |
+| `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`xhigh`/`max` |
+| `paths` | No | 自動有効化を限定する glob パターン |
 | `hooks` | No | スキルライフサイクルにフックするシェルコマンド |
+| `shell` | No | 本文の `!`command`` 実行に使うシェル（`bash` / `powershell`） |
+
+SkillSmith の `Skill` は `description` / `whenToUse` / `argumentHint` / `arguments` / `disableModelInvocation` / `userInvocable` / `allowedTools` / `disallowedTools` / `model` / `effort` / `paths` を受け付け、対応する frontmatter を生成する。`context` / `agent` / `background` / `hooks` / `shell` は現時点では生成しない。
 
 ### allowed-tools の記法
 
@@ -391,7 +410,7 @@ teammate 用の `agents/*.md` は生成されない（subagent_type は使わず
 ### 概要
 
 サブエージェントはプラグインの `agents/{name}.md` に定義する。
-Taskツールの `subagent_type` で指定して起動される。
+Agent ツールの `subagent_type` で指定して起動される。
 メイン会話とは隔離されたコンテキストで実行される。
 
 ### Agent Frontmatter フィールド一覧
@@ -400,20 +419,22 @@ Taskツールの `subagent_type` で指定して起動される。
 
 | フィールド | 必須 | 説明 |
 |-----------|------|------|
-| `name` | Yes | エージェント名。Taskツールの`subagent_type`で指定する値 |
+| `name` | Yes | エージェント名。Agent ツールの`subagent_type`で指定する値 |
 | `description` | Yes | エージェントの説明 |
-| `model` | No | 使用モデル。`inherit`（親と同じ）, `sonnet`, `haiku`, `opus` |
+| `model` | No | 使用モデル。`inherit`（親と同じ）、エイリアス（`sonnet` / `haiku` / `opus`）、フル ID |
 | `tools` | No | 使用可能なツールのリスト |
 | `disallowedTools` | No | 拒否するツールのリスト。`tools`やデフォルトから除外される |
 | `skills` | No | プリロードするスキルのリスト。スキルの全文がシステムプロンプトに注入される |
-| `permissionMode` | No | 権限モード。`default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, `plan` |
-| `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`max`（`max`はOpus 4.6のみ） |
+| `permissionMode` | No | 権限モード。`default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, `plan`, `manual` |
+| `effort` | No | モデルの思考レベル。`low`/`medium`/`high`/`xhigh`/`max` |
 | `maxTurns` | No | エージェントの最大ターン数。無限ループ防止に有効 |
 | `mcpServers` | No | エージェントにスコープされたMCPサーバー。名前参照またはインライン定義 |
 | `hooks` | No | エージェントのライフサイクルにフックするコマンド |
 | `memory` | No | 永続メモリのスコープ。`user`, `project`, `local`。セッション跨ぎの学習を可能にする |
 | `background` | No | `true`で常にバックグラウンドタスクとして実行。デフォルト: `false` |
 | `isolation` | No | `worktree`で一時的なgit worktreeで隔離実行。変更がなければ自動クリーンアップ |
+
+SkillSmith の `AgentConfig` は `model` / `effort` / `tools` / `disallowedTools` / `permissionMode` / `maxTurns` / `memory` / `isolation` を受け付ける。`mcpServers` / `hooks` / `background` は現時点では生成しない。
 
 ### tools 選定ガイド
 
@@ -492,12 +513,12 @@ skills:
 
 ### Worker skill との対応
 
-**Worker skill には必ず対応する Agent を作成する。** Agent の `skills:` で対応するスキルをプリロードし、手順・知識を自己取得する構成にする。Entry-point skill（オーケストレーター型）は Agent を `Task(subagent_type: ...)` で呼び出し、Worker skill を直接呼ばない。
+**Worker skill には必ず対応する Agent を作成する。** Agent の `skills:` で対応するスキルをプリロードし、手順・知識を自己取得する構成にする。Entry-point skill（オーケストレーター型）は Agent を `Agent(subagent_type: ...)` で呼び出し、Worker skill を直接呼ばない。
 
 ```
 plugins/{plugin}/skills/implement/SKILL.md    ← 手順・知識を定義
 plugins/{plugin}/agents/implement-agent.md    ← skills: [implement] でプリロード
-plugins/{plugin}/skills/dev/SKILL.md          ← Task(subagent_type: implement-agent) で依頼するだけ
+plugins/{plugin}/skills/dev/SKILL.md          ← Agent(subagent_type: implement-agent) で依頼するだけ
 ```
 
 ### Agent 本文の構成テンプレート
@@ -554,6 +575,174 @@ plugins/{plugin-name}/agents/
 ├── plan-review-agent.md
 └── review-agent.md
 ```
+
+## フック（hooks）
+
+公式ドキュメント: https://code.claude.com/docs/en/hooks
+
+フックは Claude Code のライフサイクルイベント（ツール実行前後、セッション開始、応答完了など）で自動実行される処理。プラグインでは `hooks/hooks.json` に定義し、`scripts/` に同梱したスクリプトを呼び出す。SkillSmith では `PluginDefinition.hooks` に `HookDefinition` を書くと、`hooks/hooks.json` と `scripts/*` が生成される。
+
+### SkillSmith での定義
+
+```ts
+const plugin: PluginDefinition = {
+  name: "code-review",
+  skills: [...],
+  hooks: {
+    description: "レビュー完了時の通知フック",
+    hooks: {
+      PostToolUse: [
+        {
+          matcher: "Write|Edit",
+          hooks: [
+            {
+              type: "command",
+              command: "${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh",
+              args: ["review completed"], // exec form（シェル解釈なし）
+              timeout: 5, // 秒
+            },
+          ],
+        },
+      ],
+      PreToolUse: [
+        {
+          matcher: "Bash",
+          hooks: [
+            {
+              type: "prompt",
+              if: "Bash(git push --force*)", // permission rule 構文で絞り込み
+              prompt: "force push の対象が main なら deny を返してください。\n\n$ARGUMENTS",
+            },
+          ],
+        },
+      ],
+    },
+    scripts: [{ filename: "notify.sh", contentFile: "hooks/notify.sh" }],
+  },
+};
+```
+
+`HookDefinition.schema` に JSON Schema の URL を指定すると、生成される `hooks/hooks.json` の先頭に `$schema` として出力され、エディタの補完・検証に使える。Claude Code は読み込み時にこのキーを無視する（公式ドキュメントは特定の URL を示していないため、SkillSmith もデフォルトでは出力しない）。
+
+### イベント一覧と matcher の対象
+
+`matcher` は省略・`""`・`"*"` で全てにマッチする。英数字・`_`・`-`・空白・`,`・`|` のみなら完全一致（`Edit|Write` はリスト）、それ以外の文字を含むと正規表現として評価される。matcher を持たないイベントに書いた matcher は無視される。
+
+| 分類 | イベント | matcher の対象 |
+|------|---------|---------------|
+| セッション | `SessionStart` | 起動モード（`startup` / `resume` / `clear`） |
+| | `Setup` | CLI フラグ（`init` / `maintenance`） |
+| | `SessionEnd` | 終了理由（`clear` / `resume` / `logout`） |
+| ターン | `UserPromptSubmit` | なし |
+| | `UserPromptExpansion` | 展開されるコマンド名 |
+| | `Stop` | なし |
+| | `StopFailure` | エラー種別（`rate_limit` / `overloaded` など） |
+| ツール呼び出し | `PreToolUse` | ツール名（`Bash`、`Edit\|Write`、`mcp__.*`） |
+| | `PostToolUse` | ツール名 |
+| | `PostToolUseFailure` | ツール名 |
+| | `PostToolBatch` | なし |
+| | `PermissionRequest` | ツール名 |
+| | `PermissionDenied` | ツール名 |
+| サブエージェント | `SubagentStart` / `SubagentStop` | エージェント種別名（`general-purpose`、`Explore`） |
+| その他 | `Notification` | 通知種別（`permission_prompt` / `idle_prompt`） |
+| | `MessageDisplay` | なし |
+| | `TeammateIdle` | なし |
+| | `PreCompact` / `PostCompact` | 圧縮トリガー（`manual` / `auto`） |
+| | `PreModelSwitch` / `PostModelSwitch` | モデル正規名 |
+| | `ConfigChange` | 設定ソース（`user_settings` / `project_settings` など） |
+| | `DirectoryAdded` | 追加方法（`slash_command` など） |
+| | `FileChanged` | ファイル名（完全一致） |
+| | `CwdChanged` | なし |
+| | `InstructionsLoaded` | ロード理由（`session_start` など） |
+| | `TaskCreated` / `TaskCompleted` | なし |
+| | `WorktreeCreate` / `WorktreeRemove` | なし |
+| | `Elicitation` / `ElicitationResult` | MCP サーバー名 |
+
+MCP ツールにマッチさせる場合のツール名は `mcp__{server}__{tool}` 形式。プラグイン同梱の MCP サーバーは `mcp__plugin_{plugin}_{server}__{tool}` になる。
+
+SkillSmith は上記を `HookEvent` 型として定義しており、既知のイベント名は補完・型チェックの対象になる。Claude Code 側で追加された新しいイベントは文字列として書けるが、生成時に「未知のイベント」として警告される。
+
+### フックアクションの種類
+
+| type | 用途 | 固有フィールド |
+|------|------|---------------|
+| `command` | シェルコマンド・実行ファイルを起動 | `command`（必須）、`args`、`async`、`asyncRewake`、`shell`（`bash` / `powershell`） |
+| `http` | フック入力 JSON を POST し、レスポンス JSON を決定として扱う | `url`（必須）、`headers`、`allowedEnvVars` |
+| `mcp_tool` | 接続済み MCP サーバーのツールを呼び出す | `server`（必須）、`tool`（必須）、`input` |
+| `prompt` | 単発の LLM 評価で決定 JSON を返す | `prompt`（必須。`$ARGUMENTS` にフック入力が展開）、`model`、`continueOnBlock`（`ok: false` 時に停止せず reason を Claude に返して続行） |
+| `agent` | ツールを使えるサブエージェントで検証する（experimental） | `prompt`（必須）、`model` |
+
+全 type 共通のフィールド:
+
+| フィールド | 説明 |
+|-----------|------|
+| `timeout` | 秒。デフォルトは `command` / `http` / `mcp_tool` が 600、`prompt` が 30、`agent` が 60。`async: true` のときは無視される |
+| `statusMessage` | 実行中にスピナーへ表示するメッセージ |
+| `if` | permission rule 構文（`Bash(git *)`、`Edit(*.ts)`）による絞り込み。ルールは1つだけ（`&&` / `\|\|` 不可）。ツール系イベント（`PreToolUse` / `PostToolUse` / `PostToolUseFailure` / `PermissionRequest` / `PermissionDenied`）でのみ有効 |
+
+`command` の実行モードは `args` の有無で決まる:
+
+- **exec form**（`args` あり）: シェル解釈なし。各要素がそのまま1引数になり、`${CLAUDE_PLUGIN_ROOT}` などのプレースホルダも安全に展開される。推奨
+- **shell form**（`args` なし）: シェルがパイプ・リダイレクト・グロブを解釈する。`${CLAUDE_PLUGIN_ROOT}` は `"${CLAUDE_PLUGIN_ROOT}"/scripts/run.sh` のようにクォートで囲む（パスに空白が含まれると壊れる。`claude plugin validate` も警告する）
+
+### 使えない組み合わせ
+
+| 組み合わせ | 理由 |
+|-----------|------|
+| `SessionStart` / `Setup` で `mcp_tool` | MCP サーバー接続前に発火する |
+| `PermissionRequest` で `agent` | `command` / `http` のみ許可 |
+| ツール系以外のイベントで `if` | permission rule はツール呼び出しにしか適用できない |
+
+### フックの出力と exit code
+
+`command` は stdout、`http` はレスポンスボディ、`mcp_tool` はツール出力で JSON を返すと、Claude Code がそれを決定として扱う。
+
+| exit code | 意味 |
+|-----------|------|
+| `0` | 成功。stdout の JSON があれば尊重する |
+| `2` | ブロック。`PreToolUse` ではツール呼び出しを止め、`UserPromptSubmit` ではプロンプトを破棄し、`Stop` では Claude を止めない。理由は JSON の `reason` か stderr から取る |
+| その他 | non-blocking エラー。処理は続行し、エラー通知だけ表示される |
+
+主な決定 JSON:
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow | deny | request",
+    "permissionDecisionReason": "...",
+    "updatedInput": { "command": "modified command" },
+    "additionalContext": "Claude に追加で渡す文脈"
+  },
+  "systemMessage": "ユーザーに表示する警告"
+}
+```
+
+`PreToolUse` と `UserPromptSubmit` は `permissionDecision`、`PostToolUse` は `additionalContext`、`PermissionDenied` は `retry: true` を使う。
+
+### フックから使える環境変数
+
+| 変数 | 内容 |
+|------|------|
+| `CLAUDE_PLUGIN_ROOT` | プラグインのインストール先。同梱スクリプトの参照に使う |
+| `CLAUDE_PLUGIN_DATA` | プラグイン更新後も残る永続データディレクトリ（「プラグイン永続データ」参照） |
+| `CLAUDE_PROJECT_DIR` | プロジェクトルート |
+| `CLAUDE_EFFORT` | 現在の effort レベル |
+| `CLAUDE_PLUGIN_OPTION_<KEY>` | プラグインオプションの値 |
+
+### SkillSmith の生成時バリデーション
+
+`generateHooks` は以下を検出する。`skillsmith plugin export` / `marketplace export` は error があればファイルを書き出さずに失敗し、warning は書き出した上で結果の `warnings` に表示する。
+
+| 検出内容 | 重大度 |
+|---------|-------|
+| 未知のイベント名 | warning |
+| フックアクションが空のエントリ | error |
+| ツール系以外のイベントでの `if` | error |
+| `SessionStart` / `Setup` での `mcp_tool` | error |
+| `PermissionRequest` での `agent` | error |
+| `command` / `args` が参照する `${CLAUDE_PLUGIN_ROOT}/scripts/*` が `scripts` に同梱されていない | error |
+| shell form でクォートされていない `${CLAUDE_PLUGIN_ROOT}` | warning |
 
 ## 共通パターン
 
